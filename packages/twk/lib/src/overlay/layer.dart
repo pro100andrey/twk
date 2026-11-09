@@ -334,11 +334,9 @@ final class _EntryHostState extends State<_EntryHost>
   // overlay: none in any other
   FocusNode? _skipNode;
 
-  late final _fade = AnimationController(
-    vsync: this,
-    duration: widget.entry.fadeIn,
-    reverseDuration: widget.entry.fadeOut,
-  );
+  // made in initState, not on first use: dispose of a host that was never
+  // shown would make it, and its ticker, from an element out of the tree
+  late final AnimationController _fade;
 
   // called once it has faded out
   void Function()? _out;
@@ -346,6 +344,11 @@ final class _EntryHostState extends State<_EntryHost>
   @override
   void initState() {
     super.initState();
+    _fade = AnimationController(
+      vsync: this,
+      duration: widget.entry.fadeIn,
+      reverseDuration: widget.entry.fadeOut,
+    );
     if (widget.removed) {
       _shown = false;
       return;

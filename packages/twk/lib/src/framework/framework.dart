@@ -632,6 +632,19 @@ abstract class Element implements BuildContext {
 
   @override
   void visitAncestorElements(ConditionalElementVisitor visitor) {
+    assert(
+      _debugCheckActiveForLookup('visitAncestorElements'),
+      'lookup from an inactive element',
+    );
+    visitRetainedAncestors(visitor);
+  }
+
+  /// Like [visitAncestorElements], for code of the framework that walks the
+  /// parents an element still has while it is out of the tree, within the
+  /// frame that removed it (where the focus was, for one): it skips the
+  /// check that the element is active.
+  @internal
+  void visitRetainedAncestors(ConditionalElementVisitor visitor) {
     var ancestor = _parent;
     while (ancestor != null && visitor(ancestor)) {
       ancestor = ancestor._parent;
@@ -640,6 +653,10 @@ abstract class Element implements BuildContext {
 
   @override
   T? findAncestorWidgetOfExactType<T extends Widget>() {
+    assert(
+      _debugCheckActiveForLookup('findAncestorWidgetOfExactType<$T>'),
+      'lookup from an inactive element',
+    );
     for (var a = _parent; a != null; a = a._parent) {
       final widget = a.widget;
       if (widget.runtimeType == T) {
@@ -651,16 +668,40 @@ abstract class Element implements BuildContext {
 
   @override
   T? dependOnInheritedWidgetOfExactType<T extends InheritedWidget>() {
+    assert(
+      _debugCheckActiveForLookup('dependOnInheritedWidgetOfExactType<$T>'),
+      'lookup from an inactive element',
+    );
     final ancestor = _inheritedElements?[T];
     return ancestor == null ? null : dependOnInheritedElement(ancestor) as T;
   }
 
   @override
   InheritedWidget dependOnInheritedElement(InheritedElement ancestor) {
+    assert(
+      _debugCheckActiveForLookup('dependOnInheritedElement'),
+      'lookup from an inactive element',
+    );
     if ((_dependencies ??= _Dependencies()).add(ancestor)) {
       ancestor._dependents.add(this);
     }
     return ancestor.widget;
+  }
+
+  /// Debug only: fails where this element is not in the tree, whose
+  /// ancestors and inherited widgets it can no longer see: a lookup then
+  /// silently finds nothing (or a default), or walks a detached chain.
+  bool _debugCheckActiveForLookup(String lookup) {
+    assert(
+      _lifecycle == _Lifecycle.active,
+      '$lookup from an element that is ${_lifecycle.name} ($this): '
+      'looking up the ancestors of an element that is not in '
+      'the tree is unsafe, and finds nothing.\n'
+      "To use an ancestor's value in dispose(), save it in "
+      'didChangeDependencies() (or initState) and use the saved one; after an '
+      'await, look it up before the await.',
+    );
+    return true;
   }
 
   /// Whether [ancestor] is above this element in the tree.
@@ -718,16 +759,32 @@ abstract class Element implements BuildContext {
   }
 
   @override
-  T? getInheritedWidgetOfExactType<T extends InheritedWidget>() =>
-      _inheritedElements?[T]?.widget as T?;
+  T? getInheritedWidgetOfExactType<T extends InheritedWidget>() {
+    assert(
+      _debugCheckActiveForLookup('getInheritedWidgetOfExactType<$T>'),
+      'lookup from an inactive element',
+    );
+    return _inheritedElements?[T]?.widget as T?;
+  }
 
   @override
   InheritedElement?
-  getElementForInheritedWidgetOfExactType<T extends InheritedWidget>() =>
-      _inheritedElements?[T];
+  getElementForInheritedWidgetOfExactType<T extends InheritedWidget>() {
+    assert(
+      _debugCheckActiveForLookup(
+        'getElementForInheritedWidgetOfExactType<$T>',
+      ),
+      'lookup from an inactive element',
+    );
+    return _inheritedElements?[T];
+  }
 
   @override
   T? findAncestorStateOfType<T extends State<StatefulWidget>>() {
+    assert(
+      _debugCheckActiveForLookup('findAncestorStateOfType<$T>'),
+      'lookup from an inactive element',
+    );
     for (var a = _parent; a != null; a = a._parent) {
       if (a is StatefulElement && a.state is T) {
         return a.state as T;

@@ -494,9 +494,20 @@ final class _DragTargetState<T extends Object> extends State<DragTarget<T>> {
 
   bool get _accepts => _candidate != null;
 
+  // kept from didChangeDependencies: a drag ending as this target leaves
+  // the tree (its draggable disposed in the same frame) tells it with the
+  // element out of the tree, where no lookup is allowed
+  MouseTracker? _tracker;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tracker = MouseTracker.of(context);
+  }
+
   /// Calls [callback], one of this widget's.
   void _call(void Function() callback) {
-    final tracker = MouseTracker.of(context);
+    final tracker = _tracker;
     if (tracker == null) {
       callback();
     } else {

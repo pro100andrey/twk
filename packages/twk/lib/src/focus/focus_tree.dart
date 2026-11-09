@@ -957,7 +957,7 @@ final class FocusManager {
     }
     // the top of the subtree removed with it, whose parent is still there
     var top = element;
-    element.visitAncestorElements((e) {
+    element.visitRetainedAncestors((e) {
       top = e;
       return true;
     });

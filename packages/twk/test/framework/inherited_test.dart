@@ -211,14 +211,17 @@ void main() {
     });
 
     test('is dropped when the dependent leaves the tree, before it is '
-        'unmounted, and it finds no inherited widgets', () {
+        'unmounted, and a lookup from it fails an assert', () {
       final log = <String>[];
       final tree = Tree()..pump(_Value(1, log: log, child: _reader('a', log)));
       final context = tree.elementOf<Probe>();
       tree
         ..show(_Value(1, log: log, child: const Leaf('x')))
         ..owner.buildScope();
-      expect(context.getInheritedWidgetOfExactType<_Value>(), isNull);
+      expect(
+        () => context.getInheritedWidgetOfExactType<_Value>(),
+        throwsA(isA<AssertionError>()),
+      );
       log.clear();
       tree
         ..show(_Value(2, log: log, child: const Leaf('x')))
