@@ -445,10 +445,7 @@ String renderToString(
   final surface = Surface(width, height);
   final canvas = Canvas(surface, styles, glyphs);
   final presenter = Presenter(width, height, styles, glyphs);
-  final owner = PipelineOwner(() {}, segmenter: canvas.segmenter)
-    // what is returned is data: no overflow marker over it, the warning
-    // still goes to onLog
-    ..debugOverflowIndicator = false
+  final owner = PipelineOwner.forData(() {}, segmenter: canvas.segmenter)
     ..onLog = onLog
     ..root = root
     ..markAllDirty();

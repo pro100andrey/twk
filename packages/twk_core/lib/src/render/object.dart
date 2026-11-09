@@ -761,22 +761,15 @@ abstract class RenderObject {
   // debug only: the objects whose last layout call was made without
   // parentUsesSize, by a parent that is not told the size otherwise (a tight
   // constraint or sizedByParent also make a boundary, but one whose size
-  // can't change within the constraints). Kept apart from the object so a
-  // release build has no field for it; only reached from asserts.
-  static final _debugSizeNotUsed = Expando<bool>('size not used by parent');
+  // can't change within the constraints); see _debugStates.
 
-  // debug only: whether a read of this object's size now is one the parent's
-  // layout may make. A read by anything else than the parent in its layout
-  // (the object itself, in its own layout or after it; paint; hit tests)
-  // can't be told from it by the field, so it is the state that decides:
-  // the parent is in its layout (not in a layout callback), and this object
-  // is not, and was laid out without parentUsesSize.
   bool _debugParentMayReadSize(String which) {
     final p = parent;
+    // the object in its own performLayout now is the parent: a static test,
+    // as every read of a size during a layout comes here
     if (p == null ||
-        !p._debugLayingOut ||
-        _debugLayingOut ||
-        _debugSizeNotUsed[this] != true) {
+        !identical(p, _debugInLayout) ||
+        !(_debugStates[this]?.sizeNotUsed ?? false)) {
       return true;
     }
     throw AssertionError(
@@ -790,30 +783,40 @@ abstract class RenderObject {
   BoxConstraints? _constraints;
   var _needsLayout = true;
 
-  // debug only, kept apart from the object (an Expando each) so that a
-  // release build has no field for them on every render object; only reached
-  // from asserts. Laying out: this object is in its own performLayout, where
-  // a mark on it would be cleared by the layout. Painting: it is in its own
-  // paint, and whether it marked itself there (selfMarked); and how many
-  // paints in a row did (selfMarkRun). One mark settles something on purpose
-  // (a child moved a frame late); a paint that marks every time repaints on
-  // every frame.
-  static final _debugLayingOutOf = Expando<bool>('laying out');
-  static final _debugPaintingOf = Expando<bool>('painting');
-  static final _debugSelfMarkedOf = Expando<bool>('marked itself in paint');
-  static final _debugSelfMarkRunOf = Expando<int>('paints marking in a row');
+  // debug only, kept apart from the object so that a release build has no
+  // field for them on every render object; only reached from asserts. One
+  // Expando holds one mutable state per object, made on the first write and
+  // edited in place after (an Expando entry per flag, written and removed on
+  // every layout and paint, made asserts-on frames 70 % slower). Laying out:
+  // this object is in its own performLayout, where a mark on it would be
+  // cleared by the layout. Painting: it is in its own paint, and whether it
+  // marked itself there (selfMarked); and how many paints in a row did
+  // (selfMarkRun). One mark settles something on purpose (a child moved a
+  // frame late); a paint that marks every time repaints on every frame.
+  // SizeNotUsed: the last layout call was made without parentUsesSize.
+  static final _debugStates = Expando<_DebugState>('render object debug state');
 
-  bool get _debugLayingOut => _debugLayingOutOf[this] ?? false;
-  set _debugLayingOut(bool v) => _debugLayingOutOf[this] = v ? true : null;
+  // the object whose performLayout runs now, innermost: null outside a
+  // layout, and in a layout callback (where the object is not "in its
+  // layout" for a read of a child's size, see _debugParentMayReadSize)
+  static RenderObject? _debugInLayout;
 
-  bool get _debugPainting => _debugPaintingOf[this] ?? false;
-  set _debugPainting(bool v) => _debugPaintingOf[this] = v ? true : null;
+  _DebugState get _debugState => _debugStates[this] ??= _DebugState();
 
-  bool get _debugSelfMarked => _debugSelfMarkedOf[this] ?? false;
-  set _debugSelfMarked(bool v) => _debugSelfMarkedOf[this] = v ? true : null;
+  // the reads outside the hot paths, which hold the state in a local
+  bool get _debugLayingOut => _debugStates[this]?.layingOut ?? false;
+  // lifts and restores the flag around a callback of this object's layout
+  // (the hot paths hold the state, and the static, themselves)
+  set _debugLayingOut(bool v) {
+    _debugState.layingOut = v;
+    if (v) {
+      _debugInLayout = this;
+    } else if (identical(_debugInLayout, this)) {
+      _debugInLayout = null;
+    }
+  }
 
-  int get _debugSelfMarkRun => _debugSelfMarkRunOf[this] ?? 0;
-  set _debugSelfMarkRun(int v) => _debugSelfMarkRunOf[this] = v == 0 ? null : v;
+  bool get _debugPainting => _debugStates[this]?.painting ?? false;
 
   // laid out last so that its size can't change the parent's layout: a
   // layout mark stops here, and this subtree is laid out on its own
@@ -1346,7 +1349,7 @@ abstract class RenderObject {
   void markNeedsPaint() {
     assert(() {
       if (_debugPainting) {
-        _debugSelfMarked = true;
+        _debugState.selfMarked = true;
       }
       return true;
     }(), 'notes a mark made in paint');
@@ -1393,12 +1396,11 @@ abstract class RenderObject {
     _relayoutBoundary =
         !parentUsesSize || c.isTight || sizedByParent || parent == null;
     assert(() {
-      _debugSizeNotUsed[this] =
+      final notUsed =
           _relayoutBoundary &&
-              !parentUsesSize &&
-              !(c.isTight || sizedByParent || parent == null)
-          ? true
-          : null;
+          !parentUsesSize &&
+          !(c.isTight || sizedByParent || parent == null);
+      _debugState.sizeNotUsed = notUsed;
       return true;
     }(), 'records the layout call');
     if (same) {
@@ -1454,14 +1456,20 @@ abstract class RenderObject {
     _intrinsicsCached = 0;
     _needsLayout = true;
     var outer = false;
+    RenderObject? outerNow;
+    _DebugState? st;
     assert(() {
-      outer = _debugLayingOut;
-      _debugLayingOut = false;
+      st = _debugState;
+      outer = st!.layingOut;
+      st!.layingOut = false;
+      outerNow = _debugInLayout;
+      _debugInLayout = null;
       return true;
     }(), 'sets the layout flag');
     callback();
     assert(() {
-      _debugLayingOut = outer;
+      _debugInLayout = outerNow;
+      st!.layingOut = outer;
       return true;
     }(), 'restores the layout flag');
     if (asked != 0 && _intrinsicsChanged(asked)) {
@@ -1494,15 +1502,21 @@ abstract class RenderObject {
   void _layOut(BoxConstraints c) {
     _laidOut = true;
     var outer = false;
+    RenderObject? outerNow;
+    _DebugState? st;
     assert(() {
-      outer = _debugLayingOut;
-      _debugLayingOut = true;
+      st = _debugState;
+      outer = st!.layingOut;
+      st!.layingOut = true;
+      outerNow = _debugInLayout;
+      _debugInLayout = this;
       return true;
     }(), 'sets the layout flag');
     try {
       performLayout(c);
       assert(() {
-        _debugLayingOut = outer;
+        st!.layingOut = outer;
+        _debugInLayout = outerNow;
         return true;
       }(), 'restores the layout flag');
       // inside the try: a layout bug found here is this object's error box
@@ -1522,7 +1536,8 @@ abstract class RenderObject {
       );
     } on Object catch (error, stack) {
       assert(() {
-        _debugLayingOut = outer;
+        st!.layingOut = outer;
+        _debugInLayout = outerNow;
         return true;
       }(), 'restores the layout flag');
       _layoutFailed(c, error, stack);
@@ -1762,17 +1777,20 @@ abstract class RenderObject {
       depth = ctx.canvas.debugSaveDepth;
       return true;
     }(), 'the depth of the canvas saves');
+    _DebugState? st;
     assert(() {
-      _debugPainting = true;
+      st = _debugState;
+      st!.painting = true;
       return true;
     }(), 'sets the paint flag');
     try {
       paint(ctx);
-      assert(_debugPaintEnd(ctx, depth), 'paint left saves or marks');
+      assert(_debugPaintEnd(ctx, depth, st!), 'paint left saves or marks');
     } on Object catch (error, stack) {
       assert(() {
-        _debugPainting = false;
-        _debugSelfMarked = false;
+        st!
+          ..painting = false
+          ..selfMarked = false;
         return true;
       }(), 'clears the paint flag');
       assert(_unwindSaves(ctx, depth), 'unwinding the saves of a paint');
@@ -1786,13 +1804,14 @@ abstract class RenderObject {
 
   // debug only, in assert: ends the paint flag; fails with a hint when
   // this object marked itself in each of its last paints, or left saves
-  bool _debugPaintEnd(PaintContext ctx, int depth) {
-    _debugPainting = false;
-    final marked = _debugSelfMarked;
-    _debugSelfMarked = false;
-    _debugSelfMarkRun = marked ? _debugSelfMarkRun + 1 : 0;
-    if (_debugSelfMarkRun >= 3) {
-      _debugSelfMarkRun = 0;
+  bool _debugPaintEnd(PaintContext ctx, int depth, _DebugState st) {
+    final marked = st.selfMarked;
+    st
+      ..painting = false
+      ..selfMarked = false
+      ..selfMarkRun = marked ? st.selfMarkRun + 1 : 0;
+    if (st.selfMarkRun >= 3) {
+      st.selfMarkRun = 0;
       _unwindSaves(ctx, depth);
       throw AssertionError(
         '$this marked itself for paint inside its own paint in three paints '
@@ -2226,4 +2245,13 @@ void _forgetCutChild(RenderObject c) {
   _cutAt = y;
   _forgetCutKeepers(c);
   _cutAt = at;
+}
+
+/// The debug-only state of a render object, see `RenderObject._debugStates`.
+class _DebugState {
+  var layingOut = false;
+  var painting = false;
+  var selfMarked = false;
+  var selfMarkRun = 0;
+  var sizeNotUsed = false;
 }

@@ -33,7 +33,18 @@ final class PipelineOwner {
   /// is marked; text is measured with [segmenter], a [TextSegmenter] of
   /// its own when left out.
   PipelineOwner(this.onNeedFrame, {TextSegmenter? segmenter})
-    : segmenter = segmenter ?? TextSegmenter();
+    : segmenter = segmenter ?? TextSegmenter(),
+      _overflowIndicator = debugOverflowIndicatorByDefault;
+
+  /// An owner for output that is data (what `renderToString` returns, a
+  /// line written to a pipe or a file, a capture held to goldens, a commit
+  /// to the scrollback): [debugOverflowIndicator] is off, whatever
+  /// [debugOverflowIndicatorByDefault] says, so no marker is drawn over the
+  /// output; the warning of an overflow still goes to [onLog]. It can be
+  /// turned on afterwards, as on any owner.
+  PipelineOwner.forData(this.onNeedFrame, {TextSegmenter? segmenter})
+    : segmenter = segmenter ?? TextSegmenter(),
+      _overflowIndicator = false;
 
   /// Called each time a render object is marked for layout or paint, and
   /// when [root] is set: the next frame has work to do. Called again for
@@ -94,10 +105,13 @@ final class PipelineOwner {
   /// Whether a flex, a wrap or a grid that its children overflow shows
   /// the marker of it (see [RenderFlex]): a hatch along the cut edge and
   /// the cells cut off. On from the start while asserts are on
-  /// ([debugOverflowIndicatorByDefault]); with asserts off, turned on
-  /// (`TWK_DEBUG=overflow`, Ctrl+G w) it shows the overflow the layouts
-  /// measure anyway. Turned on or off, everything is repainted. A box that
-  /// clips on purpose ([RenderFlex.overflowIntended]) shows none.
+  /// ([debugOverflowIndicatorByDefault]); with asserts off, the layouts
+  /// note an overflow only while it is on, so turning it on
+  /// (`TWK_DEBUG=overflow`, Ctrl+G w) lays out again every flex, wrap
+  /// and grid, and repaints everything; turned off, everything is
+  /// repainted. Output that is data is drawn by an owner made with
+  /// [PipelineOwner.forData]. A box that clips on purpose
+  /// ([RenderFlex.overflowIntended]) shows none.
   bool get debugOverflowIndicator => _overflowIndicator;
   set debugOverflowIndicator(bool on) {
     if (on == _overflowIndicator) {
@@ -126,7 +140,7 @@ final class PipelineOwner {
   /// sets it once, in `main`.
   static bool debugOverflowIndicatorByDefault = debugAssertsEnabled;
 
-  bool _overflowIndicator = debugOverflowIndicatorByDefault;
+  bool _overflowIndicator;
 
   /// Checks, in debug mode, the intrinsic sizes of each object as it is laid
   /// out: each of the four answers, at the object's own width and height

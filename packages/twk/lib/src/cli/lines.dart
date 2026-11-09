@@ -171,12 +171,10 @@ List<String> widgetLines(
       caps: TerminalCaps(styledUnderlines: styledUnderlines),
       colorMode: colorMode,
     );
-    final pipeline = PipelineOwner(() {}, segmenter: screen.canvas.segmenter)
-      // what is written is data, for a pipe or a file: no marker over it,
-      // the warning still goes to onLog
-      ..debugOverflowIndicator = false
-      ..onLog = onLog
-      ..root = top;
+    final pipeline =
+        PipelineOwner.forData(() {}, segmenter: screen.canvas.segmenter)
+          ..onLog = onLog
+          ..root = top;
     final height = top.getMaxIntrinsicHeight(width);
     if (height < 1) {
       // nothing is drawn, but a list that measured no rows is told of

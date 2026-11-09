@@ -488,9 +488,11 @@ final class TwkApp {
   RenderObject? _committing;
   var _commitRow = 0;
 
-  /// Inline mode: where commits are laid out, measured as the screen
+  /// Inline mode: where commits are laid out (committed rows are data in the
+  /// scrollback: no overflow marker, whatever the screen's owner shows),
+  /// measured as the screen
   /// measures text, and painted.
-  late final _commitOwner = PipelineOwner(
+  late final _commitOwner = PipelineOwner.forData(
     _noFrame,
     segmenter: screen.canvas.segmenter,
   )..onLog = logs.add;

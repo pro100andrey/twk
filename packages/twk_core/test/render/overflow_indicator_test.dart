@@ -249,4 +249,10 @@ void main() {
     );
     expect(on.owner.debugOverflowIndicator, isTrue);
   });
+
+  test('an owner for data has the marker off whatever the default is', () {
+    expect(PipelineOwner.debugOverflowIndicatorByDefault, isTrue);
+    expect(PipelineOwner.forData(() {}).debugOverflowIndicator, isFalse);
+    expect(PipelineOwner(() {}).debugOverflowIndicator, isTrue);
+  });
 }
