@@ -6,8 +6,13 @@ import 'dart:async' show Timer, scheduleMicrotask;
 
 import '../../log.dart' show LogLevel, log;
 
-import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart' show State;
+
+/// Starts a timer on some clock: `AppBinding.startTimer`'s shape.
+typedef StartTimer = Timer Function(
+  Duration duration,
+  void Function() callback,
+);
 
 /// The host of a controller given to one widget at a time — the `State`
 /// that serves its calls — kept by the controller, privately, and the
@@ -41,10 +46,13 @@ import '../framework/framework.dart' show State;
 /// is no `State` needs). An old host may stay mounted for a while — a
 /// dialog's entry fading out while the next opens — so a host still
 /// mounted is checked again after a grace of two seconds, and only one
-/// that is mounted then too (on the app's clock; with no app above the
-/// host, at once) is a mistake: it is logged at
+/// that is mounted then too is a mistake: it is logged at
 /// `LogLevel.error` with a [StateError] naming both hosts, which does not
-/// end the app.
+/// end the app. The grace runs on the clock the constructor's `timerOf`
+/// gives for the host (the app's, `AppBinding.startTimerOf` for a `State`);
+/// where it gives none — no app above the host — two hosts mounted at the
+/// handover cannot be waited on, and the check throws the [StateError]
+/// instead, in debug mode only, as an uncaught error.
 ///
 /// A controller of a popup, which its widget's state serves; it is said
 /// closed when that widget leaves and none takes over:
@@ -73,10 +81,16 @@ final class ControllerHost<H extends Object> {
   /// A handover with no host. [mounted] says whether a host is still in the
   /// tree, for the check that no two are at once; by default a `State`
   /// asks its own `mounted`, and any other host is taken as gone.
-  ControllerHost({bool Function(H host)? mounted})
-    : _mounted = mounted == null ? null : ((host) => mounted(host as H));
+  /// [timerOf] says which clock the grace of a host that stays mounted
+  /// runs on, null where there is none (no app above that host).
+  ControllerHost({
+    bool Function(H host)? mounted,
+    StartTimer? Function(H host)? timerOf,
+  }) : _mounted = mounted == null ? null : ((host) => mounted(host as H)),
+       _timerOf = timerOf == null ? null : ((host) => timerOf(host as H));
 
   final bool Function(Object host)? _mounted;
+  final StartTimer? Function(Object host)? _timerOf;
 
   H? _host;
   // each pending grace with the two hosts it waits on
@@ -119,13 +133,10 @@ final class ControllerHost<H extends Object> {
       return;
     }
     if (_isMounted(old) && _isMounted(current)) {
-      // on the app's clock, where the host has an app above it
-      final binding = grace && current is State
-          ? AppBinding.maybeOf(current.context)
-          : null;
-      if (binding != null) {
+      final startTimer = grace ? _timerOf?.call(current as Object) : null;
+      if (startTimer != null) {
         late final Timer timer;
-        timer = binding.startTimer(_overlapGrace, () {
+        timer = startTimer(_overlapGrace, () {
           _graces.remove(timer);
           _checkOneHost(old, grace: false);
         });
@@ -137,6 +148,10 @@ final class ControllerHost<H extends Object> {
         'The first is dead now, the last one attached serves the controller. '
         'Give each widget a controller of its own.',
       );
+      if (grace) {
+        // no clock to wait on: the mistake is not told from a fade-out
+        throw error;
+      }
       log(error.message, level: LogLevel.error, error: error);
     }
   }

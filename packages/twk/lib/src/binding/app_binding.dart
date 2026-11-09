@@ -393,6 +393,12 @@ final class AppBinding implements FrameClock {
   static AppBinding? maybeOf(BuildContext context) =>
       context.getInheritedWidgetOfExactType<_Scope>()?.binding;
 
+  /// The [startTimer] of the app [state] is in, null where it is in none:
+  /// for what needs a clock only when there is an app, and says so itself
+  /// otherwise (`ControllerHost`'s `timerOf`).
+  static Timer Function(Duration, void Function())? startTimerOf(State state) =>
+      maybeOf(state.context)?.startTimer;
+
   /// Starts a timer that calls [callback] after [duration] on the app's
   /// clock, in the zone its frames run in (an error the callback throws ends
   /// the app, as one of a frame's), wherever it is called from: a
@@ -1438,24 +1444,24 @@ final class AppBinding implements FrameClock {
     }
 
     _root?.visitChildren(visit);
-    return _renderPathIn(object, (o) => elements[o]) ?? '${object.runtimeType}';
+    return _renderPathIn(object, elements) ?? '${object.runtimeType}';
   }
 
-  /// [_renderPathOf] by [elementOf], null where it tells no element of
+  /// [_renderPathOf] by [elements], null where it holds no element of
   /// [object], its ancestors or its children.
   String? _renderPathIn(
     RenderObject object,
-    Element? Function(RenderObject) elementOf,
+    Map<RenderObject, Element> elements,
   ) {
     for (RenderObject? o = object; o != null; o = o.parent) {
-      final element = elementOf(o);
+      final element = elements[o];
       if (element != null) {
         final path = _pathOf(element);
         return identical(o, object) ? path : '$path → ${object.runtimeType}';
       }
     }
     Element? held;
-    object.visitChildren((child) => held ??= elementOf(child));
+    object.visitChildren((child) => held ??= elements[child]);
     return held == null ? null : _pathOf(held!);
   }
 

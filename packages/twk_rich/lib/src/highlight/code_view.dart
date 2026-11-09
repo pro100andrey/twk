@@ -256,7 +256,9 @@ final class CodeViewController extends ChangeNotifier {
   CodeViewController({this._query = ''});
 
   // the view it is given to
-  final _hosts = ControllerHost<_CodeViewState>();
+  final _hosts = ControllerHost<_CodeViewState>(
+    timerOf: AppBinding.startTimerOf,
+  );
 
   // bumped by each change of what the view draws
   var _changes = 0;

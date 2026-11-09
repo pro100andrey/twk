@@ -639,6 +639,7 @@ twk.dart typedef RouteFactory
 twk.dart typedef RoutePredicate
 twk.dart typedef SlotLayout
 twk.dart typedef SourceLines
+twk.dart typedef StartTimer
 twk.dart typedef StateSetter
 twk.dart typedef StatefulWidgetBuilder
 twk.dart typedef TickerCallback

@@ -26,6 +26,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../../log.dart';
 import '../ansi/stream.dart' show AnsiStream;
+import '../binding/app_binding.dart' show AppBinding;
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus_tree.dart' show FocusNode;
 import '../focus/shortcuts.dart' show KeyBindings;
@@ -164,7 +165,9 @@ final class LogController extends ChangeNotifier {
   var _moves = 0;
 
   // the view it is given to, whose window a search starts from
-  final _hosts = ControllerHost<_LogViewState>();
+  final _hosts = ControllerHost<_LogViewState>(
+    timerOf: AppBinding.startTimerOf,
+  );
 
   /// The most lines it keeps; the oldest are dropped past it.
   int get maxLines => _maxLines;

@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
     show Attr, CrossAxisAlignment, PointerShape, TextWrap;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../editing/autocomplete.dart';
 import '../editing/text_editing.dart';
 import '../editing/text_field.dart';
@@ -410,7 +411,9 @@ final class FilePickerController extends ChangeNotifier {
   /// A controller that shows nothing until a picker has it.
   FilePickerController();
 
-  final _hosts = ControllerHost<_FilePickerState>();
+  final _hosts = ControllerHost<_FilePickerState>(
+    timerOf: AppBinding.startTimerOf,
+  );
 
   _FilePickerState? get _state => _hosts.host;
 

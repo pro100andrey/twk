@@ -202,7 +202,9 @@ final class SelectionArea extends StatefulWidget {
 /// );
 /// ```
 final class SelectionAreaController with ChangeNotifier {
-  final _hosts = ControllerHost<_SelectionAreaState>();
+  final _hosts = ControllerHost<_SelectionAreaState>(
+    timerOf: AppBinding.startTimerOf,
+  );
 
   /// Whether anything is selected.
   bool get hasSelection => _hosts.host?._selected.isNotEmpty ?? false;
