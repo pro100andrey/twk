@@ -49,10 +49,17 @@ mixin _OverflowIndicator on RenderObject {
   var _overflowRight = 0;
   var _overflowBottom = 0;
 
-  // the overflow in progress was reported
-  var _overflowReported = false;
+  // the overflow in progress was reported (debug only, an Expando: no field
+  // in release)
+  static final _reported = Expando<bool>('overflow reported');
+  bool get _overflowReported => _reported[this] ?? false;
+  set _overflowReported(bool v) => _reported[this] = v ? true : null;
 
   var _overflowIntended = false;
+
+  // whether the last layout noted an overflow: the paint's one check in a
+  // release build, where none is noted unless the marker is on
+  bool get _overflowed => (_overflowRight | _overflowBottom) != 0;
 
   /// Whether the box clips its children on purpose: a strip that shows
   /// the start of what is longer than it, say. It then shows no marker
@@ -63,27 +70,33 @@ mixin _OverflowIndicator on RenderObject {
       return;
     }
     _overflowIntended = value;
-    _overflowReported = false;
+    assert(() {
+      _overflowReported = false;
+      return true;
+    }(), 'the report may come again');
     // the report comes from layout, the marker from paint
     markNeedsLayout();
     markNeedsPaint();
   }
 
   /// Notes, from layout, the cells the content needs beyond the [right] and
-  /// [bottom] edges (0 or less for none), which the marker shows (with
-  /// asserts off too, for [PipelineOwner.debugOverflowIndicator]: two integer
-  /// stores), and logs a warning for [name] the first time they are more than
-  /// 0, again after they were gone (asserts only).
+  /// [bottom] edges (0 or less for none), which the marker shows, and logs a
+  /// warning for [name] the first time they are more than 0, again after
+  /// they were gone (asserts only). The marker is the owner's
+  /// ([PipelineOwner.debugOverflowIndicator]), so with it off, as in a
+  /// release build by default, a layout notes nothing; turning it on lays
+  /// every such box out again.
   void _noteOverflow(String name, int right, int bottom) {
-    final r = right > 0 ? right : 0;
-    final b = bottom > 0 ? bottom : 0;
-    // layout marks the paint of what it laid out
-    _overflowRight = r;
-    _overflowBottom = b;
-    assert(_reportOverflow(name, r, b), 'logs the overflow');
+    if (owner?._overflowIndicator ?? false) {
+      _overflowRight = right > 0 ? right : 0;
+      _overflowBottom = bottom > 0 ? bottom : 0;
+    }
+    assert(_reportOverflow(name, right, bottom), 'logs the overflow');
   }
 
-  bool _reportOverflow(String name, int r, int b) {
+  bool _reportOverflow(String name, int right, int bottom) {
+    final r = right > 0 ? right : 0;
+    final b = bottom > 0 ? bottom : 0;
     if (r == 0 && b == 0) {
       _overflowReported = false;
     } else if (!_overflowReported && !_overflowIntended) {

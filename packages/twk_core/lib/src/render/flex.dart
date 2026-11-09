@@ -546,7 +546,9 @@ final class RenderFlex extends RenderObject
   @override
   void paint(PaintContext ctx) {
     _paintChildren(ctx);
-    paintOverflowIndicator(ctx);
+    if (_overflowed) {
+      paintOverflowIndicator(ctx);
+    }
   }
 
   /// Whether the marker of an overflow is over the cells.

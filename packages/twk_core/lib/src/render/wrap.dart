@@ -436,7 +436,9 @@ final class RenderWrap extends RenderObject
       paintChild(ctx, child);
       child = (child.parentData as WrapParentData).nextSibling;
     }
-    paintOverflowIndicator(ctx);
+    if (_overflowed) {
+      paintOverflowIndicator(ctx);
+    }
   }
 
   /// Whether the marker of an overflow is over the cells.

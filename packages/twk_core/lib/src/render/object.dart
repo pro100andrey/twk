@@ -790,17 +790,30 @@ abstract class RenderObject {
   BoxConstraints? _constraints;
   var _needsLayout = true;
 
-  // debug only, written inside assert: this object is in its own
-  // performLayout, where a mark on it would be cleared by the layout
-  var _debugLayingOut = false;
+  // debug only, kept apart from the object (an Expando each) so that a
+  // release build has no field for them on every render object; only reached
+  // from asserts. Laying out: this object is in its own performLayout, where
+  // a mark on it would be cleared by the layout. Painting: it is in its own
+  // paint, and whether it marked itself there (selfMarked); and how many
+  // paints in a row did (selfMarkRun). One mark settles something on purpose
+  // (a child moved a frame late); a paint that marks every time repaints on
+  // every frame.
+  static final _debugLayingOutOf = Expando<bool>('laying out');
+  static final _debugPaintingOf = Expando<bool>('painting');
+  static final _debugSelfMarkedOf = Expando<bool>('marked itself in paint');
+  static final _debugSelfMarkRunOf = Expando<int>('paints marking in a row');
 
-  // debug only, written inside assert: this object is in its own paint, and
-  // whether it marked itself there; and how many paints in a row did. One
-  // mark settles something on purpose (a child moved a frame late); a
-  // paint that marks every time repaints on every frame.
-  var _debugPainting = false;
-  var _debugSelfMarked = false;
-  var _debugSelfMarkRun = 0;
+  bool get _debugLayingOut => _debugLayingOutOf[this] ?? false;
+  set _debugLayingOut(bool v) => _debugLayingOutOf[this] = v ? true : null;
+
+  bool get _debugPainting => _debugPaintingOf[this] ?? false;
+  set _debugPainting(bool v) => _debugPaintingOf[this] = v ? true : null;
+
+  bool get _debugSelfMarked => _debugSelfMarkedOf[this] ?? false;
+  set _debugSelfMarked(bool v) => _debugSelfMarkedOf[this] = v ? true : null;
+
+  int get _debugSelfMarkRun => _debugSelfMarkRunOf[this] ?? 0;
+  set _debugSelfMarkRun(int v) => _debugSelfMarkRunOf[this] = v == 0 ? null : v;
 
   // laid out last so that its size can't change the parent's layout: a
   // layout mark stops here, and this subtree is laid out on its own

@@ -851,7 +851,9 @@ final class RenderGrid extends RenderObject
       paintChild(ctx, child);
       child = (child.parentData as GridParentData).nextSibling;
     }
-    paintOverflowIndicator(ctx);
+    if (_overflowed) {
+      paintOverflowIndicator(ctx);
+    }
   }
 
   /// Whether a child after [child] reaches the cells.

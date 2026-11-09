@@ -9,8 +9,10 @@ Added:
   edge it is cut off at: a hatch `▚` in yellow on black down the right
   edge or along the bottom one (`/` where the terminal draws `▚` two cells
   wide), and the cells cut off, `+3`, in the corner. It is on while asserts
-  are, and with asserts off where it is turned on, the layout measuring the
-  cells cut off either way (`PipelineOwner.debugOverflowIndicator`, which
+  are, and with asserts off where it is turned on, the layouts measuring the
+  cells cut off only while it is on (turning it on lays them out again; a
+  release build with it off pays one flag read a layout, and no field of a
+  render object is kept for the debug checks) (`PipelineOwner.debugOverflowIndicator`, which
   `PipelineOwner.debugOverflowIndicatorByDefault` sets for the owners made
   afterwards; `TWK_DEBUG=overflow` turns it on, the debug key `w` of twk
   toggles it). `RenderFlex.overflowIntended`, `RenderWrap.overflowIntended`

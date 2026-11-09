@@ -104,6 +104,20 @@ final class PipelineOwner {
       return;
     }
     _overflowIndicator = on;
+    if (on) {
+      // the layouts note an overflow only while the marker is on
+      void again(RenderObject o) {
+        if (o is _OverflowIndicator) {
+          o.markNeedsLayout();
+        }
+        o.visitChildren(again);
+      }
+
+      final r = _root;
+      if (r != null) {
+        again(r);
+      }
+    }
     markAllDirty();
   }
 
