@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Fixed:
+
+- `TerminalView.canRequestFocus` is `bool?`, null by default: a `focusNode`
+  given keeps its own `canRequestFocus` (it was forced back to true by every
+  build).
+- The check `feed` ends with looks at the screens and the scrollback lines
+  pushed since the last check, not every line of the scrollback (a resize and
+  `debugAssertInvariants()` check all).
+- `TerminalEmulator.debugCorrupt` does nothing outside a debug run.
+
 Added:
 
 - `TerminalEmulator.debugAssertInvariants`, the emulator's own state checked

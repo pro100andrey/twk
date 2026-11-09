@@ -483,7 +483,7 @@ final class TerminalEmulator {
   void feed(List<int> bytes) {
     _parser.feed(bytes);
     _sweepIfDue();
-    assert(debugAssertInvariants(), 'the state after feed');
+    assert(debugAssertInvariants(full: false), 'the state after feed');
   }
 
   /// [text] as the program would write it (UTF-8).
@@ -632,8 +632,13 @@ final class TerminalEmulator {
   ///
   /// It checks what the emulator keeps, never the bytes a program wrote,
   /// which are clamped or ignored whatever they are.
+  ///
+  /// With [full] false it is O(screen): of the scrollback it checks only
+  /// the lines pushed since the last check (a line keeps its width until a
+  /// resize, which checks them all, or until it goes), what [feed] does
+  /// per chunk; [full] checks every line.
   @visibleForTesting
-  bool debugAssertInvariants() {
+  bool debugAssertInvariants({bool full = true}) {
     assert(_width >= 1 && _height >= 1, 'size $_width x $_height');
     assert(
       _x >= 0 && _x < _width && _y >= 0 && _y < _height,
@@ -677,7 +682,13 @@ final class TerminalEmulator {
       'scrollback ${_scrollback.length} lines over its limit '
       '${_scrollback.limit}',
     );
-    for (var i = 0; i < _scrollback.length; i++) {
+    final fresh = _scrollbackAdded - _invariantsAdded;
+    final from = full || fresh >= _scrollback.length
+        ? 0
+        : _scrollback.length - fresh;
+    _invariantsAdded = _scrollbackAdded;
+    for (var i = from; i < _scrollback.length; i++) {
+      _debugScrollbackChecked++;
       final l = _scrollback[i];
       assert(
         l.cells.length == _width && l.styles.length == _width,
@@ -686,6 +697,14 @@ final class TerminalEmulator {
     }
     return true;
   }
+
+  var _invariantsAdded = 0;
+  var _debugScrollbackChecked = 0;
+
+  /// How many scrollback lines [debugAssertInvariants] has looked at in
+  /// all, for a test to show [feed] does not look at them all each time.
+  @visibleForTesting
+  int get debugScrollbackChecked => _debugScrollbackChecked;
 
   /// Breaks one thing [debugAssertInvariants] holds, to show it bites:
   /// the cursor column, the top margin, the tab stops, the alternate
@@ -698,21 +717,25 @@ final class TerminalEmulator {
     bool shortAlternate = false,
     bool narrowScrollback = false,
   }) {
-    if (cursorX != null) {
-      _x = cursorX;
-    }
-    if (top != null) {
-      _top = top;
-    }
-    if (shortTabs) {
-      _tabs = Uint8List(_width - 1);
-    }
-    if (shortAlternate) {
-      _alternate.lines.removeLast();
-    }
-    if (narrowScrollback && _scrollback.length > 0) {
-      _scrollback[0].resize(_width + 1, StyleId.base);
-    }
+    // only in a debug run: a release build has no way to corrupt
+    assert(() {
+      if (cursorX != null) {
+        _x = cursorX;
+      }
+      if (top != null) {
+        _top = top;
+      }
+      if (shortTabs) {
+        _tabs = Uint8List(_width - 1);
+      }
+      if (shortAlternate) {
+        _alternate.lines.removeLast();
+      }
+      if (narrowScrollback && _scrollback.length > 0) {
+        _scrollback[0].resize(_width + 1, StyleId.base);
+      }
+      return true;
+    }(), 'corrupting');
   }
 
   static bool _isBlank(TerminalLine line) =>

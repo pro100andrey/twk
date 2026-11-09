@@ -114,9 +114,31 @@ void main() {
         expect(t.scrollbackLength, greaterThan(0));
         corrupt(t);
         expect(t.debugAssertInvariants, throwsA(isA<AssertionError>()));
-        // a feed that writes nothing still ends in the check
-        expect(() => t.feed(const []), throwsA(isA<AssertionError>()));
+        // a feed that writes nothing still ends in the check, which looks at
+        // the lines the scrollback took since the last one, not the old ones
+        if (!name.contains('scrollback')) {
+          expect(() => t.feed(const []), throwsA(isA<AssertionError>()));
+        }
       });
     }
+
+    test('a feed checks the lines the scrollback took, not all of them', () {
+      final t = TerminalEmulator(width: 5, height: 3, scrollbackLimit: 5000);
+      for (var i = 0; i < 2000; i++) {
+        t.feedText('$i\r\n');
+      }
+      expect(t.scrollbackLength, greaterThan(1900));
+      final before = t.debugScrollbackChecked;
+      t
+        ..feedText('x\r\n')
+        ..feed(const [])
+        ..feedText('y');
+      // one line scrolled off, however much it holds
+      expect(t.debugScrollbackChecked - before, lessThanOrEqualTo(1));
+      // a direct call checks them all
+      final n = t.scrollbackLength;
+      t.debugAssertInvariants();
+      expect(t.debugScrollbackChecked - before, greaterThanOrEqualTo(n));
+    });
   });
 }
