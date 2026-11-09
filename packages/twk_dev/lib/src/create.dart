@@ -336,7 +336,9 @@ bool canAsk({required bool stdinIsTerminal, required bool stdoutIsTerminal}) =>
 CliTerminal? askTerminal() =>
     canAsk(
       stdinIsTerminal: stdin.hasTerminal,
-      stdoutIsTerminal: stdout.hasTerminal,
+      // a terminal of no size fails hasTerminal, not stdioType
+      stdoutIsTerminal:
+          stdout.hasTerminal || stdioType(stdout) == StdioType.terminal,
     )
     ? CliTerminal.system()
     : null;

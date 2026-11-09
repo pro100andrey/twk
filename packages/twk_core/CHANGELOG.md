@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Fixed:
+
+- An app on a pseudo-terminal of no size (one `script` opens with no
+  terminal around it: a background job, CI) has it for its terminal, as
+  wide and tall as `COLUMNS` and `LINES` say, else 80 × 24; it ran as plain
+  output, by `stdout.hasTerminal`, which such a terminal fails.
+
 Added:
 
 - `RenderList.jumpToIndex(rows:)`: the item at the top part way into it,

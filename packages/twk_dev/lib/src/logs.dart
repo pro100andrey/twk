@@ -66,7 +66,10 @@ final class LogsCommand extends Command<int> {
         args['color'] as bool? ??
         colorsLevels(
           Platform.environment,
-          outputIsTerminal: stdout.hasTerminal && stdout.supportsAnsiEscapes,
+          // a terminal of no size fails hasTerminal, not stdioType
+          outputIsTerminal:
+              (stdout.hasTerminal || stdioType(stdout) == StdioType.terminal) &&
+              stdout.supportsAnsiEscapes,
         );
     final file = LocalAddress.fileOf('logs', project);
     var waiting = false;

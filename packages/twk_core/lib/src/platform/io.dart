@@ -27,7 +27,12 @@ int get processId => pid;
 /// The process's own terminal, stdin and stdout; null when either is not
 /// one.
 TerminalLink? ownTerminalLink() =>
-    stdin.hasTerminal && stdout.hasTerminal ? StdioLink() : null;
+    stdin.hasTerminal && _stdoutIsTerminal ? StdioLink() : null;
+
+/// Whether stdout is a terminal: by what it is (`stdioType`), not by
+/// `hasTerminal`, which a pseudo-terminal of no size fails (one `script`
+/// opens with no terminal around it: a background job, CI).
+bool get _stdoutIsTerminal => stdioType(stdout) == StdioType.terminal;
 
 /// Whether [link] is the process's own terminal ([ownTerminalLink]), the
 /// controlling terminal of the shell that started it.
@@ -37,8 +42,8 @@ bool isOwnTerminal(TerminalLink link) => link is StdioLink;
 /// long as it is in the background ([StdioLink.waitForTerminal]).
 void waitForOwnTerminal() => StdioLink.waitForTerminal();
 
-/// Whether stdout is a terminal.
-bool get outputIsTerminal => stdout.hasTerminal;
+/// Whether stdout is a terminal ([_stdoutIsTerminal]).
+bool get outputIsTerminal => _stdoutIsTerminal;
 
 /// The process's output as plain text ([PlainLink]): stdout, with stdin
 /// as its input where that is a terminal, and none otherwise.
