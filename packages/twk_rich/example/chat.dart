@@ -6,8 +6,9 @@
 // MarkdownStream, which parses again only what each piece may change.
 // Each block of an answer goes to the history once it is complete
 // (MarkdownStream.takeSettled), the rest shown live above the prompt
-// (MarkdownView.blocks), and the region gives back the rows the block
-// took in it. Enter sends, Esc stops an answer, Ctrl+C quits and leaves
+// (MarkdownView.blocks), its newest lines when it is taller than the room
+// (a SingleChildScrollView that sticks to its end), and the region gives
+// back the rows the block took in it. Enter sends, Esc stops an answer, Ctrl+C quits and leaves
 // the chat in the history.
 //
 //   dart run example/chat.dart
@@ -112,6 +113,9 @@ final class _ConversationState extends State<_Conversation> {
 
   final _input = TextEditingController();
 
+  /// Keeps the answer coming in at its end, its newest lines.
+  final _tail = ScrollController(stickToEnd: true);
+
   /// How many answers were given: the next is the one after them.
   var _answered = 0;
 
@@ -125,6 +129,7 @@ final class _ConversationState extends State<_Conversation> {
   void dispose() {
     _timer?.cancel();
     _input.dispose();
+    _tail.dispose();
     super.dispose();
   }
 
@@ -186,11 +191,19 @@ final class _ConversationState extends State<_Conversation> {
         crossAxisAlignment: .stretch,
         children: [
           Static(items: _history, builder: _entry),
-          // on a short terminal the answer gives up rows, not the prompt
+          // on a short terminal the answer gives up rows, not the prompt,
+          // and what it gives up is its start: its newest lines show
           if (live.isNotEmpty)
             Flexible(
               child: _agent(
-                MarkdownView.blocks(live, definitions: answer!.definitions),
+                SingleChildScrollView(
+                  controller: _tail,
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: MarkdownView.blocks(
+                    live,
+                    definitions: answer!.definitions,
+                  ),
+                ),
               ),
             ),
           Padding(

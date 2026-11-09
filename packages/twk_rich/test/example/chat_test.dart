@@ -142,29 +142,26 @@ $sentPrompt''',
       'history once complete, the terminal scrolling it, while the rest '
       'comes above the prompt, which stays', (t) async {
     await start(t, height: 10);
-    // the answer is cut off at the prompt until its block goes to the
-    // history: the clip is what the test is about, not marked
-    t.binding.debug.overflow = false;
     await t.type('how do I read a file?');
     await t.press('enter');
     await t.pump(pieceInterval * 30);
+    // the block is taller than the room: its newest line shows, the
+    // start of it cut off at the top
     expect(t.scrollback.last, '  To read a file, use File from dart:io:');
     expect(t.lines.sublist(0, 9), [
       '',
-      "   import 'dart:io';",
       '',
       '   Future<void> main() async {',
       "     final text = await File('notes.txt').readAsString();",
+      "     print(text.split('",
       '',
       ...prompt.split('\n').take(3),
     ]);
 
     await t.pumpUntilIdle();
     expect(transcript(t).join('\n'), contains('$firstAnswer\n\n$sentPrompt'));
-  }, failOnOverflow: false);
+  });
 
-  // a streamed block is cut off at the prompt for a frame, until it goes to
-  // the history
   testTwk('the answers come in turn, the first again after the last', (
     t,
   ) async {
@@ -181,7 +178,7 @@ $sentPrompt''',
     );
     expect(after('the change?'), '  This is what the change to greet does:');
     expect(after('file again?'), '  To read a file, use File from dart:io:');
-  }, failOnOverflow: false);
+  });
 
   testTwk('Esc stops the answer, what came of it going to the history; '
       'neither an empty prompt nor one sent while an answer comes sends '

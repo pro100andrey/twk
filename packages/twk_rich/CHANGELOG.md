@@ -4,6 +4,10 @@
 
 Fixed:
 
+- The inline chat example shows the newest lines of an answer's block that
+  is taller than the room above the prompt, the start of it cut off, not
+  the end of it cut off at the prompt (a `SingleChildScrollView` that sticks
+  to its end).
 - `changedWords`, and with it `DiffView`'s highlighting of the words a
   line changed, gives none for lines of more than 20000 words between
   them, which a diff of their words took up to a minute on in a frame
