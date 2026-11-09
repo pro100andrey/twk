@@ -21,7 +21,8 @@ final class StdioLink implements DrainingLink {
   /// What writes to a terminal on Linux and macOS, so that one that reads
   /// nothing blocks nothing; elsewhere, and into a pipe or a file, `stdout`.
   late final PosixOutput? _output =
-      !Platform.isWindows && stdioType(stdout) == StdioType.terminal
+      !Platform.isWindows &&
+          (stdout.hasTerminal || stdioType(stdout) == StdioType.terminal)
       ? PosixOutput.open()
       : null;
 

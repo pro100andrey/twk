@@ -47,7 +47,8 @@ Fixed:
 - A CLI on a pseudo-terminal of no size (one `script` opens with no
   terminal around it: a background job, CI) takes it for a terminal, its
   width `COLUMNS` or none; it wrote to it as to a file, without colours or
-  a progress line written over.
+  a progress line written over. A stdout a test puts in (`IOOverrides`)
+  that says it is a terminal by `hasTerminal` still is one.
 - A focus change a mouse event made is told before the next mouse event
   is handled: a click whose press and release came in one frame pressed a
   button before the field it took the focus from had taken its text (a

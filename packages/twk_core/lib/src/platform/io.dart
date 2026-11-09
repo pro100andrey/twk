@@ -29,10 +29,13 @@ int get processId => pid;
 TerminalLink? ownTerminalLink() =>
     stdin.hasTerminal && _stdoutIsTerminal ? StdioLink() : null;
 
-/// Whether stdout is a terminal: by what it is (`stdioType`), not by
-/// `hasTerminal`, which a pseudo-terminal of no size fails (one `script`
-/// opens with no terminal around it: a background job, CI).
-bool get _stdoutIsTerminal => stdioType(stdout) == StdioType.terminal;
+/// Whether stdout is a terminal: as `hasTerminal` says, or by what it is
+/// (`stdioType`), which a pseudo-terminal of no size passes (one `script`
+/// opens with no terminal around it: a background job, CI) though it fails
+/// `hasTerminal`; a stdout a test puts in (`IOOverrides`) says it by
+/// `hasTerminal` alone.
+bool get _stdoutIsTerminal =>
+    stdout.hasTerminal || stdioType(stdout) == StdioType.terminal;
 
 /// Whether [link] is the process's own terminal ([ownTerminalLink]), the
 /// controlling terminal of the shell that started it.

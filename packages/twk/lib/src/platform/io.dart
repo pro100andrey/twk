@@ -394,12 +394,15 @@ bool get stdinIsTerminal => stdin.hasTerminal;
 /// Stdout, or stderr with [error].
 Stdout _stdio({required bool error}) => error ? stderr : stdout;
 
-/// Whether stdout, or stderr with [error], is a terminal: by what it is
-/// (`stdioType`), not by `hasTerminal`, which a pseudo-terminal of no size
-/// fails (one `script` opens with no terminal around it: a background job,
-/// CI).
-bool stdioIsTerminal({bool error = false}) =>
-    stdioType(_stdio(error: error)) == StdioType.terminal;
+/// Whether stdout, or stderr with [error], is a terminal: as `hasTerminal`
+/// says, or by what it is (`stdioType`), which a pseudo-terminal of no size
+/// passes (one `script` opens with no terminal around it: a background
+/// job, CI) though it fails `hasTerminal`; a stdout a test puts in
+/// (`IOOverrides`) says it by `hasTerminal` alone.
+bool stdioIsTerminal({bool error = false}) {
+  final stdio = _stdio(error: error);
+  return stdio.hasTerminal || stdioType(stdio) == StdioType.terminal;
+}
 
 /// Whether stdout, or stderr with [error], takes ANSI escapes.
 bool stdioSupportsAnsi({bool error = false}) =>
