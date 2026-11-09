@@ -326,6 +326,18 @@ void main() {
       expect(t, styleAt(0, 2, hasAttr(Attr.italic)));
     });
 
+    testTwk("a theme given, a table's rows are filled as the app's theme "
+        'says, as it changes', (t) async {
+      Widget under(ThemeData data) =>
+          Theme(data: data, child: view('| a | b |\n|---|---|\n| 1 | 2 |'));
+      for (final data in [ThemeData.dark, ThemeData.light, ThemeData.dark]) {
+        await t.pumpWidget(under(data), size: (20, 4));
+        final fill = data.background.merge(data.text);
+        expect(t.lines[2], startsWith('1'));
+        expect(t, styleAt(0, 2, allOf(hasBg(fill.bg!), hasFg(fill.fg!))));
+      }
+    });
+
     testTwk('a table growing a row at a time: a reference in a row made '
         'before its definition came is a link once it does', (t) async {
       const head = '| a | b |\n|---|---|\n| [x][r] | 1 |\n';

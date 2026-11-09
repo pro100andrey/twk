@@ -573,12 +573,15 @@ final class _MarkdownViewState extends State<MarkdownView> {
 
   @override
   Widget build(BuildContext context) {
-    _theme = widget.theme ?? _themeFrom(Theme.of(context));
-    // the list markers are of the app's glyphs and marks, apart from a
-    // theme given
+    final app = Theme.of(context);
+    _theme = widget.theme ?? _themeFrom(app);
+    // the list markers are of the app's glyphs and marks, and a table's
+    // fill of its background and text, apart from a theme given
     final madeWith = (
       _theme,
-      Theme.of(context).glyphs,
+      app.glyphs,
+      app.background,
+      app.text,
       ThemeMarks.of(context),
       // what the widths of a table's cells are measured by
       segmenterOf(context).mode,
