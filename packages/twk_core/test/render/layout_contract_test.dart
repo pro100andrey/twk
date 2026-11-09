@@ -1,5 +1,6 @@
 // The contract of layout, held in debug mode: a size within the constraints,
-// a child laid out before it is painted, no mark on an object from inside
+// a child laid out before it is painted, a paint that keeps the canvas
+// balanced, no mark on an object from inside
 // its own layout.
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
@@ -13,6 +14,7 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
     this.lay = true,
     this.markSelf = false,
     this.raw = false,
+    this.leak = false,
   });
 
   final int w;
@@ -20,6 +22,7 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
   final bool lay;
   final bool markSelf;
   final bool raw;
+  final bool leak;
 
   @override
   void performLayout(BoxConstraints c) {
@@ -35,6 +38,9 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
 
   @override
   void paint(PaintContext ctx) {
+    if (leak) {
+      ctx.canvas.save();
+    }
     final k = child;
     if (k != null) {
       paintChild(ctx, k);
@@ -74,6 +80,24 @@ void main() {
     final reports = <String>[];
     frame(Box(10, 2, markSelf: true), reports);
     expect(reports.join(), contains('inside its own performLayout'));
+  });
+
+  test('a paint that saves the canvas and does not restore is refused', () {
+    final reports = <String>[];
+    final root = Box(10, 2)..child = Box(3, 1, leak: true);
+    frame(root, reports);
+    expect(reports.join(), contains('unmatched by restore()'));
+  });
+
+  test('the canvas counts its saves by debugSaveDepth', () {
+    final c = Screen(4, 2).canvas;
+    expect(c.debugSaveDepth, 0);
+    c
+      ..save()
+      ..save();
+    expect(c.debugSaveDepth, 2);
+    c.restore();
+    expect(c.debugSaveDepth, 1);
   });
 
   test('a well-behaved tree reports nothing', () {

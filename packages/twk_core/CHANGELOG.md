@@ -8,7 +8,11 @@ Added:
   from `performLayout` outside the constraints, a child painted by
   `paintChild` before it was laid out (it painted 0 x 0, unseen), and
   `markNeedsLayout` on an object from inside its own `performLayout` (the
-  mark was lost when the layout ended) each fail with a hint.
+  mark was lost when the layout ended) each fail with a hint. So does a
+  `paint` (or `paintOver`) that calls `Canvas.save()` without `restore()`,
+  which shifted and clipped everything painted after it; the canvas is
+  brought back to its depth, so only that object shows the error.
+  `Canvas.debugSaveDepth` counts the saves kept.
 
 Fixed:
 

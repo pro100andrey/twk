@@ -205,6 +205,11 @@ final class Canvas {
     _saved = n;
   }
 
+  /// How many [save]s are kept and not yet [restore]d. For asserts: a
+  /// paint that leaves it deeper than it found it shifts and clips
+  /// everything painted after it.
+  int get debugSaveDepth => _saved ~/ 6;
+
   /// Brings back the origin and the clip the last [save] kept.
   ///
   /// Asserts there is one.

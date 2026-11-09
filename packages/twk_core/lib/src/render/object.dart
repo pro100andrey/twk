@@ -1573,15 +1573,50 @@ abstract class RenderObject {
       _paintError(ctx);
       return;
     }
+    var depth = 0;
+    assert(() {
+      depth = ctx.canvas.debugSaveDepth;
+      return true;
+    }(), 'the depth of the canvas saves');
     try {
       paint(ctx);
+      assert(_saveBalanced(ctx, depth, 'paint'), 'paint left saves');
     } on Object catch (error, stack) {
+      assert(_unwindSaves(ctx, depth), 'unwinding the saves of a paint');
       _paintFailed(error, stack);
       return;
     }
     if (_error != null) {
       _error = null;
     }
+  }
+
+  // debug only, in assert: what a paint that threw left saved is
+  // restored, so the rest of the frame is not shifted by it
+  bool _unwindSaves(PaintContext ctx, int depth) {
+    final canvas = ctx.canvas;
+    while (canvas.debugSaveDepth > depth) {
+      canvas.restore();
+    }
+    return true;
+  }
+
+  // debug only, in assert: [what] left the canvas deeper in saves than it
+  // found it (a save() with no restore() shifts and clips everything
+  // painted after it); brings the depth back, so only this object shows
+  // the error, then fails with a hint.
+  bool _saveBalanced(PaintContext ctx, int depth, String what) {
+    final left = ctx.canvas.debugSaveDepth - depth;
+    _unwindSaves(ctx, depth);
+    if (left != 0) {
+      throw AssertionError(
+        '$this: $what() left $left Canvas.save() unmatched by restore(): '
+        'everything painted after it, siblings included, would be shifted '
+        'and clipped. Pair every save() with a restore(), in a finally if '
+        'the code between can throw.',
+      );
+    }
+    return true;
   }
 
   /// Paints the error this object shows over all of it.
@@ -1638,9 +1673,19 @@ abstract class RenderObject {
     if (_errorShown != _shownNot) {
       return;
     }
+    var depth = 0;
+    assert(() {
+      depth = ctx.canvas.debugSaveDepth;
+      return true;
+    }(), 'the depth of the canvas saves');
     try {
       paintOver(ctx, child, x, y, w, h);
+      assert(
+        _saveBalanced(ctx, depth, 'paintOver'),
+        'paintOver left saves',
+      );
     } on Object catch (error, stack) {
+      assert(_unwindSaves(ctx, depth), 'unwinding the saves of a paintOver');
       _overFailed(error, stack);
     }
   }
