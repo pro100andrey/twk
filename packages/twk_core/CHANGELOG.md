@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Changed:
+
+- `renderToString` draws no overflow marker (its output is data, as `Cli.show`'s
+  and `Shot`'s); the warning still goes to `onLog`.
+
 Added:
 
 - `debugAssertsEnabled`, whether asserts are on, exported by the core; the

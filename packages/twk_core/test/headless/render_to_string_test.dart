@@ -123,10 +123,10 @@ void main() {
     );
     var asserts = false;
     assert(asserts = true, 'only in debug');
-    // in debug the marker of the overflow is over the last row
+    // what is returned is data: no marker of the overflow over the last row
     expect(
       renderToString(column, 4, 2, styles: styles, onLog: records.add),
-      asserts ? 'a\n▚▚+1' : 'a\nb',
+      'a\nb',
     );
     expect(records, hasLength(asserts ? 1 : 0));
     if (asserts) {
