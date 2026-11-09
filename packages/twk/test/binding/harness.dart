@@ -36,6 +36,7 @@ final class Run {
     bool exitOnCtrlC = true,
     int? backgroundRgb,
     ZoneSpecification? zone,
+    ErrorReporter? onError,
   }) : vt = Vt(width, height) {
     clock.run(() {
       term = HeadlessTerminal(
@@ -53,6 +54,7 @@ final class Run {
             clock: clock.stopwatch,
             // none of the shell's TWK_* variables
             environment: const {},
+            onError: onError,
           ).run(app),
           zoneSpecification: zone,
         ),

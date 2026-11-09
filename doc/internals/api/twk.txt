@@ -519,6 +519,7 @@ twk.dart enum CursorShape
 twk.dart enum DecorationPosition
 twk.dart enum DiagnosticsFlag
 twk.dart enum DockSide
+twk.dart enum ErrorOrigin
 twk.dart enum FileKind
 twk.dart enum FilePickerMode
 twk.dart enum FlexFit
@@ -621,6 +622,7 @@ twk.dart typedef DotDrawer
 twk.dart typedef DragTargetBuilder
 twk.dart typedef EditorCommand
 twk.dart typedef ElementVisitor
+twk.dart typedef ErrorReporter
 twk.dart typedef FocusOnKeyEventCallback
 twk.dart typedef FrameCallback
 twk.dart typedef GestureDragEndCallback
