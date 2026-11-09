@@ -74,6 +74,19 @@ describe("twk's inspector answers", () => {
     assert.deepEqual(detailsOf(nodeOf(tree, 2)!), ['_Count [GlobalKey#1]', 'size 20×3', 'needsBuild', 'built by _CountState.build']);
   });
 
+  it('reads the flags of an app that does not report overflow, and keeps its toggle out', () => {
+    const old = { version: 1, overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true };
+    const flags = parseFlags(old);
+    assert.equal('overflow' in flags, false);
+    assert.deepEqual(
+      toggleItems(flags).map((i) => i.label),
+      ['Frame overlay', 'Repaint rainbow', 'Relayout highlight', 'Log console'],
+    );
+    assert.deepEqual(togglesPicked(['Frame overlay'], flags), { overlay: true, rainbow: false, relayout: false, console: false });
+    // a malformed overflow is still no answer of this twk
+    assert.throws(() => parseFlags({ ...old, overflow: 'yes' }), /no overflow/);
+  });
+
   it('the toggles: picked as the app has them, and back as each on or off', () => {
     const flags = parseFlags({ version: 1, overlay: true, rainbow: false, relayout: true, overflow: true, console: false, keys: false, select: false, selectMany: false, treeEvents: false });
     const items = toggleItems(flags);
@@ -87,7 +100,7 @@ describe("twk's inspector answers", () => {
         ['Log console', false],
       ],
     );
-    assert.deepEqual(togglesPicked(['Repaint rainbow', 'Log console']), { overlay: false, rainbow: true, relayout: false, overflow: false, console: true });
+    assert.deepEqual(togglesPicked(['Repaint rainbow', 'Log console'], flags), { overlay: false, rainbow: true, relayout: false, overflow: false, console: true });
     assert.deepEqual(flagParams({ overlay: true, treeEvents: false }), { overlay: 'true', treeEvents: 'false' });
   });
 });

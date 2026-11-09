@@ -44,7 +44,8 @@ export interface Flags {
   readonly console: boolean;
   readonly rainbow: boolean;
   readonly relayout: boolean;
-  readonly overflow: boolean;
+  /** Absent where the app does not report it (a twk before the overflow flag). */
+  readonly overflow?: boolean;
   readonly keys: boolean;
   readonly select: boolean;
   /** Whether a pick goes on after a cell picked. */
@@ -154,12 +155,14 @@ export function parseFlags(answer: unknown): Flags {
     }
     return value;
   };
+  // Only the overflow flag is newer than the released twk: absent is not reported, a non-boolean is malformed.
+  const overflow = a.overflow === undefined ? {} : { overflow: on('overflow') };
   return {
     overlay: on('overlay'),
     console: on('console'),
     rainbow: on('rainbow'),
     relayout: on('relayout'),
-    overflow: on('overflow'),
+    ...overflow,
     keys: on('keys'),
     select: on('select'),
     selectMany: on('selectMany'),
@@ -246,13 +249,19 @@ const toggles: readonly { readonly flag: Toggle; readonly label: string; readonl
 
 /** The items of a pick of the toggles, each picked as [flags] has it. */
 export function toggleItems(flags: Flags): { readonly label: string; readonly detail: string; readonly picked: boolean }[] {
-  return toggles.map((t) => ({ label: t.label, detail: t.detail, picked: flags[t.flag] }));
+  return toggles.filter((t) => flags[t.flag] !== undefined).map((t) => ({ label: t.label, detail: t.detail, picked: flags[t.flag] === true }));
 }
 
-/** Each toggle on or off, as the items [labels] were picked of [toggleItems]'. */
-export function togglesPicked(labels: readonly string[]): Record<Toggle, boolean> {
+/** Each toggle on or off, as the items [labels] were picked of [toggleItems]' of [flags]; one the app does not report is left out. */
+export function togglesPicked(labels: readonly string[], flags: Flags): Partial<Record<Toggle, boolean>> {
   const on = (flag: Toggle) => labels.includes(toggles.find((t) => t.flag === flag)?.label ?? '');
-  return { overlay: on('overlay'), rainbow: on('rainbow'), relayout: on('relayout'), overflow: on('overflow'), console: on('console') };
+  return {
+    overlay: on('overlay'),
+    rainbow: on('rainbow'),
+    relayout: on('relayout'),
+    ...(flags.overflow === undefined ? {} : { overflow: on('overflow') }),
+    console: on('console'),
+  };
 }
 
 /** `ext.twk.flags`' parameters that set [changes]. */

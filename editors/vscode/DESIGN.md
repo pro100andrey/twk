@@ -1230,7 +1230,8 @@ What the repository offers for the wished features:
 - **Widget tree, cell inspector, overlay**: `ext.twk.tree`, `properties`,
   `layout`, `select` (cell to element path), `highlight`, `flags`
   (`overlay`, the frame overlay; `console`, `rainbow`, `relayout`, `overflow`, `keys`,
-  `select`, `treeEvents`), `reassemble`, `log`; `twk inspect` shows them
+  `select`, `treeEvents`; `overflow` is read where the app reports it, a twk before it answers
+  without it, and the toggle is then left out), `reassemble`, `log`; `twk inspect` shows them
   in a terminal. The inspector (part 2d) takes them over the extension's
   own VM service connection, as Dart's debug adapter doesn't pass
   Extension events on (`handleExtensionEvent` does nothing in
