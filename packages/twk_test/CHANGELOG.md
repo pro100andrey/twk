@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Changed:
+
+- `Vt`'s docs say how to read another program's output (a real terminal's
+  recording replayed): `strict: false` and `allowLineFeed: true`.
+
 Fixed:
 
 - A `testTwk` tear-down that awaits a future of the app's zone completes:
