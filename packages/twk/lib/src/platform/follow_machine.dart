@@ -80,13 +80,44 @@ final class FollowMachine {
   // costs a second reset, the lesser harm
   var _found = 0;
 
+  // the read began within a line of the backlog: what comes before the
+  // first line break is the end of a line cut, dropped ([lineStart])
+  var _cut = false;
+
   /// Starts at the follow's start: [size] is the file's size, null where
-  /// there is no file, [identity] its identity where [tellsIdentity]. With
-  /// [fromEnd] the bytes there are not read.
-  void start({required bool fromEnd, required int? size, Object? identity}) {
+  /// there is no file, [identity] its identity where [tellsIdentity]. Of the
+  /// bytes there, the whole lines among the last [backlog] are read; none
+  /// with [backlog] 0, all of them with null. A backlog that begins within
+  /// the file is read from the byte before it, so that [lineStart] tells a
+  /// line that begins at it from one cut.
+  void start({required int? backlog, required int? size, Object? identity}) {
+    assert(backlog == null || backlog >= 0, 'a backlog of 0 bytes or more');
     _held = identity;
-    _position = fromEnd ? size ?? 0 : 0;
+    final end = size ?? 0;
+    if (backlog == null) {
+      _position = 0;
+    } else if (backlog == 0 || backlog >= end) {
+      _position = backlog == 0 ? end : 0;
+    } else {
+      _position = end - backlog - 1;
+      _cut = true;
+    }
     _owed = size == null;
+  }
+
+  /// What of [bytes], read from the planned range, is told: those after the
+  /// first line break while the read began within a line, else all of
+  /// them. None while the line cut has not ended.
+  List<int> lineStart(List<int> bytes) {
+    if (!_cut) {
+      return bytes;
+    }
+    final at = bytes.indexOf(0x0a);
+    if (at < 0) {
+      return const [];
+    }
+    _cut = false;
+    return bytes.sublist(at + 1);
   }
 
   /// An event of the watch: a file made or moved onto the name when [puts],
@@ -146,6 +177,7 @@ final class FollowMachine {
     }
     var reset = false;
     if (_replaced) {
+      _cut = false;
       _replaced = false;
       if (_position > 0) {
         reset = true;
@@ -168,6 +200,7 @@ final class FollowMachine {
     if (end < _position) {
       reset = true;
       _position = 0;
+      _cut = false;
     }
     return FollowPlan(reset: reset, from: _position, to: end);
   }

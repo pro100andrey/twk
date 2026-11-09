@@ -117,6 +117,11 @@ external Pointer<Char> _ptsname(int fd);
 @Native<Int Function(Pointer<Char>, Int, VarArgs<(Int,)>)>(isLeaf: true)
 external int open(Pointer<Char> path, int flags, int mode);
 
+/// tcgetpgrp(3): the foreground process group of the terminal [fd], a
+/// pseudo-terminal's master too; -1 on an error.
+@Native<Int Function(Int)>(isLeaf: true)
+external int tcgetpgrp(int fd);
+
 /// fcntl(2): the command [cmd] ([fGetfd], [fSetfl], …) on [fd] with
 /// [arg]; -1 on an error.
 @Native<Int Function(Int, Int, VarArgs<(Int,)>)>(isLeaf: true)

@@ -8,7 +8,7 @@ text
 │                      ──────────────────────────────────────────────────────────│
 │   SCROLLING      5     ┌                                                    ┐  │
 │     SingleChildSc…       ╭────────────────────────────────────────────────╮    │
-│     Scrollable      ▐    │12:00:12.400 ERROR POST /api/orders 500 upstrea │    │
+│     Scrollable      ▐    │                   ms                           │    │
 │     ListView        ▐    │12:00:12.800 INFO  GET /api/items/184 200 59 ms │    │
 │ ▎   LogView              │12:00:13.200 INFO  GET /api/items/221 200 72 ms │    │
 │     Scrollbar            │12:00:13.600 INFO  GET /api/items/258 200 85 ms │    │
@@ -22,7 +22,7 @@ text
 │     Calendar                                                                  ▐│
 │     Heatmap, Acti…     show level  ▐  ●▌                                      ▐│
 │     Table                                                                      │
-│                        wrap        ▐●  ▌                                       │
+│                        wrap        ▐  ●▌                                       │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeaFFFFFFaaaaaadaddddaa│
@@ -33,7 +33,7 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaadddddddddaaaaaaFaaaggoggggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnnnnnnnnnaaaggggppppppppppppppppppppppppppppppppppppppppppppppppppgggg│
-│aaaaannnnnnnnnnaaaaaadggggpmmmmmmmmmmmmgrrrrrgssssgsssssssssssgsssgsssssssgpgggg│
+│aaaaannnnnnnnnnaaaaaadggggpgggggggggggggggggggssgggggggggggggggggggggggggggpgggg│
 │aaaaannnnnnnnaaaaaaaadggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssgpgggg│
 │auvvvwwwwwwwvvvvvvvvvaggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssgpgggg│
 │aaaaannnnnnnnnaaaaaaaaggggpmmmmmmmmmmmmgttttggsssgssssssssssssssgsssgssgssxpgggg│
@@ -47,7 +47,7 @@ styles
 │aaaaannnnnnnnaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggm│
 │aaaaannnnnnnnannnnnaaaggmmmmgmmmmmggzAABzggggggggggggggggggggggggggggggggggggggm│
 │aaaaannnnnaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmggggggggCDEECggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmggggggggzAABzggggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25
@@ -66,7 +66,6 @@ m #8b929c on #16181d
 n #e6e8eb on #1c1f25
 o #2c3039 on #16181d
 p #3e444f on #16181d
-r #ff6b6b on #16181d
 s #e6e8eb on #16181d
 t #5cc8e6 on #16181d
 u #5fa8ff on #2b4566
@@ -77,6 +76,3 @@ y #8b929c on #13151a
 z #5fa8ff on #16181d
 A on #5fa8ff
 B #ffffff on #5fa8ff
-C #383d48 on #16181d
-D #e6e8eb on #383d48
-E on #383d48

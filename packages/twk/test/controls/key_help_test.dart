@@ -53,6 +53,44 @@ void main() {
     expect(t, isNot(containsLine(contains('save'))));
   });
 
+  testTwk('extra after the keys, a layer apart and aligned with them, '
+      "before the dialog's own", (t) async {
+    await t.pumpWidget(
+      App(
+        child: KeyBindings(
+          {'ctrl+s': () {}},
+          hints: const {'ctrl+s': 'save'},
+          child: Builder(
+            builder: (context) => KeyBindings(
+              {
+                '?': () => showKeyHelp(
+                  context,
+                  extra: const [('tab', 'focus'), ('right click', 'menu')],
+                ),
+              },
+              child: const Focus(autofocus: true, child: Text('editor')),
+            ),
+          ),
+        ),
+      ),
+      size: (40, 14),
+    );
+    await t.press('?');
+    await t.pumpUntilIdle();
+    final save = t.lines.indexWhere((l) => l.contains('save'));
+    final tab = t.lines.indexWhere((l) => l.contains('focus'));
+    final menu = t.lines.indexWhere((l) => l.contains('menu'));
+    final close = t.lines.indexWhere((l) => l.contains('close'));
+    expect(save, isNonNegative);
+    expect((tab, menu, close), (save + 2, save + 3, save + 5));
+    expect(t.lines[menu], matches(r'right click\s+menu'));
+    expect(
+      t.lines[save].indexOf('save'),
+      t.lines[menu].indexOf('menu'),
+      reason: 'the hints in one column',
+    );
+  });
+
   testTwk('the keys of each layer apart, the nearest first, a blank line '
       'between', (t) async {
     await t.pumpWidget(

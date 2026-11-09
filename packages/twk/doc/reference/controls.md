@@ -48,10 +48,12 @@ of fixed `(key, hint)` pairs, whatever is in force, drawn, cut and (with
 bar of the keys in force; `keyLabel`, `separator`, `style`, `keyStyle` and
 `hintStyle` as above.
 
-`showKeyHelp(context, title: 'Keys')` shows the same keys, those in force
+`showKeyHelp(context, title: 'Keys', extra: [])` shows the same keys, those in force
 where `context` is as it is called, in a dialog (`Dialog(scrollable:
 true)`), a line each: the keys in bold (`KeyHintsBar.entries`, the nearest
-layer's first), their hint after them, a column apart, and last, a blank line apart, its
+layer's first), their hint after them, a column apart, then `extra`, pairs
+of what no binding tells and what it does (`('right click', 'menu')`), as
+a layer of its own, and last, a blank line apart, its
 own `esc  close` (alone when no key in force has a hint; keys without a
 hint are not listed); Escape or a click outside closes it. Bound to `?` it is a screen's help.
 
@@ -278,7 +280,9 @@ field on the theme's `selection` while it has the focus, `focusedStyle`, its
 selection a step towards `primary`; `▴▾` `primary` then and `muted` at rest,
 `arrowStyle`; a `DatePicker`'s, a `TextFormField`'s and a `FilePicker`'s
 field the same): the text typed is taken on Enter, which goes on to the
-nodes above (a `Form` moves to the next field), and as the focus leaves it,
+nodes above (a `Form` moves to the next field), on any other key the field
+leaves to the nodes above before it goes on (a dialog's Ctrl+S that saves
+finds the number typed), and as the focus leaves it,
 rounded to `decimals` digits and kept within the bounds, and text that is no
 number gives way to the value then; meanwhile such text shows in
 `errorStyle` (the theme's `error`), and Escape puts the value back. Up and

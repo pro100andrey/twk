@@ -27,7 +27,26 @@ int get processId => pid;
 /// The process's own terminal, stdin and stdout; null when either is not
 /// one.
 TerminalLink? ownTerminalLink() =>
-    stdin.hasTerminal && stdout.hasTerminal ? StdioLink() : null;
+    stdin.hasTerminal && stdioIsTerminal() ? StdioLink() : null;
+
+/// Whether stdout, or stderr with [error], is a terminal: as `hasTerminal`
+/// says, or, on Linux and macOS, as isatty(3) says of one that is a
+/// character device (`stdioType`). A pseudo-terminal of no size (one
+/// `script` opens with no terminal around it: a background job, CI) fails
+/// `hasTerminal` and passes isatty; `/dev/null`, a character device too,
+/// fails both. A stdout a test puts in (`IOOverrides`) says it by
+/// `hasTerminal` alone: `stdioType` of it would read the process's own.
+bool stdioIsTerminal({bool error = false}) {
+  final stdio = error ? stderr : stdout;
+  if (stdio.hasTerminal) {
+    return true;
+  }
+  final own = Zone.root.run(() => error ? stderr : stdout);
+  return identical(stdio, own) &&
+      !Platform.isWindows &&
+      stdioType(stdio) == StdioType.terminal &&
+      c.isatty(error ? 2 : 1) == 1;
+}
 
 /// Whether [link] is the process's own terminal ([ownTerminalLink]), the
 /// controlling terminal of the shell that started it.
@@ -36,9 +55,6 @@ bool isOwnTerminal(TerminalLink link) => link is StdioLink;
 /// Returns once the process may touch its own terminal, stopping it for as
 /// long as it is in the background ([StdioLink.waitForTerminal]).
 void waitForOwnTerminal() => StdioLink.waitForTerminal();
-
-/// Whether stdout is a terminal.
-bool get outputIsTerminal => stdout.hasTerminal;
 
 /// The process's output as plain text ([PlainLink]): stdout, with stdin
 /// as its input where that is a terminal, and none otherwise.

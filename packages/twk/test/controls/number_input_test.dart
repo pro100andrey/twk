@@ -197,6 +197,116 @@ void main() {
     expect(value.value, 3.14159);
   });
 
+  for (final pumped in [true, false]) {
+    testTwk('a key it leaves to a binding above takes the text typed first, '
+        'so the binding sees it (a frame between: $pumped)', (t) async {
+      final value = ValueNotifier<double>(30);
+      addTearDown(value.dispose);
+      final saved = <double>[];
+      await t.pumpWidget(
+        KeyBindings(
+          {'ctrl+s': () => saved.add(value.value)},
+          child: input(value, autofocus: true),
+        ),
+        size: (20, 3),
+      );
+      await press(t, 'backspace backspace');
+      await t.type('45');
+      if (pumped) {
+        await t.pump();
+      }
+      await t.press('ctrl+s');
+      await t.pump();
+      expect(saved, [45]);
+      expect(value.value, 45);
+    });
+  }
+
+  testTwk('a key above that does not act on the value leaves the typing as '
+      'it was: text that is no number yet, and a number, which Escape '
+      'gives up', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final changes = <double>[];
+    var helped = 0;
+    await t.pumpWidget(
+      KeyBindings(
+        {'f1': () => helped++},
+        child: input(value, changes: changes, autofocus: true),
+      ),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '-');
+    await press(t, 'f1');
+    expect(helped, 1);
+    expect(t.lines.first, startsWith('-'));
+    expect(changes, isEmpty);
+    await type(t, '4');
+    expect(t.lines.first, startsWith('-4'));
+    await press(t, 'f1');
+    expect(t.lines.first, startsWith('-4'));
+    expect(changes, [-4]);
+    await press(t, 'escape');
+    expect(t.lines.first, startsWith('30'));
+    expect(changes, [-4, 30]);
+    expect(value.value, 30);
+  });
+
+  testTwk('a click on a button after text typed, its press and release in '
+      'one frame: the button finds the value typed', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final saved = <double>[];
+    await t.pumpWidget(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 10,
+            child: ValueListenableBuilder<double>(
+              valueListenable: value,
+              builder: (context, v, _) => NumberInput(
+                value: v,
+                onChanged: (next) => value.value = next,
+                autofocus: true,
+              ),
+            ),
+          ),
+          Button('Save', onPressed: () => saved.add(value.value)),
+        ],
+      ),
+      size: (20, 4),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    final y = t.lines.indexWhere((l) => l.contains('Save'));
+    await t.click(t.lines[y].indexOf('Save'), y);
+    await t.pump();
+    expect(saved, [45]);
+  });
+
+  testTwk('Escape and its own keys are not taken as a key left to the '
+      'bindings above: Escape puts the value back, Up steps once from the '
+      'text', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(
+      input(value, changes: changes, autofocus: true),
+      size: (20, 3),
+    );
+    await press(t, 'backspace');
+    await type(t, '5');
+    await press(t, 'escape');
+    expect(changes, isEmpty);
+    expect(value.value, 30);
+    await press(t, 'backspace');
+    await type(t, '5');
+    await press(t, 'up');
+    expect(changes, [36]);
+  });
+
   testTwk('taken out of the tree with the focus and text typed, it takes '
       'nothing', (t) async {
     final changes = <double>[];

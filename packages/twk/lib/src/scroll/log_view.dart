@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
         BoxConstraints,
         DiagnosticPropertiesBuilder,
         HitTestBehavior,
+        HitTestResult,
         ListParentData,
         PaintContext,
         Pen,
@@ -82,11 +83,11 @@ final class LogLine {
 /// searched and followed.
 ///
 /// It holds the lines kept, at most [maxLines] of them, the oldest dropped
-/// as new ones come; those shown of them, at [level] and above and
-/// containing [filter]; the [query] searched for and the line of the
-/// current [match]; and whether the view is [following] the newest line,
-/// or else how many [newLines] came since it stopped. It notifies its
-/// listeners of each change.
+/// as new ones come; those shown of them, at [level] and above,
+/// containing [filter] and kept by [where]; the [query] searched for and
+/// the line of the current [match]; and whether the view is [following]
+/// the newest line, or else how many [newLines] came since it stopped. It
+/// notifies its listeners of each change.
 ///
 /// A line added costs the time it takes to test it against the filter,
 /// whatever the lines kept. A [filter] that contains the one before, or a
@@ -109,12 +110,14 @@ final class LogLine {
 final class LogController extends ChangeNotifier {
   /// Keeps [maxLines] lines at most (10000 by default; fewer than 1
   /// asserts), and shows those at [level] and above (every level by
-  /// default) that contain [filter], with [query] searched for (both empty
-  /// by default, for every line and for none).
+  /// default) that contain [filter] and that [where] keeps, with [query]
+  /// searched for (both empty by default, for every line and for none;
+  /// [where] null for every line).
   LogController({
     int maxLines = 10000,
     this._level = LogLevel.debug,
     this._filter = '',
+    this._where,
     this._query = '',
   }) : assert(maxLines > 0, 'a cap of 1 line or more'),
        _maxLines = maxLines;
@@ -139,6 +142,10 @@ final class LogController extends ChangeNotifier {
   // bumped when the lines shown change other than by lines added: lines
   // dropped from the start, the filter, the level, a clear
   var _reshaped = 0;
+
+  // bumped when the lines shown are others, not just fewer at the start:
+  // the filter, the level, where, a clear
+  var _refiltered = 0;
 
   // the number of the current match
   int? _match;
@@ -183,7 +190,7 @@ final class LogController extends ChangeNotifier {
   }
 
   /// The lines shown: those kept at [level] and above that contain
-  /// [filter].
+  /// [filter] and that [where] keeps.
   int get shownLength => _shown.length - _shownHead;
 
   /// The line shown at [index], the oldest at 0.
@@ -218,8 +225,11 @@ final class LogController extends ChangeNotifier {
   /// reads it, so a carriage return writes the line over (a progress bar
   /// leaves its last state), a tab moves to the next multiple of
   /// [tabWidth] columns, and no sequence reaches the terminal. The line not
-  /// ended when [output] is done is added then. Returns the [LogSource]:
-  /// cancel it once the lines are not wanted; an error of [output] ends it,
+  /// ended when [output] is done is added then. Each line is added as
+  /// [map] gives it back, when it is given: the spans to add in its place
+  /// (shortened, restyled), or null to leave it out. Returns the
+  /// [LogSource]: cancel it once the lines are not wanted; an error of
+  /// [output], or one [map] throws, ends it (the lines before it added),
   /// and its [LogSource.done] completes with that error.
   ///
   /// ```dart
@@ -232,11 +242,13 @@ final class LogController extends ChangeNotifier {
     Stream<String> output, {
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
+    List<Span>? Function(List<Span> spans)? map,
   }) => _follow<String>(
     output,
     (reader, text) => reader.add(text),
     level,
     tabWidth,
+    map,
   );
 
   /// [addOutput] of [output], each event of it read into the stream by
@@ -247,18 +259,30 @@ final class LogController extends ChangeNotifier {
     void Function(AnsiStream, T) feed,
     LogLevel level,
     int tabWidth,
+    List<Span>? Function(List<Span> spans)? map,
   ) {
     final reader = AnsiStream(tabWidth: tabWidth);
+    // what map throws ends the source; the lines before it are added
     void addEnded() {
       final ended = reader.takeSettled();
-      if (ended.isEmpty) {
-        return;
+      var added = false;
+      try {
+        for (final line in ended) {
+          final spans = map == null ? line : map(line);
+          if (spans != null) {
+            final kept = identical(spans, line)
+                ? line
+                : List<Span>.unmodifiable(spans);
+            _add(_textOf(kept), level, null, kept);
+            added = true;
+          }
+        }
+      } finally {
+        if (added) {
+          _trim();
+          notifyListeners();
+        }
       }
-      for (final spans in ended) {
-        _add(_textOf(spans), level, null, spans);
-      }
-      _trim();
-      notifyListeners();
     }
 
     final source = LogSource._();
@@ -268,18 +292,29 @@ final class LogController extends ChangeNotifier {
       source._finish(error, stack);
     }
 
+    void fail(Object error, StackTrace stack) {
+      finish(error, stack);
+      unawaited(source.cancel());
+    }
+
     source._subscription = output.listen(
       (event) {
-        feed(reader, event);
-        addEnded();
+        try {
+          feed(reader, event);
+          addEnded();
+        } on Object catch (error, stack) {
+          fail(error, stack);
+        }
       },
-      onError: (Object error, StackTrace stack) {
-        finish(error, stack);
-        unawaited(source.cancel());
-      },
+      onError: fail,
       onDone: () {
-        reader.close();
-        addEnded();
+        try {
+          reader.close();
+          addEnded();
+        } on Object catch (error, stack) {
+          finish(error, stack);
+          return;
+        }
         finish();
       },
     );
@@ -301,8 +336,11 @@ final class LogController extends ChangeNotifier {
 
   /// Follows the file at [path], adding the lines written to it as [addOutput]
   /// adds those of a program's output (in its colors, a carriage return
-  /// writing a line over), each line once it ends: those written from the
-  /// call on, or with [fromEnd] false the file's from its start too. A write
+  /// writing a line over, each through [map] when it is given), each line
+  /// once it ends: those written from the call on, and before them the whole
+  /// lines among the last [backlog] bytes the file had (none by default, the
+  /// file's from its start for null; a negative one is a [RangeError]); a
+  /// line the backlog begins within is left out. A write
   /// is told by a watch of the file's directory where the system has one, and
   /// found by a look at the file's size each [poll] all the same; a file cut
   /// short (truncated after a clean, written anew) is read again from its
@@ -328,23 +366,43 @@ final class LogController extends ChangeNotifier {
   /// final source = log.followFile('build.log', tabWidth: 4);
   /// await source.cancel();
   /// ```
+  ///
+  /// A server's log, the lines of its last 64 KiB at the start, without
+  /// the lines of the health checks:
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// log.followFile(
+  ///   'server.log',
+  ///   backlog: 64 * 1024,
+  ///   map: (spans) =>
+  ///       spans.any((s) => s.text.contains('GET /health')) ? null : spans,
+  /// );
+  /// ```
   LogSource followFile(
     String path, {
-    bool fromEnd = true,
+    int? backlog = 0,
     Duration poll = const Duration(seconds: 1),
     LogLevel level = LogLevel.info,
     int tabWidth = 8,
-  }) => _follow<TailEvent>(
-    tailFile(path, fromEnd: fromEnd, poll: poll),
-    (reader, event) => switch (event) {
-      FileBytes(:final bytes) => reader.addBytes(bytes),
-      // the old file's unended line, and a character cut, are not the start
-      // of the next one
-      FileReset() => reader.reset(),
-    },
-    level,
-    tabWidth,
-  );
+    List<Span>? Function(List<Span> spans)? map,
+  }) {
+    if (backlog != null) {
+      RangeError.checkNotNegative(backlog, 'backlog');
+    }
+    return _follow<TailEvent>(
+      tailFile(path, backlog: backlog, poll: poll),
+      (reader, event) => switch (event) {
+        FileBytes(:final bytes) => reader.addBytes(bytes),
+        // the old file's unended line, and a character cut, are not the
+        // start of the next one
+        FileReset() => reader.reset(),
+      },
+      level,
+      tabWidth,
+      map,
+    );
+  }
 
   static String _textOf(List<Span> spans) => switch (spans) {
     [] => '',
@@ -359,11 +417,15 @@ final class LogController extends ChangeNotifier {
     LogLevel level = LogLevel.info,
     DateTime? time,
   }) {
-    for (final text in texts) {
-      _add(text, level, time, null);
+    // what [where] throws ends it, the lines before added
+    try {
+      for (final text in texts) {
+        _add(text, level, time, null);
+      }
+    } finally {
+      _trim();
+      notifyListeners();
     }
-    _trim();
-    notifyListeners();
   }
 
   /// Drops every line; the view follows the lines added next.
@@ -376,6 +438,7 @@ final class LogController extends ChangeNotifier {
     _match = null;
     _following = true;
     _reshaped++;
+    _refiltered++;
     notifyListeners();
   }
 
@@ -402,6 +465,38 @@ final class LogController extends ChangeNotifier {
     _filter = filter;
     _filterCase = Smartcase(filter);
     _refilter(narrower: narrower);
+  }
+
+  /// Which lines are shown, of those at [level] and above that contain
+  /// [filter]: those it returns true for; null for every one. Set, it
+  /// tests every line kept, and the view stays on the lines it shows, as
+  /// it does for [filter]; set again, to the same function too, it tests
+  /// them again, for when what it tests by changed. It is called for each
+  /// line added too, so it should be quick, and give a line the same
+  /// answer until it is set again.
+  ///
+  /// The lines of some kinds only, told by their text, the kinds changed
+  /// later:
+  ///
+  /// ```dart
+  /// final log = LogController();
+  /// final kinds = {'GET', 'POST'};
+  /// bool shown(LogLine line) => kinds.any(line.text.startsWith);
+  /// log.where = shown;
+  /// kinds.remove('GET');
+  /// log.where = shown; // the lines tested again
+  /// ```
+  bool Function(LogLine line)? get where => _where;
+  bool Function(LogLine line)? _where;
+  set where(bool Function(LogLine line)? where) {
+    // the same function may answer otherwise now; a narrower test is not
+    // known: every line kept is tested, unless there is no test before or
+    // after
+    if (where == null && _where == null) {
+      return;
+    }
+    _where = where;
+    _refilter(narrower: false);
   }
 
   /// What [nextMatch] and [previousMatch] look for, highlighted in the
@@ -452,14 +547,17 @@ final class LogController extends ChangeNotifier {
     _ask(const _ToEnd());
   }
 
+  /// Adds the line, tested by [where] first: what that throws adds none.
   void _add(String text, LogLevel level, DateTime? time, List<Span>? spans) {
-    final line = LogLine._(_next++, text, level, time, spans);
+    final line = LogLine._(_next, text, level, time, spans);
+    final passes = _passes(line);
+    _next++;
     _lines.add(line);
     final w = stringWidth(text);
     if (w > _widest) {
       _widest = w;
     }
-    if (_passes(line)) {
+    if (passes) {
       _shown.add(line.number);
     }
   }
@@ -500,12 +598,14 @@ final class LogController extends ChangeNotifier {
     ];
     _shownHead = 0;
     _reshaped++;
+    _refiltered++;
     notifyListeners();
   }
 
   bool _passes(LogLine line) =>
       line.level.index >= _level.index &&
-      (_filter.isEmpty || _filterCase.isIn(line.text));
+      (_filter.isEmpty || _filterCase.isIn(line.text)) &&
+      (_where?.call(line) ?? true);
 
   bool _kept(int number) =>
       length > 0 && number >= _lines[_head].number && number < _next;
@@ -623,8 +723,11 @@ final class _ToLine extends _Move {
 /// reverse video and bold). `n` and `N` go to the next and the previous
 /// match while there is a query.
 ///
-/// With [wrap] a line too long for the window goes on on the rows below;
-/// without, each line is a row, and Left and Right scroll the lines
+/// With [wrap] a line too long for the window goes on on the rows below,
+/// its text broken at words in a column of its own right of its time and
+/// level, which stay alone at its left; where they would take more than
+/// half the width, the text starts on the row below them, the whole width
+/// its. Without, each line is a row, and Left and Right scroll the lines
 /// across, a few columns at a time, as far as the widest line kept; going
 /// to a match scrolls across to show it. A [Scrollbar] at its right shows
 /// where the window is among the lines shown, as [scrollbar] says.
@@ -663,13 +766,13 @@ final class _ToLine extends _Move {
 ///
 ///  * [ListView], what it shows its lines in, for a list of one's own.
 final class LogView extends StatefulWidget {
-  /// Shows the lines of [controller], each with its time and level, cut
-  /// off at the window's edge unless [wrap], selectable with the mouse,
-  /// with a scrollbar always shown.
+  /// Shows the lines of [controller], each with its time and level,
+  /// wrapped unless [wrap] is false, selectable with the mouse, with a
+  /// scrollbar always shown.
   const LogView({
     required this.controller,
     super.key,
-    this.wrap = false,
+    this.wrap = true,
     this.showTime = true,
     this.showLevel = true,
     this.selectable = true,
@@ -684,8 +787,10 @@ final class LogView extends StatefulWidget {
   /// The lines, and what is done to them.
   final LogController controller;
 
-  /// Whether a line too long for the window goes on below; without, Left
-  /// and Right scroll the lines across.
+  /// Whether a line too long for the window goes on below, as it does by
+  /// default; without, Left and Right scroll the lines across. `w` turns
+  /// it over in the view (`w wrap` in a `KeyHintsBar`), until the widget
+  /// is built with another [wrap].
   final bool wrap;
 
   /// Whether a line shows its time, when it has one.
@@ -729,6 +834,11 @@ final class LogView extends StatefulWidget {
   @visibleForTesting
   static var renderVisits = 0;
 
+  /// How many lines the [LogView]s wrote into the text a selection selects
+  /// in.
+  @visibleForTesting
+  static var selectionLines = 0;
+
   @override
   State<LogView> createState() => _LogViewState();
 }
@@ -759,6 +869,9 @@ final class _LogViewState extends State<LogView> {
   // the columns the lines are scrolled across
   var _shift = 0;
 
+  // whether the lines wrap: LogView.wrap, until `w` turns it over
+  late bool _wrap = widget.wrap;
+
   // the lines built, by number, as of _look; and the current match then
   final _built = <int, Widget>{};
   _Look? _look;
@@ -784,6 +897,9 @@ final class _LogViewState extends State<LogView> {
   @override
   void didUpdateWidget(LogView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.wrap != oldWidget.wrap) {
+      _wrap = widget.wrap;
+    }
     if (!identical(oldWidget.controller, widget.controller)) {
       _detach(oldWidget.controller);
       _attach(widget.controller);
@@ -824,11 +940,22 @@ final class _LogViewState extends State<LogView> {
     final c = widget.controller;
     if (c._reshaped != _reshaped) {
       _reshaped = c._reshaped;
-      // scrolled away from the end, it stays on the line at its top, or on
-      // the first shown after it when that one is not shown now
-      final top = c._following ? null : _windowEdge(top: true);
-      if (top != null) {
-        _list.jumpToIndex(c._shownIndexOf(top));
+      // the lines across no further than the widest kept now: cleared, the
+      // new ones from their start
+      final most = max(0, _widest - (_render?.width ?? 0));
+      if (_shift > most) {
+        _shift = most;
+      }
+      // scrolled away from the end, it stays on the line at its top, the
+      // list keeping that line's row as the lines before it come and go;
+      // on the first shown after it when that one is not shown now
+      final top = c._following ? null : _windowTop();
+      if (top case (final number, final rows)?) {
+        final at = c._shownIndexOf(number);
+        // the rows of it above the window too, where it is still shown: a
+        // wrapped line part way into it stays as it was
+        final shown = at < c.shownLength && c.shownAt(at).number == number;
+        _list.jumpToIndex(at, rows: shown ? rows : 0);
       }
     }
     if (c._moves != _moves) {
@@ -903,14 +1030,20 @@ final class _LogViewState extends State<LogView> {
   }
 
   /// The number of the first line in the window, as it was last laid out,
-  /// or with [top] false of the last; null with none. The items are in
-  /// the order of their rows: those laid out past the edge are looked at,
-  /// not the window.
-  int? _windowEdge({required bool top}) {
-    if (!mounted) {
-      return null;
-    }
-    final list = _render;
+  /// and how many of its rows are above the window; null with none.
+  (int, int)? _windowTop() => _windowAt(top: true);
+
+  /// The number of the first line in the window, as it was last laid out,
+  /// or with [top] false of the last; null with none.
+  int? _windowEdge({required bool top}) => _windowAt(top: top)?.$1;
+
+  /// The number of the first line in the window, as it was last laid out,
+  /// or with [top] false of the last, and how many of its rows are past
+  /// that edge of the window; null with none. The items are in the order
+  /// of their rows: those laid out past the edge are looked at, not the
+  /// window.
+  (int, int)? _windowAt({required bool top}) {
+    final list = mounted ? _render : null;
     if (list == null) {
       return null;
     }
@@ -919,7 +1052,8 @@ final class _LogViewState extends State<LogView> {
       final at = c.parentData as ListParentData;
       if (at.dy + c.height > 0 && at.dy < list.height) {
         if (_lineIn(c) case final line?) {
-          return line.number;
+          final past = top ? -at.dy : at.dy + c.height - list.height;
+          return (line.number, past > 0 ? past : 0);
         }
       }
       c = top ? at.nextSibling : at.previousSibling;
@@ -961,11 +1095,20 @@ final class _LogViewState extends State<LogView> {
     final last = c._shownIndexOf(window.$2);
     if (_pressed) {
       _pressed = false;
-      _text = '';
-      _numbers = [];
-      _starts = [];
-      _append(max(0, first - LogView.selectReach), last + 1 + _below);
-    } else if (_numbers.isEmpty) {
+      final from = max(0, first - LogView.selectReach);
+      // made anew only where the text there is no longer the one to
+      // select in: a click on a log that did not change costs nothing
+      if (!_textHolds(from)) {
+        _text = '';
+        _numbers = [];
+        _starts = [];
+        _textMade = (c._refiltered, widget.showTime, widget.showLevel);
+        _append(from, last + 1 + _below);
+        return _text;
+      }
+    }
+    if (_numbers.isEmpty) {
+      _textMade = (c._refiltered, widget.showTime, widget.showLevel);
       _append(first, last + 1 + _below);
     } else if (window.$2 > _numbers.last) {
       _append(c._shownIndexOf(_numbers.last + 1), last + 1 + _below);
@@ -975,6 +1118,30 @@ final class _LogViewState extends State<LogView> {
 
   // the lines below the window the text takes in when it is made longer
   static const _below = 500;
+
+  // what the text was made of: the lines as filtered then, and whether
+  // they showed their time and level
+  (int, bool, bool)? _textMade;
+
+  /// Whether the text is still that of the lines shown from index [from]
+  /// on: the same lines as it was made of, its first still kept and shown,
+  /// at [from] or above it, no more than [LogView.selectReach] lines more.
+  bool _textHolds(int from) {
+    final c = widget.controller;
+    if (_numbers.isEmpty ||
+        _textMade != (c._refiltered, widget.showTime, widget.showLevel)) {
+      return false;
+    }
+    final head = _numbers.first;
+    if (!c._kept(head)) {
+      return false;
+    }
+    final at = c._shownIndexOf(head);
+    return at < c.shownLength &&
+        c.shownAt(at).number == head &&
+        at <= from &&
+        from - at <= LogView.selectReach;
+  }
 
   /// Adds the lines shown from index [from] to [to] to the text.
   void _append(int from, int to) {
@@ -992,6 +1159,7 @@ final class _LogViewState extends State<LogView> {
       _numbers.add(line.number);
       _starts.add(out.length);
       out.write(_textOf(line));
+      LogView.selectionLines++;
     }
     _text = out.toString();
   }
@@ -1086,12 +1254,8 @@ final class _LogViewState extends State<LogView> {
     if (hit == null) {
       return above ? (start, start) : (next, next);
     }
-    final paragraph = line.child;
-    if (paragraph is! RenderParagraph) {
-      return (start, start);
-    }
-    final (px, py) = _offsetIn(paragraph, view);
-    final (s, e) = paragraph.textRangeAt(x - px, y - py);
+    final (px, py) = _offsetIn(line, view);
+    final (s, e) = line.textRangeAt(x - px, y - py);
     if (s >= end - start) {
       return (next, next);
     }
@@ -1125,6 +1289,17 @@ final class _LogViewState extends State<LogView> {
     }
   }
 
+  /// Wraps the lines, or stops wrapping them: `w`. The view stays on the
+  /// line at its top, from its first row: the rows of it above the window
+  /// are others once it is wrapped otherwise.
+  void _toggleWrap() {
+    final top = _windowEdge(top: true);
+    setState(() => _wrap = !_wrap);
+    if (top != null && !widget.controller.following) {
+      _list.jumpToIndex(widget.controller._shownIndexOf(top));
+    }
+  }
+
   /// The widest a line is, in columns.
   int get _widest =>
       widget.controller._widest +
@@ -1146,7 +1321,7 @@ final class _LogViewState extends State<LogView> {
   void _showAcross(int number) {
     final c = widget.controller;
     final width = _render?.width ?? 0;
-    if (widget.wrap || width <= 0 || !c._kept(number)) {
+    if (_wrap || width <= 0 || !c._kept(number)) {
       return;
     }
     final line = c._line(number);
@@ -1181,8 +1356,8 @@ final class _LogViewState extends State<LogView> {
           widget.currentMatchStyle ??
           theme.fill(theme.accent.fg).merge(const Style(attrs: Attr.bold)),
       query: c._queryCase,
-      shift: widget.wrap ? 0 : _shift,
-      wrap: widget.wrap,
+      shift: _wrap ? 0 : _shift,
+      wrap: _wrap,
       showTime: widget.showTime,
       showLevel: widget.showLevel,
     );
@@ -1203,7 +1378,7 @@ final class _LogViewState extends State<LogView> {
     }
     Widget view = ListView.builder(
       itemCount: c.shownLength,
-      itemExtent: widget.wrap ? null : 1,
+      itemExtent: _wrap ? null : 1,
       maxKept: 0,
       stickToBottom: true,
       controller: _list,
@@ -1230,7 +1405,7 @@ final class _LogViewState extends State<LogView> {
     final keysFor = (
       c,
       c.query.isNotEmpty,
-      widget.wrap,
+      _wrap,
       _shift > 0,
       room == null || _shift < _widest - room,
     );
@@ -1238,6 +1413,7 @@ final class _LogViewState extends State<LogView> {
       _keysFor = keysFor;
       final (_, matches, wrap, left, right) = keysFor;
       _keys = {
+        'w': _toggleWrap,
         if (matches) ...{'n': c.nextMatch, 'N': c.previousMatch},
         if (!wrap) ...{
           'left': left ? () => _scrollAcross(-LogView.sideStep) : null,
@@ -1245,8 +1421,8 @@ final class _LogViewState extends State<LogView> {
         },
       };
       _keyHints = matches
-          ? const {'n': 'next match', 'N': 'previous match'}
-          : const {};
+          ? const {'w': 'wrap', 'n': 'next match', 'N': 'previous match'}
+          : const {'w': 'wrap'};
     }
     final arrow = fresh > 0
         ? ThemeMarks.of(context).text(Marks.arrowDown, theme.glyphs)
@@ -1316,12 +1492,13 @@ final class _LogViewState extends State<LogView> {
     final time = line.time;
     final text = line.text;
     final base = line.level == LogLevel.debug ? look.debug : look.text;
-    final spans = <(String, Style)>[
+    final head = <(String, Style)>[
       if (look.showTime && time != null)
         ('${LogRecord.formatTime(time)} ', look.time),
       if (look.showLevel)
         (_tags[line.level.index], look.levels[line.level.index]),
     ];
+    final spans = <(String, Style)>[];
     final query = look.query;
     final current = line.number == widget.controller._match;
     final found = current ? look.current : look.match;
@@ -1347,6 +1524,7 @@ final class _LogViewState extends State<LogView> {
       key: ValueKey(line.number),
       number: line.number,
       shift: look.wrap ? null : look.shift,
+      head: head,
       spans: spans,
       current: current,
     );
@@ -1494,13 +1672,14 @@ final class _RenderSelected extends RenderObject
   }
 }
 
-/// A line of a [LogView]: its [number], and its [spans] scrolled [shift]
-/// columns across, or wrapped when [shift] is null; [current] the line of
-/// the current match.
+/// A line of a [LogView]: its [number], its [head] (the time and the
+/// level) and its text's [spans], scrolled [shift] columns across, or
+/// wrapped when [shift] is null; [current] the line of the current match.
 final class _Line extends LeafRenderObjectWidget {
   const _Line({
     required this.number,
     required this.shift,
+    required this.head,
     required this.spans,
     required this.current,
     super.key,
@@ -1508,43 +1687,61 @@ final class _Line extends LeafRenderObjectWidget {
 
   final int number;
   final int? shift;
+  final List<(String, Style)> head;
   final List<(String, Style)> spans;
   final bool current;
 
   /// [spans], their styles merged onto the [DefaultTextStyle] above.
-  List<(String, Style)> _spansIn(BuildContext context) {
+  static List<(String, Style)> _in(
+    BuildContext context,
+    List<(String, Style)> spans,
+  ) {
     final style = DefaultTextStyle.of(context);
     return [for (final (text, s) in spans) (text, style.merge(s))];
   }
 
   @override
   _RenderLine createRenderObject(BuildContext context) =>
-      _RenderLine(number, shift, _spansIn(context))..current = current;
+      _RenderLine(number, shift, _in(context, head), _in(context, spans))
+        ..current = current;
 
   @override
   void updateRenderObject(BuildContext context, _RenderLine renderObject) =>
       renderObject
         ..number = number
         ..shift = shift
-        ..spans = _spansIn(context)
+        ..head = _in(context, head)
+        ..spans = _in(context, spans)
         ..current = current;
 }
 
-/// What a [_Line] lays out and paints: a paragraph of its spans, what is
-/// selected of it in the selection's style, as wide as it may be, or,
-/// with a [shift], as wide as it likes, [shift] columns of it off to the
-/// left and what does not fit cut off. The paragraph is its own, no
-/// [Text]'s: a [SelectionArea] selects in the line through the
-/// [_RenderSelected] above. The line of the current match puts the hidden
-/// cursor on its first cell (`restCursor`), as an `ActiveItem` would, the
-/// list's items left lines.
-final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
-  _RenderLine(this._number, this._shift, this._spans) {
-    child = RenderParagraph(
-      _pens(),
-      wrap: _shift == null ? TextWrap.word : TextWrap.none,
-    );
+/// What a [_Line] lays out and paints: a paragraph of its head (the time
+/// and the level) and one of its text, what is selected of them in the
+/// selection's style. Wrapped (no [shift]), the text goes on its own
+/// column right of the head, its rows under one another, as wide as the
+/// line may be; where the head would take more than half the width, the
+/// text starts on the row below it, the whole width its; with a [shift],
+/// the two are one row as wide as they like, [shift] columns of it off to
+/// the left and what does not fit cut off.
+/// The paragraphs are its own, no [Text]'s: a [SelectionArea] selects in
+/// the line through the [_RenderSelected] above, by [textRangeAt]. The line
+/// of the current match puts the hidden cursor on its first cell
+/// (`restCursor`), as an `ActiveItem` would, the list's items left lines.
+final class _RenderLine extends RenderObject {
+  _RenderLine(this._number, this._shift, this._headSpans, this._spans)
+    : _headLength = _lengthOf(_headSpans) {
+    _head = RenderParagraph(_pens(_headSpans, 0), wrap: TextWrap.none);
+    _body = RenderParagraph(_pens(_spans, _headLength), wrap: _bodyWrap);
+    adopt(_head);
+    adopt(_body);
   }
+
+  late final RenderParagraph _head;
+  late final RenderParagraph _body;
+
+  // the code units of the head's text: where the text's offsets start in
+  // the line's
+  int _headLength;
 
   /// The number of the line.
   int get number => _number;
@@ -1556,17 +1753,45 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     }
   }
 
+  List<(String, Style)> get head => _headSpans;
+  List<(String, Style)> _headSpans;
+  set head(List<(String, Style)> s) {
+    if (!_same(s, _headSpans)) {
+      _headSpans = s;
+      _headLength = _lengthOf(s);
+      _head.spans = _pens(s, 0);
+      // the text's offsets in the line moved
+      _body.spans = _pens(_spans, _headLength);
+    }
+  }
+
   List<(String, Style)> get spans => _spans;
   List<(String, Style)> _spans;
   set spans(List<(String, Style)> s) {
-    var same = s.length == _spans.length;
-    for (var i = 0; same && i < s.length; i++) {
-      same = s[i] == _spans[i];
-    }
-    if (!same) {
+    if (!_same(s, _spans)) {
       _spans = s;
-      _paragraph.spans = _pens();
+      _body.spans = _pens(s, _headLength);
     }
+  }
+
+  static bool _same(List<(String, Style)> a, List<(String, Style)> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static int _lengthOf(List<(String, Style)> spans) {
+    var n = 0;
+    for (final (text, _) in spans) {
+      n += text.length;
+    }
+    return n;
   }
 
   int? _shift;
@@ -1575,15 +1800,18 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     if (s == _shift) {
       return;
     }
-    if ((s == null) != (_shift == null)) {
-      _paragraph.wrap = s == null ? TextWrap.word : TextWrap.none;
+    final wrapped = (s == null) != (_shift == null);
+    _shift = s;
+    if (wrapped) {
+      _body.wrap = _bodyWrap;
       markNeedsLayout();
     } else {
       markNeedsPaint();
+      _place();
     }
-    _shift = s;
-    _place();
   }
+
+  TextWrap get _bodyWrap => _shift == null ? TextWrap.word : TextWrap.none;
 
   /// Whether it is the line of the current match.
   bool get current => _current;
@@ -1598,8 +1826,6 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
   // what is selected of it, offsets in its text, and in what style
   (int, int)? _selected;
   Style? _selectedStyle;
-
-  RenderParagraph get _paragraph => child! as RenderParagraph;
 
   /// Asks the [_RenderSelected] above what is selected of the line, and
   /// paints it so when that changed.
@@ -1618,21 +1844,23 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     }
     _selected = selected;
     _selectedStyle = style;
-    _paragraph.spans = _pens();
+    _head.spans = _pens(_headSpans, 0);
+    _body.spans = _pens(_spans, _headLength);
   }
 
-  /// The spans as (text, pen), each split where the selection starts and
-  /// ends, the part selected in its style merged onto theirs.
-  List<(String, Pen)> _pens() {
+  /// [spans], which start at offset [from] of the line's text, as (text,
+  /// pen), each split where the selection starts and ends, the part
+  /// selected in its style merged onto theirs.
+  List<(String, Pen)> _pens(List<(String, Style)> spans, int from) {
     final selected = _selected;
     final style = _selectedStyle;
     if (selected == null || style == null) {
-      return [for (final (text, s) in _spans) (text, s.pen)];
+      return [for (final (text, s) in spans) (text, s.pen)];
     }
     final (start, end) = selected;
     final out = <(String, Pen)>[];
-    var at = 0;
-    for (final (text, s) in _spans) {
+    var at = from;
+    for (final (text, s) in spans) {
       final a = (start - at).clamp(0, text.length);
       final b = (end - at).clamp(a, text.length);
       if (a > 0) {
@@ -1649,6 +1877,40 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     return out;
   }
 
+  /// The range of the line's text the cell [x], [y] of it stands for, as
+  /// its paragraphs give it: a cell of the head's row left of the text, of
+  /// the head; one of the text's column, or left of it on a row below the
+  /// first, of the text.
+  (int, int) textRangeAt(int x, int y) {
+    final head = _head.parentData;
+    final body = _body.parentData;
+    if (_headLength > 0 && (y < body.dy || y == 0 && x < body.dx)) {
+      return _head.textRangeAt(x - head.dx, y - head.dy);
+    }
+    final (s, e) = _body.textRangeAt(max(x - body.dx, 0), y - body.dy);
+    return (s + _headLength, e + _headLength);
+  }
+
+  @override
+  void visitChildren(void Function(RenderObject child) visit) {
+    visit(_head);
+    visit(_body);
+  }
+
+  @override
+  HitTestBehavior get hitTestBehavior => HitTestBehavior.deferToChild;
+
+  @override
+  bool hitTestChildren(HitTestResult result, int x, int y) {
+    for (final c in [_body, _head]) {
+      final at = c.parentData;
+      if (c.hitTest(result, x - at.dx, y - at.dy)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -1659,29 +1921,53 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
       ..add('selected', _selected, defaultValue: null);
   }
 
+  // the columns the head takes: none without one; where the text starts,
+  // right of the head or on the row below it
+  var _headWidth = 0;
+  var _bodyAt = (0, 0);
+
   @override
   void performLayout(BoxConstraints c) {
     reselect();
-    final child = _paragraph;
+    final row = BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight);
+    _head.layout(row, parentUsesSize: true);
+    _headWidth = _headLength == 0 ? 0 : _head.width;
     if (_shift == null) {
-      child.layout(c, parentUsesSize: true);
-      width = child.width;
-      height = child.height;
-    } else {
-      child.layout(
-        BoxConstraints(minHeight: c.minHeight, maxHeight: c.maxHeight),
+      // the text on its own column, or below a head wider than the room
+      // it would leave
+      final room = c.maxWidth - _headWidth;
+      final below = _headWidth > 0 && room < _headWidth;
+      _bodyAt = below ? (0, _head.height) : (_headWidth, 0);
+      _body.layout(
+        BoxConstraints(
+          maxWidth: below ? c.maxWidth : room,
+          maxHeight: c.maxHeight,
+        ),
         parentUsesSize: true,
       );
+      width = c.constrainWidth(
+        below ? max(_headWidth, _body.width) : _headWidth + _body.width,
+      );
+      height = c.constrainHeight(
+        below ? _head.height + _body.height : max(_head.height, _body.height),
+      );
+    } else {
+      _bodyAt = (_headWidth, 0);
+      _body.layout(row, parentUsesSize: true);
       width = c.maxWidth;
-      height = c.constrainHeight(child.height);
+      height = c.constrainHeight(max(_head.height, _body.height));
     }
     _place();
   }
 
   void _place() {
-    _paragraph.parentData
-      ..dx = -(_shift ?? 0)
+    final shift = _shift ?? 0;
+    _head.parentData
+      ..dx = -shift
       ..dy = 0;
+    _body.parentData
+      ..dx = _bodyAt.$1 - shift
+      ..dy = _bodyAt.$2;
   }
 
   @override
@@ -1695,7 +1981,10 @@ final class _RenderLine extends RenderObject with RenderObjectWithChildMixin {
     ctx.canvas
       ..save()
       ..clipRect(0, 0, width, height);
-    paintChild(ctx, _paragraph);
+    if (_headLength > 0) {
+      paintChild(ctx, _head);
+    }
+    paintChild(ctx, _body);
     ctx.canvas.restore();
   }
 }

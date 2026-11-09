@@ -50,11 +50,13 @@ import 'stream.dart';
 /// word of its info string names ([languageNamed]: plain text where none
 /// does), on the code block fill, a cell in from either side, its lines
 /// broken as [codeWrap] says, a tab moving to the next multiple of
-/// [tabWidth] columns. A table is a [Table] that shows all its rows, its
-/// columns as wide as their text within the width and aligned as the
-/// delimiter row says, with lines between them and under the header; the
-/// mouse goes through it, so that the wheel over it scrolls what is
-/// around the view. A thematic break is a line across.
+/// [tabWidth] columns. A table shows all its rows as a [Table] does, a row
+/// a line, its columns as wide as their text within the width and aligned
+/// as the delimiter row says, with lines between them and under the
+/// header; each row is made once and kept, so that a table streaming in
+/// lays out the row added alone; the mouse goes through it, so that the
+/// wheel over it scrolls what is around the view. A thematic break is a
+/// line across.
 ///
 /// The bullets, numbers, boxes and bars are not text: below a
 /// [SelectionArea], which the app puts around the view (around many, to
@@ -269,6 +271,12 @@ List<MarkdownHeading> markdownHeadings(
   List<MdBlock> blocks,
   Map<String, MdDefinition> definitions,
 ) {
+  final nodes = _headingNodesOf(blocks);
+  return (_headingsFrom(nodes, definitions), nodes);
+}
+
+/// The heading nodes of [blocks], in order, those in quotes and lists too.
+List<MdHeading> _headingNodesOf(List<MdBlock> blocks) {
   final nodes = <MdHeading>[];
   void collect(List<MdBlock> blocks) {
     for (final block in blocks) {
@@ -288,18 +296,22 @@ List<MarkdownHeading> markdownHeadings(
   }
 
   collect(blocks);
+  return nodes;
+}
+
+/// The headings of [nodes], their references resolved by [definitions],
+/// each slug told apart from those before it by a number; adds the labels
+/// they refer to to [uses], each with its definition.
+List<MarkdownHeading> _headingsFrom(
+  List<MdHeading> nodes,
+  Map<String, MdDefinition> definitions, [
+  _Uses? uses,
+]) {
   final seen = <String, int>{};
-  final headings = [
+  return [
     for (final node in nodes)
       () {
-        final text = _plain(resolveInlines(node.children, definitions));
-        final base = text
-            .toLowerCase()
-            .replaceAll(_notInSlug, '')
-            .replaceAll(
-              ' ',
-              '-',
-            );
+        final (:text, :base) = _headingText(node, definitions, uses);
         var slug = base;
         while (seen.containsKey(slug)) {
           final n = seen[base]! + 1;
@@ -310,7 +322,73 @@ List<MarkdownHeading> markdownHeadings(
         return MarkdownHeading(text, node.level, slug);
       }(),
   ];
-  return (headings, nodes);
+}
+
+/// The text of [heading], its references resolved by [definitions], and
+/// the slug it makes before a number tells it from another: kept by the
+/// node, as a document that streams in keeps its settled headings, and
+/// made again for one with a reference where a label it refers to is
+/// defined otherwise now, in other definitions or in the same changed.
+/// Adds those labels to [uses], each with its definition.
+({String text, String base}) _headingText(
+  MdHeading heading,
+  Map<String, MdDefinition> definitions, [
+  _Uses? uses,
+]) {
+  final kept = _headingTexts[heading];
+  if (kept != null && _definedAs(kept.uses, definitions)) {
+    uses?.addAll(kept.uses);
+    return (text: kept.text, base: kept.base);
+  }
+  final text = _plain(resolveInlines(heading.children, definitions));
+  final base = text
+      .toLowerCase()
+      .replaceAll(_notInSlug, '')
+      .replaceAll(' ', '-');
+  final own = <String, MdDefinition?>{};
+  _referIn(heading.children, definitions, own);
+  _headingTexts[heading] = (text: text, base: base, uses: own);
+  uses?.addAll(own);
+  return (text: text, base: base);
+}
+
+/// The texts and slugs of the headings made, by the node, with the labels
+/// they refer to, each with the definition it was made by.
+final _headingTexts = Expando<({String text, String base, _Uses uses})>();
+
+/// Whether each label of [uses] is defined in [definitions] as it says.
+bool _definedAs(_Uses uses, Map<String, MdDefinition> definitions) {
+  for (final MapEntry(:key, :value) in uses.entries) {
+    if (definitions[key] != value) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Adds the labels of the references in [inlines] to [uses], each with
+/// its definition in [definitions].
+void _referIn(
+  List<MdInline> inlines,
+  Map<String, MdDefinition> definitions,
+  _Uses uses,
+) {
+  for (final inline in inlines) {
+    switch (inline) {
+      case MdReference(:final label, :final children):
+        final key = normalizeLabel(label);
+        uses[key] = definitions[key];
+        _referIn(children, definitions, uses);
+      case MdEmphasis(:final children) ||
+          MdStrong(:final children) ||
+          MdStrikethrough(:final children) ||
+          MdLink(:final children) ||
+          MdImage(:final children):
+        _referIn(children, definitions, uses);
+      case MdText() || MdCode() || MdSoftBreak() || MdHardBreak():
+        break;
+    }
+  }
 }
 
 /// What a slug leaves out of the text: all but letters, marks, digits,
@@ -434,6 +512,11 @@ final class _MarkdownViewState extends State<MarkdownView> {
   /// The widget made for each block and item, by the very object.
   var _made = Expando<_Made>();
 
+  /// What each row of a table was made into, by the very row: a table
+  /// that grows a row at a time keeps its rows and makes the new one alone.
+  /// Dropped with [_made].
+  var _rowsMade = Expando<_TableRowMade>();
+
   /// What every widget in [_made] was made with; a change drops them.
   Object? _madeWith;
 
@@ -454,6 +537,11 @@ final class _MarkdownViewState extends State<MarkdownView> {
   var _headings = const <MarkdownHeading>[];
   var _headingNodes = const <MdHeading>[];
 
+  // the controller the headings were found for, and the labels they refer
+  // to, each with the definition they were found by
+  MarkdownController? _headingsFor;
+  _Uses _headingUses = const {};
+
   @override
   void initState() {
     super.initState();
@@ -467,8 +555,10 @@ final class _MarkdownViewState extends State<MarkdownView> {
     if (!identical(widget.controller, oldWidget.controller)) {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
-      // told to the new one's listeners as found
+      // told to the new one's listeners as found, the same one's too when
+      // it comes back
       _headings = const [];
+      _headingsFor = null;
     }
     _parse();
   }
@@ -509,9 +599,19 @@ final class _MarkdownViewState extends State<MarkdownView> {
 
   @override
   Widget build(BuildContext context) {
-    _theme = widget.theme ?? _themeFrom(Theme.of(context));
+    final app = Theme.of(context);
+    _theme = widget.theme ?? _themeFrom(app);
+    // the list markers are of the app's glyphs and marks, and a table's
+    // fill of its background and text, apart from a theme given
     final madeWith = (
       _theme,
+      app.glyphs,
+      app.background,
+      app.text,
+      ThemeMarks.of(context),
+      // what the widths of a table's cells are measured by
+      segmenterOf(context).mode,
+      segmenterOf(context).ambiguousWidth,
       widget.codeWrap,
       widget.tabWidth,
       widget.hyperlinks,
@@ -520,6 +620,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     if (madeWith != _madeWith) {
       _madeWith = madeWith;
       _made = Expando();
+      _rowsMade = Expando();
     }
     final stream = _stream;
     _definitions = stream?.definitions ?? widget.definitions;
@@ -540,12 +641,36 @@ final class _MarkdownViewState extends State<MarkdownView> {
   /// Keeps the headings of [blocks]; tells [controller]'s listeners, after
   /// this frame, where they changed.
   void _findHeadings(List<MdBlock> blocks, MarkdownController controller) {
-    final (headings, nodes) = _headingsOf(blocks, _definitions);
+    final nodes = _headingNodesOf(blocks);
+    // the same nodes, their labels defined as they were: the same
+    // headings, a document that streams in on past its last heading
+    // counting none
+    if (identical(controller, _headingsFor) &&
+        _sameNodes(nodes, _headingNodes) &&
+        _stillDefined(_headingUses)) {
+      return;
+    }
+    _headingsFor = controller;
+    final uses = <String, MdDefinition?>{};
+    final headings = _headingsFrom(nodes, _definitions, uses);
+    _headingUses = uses;
     _headingNodes = nodes;
     if (!_sameHeadings(headings, _headings)) {
       _headings = headings;
       controller._tell();
     }
+  }
+
+  static bool _sameNodes(List<MdHeading> a, List<MdHeading> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var k = 0; k < a.length; k++) {
+      if (!identical(a[k], b[k])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static bool _sameHeadings(List<MarkdownHeading> a, List<MarkdownHeading> b) {
@@ -633,17 +758,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     return widget;
   }
 
-  bool _stillDefined(_Uses uses) {
-    if (uses.isEmpty) {
-      return true;
-    }
-    for (final MapEntry(:key, :value) in uses.entries) {
-      if (_definitions[key] != value) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool _stillDefined(_Uses uses) => _definedAs(uses, _definitions);
 
   Widget _block(MdBlock block, int depth, _Uses uses) =>
       _kept(block, depth, uses) ?? _newBlock(block, depth, uses);
@@ -765,43 +880,124 @@ final class _MarkdownViewState extends State<MarkdownView> {
     ),
   );
 
+  /// [table], drawn as a `Table` would draw it, one row a line: the
+  /// columns as wide as their text, given up widest first where they do not
+  /// fit, three cells apart with a line down the middle, a rule under the
+  /// header; but a row made once, kept by its row while the widths of the
+  /// columns stay, so that a table that grows a row at a time lays out the
+  /// new row alone (a `Table` as tall as its rows builds them all again).
   Widget _table(MdTable table, _Uses uses) {
+    final theme = Theme.of(context);
+    final width = segmenterOf(context).width;
     final header = [
       for (final cell in table.header)
         _spans(cell, uses).map((span) => span.text).join(),
     ];
     final links = <InlineLink>[];
     final rows = [
-      for (final row in table.rows)
-        [for (final cell in row) _spans(cell, uses, links)],
+      for (final row in table.rows) _row(row, uses, links, width),
     ];
+    final count = table.align.length;
+    final wants = [for (final title in header) width(title)];
+    for (final row in rows) {
+      final cells = row.wants;
+      for (var j = 0; j < count && j < cells.length; j++) {
+        if (cells[j] > wants[j]) {
+          wants[j] = cells[j];
+        }
+      }
+    }
+    // as a Table fills its cells: opaque, over the theme's background
+    final base = _opaque(theme.background.merge(theme.text));
+    final look = _TableLook(
+      base: base,
+      header: base.merge(_theme.tableHeader),
+      border: _theme.tableBorder,
+      lines: theme.glyphs.borderOf(BorderType.single),
+      align: [
+        for (final a in table.align)
+          switch (a) {
+            MdAlign.none || MdAlign.left => TextAlign.left,
+            MdAlign.center => TextAlign.center,
+            MdAlign.right => TextAlign.right,
+          },
+      ],
+    );
     final inert = _Inert(
-      child: SizedBox(
-        height: rows.length + 2,
-        child: Table<List<List<Span>>>(
-          rows: rows,
-          columns: [
-            for (var j = 0; j < table.align.length; j++)
-              TableColumn(
-                title: header[j],
-                cell: (row) => TableCell.rich(row[j]),
-                align: switch (table.align[j]) {
-                  MdAlign.none || MdAlign.left => TextAlign.left,
-                  MdAlign.center => TextAlign.center,
-                  MdAlign.right => TextAlign.right,
-                },
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final widths = _columnWidths(wants, c.maxWidth, _tableGap);
+          // the rows as wide as the room, filled, the rule across it, as a
+          // Table's are; as wide as their columns where it has no bound
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: c.maxWidth < BoxConstraints.unbounded
+                ? CrossAxisAlignment.stretch
+                : CrossAxisAlignment.start,
+            children: [
+              _TableRow(
+                widths: widths,
+                look: look,
+                style: look.header,
+                rule: true,
+                children: [
+                  for (var j = 0; j < count; j++)
+                    Text(
+                      j < header.length ? header[j] : '',
+                      style: look.header,
+                      wrap: TextWrap.none,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      textAlign: look.align[j],
+                    ),
+                ],
               ),
-          ],
-          selection: TableSelection.none,
-          canRequestFocus: false,
-          columnGap: 3,
-          border: BorderType.single,
-          headerStyle: _theme.tableHeader,
-          borderStyle: _theme.tableBorder,
-        ),
+              for (final row in rows) row.widgetFor(widths, look),
+            ],
+          );
+        },
       ),
     );
     return links.isEmpty ? inert : _Links(links, cells: true, child: inert);
+  }
+
+  /// What [row] is made into, its cells' spans and the columns each wants
+  /// as [width] measures them, made once for the row while the definitions
+  /// its references use stay; adds those to [uses], and the links and
+  /// images of its cells to [links].
+  _TableRowMade _row(
+    List<List<MdInline>> row,
+    _Uses uses,
+    List<InlineLink> links,
+    int Function(String text) width,
+  ) {
+    final made = _rowsMade[row];
+    if (made != null && _stillDefined(made.uses)) {
+      uses.addAll(made.uses);
+      links.addAll(made.links);
+      _linked = _linked || made.linked;
+      return made;
+    }
+    final own = <String, MdDefinition?>{};
+    final mine = <InlineLink>[];
+    final outer = _linked;
+    _linked = false;
+    final cells = [for (final cell in row) _spans(cell, own, mine)];
+    final made2 = _TableRowMade(
+      cells,
+      mine,
+      own,
+      linked: _linked,
+      wants: [
+        for (final spans in cells)
+          spans.fold(0, (w, span) => w + width(span.text)),
+      ],
+    );
+    _rowsMade[row] = made2;
+    _linked = outer || _linked;
+    uses.addAll(own);
+    links.addAll(mine);
+    return made2;
   }
 
   /// [inlines], their references resolved, as spans in their styles;
@@ -827,24 +1023,8 @@ final class _MarkdownViewState extends State<MarkdownView> {
 
   /// Adds the labels of the references in [inlines] to [uses], each with
   /// its definition now.
-  void _refer(List<MdInline> inlines, _Uses uses) {
-    for (final inline in inlines) {
-      switch (inline) {
-        case MdReference(:final label, :final children):
-          final key = normalizeLabel(label);
-          uses[key] = _definitions[key];
-          _refer(children, uses);
-        case MdEmphasis(:final children) ||
-            MdStrong(:final children) ||
-            MdStrikethrough(:final children) ||
-            MdLink(:final children) ||
-            MdImage(:final children):
-          _refer(children, uses);
-        case MdText() || MdCode() || MdSoftBreak() || MdHardBreak():
-          break;
-      }
-    }
-  }
+  void _refer(List<MdInline> inlines, _Uses uses) =>
+      _referIn(inlines, _definitions, uses);
 }
 
 /// [child], a heading of the view: what
@@ -1145,6 +1325,321 @@ final class _RenderMarker extends RenderObject {
       _text,
       _style.penIn(canvas.styles),
     );
+  }
+}
+
+/// The cells between two columns of a table, a line down their middle.
+const _tableGap = 3;
+
+/// [style] over the terminal's default colors, as a `Table` fills its
+/// cells: a pen that paints both colors of a cell, as a repaint boundary's
+/// must.
+Style _opaque(Style style) =>
+    const Style(fg: Color.defaultColor, bg: Color.defaultColor).merge(style);
+
+/// The widths of the columns of a table, each wanting [wants] cells, in
+/// [available] cells with [gap] between two: as a `Table` sizes content
+/// columns, growing by even parts towards what they want; what they want
+/// where the room has no bound.
+List<int> _columnWidths(List<int> wants, int available, int gap) {
+  if (available >= BoxConstraints.unbounded) {
+    return wants;
+  }
+  final count = wants.length;
+  final sizes = List<int>.filled(count, 0);
+  var free = available - (count > 1 ? gap * (count - 1) : 0);
+  while (free > 0) {
+    var n = 0;
+    var room = 0;
+    for (var i = 0; i < count; i++) {
+      final r = wants[i] - sizes[i];
+      if (r > 0) {
+        room = n == 0 || r < room ? r : room;
+        n++;
+      }
+    }
+    if (n == 0) {
+      break;
+    }
+    final all = room * n <= free;
+    final part = all ? room : free ~/ n;
+    var extra = all ? 0 : free - part * n;
+    for (var i = 0; i < count; i++) {
+      if (wants[i] > sizes[i]) {
+        var add = part;
+        if (extra > 0) {
+          add++;
+          extra--;
+        }
+        sizes[i] += add;
+        free -= add;
+      }
+    }
+  }
+  return sizes;
+}
+
+/// How the rows of a table are drawn: their fill, the header's, the lines'
+/// style and type, and each column's alignment. Equal by them.
+final class _TableLook {
+  const _TableLook({
+    required this.base,
+    required this.header,
+    required this.border,
+    required this.lines,
+    required this.align,
+  });
+
+  final Style base;
+  final Style header;
+  final Style border;
+  final BorderType lines;
+  final List<TextAlign> align;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _TableLook ||
+        other.base != base ||
+        other.header != header ||
+        other.border != border ||
+        other.lines != lines ||
+        other.align.length != align.length) {
+      return false;
+    }
+    for (var j = 0; j < align.length; j++) {
+      if (other.align[j] != align[j]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(base, header, border, lines, align.length);
+}
+
+/// What a row of a table was made into: the spans of its cells, the links
+/// and images in them, the definitions its references used, whether it
+/// has a link, the columns each cell wants; and the widget made of it
+/// last, kept while the widths and the look it was made for stay.
+final class _TableRowMade {
+  _TableRowMade(
+    this.cells,
+    this.links,
+    this.uses, {
+    required this.linked,
+    required this.wants,
+  });
+
+  final List<List<Span>> cells;
+  final List<InlineLink> links;
+  final _Uses uses;
+  final bool linked;
+  final List<int> wants;
+
+  // the widget made last, and the widths and look it was made for
+  Widget? _widget;
+  List<int> _widths = const [];
+  _TableLook? _look;
+
+  /// The row in columns [widths] wide, as [look] draws it: the one made
+  /// last where they are the same.
+  Widget widgetFor(List<int> widths, _TableLook look) {
+    final kept = _widget;
+    if (kept != null && look == _look && _same(widths, _widths)) {
+      return kept;
+    }
+    _widths = widths;
+    _look = look;
+    return _widget = _TableRow(
+      widths: widths,
+      look: look,
+      style: look.base,
+      children: [
+        for (var j = 0; j < widths.length; j++)
+          Text.rich(
+            j < cells.length ? cells[j] : const [],
+            style: look.base,
+            wrap: TextWrap.none,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            textAlign: look.align[j],
+          ),
+      ],
+    );
+  }
+
+  static bool _same(List<int> a, List<int> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var j = 0; j < a.length; j++) {
+      if (a[j] != b[j]) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+/// A row of a table: [children], its cells, side by side in columns
+/// [widths] wide, [_tableGap] cells apart; filled with [style] (over the
+/// terminal's background), the lines of [look] down the middle of each gap
+/// and, with [rule], under the cells, joined where they cross. One row
+/// tall, a row more with [rule].
+final class _TableRow extends MultiChildRenderObjectWidget {
+  const _TableRow({
+    required this.widths,
+    required this.look,
+    required this.style,
+    required super.children,
+    this.rule = false,
+  });
+
+  final List<int> widths;
+  final _TableLook look;
+  final Style style;
+  final bool rule;
+
+  @override
+  MultiChildRenderObjectElement createElement() => ChildListElement(this);
+
+  @override
+  _RenderTableRow createRenderObject(BuildContext context) =>
+      _RenderTableRow(widths, look, style, rule: rule);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderTableRow renderObject) =>
+      renderObject
+        ..widths = widths
+        ..look = look
+        ..style = style
+        ..rule = rule;
+}
+
+final class _CellData extends ParentData with ContainerParentDataMixin {}
+
+/// What a [_TableRow] lays out and paints, as a `Table`'s row does: each
+/// cell as wide as its column and a row tall, cut off past it.
+final class _RenderTableRow extends RenderObject
+    with ContainerRenderObjectMixin<_CellData> {
+  _RenderTableRow(this._widths, this._look, this._style, {required this._rule});
+
+  List<int> get widths => _widths;
+  List<int> _widths;
+  set widths(List<int> w) {
+    if (!identical(w, _widths)) {
+      _widths = w;
+      markNeedsLayout();
+    }
+  }
+
+  _TableLook get look => _look;
+  _TableLook _look;
+  set look(_TableLook l) {
+    if (l != _look) {
+      _look = l;
+      markNeedsPaint();
+    }
+  }
+
+  Style get style => _style;
+  Style _style;
+  set style(Style s) {
+    if (s != _style) {
+      _style = s;
+      markNeedsPaint();
+    }
+  }
+
+  bool get rule => _rule;
+  bool _rule;
+  set rule(bool r) {
+    if (r != _rule) {
+      _rule = r;
+      markNeedsLayout();
+    }
+  }
+
+  int get _total {
+    var total = 0;
+    for (final w in _widths) {
+      total += w;
+    }
+    return total + (_widths.length > 1 ? _tableGap * (_widths.length - 1) : 0);
+  }
+
+  @override
+  void setupParentData(RenderObject child) {
+    if (child.parentData is! _CellData) {
+      child.parentData = _CellData();
+    }
+  }
+
+  /// Its own: rows laid out again repaint alone.
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  int computeMinIntrinsicWidth(int height) => _total;
+
+  @override
+  int computeMaxIntrinsicWidth(int height) => _total;
+
+  @override
+  int computeMinIntrinsicHeight(int width) => _rule ? 2 : 1;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) => _rule ? 2 : 1;
+
+  @override
+  void performLayout(BoxConstraints c) {
+    var x = 0;
+    var i = 0;
+    for (var child = firstChild; child != null; i++) {
+      final w = i < _widths.length ? _widths[i] : 0;
+      child.layout(
+        BoxConstraints(minWidth: w, maxWidth: w, maxHeight: 1),
+        parentUsesSize: true,
+      );
+      final at = child.parentData as _CellData
+        ..dx = x
+        ..dy = 0;
+      x += w + _tableGap;
+      child = at.nextSibling;
+    }
+    width = c.constrainWidth(_total);
+    height = c.constrainHeight(_rule ? 2 : 1);
+  }
+
+  @override
+  void paint(PaintContext ctx) {
+    final canvas = ctx.canvas;
+    final styles = canvas.styles;
+    canvas.fill(0, 0, width, height, _style.penIn(styles));
+    for (var child = firstChild; child != null; child = childAfter(child)) {
+      paintChild(ctx, child);
+    }
+    if (_look.lines == BorderType.none) {
+      return;
+    }
+    final type = ThemeMarks.border(canvas.segmenter, _look.lines);
+    final pen = _style.merge(_look.border).penIn(styles);
+    final cells = _rule ? height - 1 : height;
+    if (_rule) {
+      canvas.fill(0, cells, width, 1, pen, type.glyph(left: true, right: true));
+    }
+    final down = type.glyph(up: true, down: true);
+    final cross = type.glyph(up: true, down: true, left: true, right: true);
+    var x = 0;
+    for (var i = 0; i + 1 < _widths.length; i++) {
+      x += _widths[i] + _tableGap;
+      final line = x - _tableGap + (_tableGap - 1) ~/ 2;
+      canvas.fill(line, 0, 1, cells, pen, down);
+      if (_rule) {
+        canvas.fill(line, cells, 1, 1, pen, cross);
+      }
+    }
   }
 }
 

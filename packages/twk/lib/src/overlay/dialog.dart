@@ -101,7 +101,9 @@ import 'panel.dart';
 /// navigator: see [Overlay], "Keys of what it shows".
 ///
 /// It completes with null too when it leaves the tree some other way, as
-/// with its overlay or navigator.
+/// with its overlay or navigator, or the screen it was shown from: what
+/// comes after the `await` checks `mounted` before a `setState`, as in
+/// Flutter.
 ///
 /// A question with two answers, its future the answer chosen, null when
 /// Escape or a click outside closed it:

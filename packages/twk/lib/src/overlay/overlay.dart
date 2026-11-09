@@ -10,7 +10,7 @@ export 'command_palette.dart';
 export 'dialog.dart';
 export 'fuzzy.dart';
 export 'layer.dart';
-export 'menu.dart';
+export 'menu.dart' hide showContextMenuUnder;
 export 'options.dart' show Option, OptionList;
 export 'panel.dart' show Panel, PanelLook;
 export 'popover.dart';

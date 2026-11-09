@@ -56,4 +56,11 @@ void main() {
     expect(words('return a + b;', 'yield x;'), isNull);
     expect(words('', 'x'), isNull);
   });
+
+  test('lines of more than 20000 words between them: none, however alike; '
+      'up to it, their words', () {
+    // "w " is two words: 9999 a line, then 10001
+    expect(words('${'w ' * 4999}a', '${'w ' * 4999}b'), isNotNull);
+    expect(words('${'w ' * 5000}a', '${'w ' * 5000}b'), isNull);
+  });
 }

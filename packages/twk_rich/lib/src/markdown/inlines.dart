@@ -128,6 +128,10 @@ const _lf = 0x0A;
 const _space = 0x20;
 const _bang = 0x21;
 const _amp = 0x26;
+
+/// The most parentheses a link destination nests, as cmark takes them.
+const _maxParens = 32;
+
 const _lparen = 0x28;
 const _rparen = 0x29;
 const _star = 0x2A;
@@ -800,7 +804,11 @@ final class _InlineParser {
           _isEscapable(s.codeUnitAt(k + 1))) {
         k += 2;
       } else if (c == _lparen) {
-        depth++;
+        // no deeper than cmark takes: a destination of more opens is none,
+        // and `[a](` repeated is parsed in time linear in it
+        if (++depth > _maxParens) {
+          return null;
+        }
         k++;
       } else if (c == _rparen) {
         if (depth == 0) {

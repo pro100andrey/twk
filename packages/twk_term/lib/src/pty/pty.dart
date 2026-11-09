@@ -538,6 +538,28 @@ final class Pty {
   /// them here.
   Uint8List? get modesAtEnd => _modesAtEnd;
 
+  /// The process group in the foreground of the terminal (tcgetpgrp(3) on
+  /// the master): the program's own, [pid], while it alone runs there, and
+  /// another while a shell started in it runs a job in the foreground
+  /// (`less`, a build); null once the master is closed (soon after
+  /// [close]), or where the kernel would not say. Read when asked: a
+  /// system call each time.
+  ///
+  /// Whether a shell is busy, to ask before closing it:
+  ///
+  /// ```dart
+  /// final pty = Pty.start('bash', const []);
+  /// final group = pty.foregroundProcessGroup;
+  /// final busy = group != null && group != pty.pid;
+  /// ```
+  int? get foregroundProcessGroup {
+    if (_master < 0) {
+      return null;
+    }
+    final group = c.tcgetpgrp(_master);
+    return group > 0 ? group : null;
+  }
+
   /// How many columns the terminal has, as [resize] set it last.
   int get width => _width;
 

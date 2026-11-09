@@ -12,13 +12,22 @@ import 'myers.dart';
 ///
 /// Null when the lines have too little in common for the ranges to help:
 /// when the characters other than blanks the two keep are fewer than
-/// 40 % of those they have.
+/// 40 % of those they have. Null too for lines of more than 20000 words
+/// between them (some 40000 characters of code): two such lines with
+/// little in common take a diff of their words far longer than a frame
+/// (two random lines of 3.7 million characters, a minute), and the line is
+/// shown changed whole instead.
 (List<(int, int)>, List<(int, int)>)? changedWords(
   String before,
   String after,
 ) {
-  final wordsBefore = _words(before);
-  final wordsAfter = _words(after);
+  final wordsBefore = _words(before, _maxWords);
+  final wordsAfter = wordsBefore == null
+      ? null
+      : _words(after, _maxWords - wordsBefore.length);
+  if (wordsBefore == null || wordsAfter == null) {
+    return null;
+  }
   final changes = diffLists(wordsBefore, wordsAfter);
   final startsBefore = _starts(wordsBefore);
   final startsAfter = _starts(wordsAfter);
@@ -48,12 +57,19 @@ import 'myers.dart';
   return (rangesBefore, rangesAfter);
 }
 
+/// The most words two lines have between them for a diff of their words.
+const _maxWords = 20000;
+
 /// The words of [line], in order: runs of letters, digits and `_`, runs
-/// of blanks, and the other characters one by one.
-List<String> _words(String line) {
+/// of blanks, and the other characters one by one; null once there are
+/// more than [most].
+List<String>? _words(String line, int most) {
   final words = <String>[];
   var i = 0;
   while (i < line.length) {
+    if (words.length == most) {
+      return null;
+    }
     final start = i;
     final kind = _kindOf(line.codeUnitAt(i++));
     if (kind != _other) {

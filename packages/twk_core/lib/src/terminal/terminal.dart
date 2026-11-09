@@ -967,7 +967,7 @@ final class Terminal
     plainStdio,
     options,
     env: environment,
-    outputIsTerminal: outputIsTerminal,
+    outputIsTerminal: stdioIsTerminal(),
   );
 
   /// Opens the terminal the `twk shell` at [address] serves (see

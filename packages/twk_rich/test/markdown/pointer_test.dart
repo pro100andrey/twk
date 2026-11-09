@@ -231,8 +231,9 @@ void main() {
       "pointer's shape", () async {
     final run = _Run(const MarkdownView(document), shapes: false);
     await run.settle();
-    // the table's own listener asks for drags
-    expect(run.term.mouseTracking, MouseTracking.drags);
+    // nothing asks for the mouse: a table's rows are drawn by the view,
+    // with no columns to drag wider
+    expect(run.term.mouseTracking, MouseTracking.off);
     await run.move(4, 0);
     await run.move(12, 0);
     await run.quit();

@@ -36,6 +36,7 @@ import 'package:twk_core/twk_core.dart'
         TextSegmenter,
         TextWrap;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../binding/terminal_status.dart';
 import '../controls/pressable.dart'
     show CheckboxMarks, checkboxSpans, markStyle;
@@ -51,6 +52,8 @@ import '../layout/box.dart' show Box;
 import '../layout/child_list.dart';
 import '../layout/flex.dart';
 import '../layout/one_child.dart';
+import '../overlay/menu.dart'
+    show MenuEntry, showContextMenu, showContextMenuUnder;
 import '../scroll/list_view.dart';
 import '../style/style.dart';
 import '../text/hit_row.dart' show segmenterOf;
@@ -382,19 +385,20 @@ final class TableController extends ChangeNotifier {
 /// or after the one sorted by; with [sortKeys] false they are left to the
 /// bindings above it. Sorting reads every row.
 ///
-/// As [selection] says, a click selects a row or a cell, and gives the
-/// table the focus; while it has the focus, Up and Down select the row
-/// above and below, Page Up and Page Down a window's rows away, Home and
-/// End the first and the last, Left and Right the cell before and after
-/// in the row; Enter calls [onActivated] with the row selected. A key that
-/// selects no other row or cell, or resizes no column, at an end or a
-/// bound, goes on to the nodes above. The view scrolls the least that
-/// shows the row selected, after each of them and after the rows are
-/// sorted, and shows it from the first frame and with a new [controller].
-/// With [TableSelection.none] the keys scroll the rows instead.
-/// A key of [rowKey] the controller selects is looked for out from where
-/// the last one was found, a row below and a row above at a time; an
-/// index is found at once.
+/// As [selection] says, a click selects a row or a cell, and gives the table
+/// the focus; while it has the focus, Up and Down select the row above and
+/// below, Page Up and Page Down a window's rows away, Home and End the first
+/// and the last, Left and Right the cell before and after in the row; Enter
+/// calls [onActivated] with the row selected (without [onActivated] it goes on
+/// to the nodes above, so a `KeyBindings` around the table can bind it), and a
+/// right click or Shift+F10 opens the menu of a row ([rowMenu]). A key that
+/// selects no other row or cell, or resizes no column, at an end or a bound,
+/// goes on to the nodes above. The view scrolls the least that shows the row
+/// selected, after each of them and after the rows are sorted, and shows it
+/// from the first frame and with a new [controller]. With [TableSelection.none]
+/// the keys scroll the rows instead. A key of [rowKey] the controller selects
+/// is looked for out from where the last one was found, a row below and a row
+/// above at a time; an index is found at once.
 ///
 /// The styles, each merged over those before it: [style] for every cell,
 /// over the theme's background and text; [headerStyle] for the header,
@@ -453,6 +457,7 @@ final class Table<T> extends StatefulWidget {
     this.markable,
     this.selection = TableSelection.row,
     this.onActivated,
+    this.rowMenu,
     this.rowHeight = 1,
     this.columnGap = 1,
     this.border = BorderType.none,
@@ -494,6 +499,7 @@ final class Table<T> extends StatefulWidget {
     this.markable,
     this.selection = TableSelection.row,
     this.onActivated,
+    this.rowMenu,
     this.rowHeight = 1,
     this.columnGap = 1,
     this.border = BorderType.none,
@@ -571,6 +577,16 @@ final class Table<T> extends StatefulWidget {
   /// Called with the row selected when Enter is pressed.
   // ignore: unsafe_variance
   final void Function(T row)? onActivated;
+
+  /// The entries of the menu of a row ([showContextMenu]); null for none.
+  /// A right click on a row selects it, as a click does, and opens its
+  /// menu at the mouse; Shift+F10, while the table has the focus, opens the
+  /// menu of the row selected under it, its first entry highlighted
+  /// (`shift+f10 menu` in a `KeyHintsBar`). No entries, no menu. With
+  /// [TableSelection.none] there is no row selected: a right click opens
+  /// the menu of the row under the mouse, and Shift+F10 none.
+  // ignore: unsafe_variance
+  final List<MenuEntry> Function(T row)? rowMenu;
 
   /// The cells around the rows, which scroll with them: [EdgeInsets.top]
   /// rows before the first row and [EdgeInsets.bottom] after the last, as a
@@ -1277,19 +1293,66 @@ final class _TableState<T> extends State<Table<T>> {
     if (event.button != 0) {
       return;
     }
-    if (_node.canRequestFocus) {
-      _node.requestFocus();
-    }
-    if (widget.selection == TableSelection.cell) {
-      if (_columnAt(event.x) case final column?) {
-        _controller.selectedColumn = column;
-      }
-    }
-    _select(index);
+    _pressRow(index, event.x);
     if (_lead > 0 && _columns.at(event.x) == 0) {
       _toggleMark(index);
     }
   }
+
+  /// A press on the row shown at [index], at the column [x]: the table
+  /// focused, and where rows are selected the row selected, its cell's
+  /// column too where cells are.
+  void _pressRow(int index, int x) {
+    if (_node.canRequestFocus) {
+      _node.requestFocus();
+    }
+    if (widget.selection == TableSelection.none) {
+      return;
+    }
+    if (widget.selection == TableSelection.cell) {
+      if (_columnAt(x) case final column?) {
+        _controller.selectedColumn = column;
+      }
+    }
+    _select(index);
+  }
+
+  /// A press on the row shown at [index], whose slot's context is
+  /// [context]: the right button opens the row's menu at the mouse, the
+  /// row selected first.
+  void _rowMenuDown(int index, BuildContext context, PointerEvent event) {
+    final menu = widget.rowMenu;
+    if (event.button != 2 || menu == null) {
+      return;
+    }
+    _pressRow(index, event.x);
+    showContextMenu(
+      context: context,
+      items: menu(_rowAt(_order?[index] ?? index)),
+      at: (event.x, event.y),
+    );
+  }
+
+  /// Opens the menu of the row selected under it, once the row is
+  /// scrolled into view: a row out of view may still be built, kept by the
+  /// list, and a menu under it would be off the table.
+  void _openRowMenu() {
+    final menu = widget.rowMenu;
+    final at = _selectedIndex();
+    if (menu == null || at < 0) {
+      return;
+    }
+    final items = menu(_rowAt(_order?[at] ?? at));
+    _list.ensureIndexVisible(at);
+    AppBinding.of(context).addPostFrameCallback((_) {
+      final slot = _rows[at];
+      if (mounted && slot != null && slot.mounted) {
+        showContextMenuUnder(slot.context, items);
+      }
+    });
+  }
+
+  static final _shiftF10 = KeyCombo.parse('shift+f10');
 
   /// The cells each content column wants, as [segmenter] measures them,
   /// in a table [height] rows tall.
@@ -1407,7 +1470,7 @@ final class _TableState<T> extends State<Table<T>> {
     _shownCursor = _cursor;
     _builtFor = _controller;
     _builtArranged = _controller._arranged;
-    return Focus(
+    final table = Focus(
       focusNode: _node,
       autofocus: w.autofocus,
       canRequestFocus: w.canRequestFocus,
@@ -1468,6 +1531,15 @@ final class _TableState<T> extends State<Table<T>> {
           ],
         ),
       ),
+    );
+    if (w.rowMenu == null) {
+      return table;
+    }
+    return KeyBindings.combos(
+      {_shiftF10: _openRowMenu},
+      hints: {_shiftF10: 'menu'},
+      debugLabel: 'row menu',
+      child: table,
     );
   }
 
@@ -1736,9 +1808,24 @@ final class _RowSlotState<T> extends State<_RowSlot<T>> {
   void _onDown(TapDownDetails tap) =>
       widget.table._rowDown(widget.index, tap.event);
 
+  // made once, not at each build
+  late final void Function(PointerEvent event) _menuDown = _onMenuDown;
+
+  void _onMenuDown(PointerEvent event) =>
+      widget.table._rowMenuDown(widget.index, context, event);
+
   @override
-  Widget build(BuildContext context) =>
-      widget.table._row(widget.index, widget.row, _down);
+  Widget build(BuildContext context) {
+    final row = widget.table._row(widget.index, widget.row, _down);
+    if (widget.table.widget.rowMenu == null) {
+      return row;
+    }
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: _menuDown,
+      child: row,
+    );
+  }
 }
 
 /// The widths of columns [tracks], [gap] cells apart, in [available]

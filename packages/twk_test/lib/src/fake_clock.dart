@@ -63,8 +63,9 @@ final class FakeClock {
               period,
               zone.bindUnaryCallbackGuarded(callback),
             ),
-        scheduleMicrotask: (_, _, zone, task) =>
-            _microtasks.add(zone.bindCallbackGuarded(task)),
+        scheduleMicrotask: (_, parent, zone, task) => _letGo
+            ? parent.scheduleMicrotask(zone, task)
+            : _microtasks.add(zone.bindCallbackGuarded(task)),
       ),
     );
   }
@@ -76,6 +77,25 @@ final class FakeClock {
   var _created = 0;
   final _timers = <_FakeTimer>[];
   final _microtasks = Queue<void Function()>();
+
+  // the microtasks go to the real event loop: the test is over
+  var _letGo = false;
+
+  /// Lets the microtasks of the clock's zone run on the real event loop
+  /// from now on, those waiting first: a test's tear-down, after its body,
+  /// awaits a future of the zone (a stream closed by a callback the app
+  /// ran, its `close()`), which nothing would flush. Its timers stay fake.
+  /// A [TwkTester]'s test lets its clock go once its body is done.
+  @internal
+  void letGoOfMicrotasks() {
+    if (_letGo) {
+      return;
+    }
+    _letGo = true;
+    while (_microtasks.isNotEmpty) {
+      scheduleMicrotask(_microtasks.removeFirst());
+    }
+  }
 
   /// How far the clock has moved since it was created.
   Duration get elapsed => Duration(microseconds: _now);

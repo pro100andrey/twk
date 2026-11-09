@@ -239,6 +239,8 @@ final class RenderList extends RenderObject
   int? _target;
   int? _targetIndex;
   var _indexAtTop = false;
+  // the rows of the item at the top above the window, for a move there
+  var _targetRows = 0;
 
   // what the last layout settled at
   var _offset = 0;
@@ -299,8 +301,14 @@ final class RenderList extends RenderObject
     markNeedsLayout();
   }
 
-  /// Moves the window in the next layout to show item [index] at its top.
-  void jumpToIndex(int index) => _toIndex(index, atTop: true);
+  /// Moves the window in the next layout to show item [index] at its top,
+  /// [rows] of its rows above the window (none by default; at most all but
+  /// its last): to keep a tall item where it was, part way into it.
+  void jumpToIndex(int index, {int rows = 0}) {
+    assert(rows >= 0, 'rows of 0 or more');
+    _toIndex(index, atTop: true);
+    _targetRows = rows;
+  }
 
   /// Moves the window in the next layout the least that shows item
   /// [index]: its top when it is taller than the window. The first item
@@ -312,6 +320,7 @@ final class RenderList extends RenderObject
     assert(index >= 0, 'an index of 0 or more');
     _targetIndex = index;
     _indexAtTop = atTop;
+    _targetRows = 0;
     _target = null;
     markNeedsLayout();
   }
@@ -652,6 +661,13 @@ final class RenderList extends RenderObject
       }
     }
     _moveAnchor(index);
+    final rows = _targetRows;
+    _targetRows = 0;
+    if (_indexAtTop && rows > 0) {
+      final e = _itemAt(index, ic);
+      _anchorOffset = rows < e ? rows : (e > 0 ? e - 1 : 0);
+      return;
+    }
     // the first item brought to the top shows the padding before it, where
     // the item shows whole with it
     _anchorOffset =

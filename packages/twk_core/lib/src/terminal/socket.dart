@@ -31,6 +31,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:typed_data';
 
+import '../platform/io.dart' show stdioIsTerminal;
 import 'address.dart';
 import 'link.dart';
 import 'outbox.dart';
@@ -584,7 +585,7 @@ final class TerminalShell {
     String? directory,
     void Function(ShellEvent event)? onEvent,
   }) async {
-    if (!stdin.hasTerminal || !stdout.hasTerminal) {
+    if (!stdin.hasTerminal || !stdioIsTerminal()) {
       throw const TerminalException('not a terminal');
     }
     final project = LocalAddress.projectOf(directory);

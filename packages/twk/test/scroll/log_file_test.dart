@@ -33,10 +33,13 @@ void main() {
   tearDown(() => dir.delete(recursive: true));
 
   /// Follows [path] into a new controller, on the fake clock.
-  LogController follow({bool fromEnd = true}) {
+  LogController follow({
+    int? backlog = 0,
+    List<Span>? Function(List<Span> spans)? map,
+  }) {
     final c = LogController();
     final subscription = clock.run(
-      () => c.followFile(path, fromEnd: fromEnd, poll: poll),
+      () => c.followFile(path, backlog: backlog, poll: poll, map: map),
     );
     addTearDown(subscription.cancel);
     return c;
@@ -76,12 +79,42 @@ void main() {
 
   test('from its start when asked, in its colors, and a file not there yet '
       'waited for', () async {
-    final c = follow(fromEnd: false);
+    final c = follow(backlog: null);
     await clock.elapse(poll);
     expect(c.length, 0);
     File(path).writeAsStringSync('\x1B[31mfirst\x1B[0m\nsecond\n');
     await holds(c, ['first', 'second']);
     expect(c[0].spans?.first.style.fg, Color.red);
+  });
+
+  test('a backlog: the whole lines among the last bytes, the one it cuts '
+      'left out, then the lines written', () async {
+    File(path).writeAsStringSync('first line\nsecond\nthird\n');
+    // the last 10 bytes: "nd\nthird\n"
+    final c = follow(backlog: 10);
+    await holds(c, ['third']);
+    File(path).writeAsStringSync('fourth\n', mode: FileMode.append);
+    await holds(c, ['third', 'fourth']);
+  });
+
+  test('a negative backlog is refused at the call', () {
+    final c = LogController();
+    expect(
+      () => c.followFile(path, backlog: -1),
+      throwsA(isA<RangeError>()),
+    );
+  });
+
+  test('map: a line in its place, or none', () async {
+    File(path).writeAsStringSync('keep\npoll\nlong line\n');
+    final c = follow(
+      backlog: null,
+      map: (spans) => switch (spans.map((s) => s.text).join()) {
+        'poll' => null,
+        final text => [Span(text.substring(0, 4))],
+      },
+    );
+    await holds(c, ['keep', 'long']);
   });
 
   test(
@@ -110,7 +143,7 @@ void main() {
   test('a file of another name ending with it is not it: made beside the '
       'file followed, it does not read that again', () async {
     File(path).writeAsStringSync('one\ntwo\n');
-    final c = follow(fromEnd: false);
+    final c = follow(backlog: null);
     await holds(c, ['one', 'two']);
     File(
       '${dir.path}${Platform.pathSeparator}old_app.log',
@@ -160,7 +193,7 @@ void main() {
     final c = LogController();
     addTearDown(c.dispose);
     final source = clock.run(
-      () => c.followFile(path, fromEnd: false, poll: poll, tabWidth: 4),
+      () => c.followFile(path, backlog: null, poll: poll, tabWidth: 4),
     );
     addTearDown(source.cancel);
     await holds(c, ['a   b']);

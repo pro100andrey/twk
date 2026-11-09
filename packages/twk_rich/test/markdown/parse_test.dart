@@ -291,6 +291,16 @@ void main() {
       ]);
     });
 
+    test('a destination nests 32 parentheses at most, as cmark takes it: '
+        'one of 33 is no link', () {
+      final deep = '${'(' * 32}x${')' * 32}';
+      expect(inlines('[a]($deep)'), [
+        MdLink(deep, const [MdText('a')]),
+      ]);
+      final deeper = '${'(' * 33}x${')' * 33}';
+      expect(inlines('[a]($deeper)').whereType<MdLink>(), isEmpty);
+    });
+
     test('a link with a title, one without, an autolink', () {
       expect(inlines('[a](/x "t") [b](</y z>) <http://h.i>'), const [
         MdLink('/x', [MdText('a')], title: 't'),

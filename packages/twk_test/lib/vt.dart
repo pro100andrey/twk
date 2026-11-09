@@ -196,6 +196,14 @@ final class VtImage {
 /// A sequence it does not take, and a print that wraps or scrolls, is an
 /// error: kept in [errors], and thrown as a [StateError] when [strict].
 ///
+/// It is the oracle of what a twk app writes, which takes no line feed and
+/// no mode it does not ask for. Another program's output (a recording of a
+/// real terminal replayed, `ls`, `less`, a shell) has both, and fails it at
+/// once: a raw LF, application cursor keys (`CSI ? 1 h`), `ESC =`, `CSI 3
+/// J`. Read such output with `strict: false` and `allowLineFeed: true`, as
+/// `screenFrames` reads a recording: what it does not take is dropped and
+/// kept in [errors], and the screen is the rest.
+///
 /// A screen of 20 × 2 cells, fed a bold word and a move to the next row:
 ///
 /// ```dart

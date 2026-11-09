@@ -110,6 +110,11 @@ external int open(Pointer<Char> path, int flags, int mode);
 @Native<Pointer<Char> Function(Int)>(isLeaf: true)
 external Pointer<Char> ttyname(int fd);
 
+/// isatty(3): 1 where [fd] is a terminal, else 0. Not every character
+/// device is one: `/dev/null` is not.
+@Native<Int Function(Int)>(isLeaf: true)
+external int isatty(int fd);
+
 /// signal(2): [handler] called on [number] from now on; the one before it,
 /// or SIG_ERR. A leaf call, like [read]. Only for a signal Dart can't watch:
 /// it replaces what `ProcessSignal.watch` set. The handler runs outside Dart,

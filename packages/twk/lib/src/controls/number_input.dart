@@ -36,12 +36,14 @@ import 'field_styles.dart';
 /// ```
 ///
 /// The text typed is taken as Enter is pressed, which goes on to the nodes
-/// above (a `Form` moves to the next field), and as the focus leaves the
-/// field: a number, rounded to [decimals] digits, within the bounds as it
-/// is and beyond them as the nearest bound; text that is no number gives
-/// way to the value. Meanwhile the field shows such text in [errorStyle],
-/// [ThemeData.error] when null, and Escape puts the value back. Taken out
-/// of the tree, the field takes nothing.
+/// above (a `Form` moves to the next field), as any other key the field leaves
+/// to the nodes above is, before it goes on (a `KeyBindings` around a dialog
+/// whose Ctrl+S saves finds the number typed), and as the focus leaves the
+/// field: a number, rounded to [decimals] digits, within the bounds as it is
+/// and beyond them as the nearest bound; text that is no number gives way to
+/// the value. Meanwhile the field shows such text in [errorStyle],
+/// [ThemeData.error] when null, and Escape puts the value back. Taken out of
+/// the tree, the field takes nothing.
 ///
 /// While it has the focus, Up takes the value a step up and Down a step
 /// down, Page Up and Page Down ten steps, from the number typed, if one
@@ -223,13 +225,13 @@ final class _NumberInputState extends State<NumberInput>
   }
 }
 
-/// What a [NumberInput] and a `DatePicker` share: a value of [T] typed in
-/// a [TextField], whose text [controller] holds and whose focus [node]
-/// has. The text typed is taken as Enter is pressed and as the focus
-/// leaves the field while it is in the tree ([commit]); the keys and the
-/// wheel step the value
-/// ([stepBy]); Escape puts the value back in place of the text typed
-/// ([revert]). Hidden from the library's exports.
+/// What a [NumberInput] and a `DatePicker` share: a value of [T] typed in a
+/// [TextField], whose text [controller] holds and whose focus [node] has. The
+/// text typed is taken as Enter or another key the field leaves to the nodes
+/// above is pressed, but Escape and the field's own keys, and as the focus
+/// leaves the field while it is in the tree ([commit]); the keys and the wheel
+/// step the value ([stepBy]); Escape puts the value back in place of the text
+/// typed ([revert]). Hidden from the library's exports.
 mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   /// The value the widget is built with.
   T get widgetValue;
@@ -288,7 +290,21 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   bool _takes(_Key key) =>
       node.hasFocus && (key != _escape ? _keys[key.name] != null : _typed);
 
-  void _does(_Key key) => key == _escape ? revert() : _keys[key.name]?.call();
+  void _does(_Key key) => key == _escape ? _untype() : _keys[key.name]?.call();
+
+  // the value before the text typed was handed over ([_handOver]), while
+  // it is typed
+  ({T value})? _untyped;
+
+  /// Escape: the value as it was before the text was typed, [onChanged]
+  /// told again where the text typed was handed over.
+  void _untype() {
+    if (_untyped case (:final value)) {
+      change(value);
+    } else {
+      revert();
+    }
+  }
 
   /// Whether it takes the focus and changes.
   bool get enabled => onChanged != null;
@@ -379,6 +395,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   }
 
   void _show() {
+    _untyped = null;
     if (_typed) {
       _typed = false;
       // Escape is taken no more
@@ -427,13 +444,48 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
     setState(() => _typed = true);
   }
 
+  // the field's own keys, as of the last build: those it does not take
+  // as left to the bindings above
+  var _combosOf = const <String, VoidCallback?>{};
+  var _combos = const <KeyCombo>[];
+
+  /// The keys the field leaves come here, on their way to the bindings
+  /// above: Enter takes the text typed ([commit]); each other but the
+  /// field's own keys and Escape hands it over ([_handOver]), so that one
+  /// (Ctrl+S that saves) finds the value typed.
   KeyEventResult _onKey(FocusNode _, KeyEvent event) {
-    if (event.code == KeyCode.enter &&
-        event.modifiers == 0 &&
-        event.kind != KeyKind.release) {
+    if (event.kind == KeyKind.release || !_typed) {
+      return KeyEventResult.ignored;
+    }
+    if (!identical(_keys, _combosOf)) {
+      _combosOf = _keys;
+      _combos = [for (final name in _keys.keys) KeyCombo.parse(name)];
+    }
+    if (event.code == KeyCode.escape && event.modifiers == 0 ||
+        _combos.any((combo) => combo.accepts(event))) {
+      return KeyEventResult.ignored;
+    }
+    if (event.code == KeyCode.enter && event.modifiers == 0) {
       commit();
+    } else {
+      _handOver();
     }
     return KeyEventResult.ignored;
+  }
+
+  /// Gives [onChanged] the text typed where it is a value within the
+  /// bounds, the text left as typed: a key above may act on the value,
+  /// and one that does not (a palette, help) leaves the typing as it was.
+  /// Text that is no value yet (`-`) or beyond the bounds is left alone,
+  /// for Enter or the focus leaving to take.
+  void _handOver() {
+    final typed = parse(controller.text);
+    if (typed == null || !fits(typed.value) || typed.value == _value) {
+      return;
+    }
+    _untyped ??= (value: _value);
+    _value = typed.value;
+    onChanged?.call(typed.value);
   }
 
   void _pressed(PointerEvent event, VoidCallback? onPressed) {

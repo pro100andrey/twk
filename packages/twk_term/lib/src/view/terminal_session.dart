@@ -1,6 +1,7 @@
 part of 'terminal_view.dart';
 
 // Examples can assume:
+// import 'dart:async';
 // import 'dart:io';
 
 /// A program and the emulator of its terminal: what the program writes is
@@ -25,6 +26,17 @@ final class TerminalSession with ChangeNotifier {
   /// writes, [input] takes what is sent to it, [onResize] is told each new
   /// size of its terminal. [exitCode] completes with null when [output]
   /// ends.
+  ///
+  /// The session ends with [output]: over `Stream.value(bytes)` it has
+  /// [ended] at once, and a program shown there (a pager) is gone with it.
+  /// A test's program that stays reads a [StreamController]'s stream, left
+  /// open, which the test adds the output to:
+  ///
+  /// ```dart
+  /// final output = StreamController<List<int>>();
+  /// final session = TerminalSession(output: output.stream, input: (_) {});
+  /// output.add('line 1\r\nline 2'.codeUnits);
+  /// ```
   ///
   /// A program started by `dart:io`, without a terminal of its own:
   ///

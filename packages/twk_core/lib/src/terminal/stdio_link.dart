@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 
+import '../platform/io.dart' show stdioIsTerminal;
 import 'isolate_input.dart';
 import 'link.dart';
 import 'posix_input.dart';
@@ -20,7 +21,7 @@ final class StdioLink implements DrainingLink {
 
   /// What writes to a terminal on Linux and macOS, so that one that reads
   /// nothing blocks nothing; elsewhere, and into a pipe or a file, `stdout`.
-  late final PosixOutput? _output = !Platform.isWindows && stdout.hasTerminal
+  late final PosixOutput? _output = !Platform.isWindows && stdioIsTerminal()
       ? PosixOutput.open()
       : null;
 
@@ -33,11 +34,29 @@ final class StdioLink implements DrainingLink {
   @override
   bool get windows => Platform.isWindows;
 
+  /// The terminal's width; on one of no size (a pseudo-terminal `script`
+  /// opens with no terminal around it), `COLUMNS` where it is a positive
+  /// number, else 80.
   @override
-  int get columns => stdout.terminalColumns;
+  int get columns => _size(() => stdout.terminalColumns, 'COLUMNS', 80);
 
+  /// The terminal's height; on one of no size, `LINES` where it is a
+  /// positive number, else 24.
   @override
-  int get lines => stdout.terminalLines;
+  int get lines => _size(() => stdout.terminalLines, 'LINES', 24);
+
+  static int _size(int Function() read, String variable, int otherwise) {
+    try {
+      final n = read();
+      if (n > 0) {
+        return n;
+      }
+    } on StdoutException {
+      // no size: as below
+    }
+    final given = int.tryParse(Platform.environment[variable] ?? '');
+    return given != null && given > 0 ? given : otherwise;
+  }
 
   @override
   int? get eraseChar => _tty?.eraseChar;

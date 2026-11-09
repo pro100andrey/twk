@@ -74,7 +74,7 @@ a label whose style sets no text color in the theme's text color.
 ## `Table<T>`
 
 `Table<T>(rows:, columns:, rowKey:, controller:, marks:, selection:
-TableSelection.row, onActivated:, rowHeight: 1, columnGap: 1, border:
+TableSelection.row, onActivated:, rowMenu:, rowHeight: 1, columnGap: 1, border:
 BorderType.none, showHeader: true, sampleRows: 100, focusNode:, autofocus:,
 canRequestFocus:, style:, headerStyle:, borderStyle:, selectedStyle:,
 cursorStyle:)` shows `rows` in `columns` under a header of their titles that
@@ -142,7 +142,10 @@ given to the columns resized (`columnWidths`, by column;
 the focus; with the focus, Up and Down select the row above and below, Page
 Up and Page Down a window's rows away, Home and End the first and the last,
 Left and Right the cell before and after, and Enter calls `onActivated` with
-the row selected; a key that selects no other row or cell, or resizes no
+the row selected (without it, Enter goes on to the nodes above); with
+`rowMenu`, the entries of a row's menu, a right click on a row selects it and
+opens its menu at the mouse, and Shift+F10 the selected row's under it
+(`shift+f10 menu`); a key that selects no other row or cell, or resizes no
 column, goes on to the nodes above, and the view scrolls the least that
 shows the row selected after each and after a sort, and shows it from the
 first frame and with a new controller; with `none` the keys scroll the rows.

@@ -126,6 +126,39 @@ void main() {
     },
   );
 
+  test('what map throws ends the source: the lines before it added and '
+      'told, done completes with it, the stream let go of', () async {
+    final c = LogController();
+    addTearDown(c.dispose);
+    var told = 0;
+    c.addListener(() => told++);
+    final output = StreamController<String>();
+    addTearDown(output.close);
+    final source = c.addOutput(
+      output.stream,
+      map: (spans) =>
+          spans.first.text == 'b' ? throw StateError('boom') : spans,
+    );
+    output.add('a\nb\nc\n');
+    await expectLater(source.done, throwsStateError);
+    expect([for (var i = 0; i < c.length; i++) c[i].text], ['a']);
+    expect(told, 1);
+    expect(output.hasListener, isFalse);
+  });
+
+  test('what map throws on the last line, at the end, ends the source with '
+      'it', () async {
+    final c = LogController();
+    addTearDown(c.dispose);
+    final source = c.addOutput(
+      Stream.value('a\nb'),
+      map: (spans) =>
+          spans.first.text == 'b' ? throw StateError('boom') : spans,
+    );
+    await expectLater(source.done, throwsStateError);
+    expect(c.length, 1);
+  });
+
   test('a tab goes to the multiple of the tabWidth', () async {
     final c = LogController();
     addTearDown(c.dispose);

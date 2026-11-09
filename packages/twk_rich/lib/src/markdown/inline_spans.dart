@@ -41,13 +41,26 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
   final out = <Span>[];
   var length = 0;
   var linked = false;
+  // the run of one style being put together, in a buffer: a span made
+  // anew at each piece would copy the run each time, a paragraph of many
+  // lines quadratic in them
+  final run = StringBuffer();
+  Style? runStyle;
+  void flush() {
+    if (runStyle case final style?) {
+      out.add(Span(run.toString(), style));
+      run.clear();
+      runStyle = null;
+    }
+  }
+
   void put(String text, Style style) {
     length += text.length;
-    if (out.isNotEmpty && out.last.style == style) {
-      out.last = Span(out.last.text + text, style);
-    } else {
-      out.add(Span(text, style));
+    if (runStyle != style) {
+      flush();
+      runStyle = style;
     }
+    run.write(text);
   }
 
   void add(List<MdInline> inlines, Style style) {
@@ -105,6 +118,7 @@ typedef InlineLink = ({int start, int end, String destination, String? title});
   }
 
   add(resolveInlines(inlines, definitions), const Style());
+  flush();
   return (spans: out, linked: linked);
 }
 

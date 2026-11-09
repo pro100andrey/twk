@@ -26,10 +26,10 @@ void main() {
   tearDown(() => dir.delete(recursive: true));
 
   /// What [tailFile] tells of [path], as `text` for bytes and `reset`.
-  List<String> follow({bool fromEnd = true}) {
+  List<String> follow({int? backlog = 0}) {
     final told = <String>[];
     final subscription = clock.run(
-      () => tailFile(path, fromEnd: fromEnd, poll: poll).listen(
+      () => tailFile(path, backlog: backlog, poll: poll).listen(
         (e) => told.add(switch (e) {
           FileBytes(:final bytes) => String.fromCharCodes(bytes),
           FileReset() => 'reset',
@@ -62,7 +62,7 @@ void main() {
     'replacement all the same: a FileReset, then it from its start',
     () async {
       File(path).writeAsStringSync('header\n');
-      final told = follow(fromEnd: false);
+      final told = follow(backlog: null);
       await holds(told, ['header\n']);
       // the directory watch is live once an append is told with the poll's
       // clock not moved on (one made before it is lost): renamed before it, the
@@ -93,7 +93,7 @@ void main() {
 
   test('a file not there yet that appears is read from its start once, '
       'whenever its create event comes', () async {
-    final told = follow(fromEnd: false);
+    final told = follow(backlog: null);
     await clock.elapse(poll);
     File(path).writeAsStringSync('first\n');
     await clock.elapse(poll);
@@ -118,7 +118,7 @@ void main() {
       final told = <String>[];
       final subscription = clock.run(
         () => IOOverrides.runZoned(
-          () => tailFile(path, fromEnd: true, poll: poll).listen(
+          () => tailFile(path, backlog: 0, poll: poll).listen(
             (e) => told.add(switch (e) {
               FileBytes(:final bytes) => String.fromCharCodes(bytes),
               FileReset() => 'reset',
@@ -176,7 +176,7 @@ void main() {
     await runZonedGuarded(() async {
       final subscription = clock.run(
         () => IOOverrides.runZoned(
-          () => tailFile(path, fromEnd: false, poll: poll).listen((_) {}),
+          () => tailFile(path, backlog: null, poll: poll).listen((_) {}),
           createFile: (p) => _Hooked(
             inner,
             onLength: (_) {
@@ -210,7 +210,7 @@ void main() {
     var opened = 0;
     final subscription = clock.run(
       () => IOOverrides.runZoned(
-        () => tailFile(path, fromEnd: true, poll: poll).listen(
+        () => tailFile(path, backlog: 0, poll: poll).listen(
           (e) => told.add(switch (e) {
             FileBytes(:final bytes) => String.fromCharCodes(bytes),
             FileReset() => 'reset',
@@ -248,7 +248,7 @@ void main() {
     final told = <String>[];
     final subscription = clock.run(
       () => IOOverrides.runZoned(
-        () => tailFile(path, fromEnd: false, poll: poll).listen(
+        () => tailFile(path, backlog: null, poll: poll).listen(
           (e) => told.add(switch (e) {
             FileBytes(:final bytes) => String.fromCharCodes(bytes),
             FileReset() => 'reset',
@@ -290,7 +290,7 @@ void main() {
     final told = <String>[];
     final subscription = clock.run(
       () => IOOverrides.runZoned(
-        () => tailFile(path, fromEnd: true, poll: poll).listen(
+        () => tailFile(path, backlog: 0, poll: poll).listen(
           (e) => told.add(switch (e) {
             FileBytes(:final bytes) => String.fromCharCodes(bytes),
             FileReset() => 'reset',
@@ -340,7 +340,7 @@ void main() {
       final told = <String>[];
       final subscription = clock.run(
         () => IOOverrides.runZoned(
-          () => tailFile(path, fromEnd: true, poll: poll).listen(
+          () => tailFile(path, backlog: 0, poll: poll).listen(
             (e) => told.add(switch (e) {
               FileBytes(:final bytes) => String.fromCharCodes(bytes),
               FileReset() => 'reset',

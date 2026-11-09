@@ -507,7 +507,9 @@ the place of an offset set before it, so of the two the later wins. A
 move of the window by at most its height is exact, the items it passes
 laid out; a longer one goes to where the estimate puts the offset,
 building nothing on the way; one to 0, or to the end of the content as
-the last layout had it, to the start or the end. `jumpToIndex` shows an item at the top, `showIndex` scrolls the
+the last layout had it, to the start or the end. `jumpToIndex` shows an item
+at the top (`rows:` of it above the window, at most all but its last),
+`showIndex` scrolls the
 least that shows it; while `stickToBottom` is set and the window shows
 the end, it keeps showing the end as items are added or grow, and such
 a list starts at the end. It takes all the room it is given, which must

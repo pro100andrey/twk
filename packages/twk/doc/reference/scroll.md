@@ -137,7 +137,8 @@ background and text under the items; scrolled while all of it is on the
 screen, it has the terminal move the rows that stay in view and paints those
 the scroll brought in and those of the items that changed. A
 `ListController`, a `ScrollController`, moves its lists to an item, built or
-not, as they are next laid out: `jumpToIndex` to the top (in a reverse list
+not, as they are next laid out: `jumpToIndex` to the top, `rows:` of it
+above the window to keep a tall item part way into it (in a reverse list
 the bottom, the edge it reads from, an item taller than the window showing
 its bottom), `ensureIndexVisible` the least that shows it; of a move to an
 item and a move of the position (a key, the wheel, `jumpTo`) before the list
@@ -211,7 +212,7 @@ the view does. Raw events and `Listener.onScroll` are as they were.
 
 ## `LogView`
 
-`LogView(controller:, wrap: false, showTime: true, showLevel: true,
+`LogView(controller:, wrap: true, showTime: true, showLevel: true,
 selectable: true, scrollbar: ScrollbarVisibility.always, style:,
 matchStyle:, currentMatchStyle:, focusNode:, autofocus:)` is `tail -f` for
 an app, over a `LogController(maxLines: 10000, level: LogLevel.debug,
@@ -220,8 +221,11 @@ filter: '', query: '')`: lines added with `add(text, level:, time:)`
 level's; `addOutput(stream)` for a program's output as it comes, read as an
 `AnsiStream` reads it, a line once it ends, in its escape sequences'
 colors, a carriage return writing it over, the unended line when the
-stream is done; `followFile(path, fromEnd: true, poll: 1 s, tabWidth: 8)` for a file
-being written, the same way, its writes told by a watch of its directory and
+stream is done, each line through `map:` where it is given, which returns the
+spans to add or null to leave the line out; `followFile(path, backlog: 0,
+poll: 1 s, tabWidth: 8, map:)` for a file being written, the same way, the
+whole lines among its last `backlog` bytes first (null for the whole file),
+its writes told by a watch of its directory and
 found by a look at its size each `poll` as well, a file cut short read again
 from its start, one not there yet waited for, not on the web; `clear()`)
 follow the end while the view shows it; scrolled up it
@@ -230,15 +234,20 @@ its bottom right) until End, a click on the count or `follow()` takes it
 back (`following`). It keeps `maxLines` lines, the oldest dropped (`length`,
 `[i]`, each a `LogLine`: `number`, `text`, `level`, `time`, `spans`), and shows those
 at `level` and above whose text has `filter` in it, ignoring the case while
-it is all in lower case (`shownLength`, `shownAt`), a filter typed on or a
+it is all in lower case, and that `where` keeps, a test of each line, null
+for every one (`shownLength`, `shownAt`), a filter typed on or a
 higher level refining only the lines shown; `query` is found the same way,
 its matches highlighted (`matchStyle`, the current one in
 `currentMatchStyle`), `nextMatch()` and `previousMatch()`, and `n` and `N`
 while there is a query (hinted), going round them. Each line is its time and
 level tag (`DEBUG`, `INFO`, `WARN`, `ERROR` in the theme's `muted`, `info`,
 `warning` and `error`, a debug line's text muted) and its text, wrapped with
-`wrap`, else cut off and scrolled across by Left and Right
-`LogView.sideStep` (4) columns at a time, as far as the widest line. The
+`wrap` at words in a column right of the time and level (below them where
+they would take more than half the width), else cut off and scrolled across
+by Left and Right `LogView.sideStep` (4) columns at a time, as far as the
+widest line; `w` (hinted, `w wrap`) turns the wrapping over in the view,
+which stays on the line at its top, until the widget is built with another
+`wrap`. The
 scrollbar at its right shows the window of the lines shown, filtered or not
 (`ScrollbarVisibility.never` for none). With `selectable`, below a
 `SelectionArea` its lines are one `Selectable`: a drag past its top or

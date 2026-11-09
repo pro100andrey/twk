@@ -49,6 +49,10 @@ final class Pty {
   /// first: no program runs on the web.
   static bool get tellsExitCode => false;
 
+  /// The process group in the foreground of the terminal; there is none
+  /// on the web.
+  int? get foregroundProcessGroup => null;
+
   /// How many columns the terminal has.
   int get width => 0;
 

@@ -239,6 +239,11 @@ final class _ConfirmInputState extends State<ConfirmInput> {
 /// at first. [yes] and [no] label the answers, as [ConfirmInput] takes
 /// them; the keys stay `y` and `n` whatever the labels.
 ///
+/// The future completes too when the dialog leaves the tree another way,
+/// as when the screen under it closes ([showDialog]): what comes after the
+/// `await` checks that its widget is still mounted before it uses it (a
+/// `setState`), as in Flutter.
+///
 /// ```dart
 /// final delete = await showConfirm(
 ///   context,
@@ -247,8 +252,9 @@ final class _ConfirmInputState extends State<ConfirmInput> {
 ///   yes: 'Delete',
 ///   no: 'Keep',
 /// );
-/// if (delete == true) {
-///   // delete them
+/// // the screen may have closed while the dialog was open
+/// if (delete == true && context.mounted) {
+///   // delete them, and setState
 /// }
 /// ```
 Future<bool?> showConfirm(

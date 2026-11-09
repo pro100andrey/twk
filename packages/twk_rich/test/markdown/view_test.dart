@@ -66,6 +66,18 @@ Widget view(
 List<String> rows(TwkTester t, int count) => t.lines.take(count).toList();
 
 void main() {
+  testTwk('a theme given, the list markers follow the glyphs of the app '
+      'as they change', (t) async {
+    Widget under(Glyphs glyphs) => Theme(
+      data: ThemeData.dark.copyWith(glyphs: glyphs),
+      child: view('- a\n\n> q'),
+    );
+    await t.pumpWidget(under(Glyphs.unicode), size: (20, 4));
+    expect(t.lines.first, startsWith('•'));
+    await t.pumpWidget(under(Glyphs.ascii), size: (20, 4));
+    expect(t.lines.first, startsWith('*'));
+  });
+
   group('inlines', () {
     testTwk('emphasis, strong, struck text and code in their styles', (
       t,
@@ -312,6 +324,33 @@ void main() {
       expect(t, styleAt(0, 0, allOf(hasFg(tableHeader), hasAttr(Attr.bold))));
       expect(t, styleAt(5, 0, hasFg(tableBorder)));
       expect(t, styleAt(0, 2, hasAttr(Attr.italic)));
+    });
+
+    testTwk("a theme given, a table's rows are filled as the app's theme "
+        'says, as it changes', (t) async {
+      Widget under(ThemeData data) =>
+          Theme(data: data, child: view('| a | b |\n|---|---|\n| 1 | 2 |'));
+      for (final data in [ThemeData.dark, ThemeData.light, ThemeData.dark]) {
+        await t.pumpWidget(under(data), size: (20, 4));
+        final fill = data.background.merge(data.text);
+        expect(t.lines[2], startsWith('1'));
+        expect(t, styleAt(0, 2, allOf(hasBg(fill.bg!), hasFg(fill.fg!))));
+      }
+    });
+
+    testTwk('a table growing a row at a time: a reference in a row made '
+        'before its definition came is a link once it does', (t) async {
+      const head = '| a | b |\n|---|---|\n| [x][r] | 1 |\n';
+      await t.pumpWidget(view(head), size: (20, 6));
+      expect(rows(t, 3)[2], '[x][r] │ 1');
+      await t.pumpWidget(view('$head| y | 2 |\n'), size: (20, 6));
+      expect(rows(t, 4)[3], 'y      │ 2');
+      await t.pumpWidget(
+        view('$head| y | 2 |\n\n[r]: https://x.dev\n'),
+        size: (20, 6),
+      );
+      expect(rows(t, 4).sublist(2), ['x │ 1', 'y │ 2']);
+      expect(t, styleAt(0, 2, hasFg(link)));
     });
 
     testTwk('the wheel over a table scrolls the document around it', (

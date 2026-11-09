@@ -62,7 +62,7 @@ Stream<void> watchDirectory(String path) => const Stream.empty();
 /// Fails with [UnsupportedError]: the web has no files to follow.
 Stream<TailEvent> tailFile(
   String path, {
-  required bool fromEnd,
+  required int? backlog,
   required Duration poll,
   Timer Function(Duration, void Function(Timer)) startPeriodic = Timer.periodic,
 }) => Stream.error(_noFiles());

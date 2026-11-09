@@ -295,6 +295,33 @@ void main() {
       expect(controller.headings, isEmpty, reason: 'no view has it');
     });
 
+    testTwk('a heading with a reference takes its text and slug anew once '
+        'its definition streams in; one written on in the open block too', (
+      t,
+    ) async {
+      final controller = MarkdownController();
+      var data = '# [Docs][d]\n\ntext\n\n## Wri';
+      await t.pumpWidget(
+        MarkdownView(data, controller: controller),
+        size: (30, 10),
+      );
+      await t.pump();
+      expect(controller.headings, const [
+        MarkdownHeading('[Docs][d]', 1, 'docsd'),
+        MarkdownHeading('Wri', 2, 'wri'),
+      ]);
+      const more = 'ting\n\n[d]: https://x.dev\n';
+      data += more;
+      await t.pumpWidget(
+        MarkdownView(data, appended: more, controller: controller),
+      );
+      await t.pump();
+      expect(controller.headings, const [
+        MarkdownHeading('Docs', 1, 'docs'),
+        MarkdownHeading('Writing', 2, 'writing'),
+      ]);
+    });
+
     testTwk('the controller goes over to a view built in place of its '
         "own: its headings and scrollToHeading are the new one's", (
       t,
@@ -318,6 +345,54 @@ void main() {
       expect(controller.scrollToHeading('end'), isTrue);
       await t.pump();
       expect(t.lines.last, 'End');
+    });
+
+    testTwk('a controller taken away and given back has the headings again, '
+        'and scrolls to them', (t) async {
+      final controller = MarkdownController();
+      addTearDown(controller.dispose);
+      const data = '# One\n\ntext';
+      await t.pumpWidget(
+        MarkdownView(data, controller: controller),
+        size: (20, 4),
+      );
+      await t.pump();
+      expect(controller.headings, const [MarkdownHeading('One', 1, 'one')]);
+      await t.pumpWidget(const MarkdownView(data));
+      await t.pump();
+      expect(controller.headings, isEmpty);
+      await t.pumpWidget(MarkdownView(data, controller: controller));
+      await t.pump();
+      expect(controller.headings, const [MarkdownHeading('One', 1, 'one')]);
+      expect(controller.scrollToHeading('one'), isTrue);
+    });
+
+    testTwk('definitions changed in place: a heading with a reference takes '
+        'its text and slug anew, in markdownHeadings and in a view', (
+      t,
+    ) async {
+      final blocks = MarkdownStream('# [Docs][d]\n').blocks;
+      final defined = MarkdownStream('[d]: https://x.dev\n').definitions;
+      final definitions = <String, MdDefinition>{};
+      const before = [MarkdownHeading('[Docs][d]', 1, 'docsd')];
+      const after = [MarkdownHeading('Docs', 1, 'docs')];
+      expect(markdownHeadings(blocks, definitions), before);
+      final controller = MarkdownController();
+      addTearDown(controller.dispose);
+      Widget view() => MarkdownView.blocks(
+        blocks,
+        definitions: definitions,
+        controller: controller,
+      );
+      await t.pumpWidget(view(), size: (20, 3));
+      await t.pump();
+      expect(controller.headings, before);
+      definitions.addAll(defined);
+      expect(markdownHeadings(blocks, definitions), after);
+      await t.pumpWidget(view());
+      await t.pump();
+      expect(controller.headings, after);
+      expect(t.lines.first, 'Docs');
     });
 
     testTwk('scrollToHeading scrolls the least that shows the heading', (

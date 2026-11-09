@@ -13,6 +13,7 @@ import 'package:args/command_runner.dart';
 import 'package:mold/mold.dart';
 import 'package:path/path.dart' as p;
 import 'package:twk/cli.dart';
+import 'package:twk_core/twk_core.dart' show stdioIsTerminal;
 
 import 'agents.dart';
 import 'templates/templates.dart';
@@ -336,7 +337,7 @@ bool canAsk({required bool stdinIsTerminal, required bool stdoutIsTerminal}) =>
 CliTerminal? askTerminal() =>
     canAsk(
       stdinIsTerminal: stdin.hasTerminal,
-      stdoutIsTerminal: stdout.hasTerminal,
+      stdoutIsTerminal: stdioIsTerminal(),
     )
     ? CliTerminal.system()
     : null;

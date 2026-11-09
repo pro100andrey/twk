@@ -141,6 +141,27 @@ KeyEvent char(String c, [int mods = 0]) =>
     KeyEvent(KeyCode.char, char: c, modifiers: mods);
 
 void main() {
+  // the stream is closed in the app's zone, by a callback the app ran: the
+  // future close() makes is that zone's, which a tear-down awaits after
+  // the body, when no call of the tester flushes the zone any more
+  testTwk(
+    "a tear-down awaits a future of the app's zone: it completes",
+    (t) async {
+      final output = StreamController<int>()..add(1);
+      addTearDown(output.close);
+      output.stream.listen((_) {});
+      await t.pumpWidget(
+        KeyBindings(
+          {'q': () => unawaited(output.close())},
+          child: const Focus(autofocus: true, child: Text('app')),
+        ),
+      );
+      await t.press('q');
+      await t.pump();
+    },
+    timeout: const Timeout(Duration(seconds: 10)),
+  );
+
   testTwk('pointerShape is read only where the terminal shows shapes', (
     t,
   ) async {

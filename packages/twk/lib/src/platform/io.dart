@@ -8,6 +8,8 @@ import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math' show max, min;
 
+import 'package:twk_core/twk_core.dart' as core show stdioIsTerminal;
+
 import 'file_identity.dart';
 import 'follow_machine.dart';
 import 'tail_event.dart';
@@ -88,7 +90,8 @@ Stream<void> watchDirectory(String path) {
 }
 
 /// Streams the bytes written to the file at [path] from when the stream is
-/// listened to, or with [fromEnd] false from its start, as they come: told
+/// listened to, and before them the whole lines among the last [backlog]
+/// bytes there were (none for 0, the whole file for null), as they come: told
 /// by a watch of its directory where the system has one, and found by a
 /// look at its size each [poll] all the same, where a watch misses a write
 /// or does not work (a network drive). A file cut shorter than what was
@@ -129,7 +132,7 @@ Stream<void> watchDirectory(String path) {
 /// test's fake clock moves it; [startPeriodic] starts it otherwise.
 Stream<TailEvent> tailFile(
   String path, {
-  required bool fromEnd,
+  required int? backlog,
   required Duration poll,
   Timer Function(Duration, void Function(Timer)) startPeriodic = Timer.periodic,
 }) {
@@ -228,7 +231,10 @@ Stream<TailEvent> tailFile(
                 break;
               }
               at += bytes.length;
-              out.add(FileBytes(bytes));
+              final told = machine.lineStart(bytes);
+              if (told.isNotEmpty) {
+                out.add(FileBytes(told));
+              }
               // told: a read that fails further on goes on from here
               machine.told(bytes.length);
             }
@@ -258,7 +264,7 @@ Stream<TailEvent> tailFile(
         size = null;
       }
       machine.start(
-        fromEnd: fromEnd,
+        backlog: backlog,
         size: size,
         identity: fileIdentity(path),
       );
@@ -390,15 +396,25 @@ bool get stdinIsTerminal => stdin.hasTerminal;
 /// Stdout, or stderr with [error].
 Stdout _stdio({required bool error}) => error ? stderr : stdout;
 
-/// Whether stdout, or stderr with [error], is a terminal.
-bool stdioIsTerminal({bool error = false}) => _stdio(error: error).hasTerminal;
+/// Whether stdout, or stderr with [error], is a terminal, as the core
+/// tells it ([core.stdioIsTerminal]): a pseudo-terminal of no size is one,
+/// `/dev/null` is not.
+bool stdioIsTerminal({bool error = false}) =>
+    core.stdioIsTerminal(error: error);
 
 /// Whether stdout, or stderr with [error], takes ANSI escapes.
 bool stdioSupportsAnsi({bool error = false}) =>
     _stdio(error: error).supportsAnsiEscapes;
 
-/// How many columns wide the terminal stdout (stderr with [error]) is.
-int stdioColumns({bool error = false}) => _stdio(error: error).terminalColumns;
+/// How many columns wide the terminal stdout (stderr with [error]) is; 0
+/// where it has no size.
+int stdioColumns({bool error = false}) {
+  try {
+    return _stdio(error: error).terminalColumns;
+  } on StdoutException {
+    return 0;
+  }
+}
 
 /// Stdout, or stderr with [error], as the sink text is written to.
 StringSink stdioSink({bool error = false}) => _stdio(error: error);

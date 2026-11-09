@@ -233,6 +233,157 @@ void main() {
     expect(c.shownLength, 6);
   });
 
+  testTwk('where shows the lines it keeps, lines added too; set, the view '
+      'stays on the lines it shows, scrolled up', (t) async {
+    final c = LogController();
+    for (var i = 0; i < 80; i++) {
+      c.add(i.isEven ? 'req $i' : 'poll $i');
+    }
+    await t.pumpWidget(Theme.terminal(child: plain(c)), size: (30, 5));
+    for (var i = 0; i < 4; i++) {
+      await t.press('pageup');
+      await t.pump();
+    }
+    await t.pump();
+    expect(t.lines, ['poll 55', 'req 56', 'poll 57', 'req 58', 'poll 59']);
+
+    // the first line it showed is left out: it stays on the next one kept
+    c.where = (line) => line.text.startsWith('req');
+    await t.pump();
+    expect(t.lines, ['req 56', 'req 58', 'req 60', 'req 62', 'req 64']);
+    expect(c.shownLength, 40);
+    expect(c.following, isFalse);
+
+    c
+      ..add('poll 80')
+      ..add('req 81');
+    expect(c.shownLength, 41);
+
+    c.where = null;
+    await t.pump();
+    expect(c.shownLength, 82);
+    expect(t.lines.first, 'req 56');
+  });
+
+  test('where set again to the same function tests the lines again', () {
+    final kinds = {'req', 'poll'};
+    bool shown(LogLine line) => kinds.any(line.text.startsWith);
+    final c = LogController(where: shown)
+      ..add('req 1')
+      ..add('poll 2');
+    expect(c.shownLength, 2);
+    kinds.remove('poll');
+    var told = 0;
+    c
+      ..addListener(() => told++)
+      ..where = shown;
+    expect(c.shownLength, 1);
+    expect(told, 1);
+  });
+
+  test('a where that throws adds no line of its own, the lines before it '
+      'added and the listeners told', () {
+    var told = 0;
+    final c = LogController(
+      maxLines: 2,
+      where: (line) => line.text == 'bad' ? throw StateError('bad') : true,
+    )..addListener(() => told++);
+    expect(() => c.addAll(['a', 'b', 'c', 'bad', 'd']), throwsStateError);
+    expect([for (var i = 0; i < c.length; i++) c[i].text], ['b', 'c']);
+    expect(
+      [for (var i = 0; i < c.shownLength; i++) c.shownAt(i).text],
+      ['b', 'c'],
+    );
+    expect(told, 1);
+    expect(() => c.add('bad'), throwsStateError);
+    c.add('e');
+    expect([for (var i = 0; i < c.length; i++) c[i].text], ['c', 'e']);
+    expect(c.shownLength, 2);
+  });
+
+  testTwk('w turns the wrapping over, the view on the line at its top, '
+      'hinted; the widget built with another wrap sets it again', (t) async {
+    final c = LogController();
+    for (var i = 0; i < 40; i++) {
+      c.add('line $i ${'word ' * (i.isEven ? 6 : 1)}');
+    }
+    Widget view({required bool wrap}) =>
+        Theme.terminal(child: plain(c, wrap: wrap));
+    await t.pumpWidget(view(wrap: false), size: (20, 5));
+    expect(
+      t.binding.focusManager.activeKeys.map((k) => k.hint),
+      contains('wrap'),
+    );
+    for (var i = 0; i < 4; i++) {
+      await t.press('pageup');
+      await t.pump();
+    }
+    await t.pump();
+    const cut = ['line 15 word', 'line 16 word word wo', 'line 17 word'];
+    expect(t.lines.take(3), cut);
+
+    await t.press('w');
+    await t.pump();
+    await t.pump();
+    expect(t.lines.take(3), [
+      'line 15 word',
+      'line 16 word word',
+      'word word word word',
+    ]);
+
+    await t.press('w');
+    await t.pump();
+    await t.pump();
+    expect(t.lines.take(3), cut);
+
+    // turned over in the view, then the widget's own wrap again
+    await t.press('w');
+    await t.pump();
+    await t.pumpWidget(view(wrap: true), size: (20, 5));
+    await t.pumpWidget(view(wrap: false), size: (20, 5));
+    await t.pump();
+    expect(t.lines[1], 'line 16 word word wo');
+  });
+
+  testTwk('scrolled up to the middle of a wrapped line, lines dropped past '
+      'the cap above the window move nothing', (t) async {
+    final c = LogController(maxLines: 10);
+    for (var i = 0; i < 10; i++) {
+      c.add('L$i ${'wordwo ' * 8}');
+    }
+    await t.pumpWidget(
+      Theme.terminal(child: plain(c, wrap: true)),
+      size: (20, 6),
+    );
+    await t.press('up');
+    await t.press('up');
+    await t.pump();
+    // the indicator of the new lines takes the last row
+    final shown = t.lines.take(5).toList();
+    expect(shown.first, isNot(startsWith('L')), reason: 'within a line');
+    for (var i = 10; i < 13; i++) {
+      c.add('L$i ${'wordwo ' * 8}');
+      await t.pump();
+      expect(t.lines.take(5), shown);
+    }
+  });
+
+  testTwk('scrolled across, cleared: the lines added next show from their '
+      'start', (t) async {
+    final c = LogController()..add('x' * 100);
+    await t.pumpWidget(Theme.terminal(child: plain(c)), size: (20, 3));
+    for (var i = 0; i < 10; i++) {
+      await t.press('right');
+    }
+    await t.pump();
+    expect(t.lines.first, 'x' * 20);
+    c
+      ..clear()
+      ..add('short');
+    await t.pump();
+    expect(t.lines.first, 'short');
+  });
+
   testTwk('n and N go to the next and the previous match, round past the '
       'ends, scrolling to it; what the query finds is highlighted', (
     t,
@@ -430,7 +581,8 @@ void main() {
   });
 
   testTwk('a selection copies a line as it reads, its time and level too; '
-      'in a line wrapped, from the row and column pressed', (t) async {
+      'in a line wrapped, from the row and column pressed, the indent under '
+      "the level its row's start", (t) async {
     final c = LogController()
       ..add('up', time: DateTime(2026, 1, 1, 9, 5, 7, 42))
       ..add('a long line that goes on', level: LogLevel.warning);
@@ -438,7 +590,6 @@ void main() {
       Theme.terminal(
         child: LogView(
           controller: c,
-          wrap: true,
           scrollbar: ScrollbarVisibility.never,
         ),
       ),
@@ -448,7 +599,7 @@ void main() {
       '09:05:07.042 INFO',
       'up',
       'WARN  a long line',
-      'that goes on',
+      '      that goes on',
     ]);
     var from = t.terminal.frames.length;
     await t.mouse(MouseKind.down, 0, 0);
@@ -459,11 +610,19 @@ void main() {
 
     await t.pump(const Duration(milliseconds: 400));
     from = t.terminal.frames.length;
-    await t.mouse(MouseKind.down, 2, 3);
+    await t.mouse(MouseKind.down, 8, 3);
     await t.mouse(MouseKind.drag, 19, 3);
     await t.mouse(MouseKind.up, 19, 3);
     await t.pump();
     expect(copiedSince(t, from), 'at goes on');
+
+    await t.pump(const Duration(milliseconds: 400));
+    from = t.terminal.frames.length;
+    await t.mouse(MouseKind.down, 2, 3);
+    await t.mouse(MouseKind.drag, 19, 3);
+    await t.mouse(MouseKind.up, 19, 3);
+    await t.pump();
+    expect(copiedSince(t, from), 'that goes on');
   });
 
   group('a drag past its edge', () {

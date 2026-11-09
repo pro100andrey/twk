@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+Fixed:
+
+- `changedWords`, and with it `DiffView`'s highlighting of the words a
+  line changed, gives none for lines of more than 20000 words between
+  them, which a diff of their words took up to a minute on in a frame
+  (two random lines of 3.7 million characters); the line shows changed
+  whole.
+- `MarkdownView` given a `theme` draws its list markers in the glyphs of
+  the app as they change, not in those it was first built in.
+- `markdownLines`: a list's markers, a quote's bar and a table's columns
+  give way where they would leave too few columns for a wide character, so
+  no line is wider than `width` (`- 你好` at 3 columns was 4 wide).
+- A paragraph of many lines is made into spans in time linear in them, not
+  quadratic: 8000 lines took 0.5 s, now 25 ms.
+- A `MarkdownView` with a `MarkdownController` finds its headings again
+  only where they may have changed, each heading's text and slug kept by
+  its node: a document of 2000 blocks streaming in spent 0.45 ms an append
+  on them, now none to measure.
+- A link destination nests 32 parentheses at most, as cmark takes it: one
+  of more is no link, and text of `[a](` repeated is parsed in linear time
+  (32000 of them took 2.5 s, now 32 ms).
+- `MarkdownView` draws a table's rows itself, each made once and kept by
+  its row, as a `Table` drew them: a table streaming in a row at a time
+  lays out the row added alone (an append to 2000 rows took 23 ms, now
+  1 ms; to 10 rows 0.5 ms, now 0.3), and no longer asks the terminal for
+  the mouse's drags.
+
 ## 0.3.0
 
 Breaking:

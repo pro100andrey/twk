@@ -1,5 +1,65 @@
 # Changelog
 
+## Unreleased
+
+Breaking:
+
+- `LogView` wraps by default (`wrap: true`): `wrap: false` keeps a line a
+  row, cut off and scrolled across by Left and Right.
+- `LogController.followFile`: `fromEnd` is `backlog`, the bytes before the
+  end read too: `0` (the default) for `fromEnd: true`, `null` for
+  `fromEnd: false`, and a number of bytes for the whole lines among the last
+  of them, the line they begin within left out.
+
+Added:
+
+- `LogController.addOutput` and `followFile` take `map`, which gives each
+  line's spans back, changed, or null to leave the line out.
+- `LogController.where`, which lines are shown by a test of each, beside
+  `level` and `filter`; set, the view stays on the lines it shows.
+- `showKeyHelp(extra:)`: what no binding in force tells, as pairs of what
+  is done and what it does (`('right click', 'menu')`), listed after the
+  keys.
+- `Table(rowMenu:)`, the entries of a row's menu: a right click on a row
+  selects it and opens the menu at the mouse, Shift+F10 the selected row's
+  under it.
+- `LogView`: `w` turns the wrapping over (`w wrap` in a `KeyHintsBar`).
+- `ListController.jumpToIndex(rows:)`: the item at the top part way into
+  it, `rows` of it above the window.
+
+Changed:
+
+- `LogView(wrap: true)` wraps a line's text in a column of its own right
+  of its time and level, not back under them at the left edge.
+
+Fixed:
+
+- `LogView` scrolled across and its controller cleared: the lines added
+  next show from their start, not scrolled out of view.
+- `LogView` scrolled up into a wrapped line stays on its row as lines are
+  dropped past `maxLines`, not moved to the line's start at each one added.
+- What `map` throws in `LogController.addOutput` or `followFile` ends the
+  source, its `done` completing with it, the lines before it added and the
+  listeners told; it was thrown uncaught, the rest of the lines lost.
+- `NumberInput` and `DatePicker` give `onChanged` the text typed on a key
+  they leave to the bindings above, before it goes on, where it is a value
+  within the bounds, and leave the text as typed: a dialog's Ctrl+S that
+  saves, pressed with 45 typed over 30, found 30. Text that is no value
+  yet (`-`) stays for Enter or the focus leaving to take, and Escape gives
+  back the value from before the typing.
+- A CLI on a pseudo-terminal of no size (one `script` opens with no
+  terminal around it: a background job, CI) takes it for a terminal, its
+  width `COLUMNS` or none; it wrote to it as to a file, without colours or
+  a progress line written over. A stdout a test puts in (`IOOverrides`)
+  that says it is a terminal by `hasTerminal` still is one, and `/dev/null`
+  is none.
+- A focus change a mouse event made is told before the next mouse event
+  is handled: a click whose press and release came in one frame pressed a
+  button before the field it took the focus from had taken its text (a
+  `NumberInput` with 45 typed over 30 saved 30).
+- A click on a `LogView` writes the text a selection selects in anew only
+  where the lines changed: at 10000 lines a click took 2 ms, now 0.3 ms.
+
 ## 0.3.0
 
 Breaking:
