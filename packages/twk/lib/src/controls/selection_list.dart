@@ -301,13 +301,12 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
 
   // O(itemCount), in an assert: no two items have the same key; at an
   // update only when the count or the keyOf given changed
-  bool _distinctKeys({bool unchanged = false}) => debugDistinct<K>(
+  bool _distinctKeys() => debugDistinct<K>(
     widget.itemCount,
     widget.keyOf,
     (key, i) =>
         'SelectionList has two items with the key $key (at $i): items are '
         'selected by their keys, so keyOf gives each its own',
-    unchanged: unchanged,
   );
 
   @override
@@ -325,11 +324,9 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
     // object, which == holds for though identical does not; not a closure
     // made at each build) is not read item by item at every rebuild
     assert(
-      _distinctKeys(
-        unchanged:
-            widget.itemCount == oldWidget.itemCount &&
-            widget.keyOf == oldWidget.keyOf,
-      ),
+      (widget.itemCount == oldWidget.itemCount &&
+              widget.keyOf == oldWidget.keyOf) ||
+          _distinctKeys(),
       'duplicate keys',
     );
     if (!identical(widget.controller, oldWidget.controller)) {

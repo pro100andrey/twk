@@ -165,24 +165,20 @@ final class _SegmentedButtonState<T> extends State<SegmentedButton<T>> {
   void didUpdateWidget(SegmentedButton<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     assert(
-      _distinctSegments(
-        widget.segments,
-        unchanged: widget.segments == oldWidget.segments,
-      ),
+      widget.segments == oldWidget.segments ||
+          _distinctSegments(widget.segments),
       'duplicate segments',
     );
   }
 
-  bool _distinctSegments(List<Choice<T>> segments, {bool unchanged = false}) =>
-      debugDistinct<T>(
-        segments.length,
-        (i) => segments[i].value,
-        (value, _) =>
-            'SegmentedButton has two segments with the value $value: '
-            'segments equal in value are on together, so give each its own '
-            'value',
-        unchanged: unchanged,
-      );
+  bool _distinctSegments(List<Choice<T>> segments) => debugDistinct<T>(
+    segments.length,
+    (i) => segments[i].value,
+    (value, _) =>
+        'SegmentedButton has two segments with the value $value: '
+        'segments equal in value are on together, so give each its own '
+        'value',
+  );
 
   List<Choice<T>> get _segments => widget.segments;
 

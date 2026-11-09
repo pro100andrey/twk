@@ -4,6 +4,7 @@ library;
 
 import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../editing/text_editing.dart';
 import '../editing/text_field.dart';
 import '../focus/focus.dart';
@@ -368,9 +369,32 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
 
   void _focusChanged() {
     if (!node.hasFocus) {
-      commit();
+      final binding = AppBinding.maybeOf(context);
+      if (_untyped != null && widgetValue != _value && binding != null) {
+        // the text was handed over ([_handOver]) and the parent has not
+        // built with it yet: when it has, in this frame, it took it, else
+        // it is given up and the field shows the value of the widget
+        binding.addPostFrameCallback((_) => _settleHandedOver());
+      } else {
+        commit();
+      }
     }
     setState(() {});
+  }
+
+  void _settleHandedOver() {
+    if (!mounted || node.hasFocus || !_typed) {
+      return;
+    }
+    if (_untyped != null && widgetValue != _value) {
+      final typed = parse(controller.text);
+      if (typed != null && clamp(typed.value) == _value) {
+        _value = widgetValue;
+        revert();
+        return;
+      }
+    }
+    commit();
   }
 
   /// Takes the text typed, if it was, as the value: within the bounds as

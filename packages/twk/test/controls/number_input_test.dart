@@ -319,6 +319,24 @@ void main() {
     expect(t.lines[1], startsWith('12'));
   });
 
+  testTwk('a value handed over that the parent never takes is given up as '
+      'the focus leaves: the field shows the value of the parent', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    expect(changes, [45]);
+    t.binding.focusManager.primaryFocus!.unfocus();
+    await t.pump();
+    expect(t.lines[1], startsWith('30'));
+    expect(changes, [45]);
+  });
+
   testTwk('a click on a button after text typed, its press and release in '
       'one frame: the button finds the value typed', (t) async {
     final value = ValueNotifier<double>(30);

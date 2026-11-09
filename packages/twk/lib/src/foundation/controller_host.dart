@@ -79,7 +79,8 @@ final class ControllerHost<H extends Object> {
   final bool Function(Object host)? _mounted;
 
   H? _host;
-  final _graces = <Timer>{};
+  // each pending grace with the two hosts it waits on
+  final _graces = <Timer, (Object, Object)>{};
   var _disposed = false;
 
   /// The host; null while the controller is given to no widget.
@@ -128,7 +129,7 @@ final class ControllerHost<H extends Object> {
           _graces.remove(timer);
           _checkOneHost(old, grace: false);
         });
-        _graces.add(timer);
+        _graces[timer] = (old, current);
         return;
       }
       final error = StateError(
@@ -149,8 +150,9 @@ final class ControllerHost<H extends Object> {
   /// host has attached by then or the controller was disposed. Returns
   /// whether [host] was the host.
   bool detach(H host, [void Function()? orphaned]) {
-    // a host leaving the tree ends the overlap, or the app is quitting
-    _cancelGraces();
+    // a host leaving the tree ends the overlaps it is in; those of other
+    // hosts go on
+    _cancelGraces(host);
     if (!identical(_host, host)) {
       return false;
     }
@@ -165,11 +167,17 @@ final class ControllerHost<H extends Object> {
     return true;
   }
 
-  void _cancelGraces() {
-    for (final timer in _graces) {
+  // those of [host], or all
+  void _cancelGraces([H? host]) {
+    _graces.removeWhere((timer, hosts) {
+      if (host != null &&
+          !identical(hosts.$1, host) &&
+          !identical(hosts.$2, host)) {
+        return false;
+      }
       timer.cancel();
-    }
-    _graces.clear();
+      return true;
+    });
   }
 
   /// Runs [callback] once the build under way is done (a microtask),

@@ -88,6 +88,18 @@ void main() {
     expect(c.shownLength, 3);
   });
 
+  test('an error telling the listeners leaves the change made whole', () {
+    final c = LogController()
+      ..add('a')
+      ..add('b', level: LogLevel.error)
+      ..dispose();
+    // a disposed controller asserts as it notifies, after the lines are
+    // refiltered: the level and the lines shown are of the same change
+    expect(() => c.level = LogLevel.error, throwsA(isA<AssertionError>()));
+    expect(c.level, LogLevel.error);
+    expect(c.shownLength, 1);
+  });
+
   test('a level that makes where throw leaves the controller as it was', () {
     final c =
         LogController(

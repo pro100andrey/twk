@@ -114,7 +114,22 @@ void main() {
   testTwk('an app that quits within the grace leaves no timer', (t) async {
     final hosts = ControllerHost<State>();
     await t.pumpWidget(_views(hosts, ['a', 'b']), size: (10, 2));
-    // the test ends here: failOnPendingTimers fails it if one is left
+    // the test ends here, the views mounted and the grace pending: the
+    // teardown unmounts them, and failOnPendingTimers fails the test if the
+    // timer is left
+  });
+
+  testTwk('a host leaving ends the graces it is in, not those of other '
+      'hosts', (t) async {
+    final hosts = ControllerHost<State>();
+    await t.pumpWidget(_views(hosts, ['a']), size: (10, 4));
+    await t.pumpWidget(_views(hosts, ['a', 'b']), size: (10, 4));
+    await t.pumpWidget(_views(hosts, ['a', 'b', 'c']), size: (10, 4));
+    // a goes while b and c are both mounted: their mistake is still found
+    await t.pumpWidget(_views(hosts, ['b', 'c']), size: (10, 4));
+    await t.pump(const Duration(seconds: 5));
+    final [error] = t.takeErrors();
+    expect('${error.error}', contains('two hosts'));
     hosts.dispose();
   });
 

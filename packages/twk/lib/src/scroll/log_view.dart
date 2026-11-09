@@ -600,33 +600,38 @@ final class LogController extends ChangeNotifier {
 
   /// Applies a change of what the lines are tested by and refilters; a
   /// test that throws leaves the controller as it was: [undo] restores
-  /// the change, nothing else was written, and the error goes on.
+  /// the change, nothing else was written, and the error goes on. The
+  /// listeners are told after the change is whole, outside that: an error
+  /// of theirs leaves it made.
   void _refilterWith(
     void Function() apply,
     void Function() undo,
     bool narrower,
   ) {
     apply();
+    final List<int> shown;
     try {
-      _refilter(narrower: narrower);
+      shown = _passing(narrower: narrower);
     } catch (_) {
       undo();
       rethrow;
     }
-  }
-
-  void _refilter({required bool narrower}) {
-    final from = narrower
-        ? [for (var i = _shownHead; i < _shown.length; i++) _line(_shown[i])]
-        : _lines.skip(_head);
-    _shown = [
-      for (final line in from)
-        if (_passes(line)) line.number,
-    ];
+    _shown = shown;
     _shownHead = 0;
     _reshaped++;
     _refiltered++;
     notifyListeners();
+  }
+
+  // the numbers of the lines that pass the tests now, nothing written
+  List<int> _passing({required bool narrower}) {
+    final from = narrower
+        ? [for (var i = _shownHead; i < _shown.length; i++) _line(_shown[i])]
+        : _lines.skip(_head);
+    return [
+      for (final line in from)
+        if (_passes(line)) line.number,
+    ];
   }
 
   bool _passes(LogLine line) =>

@@ -13,18 +13,12 @@ const debugDistinctLimit = 1000;
 /// [debugDistinctLimit] keys are read, so a virtualized list of a million
 /// items costs what a small one does, and a duplicate further on goes
 /// unseen; the common mistake, a small list with one, is caught.
-/// [unchanged] skips the reading, for an update where what the keys come
-/// from, and the function that reads them, are `==` to the last build's;
-/// true either way.
+/// Always true.
 bool debugDistinct<K>(
   int count,
   K Function(int index) at,
-  String Function(K key, int index) message, {
-  bool unchanged = false,
-}) {
-  if (unchanged) {
-    return true;
-  }
+  String Function(K key, int index) message,
+) {
   final seen = <K>{};
   final n = count < debugDistinctLimit ? count : debugDistinctLimit;
   for (var i = 0; i < n; i++) {
