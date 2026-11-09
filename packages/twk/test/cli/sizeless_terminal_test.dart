@@ -68,11 +68,13 @@ void main() {
     'a pseudo-terminal of no size is a terminal: ANSI on, its width '
     'COLUMNS where given, else none',
     () async {
-      final result = await runProcess(script.first, [
-        '-qfec',
-        '${Platform.resolvedExecutable} $kernel',
-        '/dev/null',
-      ]);
+      // dart:io reads ANSI support from the process's own TERM, which a
+      // CI runner may not set
+      final result = await runProcess(
+        script.first,
+        ['-qfec', '${Platform.resolvedExecutable} $kernel', '/dev/null'],
+        environment: {'TERM': 'xterm-256color'},
+      );
       expect(result.exitCode, 0, reason: '${result.stderr}');
       expect(said('${result.stdout}'), [true, true, null, 99]);
     },
