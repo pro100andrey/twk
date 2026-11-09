@@ -108,6 +108,28 @@ Future<int> rebuiltScrolledUp(
 }
 
 void main() {
+  testTwk('a click on a log that did not change writes no line of the '
+      'selection text again; one after the lines were filtered does', (
+    t,
+  ) async {
+    final c = LogController()
+      ..addAll([for (var i = 0; i < 10000; i++) 'line $i']);
+    await t.pumpWidget(plain(c), size: (40, 10));
+    await t.click(2, 2);
+    await t.pump();
+    LogView.selectionLines = 0;
+    for (var i = 0; i < 5; i++) {
+      await t.click(2, 2);
+      await t.pump();
+    }
+    expect(LogView.selectionLines, 0);
+    c.filter = 'line 9';
+    await t.pump();
+    await t.click(2, 2);
+    await t.pump();
+    expect(LogView.selectionLines, greaterThan(0));
+  });
+
   group('scrolled up, a line added builds none of the lines laid out', () {
     testTwk('below the cap', (t) async {
       expect(await rebuiltScrolledUp(t, maxLines: 5000), 0);

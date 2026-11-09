@@ -52,6 +52,8 @@ Fixed:
   is handled: a click whose press and release came in one frame pressed a
   button before the field it took the focus from had taken its text (a
   `NumberInput` with 45 typed over 30 saved 30).
+- A click on a `LogView` writes the text a selection selects in anew only
+  where the lines changed: at 10000 lines a click took 2 ms, now 0.3 ms.
 
 ## 0.3.0
 

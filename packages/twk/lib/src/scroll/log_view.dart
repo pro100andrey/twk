@@ -143,6 +143,10 @@ final class LogController extends ChangeNotifier {
   // dropped from the start, the filter, the level, a clear
   var _reshaped = 0;
 
+  // bumped when the lines shown are others, not just fewer at the start:
+  // the filter, the level, where, a clear
+  var _refiltered = 0;
+
   // the number of the current match
   int? _match;
 
@@ -425,6 +429,7 @@ final class LogController extends ChangeNotifier {
     _match = null;
     _following = true;
     _reshaped++;
+    _refiltered++;
     notifyListeners();
   }
 
@@ -581,6 +586,7 @@ final class LogController extends ChangeNotifier {
     ];
     _shownHead = 0;
     _reshaped++;
+    _refiltered++;
     notifyListeners();
   }
 
@@ -815,6 +821,11 @@ final class LogView extends StatefulWidget {
   /// and the lines in their windows.
   @visibleForTesting
   static var renderVisits = 0;
+
+  /// How many lines the [LogView]s wrote into the text a selection selects
+  /// in.
+  @visibleForTesting
+  static var selectionLines = 0;
 
   @override
   State<LogView> createState() => _LogViewState();
@@ -1085,11 +1096,20 @@ final class _LogViewState extends State<LogView> {
     final last = c._shownIndexOf(window.$2);
     if (_pressed) {
       _pressed = false;
-      _text = '';
-      _numbers = [];
-      _starts = [];
-      _append(max(0, first - LogView.selectReach), last + 1 + _below);
-    } else if (_numbers.isEmpty) {
+      final from = max(0, first - LogView.selectReach);
+      // made anew only where the text there is no longer the one to
+      // select in: a click on a log that did not change costs nothing
+      if (!_textHolds(from)) {
+        _text = '';
+        _numbers = [];
+        _starts = [];
+        _textMade = (c._refiltered, widget.showTime, widget.showLevel);
+        _append(from, last + 1 + _below);
+        return _text;
+      }
+    }
+    if (_numbers.isEmpty) {
+      _textMade = (c._refiltered, widget.showTime, widget.showLevel);
       _append(first, last + 1 + _below);
     } else if (window.$2 > _numbers.last) {
       _append(c._shownIndexOf(_numbers.last + 1), last + 1 + _below);
@@ -1099,6 +1119,30 @@ final class _LogViewState extends State<LogView> {
 
   // the lines below the window the text takes in when it is made longer
   static const _below = 500;
+
+  // what the text was made of: the lines as filtered then, and whether
+  // they showed their time and level
+  (int, bool, bool)? _textMade;
+
+  /// Whether the text is still that of the lines shown from index [from]
+  /// on: the same lines as it was made of, its first still kept and shown,
+  /// at [from] or above it, no more than [LogView.selectReach] lines more.
+  bool _textHolds(int from) {
+    final c = widget.controller;
+    if (_numbers.isEmpty ||
+        _textMade != (c._refiltered, widget.showTime, widget.showLevel)) {
+      return false;
+    }
+    final head = _numbers.first;
+    if (!c._kept(head)) {
+      return false;
+    }
+    final at = c._shownIndexOf(head);
+    return at < c.shownLength &&
+        c.shownAt(at).number == head &&
+        at <= from &&
+        from - at <= LogView.selectReach;
+  }
 
   /// Adds the lines shown from index [from] to [to] to the text.
   void _append(int from, int to) {
@@ -1116,6 +1160,7 @@ final class _LogViewState extends State<LogView> {
       _numbers.add(line.number);
       _starts.add(out.length);
       out.write(_textOf(line));
+      LogView.selectionLines++;
     }
     _text = out.toString();
   }
