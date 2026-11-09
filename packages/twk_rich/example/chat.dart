@@ -8,8 +8,8 @@
 // (MarkdownStream.takeSettled), the rest shown live above the prompt
 // (MarkdownView.blocks), its newest lines when it is taller than the room
 // (a SingleChildScrollView that sticks to its end), and the region gives
-// back the rows the block took in it. Enter sends, Esc stops an answer, Ctrl+C quits and leaves
-// the chat in the history.
+// back the rows the block took in it. Enter sends, Esc stops an answer,
+// Ctrl+C quits and leaves the chat in the history.
 //
 //   dart run example/chat.dart
 import 'dart:async';
