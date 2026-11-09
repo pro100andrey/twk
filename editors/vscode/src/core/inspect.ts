@@ -44,6 +44,7 @@ export interface Flags {
   readonly console: boolean;
   readonly rainbow: boolean;
   readonly relayout: boolean;
+  readonly overflow: boolean;
   readonly keys: boolean;
   readonly select: boolean;
   /** Whether a pick goes on after a cell picked. */
@@ -53,7 +54,7 @@ export interface Flags {
 
 export type FlagName = keyof Flags;
 
-export const flagNames: readonly FlagName[] = ['overlay', 'console', 'rainbow', 'relayout', 'keys', 'select', 'selectMany', 'treeEvents'];
+export const flagNames: readonly FlagName[] = ['overlay', 'console', 'rainbow', 'relayout', 'overflow', 'keys', 'select', 'selectMany', 'treeEvents'];
 
 /** What an inspector hears from the app: what it posted, a hot reload done, or its binding there (its service extensions registered), which may be after its VM service connected. */
 export type AppEvent =
@@ -158,6 +159,7 @@ export function parseFlags(answer: unknown): Flags {
     console: on('console'),
     rainbow: on('rainbow'),
     relayout: on('relayout'),
+    overflow: on('overflow'),
     keys: on('keys'),
     select: on('select'),
     selectMany: on('selectMany'),
@@ -232,12 +234,13 @@ export function detailsOf(node: InspectNode): string[] {
 }
 
 /** The debug aids an inspector switches: the panels and highlights twk draws over the app. */
-export type Toggle = 'overlay' | 'rainbow' | 'relayout' | 'console';
+export type Toggle = 'overlay' | 'rainbow' | 'relayout' | 'overflow' | 'console';
 
 const toggles: readonly { readonly flag: Toggle; readonly label: string; readonly detail: string }[] = [
   { flag: 'overlay', label: 'Frame overlay', detail: "the frames' times, bytes and builds, at the top right" },
   { flag: 'rainbow', label: 'Repaint rainbow', detail: 'each repaint of a repaint boundary tinted with the next colour' },
   { flag: 'relayout', label: 'Relayout highlight', detail: 'what was laid out since the last frame, outlined' },
+  { flag: 'overflow', label: 'Overflow marker', detail: 'a flex, wrap or grid whose children overflow, marked at the edge' },
   { flag: 'console', label: 'Log console', detail: "the app's log over its bottom rows" },
 ];
 
@@ -249,7 +252,7 @@ export function toggleItems(flags: Flags): { readonly label: string; readonly de
 /** Each toggle on or off, as the items [labels] were picked of [toggleItems]'. */
 export function togglesPicked(labels: readonly string[]): Record<Toggle, boolean> {
   const on = (flag: Toggle) => labels.includes(toggles.find((t) => t.flag === flag)?.label ?? '');
-  return { overlay: on('overlay'), rainbow: on('rainbow'), relayout: on('relayout'), console: on('console') };
+  return { overlay: on('overlay'), rainbow: on('rainbow'), relayout: on('relayout'), overflow: on('overflow'), console: on('console') };
 }
 
 /** `ext.twk.flags`' parameters that set [changes]. */

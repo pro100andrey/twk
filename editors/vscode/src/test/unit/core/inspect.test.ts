@@ -53,8 +53,8 @@ describe("twk's inspector answers", () => {
   it('reads the node at a cell, the debug aids, and the cell of a pick on the app', () => {
     assert.deepEqual(parseSelect({ version: 1, id: 4, path: [1, 2, 3, 4], render: [11, 10] }), { id: 4, path: [1, 2, 3, 4] });
     assert.deepEqual(parseSelect({ version: 1, id: null, path: [] }), { id: null, path: [] });
-    const flags = parseFlags({ version: 1, overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true, framesInRow: false });
-    assert.deepEqual(flags, { overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true });
+    const flags = parseFlags({ version: 1, overlay: true, console: false, rainbow: true, relayout: false, overflow: true, keys: true, select: true, selectMany: true, treeEvents: true, framesInRow: false });
+    assert.deepEqual(flags, { overlay: true, console: false, rainbow: true, relayout: false, overflow: true, keys: true, select: true, selectMany: true, treeEvents: true });
     // an answer without a flag is no answer of this twk
     assert.throws(() => parseFlags({ version: 1, overlay: false }), /no console/);
     assert.deepEqual(parsePicked({ version: 1, x: 3, y: 2 }), { x: 3, y: 2 });
@@ -75,7 +75,7 @@ describe("twk's inspector answers", () => {
   });
 
   it('the toggles: picked as the app has them, and back as each on or off', () => {
-    const flags = parseFlags({ version: 1, overlay: true, rainbow: false, relayout: true, console: false, keys: false, select: false, selectMany: false, treeEvents: false });
+    const flags = parseFlags({ version: 1, overlay: true, rainbow: false, relayout: true, overflow: true, console: false, keys: false, select: false, selectMany: false, treeEvents: false });
     const items = toggleItems(flags);
     assert.deepEqual(
       items.map((i) => [i.label, i.picked]),
@@ -83,10 +83,11 @@ describe("twk's inspector answers", () => {
         ['Frame overlay', true],
         ['Repaint rainbow', false],
         ['Relayout highlight', true],
+        ['Overflow marker', true],
         ['Log console', false],
       ],
     );
-    assert.deepEqual(togglesPicked(['Repaint rainbow', 'Log console']), { overlay: false, rainbow: true, relayout: false, console: true });
+    assert.deepEqual(togglesPicked(['Repaint rainbow', 'Log console']), { overlay: false, rainbow: true, relayout: false, overflow: false, console: true });
     assert.deepEqual(flagParams({ overlay: true, treeEvents: false }), { overlay: 'true', treeEvents: 'false' });
   });
 });

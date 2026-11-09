@@ -9,7 +9,7 @@
 // TWK_SHELL alike, from the next app to connect on (a hot restart too).
 
 /** A debug aid of twk's that TWK_DEBUG names. */
-export type DebugAid = 'overlay' | 'console' | 'frames' | 'timeline' | 'logs' | 'rainbow' | 'relayout';
+export type DebugAid = 'overlay' | 'console' | 'frames' | 'timeline' | 'logs' | 'rainbow' | 'relayout' | 'overflow';
 
 /** Each debug aid, and what it does. */
 export const debugAids: readonly { readonly aid: DebugAid; readonly description: string }[] = [
@@ -20,6 +20,7 @@ export const debugAids: readonly { readonly aid: DebugAid; readonly description:
   { aid: 'logs', description: "the app's log served to `twk logs`" },
   { aid: 'rainbow', description: 'the repaint rainbow: what repainted changes color' },
   { aid: 'relayout', description: 'what was laid out again, highlighted' },
+  { aid: 'overflow', description: 'the overflow marker: a flex, wrap or grid whose children overflow, marked (on by default while asserts are)' },
 ];
 
 /** What the terminal switches on. */
