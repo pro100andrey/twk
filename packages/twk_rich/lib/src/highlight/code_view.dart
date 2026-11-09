@@ -1577,7 +1577,7 @@ final class _RenderCodeLine extends RenderObject
     final gutter = _gutter;
     canvas
       ..save()
-      ..clipRect(gutter, 0, width - gutter, height);
+      ..clipRect(gutter, 0, math.max(0, width - gutter), height);
     paintChild(ctx, _paragraph);
     canvas
       ..restore()

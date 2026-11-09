@@ -4,6 +4,8 @@
 
 Fixed:
 
+- A `CodeView` narrower than its gutter paints (its code clip was of a
+  negative width, which fails `Canvas.clipRect`'s assert in debug).
 - The inline chat example shows the newest lines of an answer's block that
   is taller than the room above the prompt, the start of it cut off, not
   the end of it cut off at the prompt (a `SingleChildScrollView` that sticks
