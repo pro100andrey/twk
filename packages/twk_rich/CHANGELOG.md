@@ -16,6 +16,10 @@ Fixed:
   no line is wider than `width` (`- 你好` at 3 columns was 4 wide).
 - A paragraph of many lines is made into spans in time linear in them, not
   quadratic: 8000 lines took 0.5 s, now 25 ms.
+- A `MarkdownView` with a `MarkdownController` finds its headings again
+  only where they may have changed, each heading's text and slug kept by
+  its node: a document of 2000 blocks streaming in spent 0.45 ms an append
+  on them, now none to measure.
 
 ## 0.3.0
 

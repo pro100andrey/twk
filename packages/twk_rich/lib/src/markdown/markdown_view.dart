@@ -269,6 +269,12 @@ List<MarkdownHeading> markdownHeadings(
   List<MdBlock> blocks,
   Map<String, MdDefinition> definitions,
 ) {
+  final nodes = _headingNodesOf(blocks);
+  return (_headingsFrom(nodes, definitions), nodes);
+}
+
+/// The heading nodes of [blocks], in order, those in quotes and lists too.
+List<MdHeading> _headingNodesOf(List<MdBlock> blocks) {
   final nodes = <MdHeading>[];
   void collect(List<MdBlock> blocks) {
     for (final block in blocks) {
@@ -288,18 +294,20 @@ List<MarkdownHeading> markdownHeadings(
   }
 
   collect(blocks);
+  return nodes;
+}
+
+/// The headings of [nodes], their references resolved by [definitions],
+/// each slug told apart from those before it by a number.
+List<MarkdownHeading> _headingsFrom(
+  List<MdHeading> nodes,
+  Map<String, MdDefinition> definitions,
+) {
   final seen = <String, int>{};
-  final headings = [
+  return [
     for (final node in nodes)
       () {
-        final text = _plain(resolveInlines(node.children, definitions));
-        final base = text
-            .toLowerCase()
-            .replaceAll(_notInSlug, '')
-            .replaceAll(
-              ' ',
-              '-',
-            );
+        final (:text, :base) = _headingText(node, definitions);
         var slug = base;
         while (seen.containsKey(slug)) {
           final n = seen[base]! + 1;
@@ -310,8 +318,53 @@ List<MarkdownHeading> markdownHeadings(
         return MarkdownHeading(text, node.level, slug);
       }(),
   ];
-  return (headings, nodes);
 }
+
+/// The text of [heading], its references resolved by [definitions], and
+/// the slug it makes before a number tells it from another: kept by the
+/// node, as a document that streams in keeps its settled headings, and
+/// made again for one with a reference where the definitions are others.
+({String text, String base}) _headingText(
+  MdHeading heading,
+  Map<String, MdDefinition> definitions,
+) {
+  final kept = _headingTexts[heading];
+  if (kept != null &&
+      (kept.definitions == null || identical(kept.definitions, definitions))) {
+    return (text: kept.text, base: kept.base);
+  }
+  final text = _plain(resolveInlines(heading.children, definitions));
+  final base = text
+      .toLowerCase()
+      .replaceAll(_notInSlug, '')
+      .replaceAll(' ', '-');
+  _headingTexts[heading] = (
+    text: text,
+    base: base,
+    definitions: _refers(heading.children) ? definitions : null,
+  );
+  return (text: text, base: base);
+}
+
+/// The texts and slugs of the headings made, by the node: with the
+/// definitions they were made by where they have a reference.
+final _headingTexts =
+    Expando<
+      ({String text, String base, Map<String, MdDefinition>? definitions})
+    >();
+
+/// Whether [inlines] have a reference, which a definition resolves.
+bool _refers(List<MdInline> inlines) => inlines.any(
+  (inline) => switch (inline) {
+    MdReference() => true,
+    MdEmphasis(:final children) ||
+    MdStrong(:final children) ||
+    MdStrikethrough(:final children) ||
+    MdLink(:final children) ||
+    MdImage(:final children) => _refers(children),
+    MdText() || MdCode() || MdSoftBreak() || MdHardBreak() => false,
+  },
+);
 
 /// What a slug leaves out of the text: all but letters, marks, digits,
 /// connectors such as `_`, spaces and `-`.
@@ -454,6 +507,10 @@ final class _MarkdownViewState extends State<MarkdownView> {
   var _headings = const <MarkdownHeading>[];
   var _headingNodes = const <MdHeading>[];
 
+  // the controller and the definitions the headings were found for
+  MarkdownController? _headingsFor;
+  Map<String, MdDefinition>? _headingsBy;
+
   @override
   void initState() {
     super.initState();
@@ -544,12 +601,34 @@ final class _MarkdownViewState extends State<MarkdownView> {
   /// Keeps the headings of [blocks]; tells [controller]'s listeners, after
   /// this frame, where they changed.
   void _findHeadings(List<MdBlock> blocks, MarkdownController controller) {
-    final (headings, nodes) = _headingsOf(blocks, _definitions);
+    final nodes = _headingNodesOf(blocks);
+    // the same nodes by the same definitions: the same headings, a
+    // document that streams in on past its last heading counting none
+    if (identical(controller, _headingsFor) &&
+        identical(_definitions, _headingsBy) &&
+        _sameNodes(nodes, _headingNodes)) {
+      return;
+    }
+    _headingsFor = controller;
+    _headingsBy = _definitions;
+    final headings = _headingsFrom(nodes, _definitions);
     _headingNodes = nodes;
     if (!_sameHeadings(headings, _headings)) {
       _headings = headings;
       controller._tell();
     }
+  }
+
+  static bool _sameNodes(List<MdHeading> a, List<MdHeading> b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    for (var k = 0; k < a.length; k++) {
+      if (!identical(a[k], b[k])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static bool _sameHeadings(List<MarkdownHeading> a, List<MarkdownHeading> b) {
