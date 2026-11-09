@@ -20,6 +20,9 @@ Fixed:
   only where they may have changed, each heading's text and slug kept by
   its node: a document of 2000 blocks streaming in spent 0.45 ms an append
   on them, now none to measure.
+- A link destination nests 32 parentheses at most, as cmark takes it: one
+  of more is no link, and text of `[a](` repeated is parsed in linear time
+  (32000 of them took 2.5 s, now 32 ms).
 
 ## 0.3.0
 
