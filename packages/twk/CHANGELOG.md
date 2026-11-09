@@ -138,7 +138,13 @@ Fixed:
 - `NumberInput` and `DatePicker` keep a number typed until the parent
   takes it or gives another value; a rebuild with the old value no longer
   clears it. A value handed over that the parent never took is given up
-  when the focus leaves, the field showing the parent's value again.
+  when the focus leaves, the field showing the parent's value again, even
+  where the text was edited into no value meanwhile.
+- The duplicate checks read every key or value when the widget is made,
+  and at most the first 1000 when it is rebuilt.
+- A controller with two hosts in the tree and no app above them fails in
+  a debug run again, where it was only logged; the grace runs on the
+  app's clock, which `AppBinding.startTimerOf` gives (`StartTimer`).
 - A widget leaving ends only the two-hosts graces it is in, not those of
   other hosts still in the tree.
 - `LogController` tells its listeners after a refilter is whole, outside
