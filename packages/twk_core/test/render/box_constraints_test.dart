@@ -173,7 +173,7 @@ void main() {
         contains('floor of 0'),
       ),
     );
-    final negative = <String, void Function()>{
+    <String, void Function()>{
       'constructor': () => BoxConstraints(minWidth: -1),
       'constructor max': () => BoxConstraints(maxHeight: -1),
       'tight': () => BoxConstraints.tight(-1, 2),
@@ -181,8 +181,7 @@ void main() {
       'tightFor': () => BoxConstraints.tightFor(width: -1),
       'expand': () => BoxConstraints.expand(height: -1),
       'copyWith': () => const BoxConstraints().copyWith(maxWidth: -2),
-    };
-    negative.forEach((name, make) {
+    }.forEach((name, make) {
       test(name, () => expect(make, misuse()));
     });
     test('deflate clamps instead', () {

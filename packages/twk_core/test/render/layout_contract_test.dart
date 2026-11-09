@@ -1,7 +1,6 @@
 // The contract of layout, held in debug mode: a size within the constraints,
 // a child laid out before it is painted, a paint that keeps the canvas
-// balanced, no mark on an object from inside
-// its own layout.
+// balanced, no mark on an object from inside its own layout or paint.
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
 
@@ -15,6 +14,7 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
     this.markSelf = false,
     this.raw = false,
     this.leak = false,
+    this.paintMark = false,
   });
 
   final int w;
@@ -23,6 +23,9 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
   final bool markSelf;
   final bool raw;
   final bool leak;
+
+  /// Marks itself for paint inside its paint.
+  bool paintMark;
 
   @override
   void performLayout(BoxConstraints c) {
@@ -40,6 +43,9 @@ final class Box extends RenderObject with RenderObjectWithChildMixin {
   void paint(PaintContext ctx) {
     if (leak) {
       ctx.canvas.save();
+    }
+    if (paintMark) {
+      markNeedsPaint();
     }
     final k = child;
     if (k != null) {
@@ -80,6 +86,36 @@ void main() {
     final reports = <String>[];
     frame(Box(10, 2, markSelf: true), reports);
     expect(reports.join(), contains('inside its own performLayout'));
+  });
+
+  test('a paint that marks itself in a row is refused', () {
+    final reports = <String>[];
+    final root = Box(10, 2, paintMark: true);
+    final owner = frame(root, reports);
+    final screen = Screen(20, 5);
+    for (var i = 0; i < 3; i++) {
+      owner.flushPaint(
+        PaintContext(screen.canvas, screen.surface, screen.presenter),
+      );
+    }
+    expect(reports.join(), contains('three paints in a row'));
+  });
+
+  test('a mark in a paint that settles is not refused', () {
+    final reports = <String>[];
+    final root = Box(10, 2, paintMark: true);
+    final owner = frame(root, reports);
+    final screen = Screen(20, 5);
+    owner.flushPaint(
+      PaintContext(screen.canvas, screen.surface, screen.presenter),
+    );
+    root.paintMark = false;
+    for (var i = 0; i < 4; i++) {
+      owner.flushPaint(
+        PaintContext(screen.canvas, screen.surface, screen.presenter),
+      );
+    }
+    expect(reports, isEmpty);
   });
 
   test('a paint that saves the canvas and does not restore is refused', () {

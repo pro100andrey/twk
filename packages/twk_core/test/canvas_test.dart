@@ -34,13 +34,14 @@ void main() {
       expect(() => cv.clipRect(0, 0, 1, -3), misuse('floor of 0'));
     });
     test('an empty or off-surface rectangle stays legal', () {
-      cv.fill(0, 0, 0, 0, pen);
-      cv.fill(-5, -5, 3, 3, pen);
-      cv.fill(50, 50, 3, 3, pen);
-      cv.save();
-      cv.clipRect(-5, -5, 2, 2);
-      cv.clipRect(0, 0, 0, 0);
-      cv.restore();
+      cv
+        ..fill(0, 0, 0, 0, pen)
+        ..fill(-5, -5, 3, 3, pen)
+        ..fill(50, 50, 3, 3, pen)
+        ..save()
+        ..clipRect(-5, -5, 2, 2)
+        ..clipRect(0, 0, 0, 0)
+        ..restore();
     });
   });
 

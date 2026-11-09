@@ -13,6 +13,10 @@ Added:
   which shifted and clipped everything painted after it; the canvas is
   brought back to its depth, so only that object shows the error.
   `Canvas.debugSaveDepth` counts the saves kept.
+- Debug-mode assert: an object that marks itself for paint (`markNeedsPaint`)
+  inside its own `paint` in three paints in a row repaints on every frame,
+  and fails with a hint. One such mark, which settles something a frame
+  late, stays legal, as does a mark on another object.
 - Debug-mode asserts for negative sizes: a `BoxConstraints` with a negative
   bound (any constructor, `copyWith`) and `Canvas.fill` or `Canvas.clipRect`
   with a negative width or height, which drew nothing and hid a

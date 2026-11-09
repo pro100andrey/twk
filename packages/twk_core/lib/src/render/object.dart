@@ -736,6 +736,14 @@ abstract class RenderObject {
   // performLayout, where a mark on it would be cleared by the layout
   var _debugLayingOut = false;
 
+  // debug only, written inside assert: this object is in its own paint, and
+  // whether it marked itself there; and how many paints in a row did. One
+  // mark settles something on purpose (a child moved a frame late); a
+  // paint that marks every time repaints on every frame.
+  var _debugPainting = false;
+  var _debugSelfMarked = false;
+  var _debugSelfMarkRun = 0;
+
   // laid out last so that its size can't change the parent's layout: a
   // layout mark stops here, and this subtree is laid out on its own
   var _relayoutBoundary = false;
@@ -1265,6 +1273,12 @@ abstract class RenderObject {
   /// ancestors paint there, then what is inside them there, in order. A
   /// boundary marked itself repaints all of it.
   void markNeedsPaint() {
+    assert(() {
+      if (_debugPainting) {
+        _debugSelfMarked = true;
+      }
+      return true;
+    }(), 'notes a mark made in paint');
     if (_errorShown == _shownUntilPaint) {
       // its paint is tried again
       _errorShown = _shownNot;
@@ -1593,10 +1607,19 @@ abstract class RenderObject {
       depth = ctx.canvas.debugSaveDepth;
       return true;
     }(), 'the depth of the canvas saves');
+    assert(() {
+      _debugPainting = true;
+      return true;
+    }(), 'sets the paint flag');
     try {
       paint(ctx);
-      assert(_saveBalanced(ctx, depth, 'paint'), 'paint left saves');
+      assert(_debugPaintEnd(ctx, depth), 'paint left saves or marks');
     } on Object catch (error, stack) {
+      assert(() {
+        _debugPainting = false;
+        _debugSelfMarked = false;
+        return true;
+      }(), 'clears the paint flag');
       assert(_unwindSaves(ctx, depth), 'unwinding the saves of a paint');
       _paintFailed(error, stack);
       return;
@@ -1604,6 +1627,26 @@ abstract class RenderObject {
     if (_error != null) {
       _error = null;
     }
+  }
+
+  // debug only, in assert: ends the paint flag; fails with a hint when
+  // this object marked itself in each of its last paints, or left saves
+  bool _debugPaintEnd(PaintContext ctx, int depth) {
+    _debugPainting = false;
+    final marked = _debugSelfMarked;
+    _debugSelfMarked = false;
+    _debugSelfMarkRun = marked ? _debugSelfMarkRun + 1 : 0;
+    if (_debugSelfMarkRun >= 3) {
+      _debugSelfMarkRun = 0;
+      _unwindSaves(ctx, depth);
+      throw AssertionError(
+        '$this marked itself for paint inside its own paint in three paints '
+        'in a row: it repaints on every frame. Mark it when what it shows '
+        'changes, not while it paints (one mark that settles a late move '
+        'is fine).',
+      );
+    }
+    return _saveBalanced(ctx, depth, 'paint');
   }
 
   // debug only, in assert: what a paint that threw left saved is
