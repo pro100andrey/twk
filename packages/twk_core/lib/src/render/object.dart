@@ -730,11 +730,59 @@ abstract class RenderObject {
 
   /// How many columns this object takes, set by its [performLayout] within
   /// the constraints it was given.
-  var width = 0;
+  ///
+  /// In debug mode, a read of it by the parent in the parent's own
+  /// [performLayout] asserts when the parent laid this object out without
+  /// `parentUsesSize` (see [layout]): the object is then a relayout
+  /// boundary, and the parent's layout goes stale when it resizes.
+  int get width {
+    assert(_debugParentMayReadSize('width'), 'unreachable: asserts itself');
+    return _sizeW;
+  }
+
+  set width(int v) => _sizeW = v;
 
   /// How many rows this object takes, set by its [performLayout] within
-  /// the constraints it was given.
-  var height = 0;
+  /// the constraints it was given. Checked in debug mode like [width].
+  int get height {
+    assert(_debugParentMayReadSize('height'), 'unreachable: asserts itself');
+    return _sizeH;
+  }
+
+  set height(int v) => _sizeH = v;
+
+  var _sizeW = 0;
+  var _sizeH = 0;
+
+  // debug only: the objects whose last layout call was made without
+  // parentUsesSize, by a parent that is not told the size otherwise (a tight
+  // constraint or sizedByParent also make a boundary, but one whose size
+  // can't change within the constraints). Kept apart from the object so a
+  // release build has no field for it; only reached from asserts.
+  static final _debugSizeNotUsed = Expando<bool>('size not used by parent');
+
+  // debug only: whether a read of this object's size now is one the parent's
+  // layout may make. A read by anything else than the parent in its layout
+  // (the object itself, in its own layout or after it; paint; hit tests)
+  // can't be told from it by the field, so it is the state that decides:
+  // the parent is in its layout (not in a layout callback), and this object
+  // is not, and was laid out without parentUsesSize.
+  bool _debugParentMayReadSize(String which) {
+    final p = parent;
+    if (p == null ||
+        !p._debugLayingOut ||
+        _debugLayingOut ||
+        _debugSizeNotUsed[this] != true) {
+      return true;
+    }
+    throw AssertionError(
+      '${p.runtimeType} read the $which of $this in its performLayout, but '
+      'laid it out without parentUsesSize: it is a relayout boundary, so '
+      'the parent is not laid out again when its $which changes. Pass '
+      'parentUsesSize: true to layout() for a child whose size is read.',
+    );
+  }
+
   BoxConstraints? _constraints;
   var _needsLayout = true;
 
@@ -1031,8 +1079,8 @@ abstract class RenderObject {
   void _keepUnderlay(Canvas canvas) {
     final ox = canvas.originX;
     final oy = canvas.originY;
-    final w = width;
-    final h = height;
+    final w = _sizeW;
+    final h = _sizeH;
     if (w <= 0 || h <= 0) {
       return;
     }
@@ -1106,8 +1154,8 @@ abstract class RenderObject {
     if (u == null ||
         canvas.originX != _uox ||
         canvas.originY != _uoy ||
-        width != _uw ||
-        height != _uh) {
+        _sizeW != _uw ||
+        _sizeH != _uh) {
       return;
     }
     final (x0, y0, x1, y1) = canvas.clipBounds;
@@ -1327,6 +1375,15 @@ abstract class RenderObject {
     // decided by every call, even one that has nothing to lay out
     _relayoutBoundary =
         !parentUsesSize || c.isTight || sizedByParent || parent == null;
+    assert(() {
+      _debugSizeNotUsed[this] =
+          _relayoutBoundary &&
+              !parentUsesSize &&
+              !(c.isTight || sizedByParent || parent == null)
+          ? true
+          : null;
+      return true;
+    }(), 'records the layout call');
     if (same) {
       return;
     }
@@ -1340,14 +1397,14 @@ abstract class RenderObject {
   /// Lays this relayout boundary out again within the constraints its
   /// parent gave it last.
   void _relayout() {
-    final w = width;
-    final h = height;
+    final w = _sizeW;
+    final h = _sizeH;
     _layOut(_constraints!);
     _needsLayout = false;
     markNeedsPaint();
     // a size the parent doesn't use may still change: the cells this
     // object no longer covers are the parent's to repaint
-    if ((width != w || height != h) && parent != null) {
+    if ((_sizeW != w || _sizeH != h) && parent != null) {
       parent!.markNeedsPaint();
     }
   }
@@ -1440,11 +1497,11 @@ abstract class RenderObject {
       return true;
     }(), 'restores the layout flag');
     assert(
-      width >= c.minWidth &&
-          width <= c.maxWidth &&
-          height >= c.minHeight &&
-          height <= c.maxHeight,
-      '$this laid out at ${width}x$height, outside its constraints $c: '
+      _sizeW >= c.minWidth &&
+          _sizeW <= c.maxWidth &&
+          _sizeH >= c.minHeight &&
+          _sizeH <= c.maxHeight,
+      '$this laid out at ${_sizeW}x$_sizeH, outside its constraints $c: '
       'performLayout sets a size within them (c.constrain, c.constrainWidth, '
       'c.constrainHeight).',
     );
@@ -1487,7 +1544,7 @@ abstract class RenderObject {
 
     final o = owner!.._checkingIntrinsics = true;
     try {
-      for (final extent in {unbounded, height}) {
+      for (final extent in {unbounded, _sizeH}) {
         check(
           'Width',
           computeMinIntrinsicWidth,
@@ -1495,7 +1552,7 @@ abstract class RenderObject {
           extent,
         );
       }
-      for (final extent in {unbounded, width}) {
+      for (final extent in {unbounded, _sizeW}) {
         check(
           'Height',
           computeMinIntrinsicHeight,
@@ -1520,7 +1577,7 @@ abstract class RenderObject {
     final message = '$error';
     _errorShown = _shownUntilLayout;
     width = c.constrainWidth(_messageWidth(this, message));
-    height = c.constrainHeight(_messageLines(this, message, width).length);
+    height = c.constrainHeight(_messageLines(this, message, _sizeW).length);
     _failed(message, RenderPhase.layout, error, stack);
   }
 

@@ -4,6 +4,14 @@
 
 Added:
 
+- In debug mode, `RenderObject.width` and `RenderObject.height` assert when
+  the parent reads them in its own `performLayout` after laying the object
+  out without `parentUsesSize: true` (and without tight constraints or
+  `sizedByParent`): the object is then a relayout boundary, and the
+  parent's layout goes stale when it resizes. The two are getters and
+  setters over private fields now; the check is inside `assert`, so a
+  release build reads a field as before, and the record it needs is kept
+  outside the objects (an `Expando`, reached from asserts only).
 - `PipelineOwner.debugCheckIntrinsics` (off by default, since it asks eight
   more intrinsic questions of every object laid out): in debug mode, the
   intrinsic sizes of an object just laid out, at its own extent and at
