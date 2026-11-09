@@ -4,6 +4,9 @@
 
 Added:
 
+- `PipelineOwner.onObjectLog`: the tree's own warnings (a flex, wrap or
+  grid overflow, a viewport or list given no room) with the render object
+  that raised each, ahead of `onLog`, so a binding can name where it is.
 - Debug-mode asserts for the layout contract of a `RenderObject`: a size
   from `performLayout` outside the constraints, a child painted by
   `paintChild` before it was laid out (it painted 0 x 0, unseen), and

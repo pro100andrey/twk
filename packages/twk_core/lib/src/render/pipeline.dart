@@ -63,6 +63,12 @@ final class PipelineOwner {
   /// that lays the tree out. Unset, they go to [log].
   void Function(LogRecord record)? onLog;
 
+  /// Like [onLog], and ahead of it: the tree's own warnings with the render
+  /// object that raised each, for a sink that can say where in the app it
+  /// is (the binding adds the path of its widget). Unset, they go to
+  /// [onLog].
+  void Function(RenderObject source, LogRecord record)? onObjectLog;
+
   /// Each repaint of a repaint boundary, or of the root on its own, blends
   /// the next tint of a cycle over the background of the cells it covered
   /// (its bounds, cut off where its ancestors cut it off), keeping their

@@ -99,6 +99,25 @@ void main() {
     },
   );
 
+  test(
+    'a tree warning, a row that overflows, names the path of its widget',
+    () async {
+      final run = Run(
+        const Row(children: [_Wrapper(Label('abcdefgh')), Label('ijklmnop')]),
+        width: 10,
+      );
+      await run.settle();
+      var asserts = false;
+      assert(asserts = true, 'debug only');
+      expect(run.logged(LogLevel.warning), [
+        if (asserts)
+          'A RenderFlex overflowed by 6 columns on the right. (at Row)',
+      ]);
+      run.term.type('\x03');
+      await run.ended();
+    },
+  );
+
   test('a paint that throws shows the message over the render object, cut '
       'off at its bounds, logged with the path of its widget', () async {
     final run = Run(

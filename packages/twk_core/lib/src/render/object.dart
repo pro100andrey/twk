@@ -706,14 +706,20 @@ abstract class RenderObject {
   PipelineOwner? owner;
 
   // a record of the tree itself, a warning unless [level] says another, to
-  // where its owner routes them (PipelineOwner.onLog), and to log() where it
-  // routes none
+  // where its owner routes them (PipelineOwner.onObjectLog, else onLog), and
+  // to log() where it routes none
   void _warn(String message, {LogLevel level = LogLevel.warning}) {
+    final record = LogRecord(DateTime.now(), level, message);
+    final withSource = owner?.onObjectLog;
+    if (withSource != null) {
+      withSource(this, record);
+      return;
+    }
     final route = owner?.onLog;
     if (route == null) {
       log(message, level: level);
     } else {
-      route(LogRecord(DateTime.now(), level, message));
+      route(record);
     }
   }
 

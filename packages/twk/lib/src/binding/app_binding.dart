@@ -355,6 +355,7 @@ final class AppBinding implements FrameClock {
       _screenReader = _readerAsked(twkApp.environment);
     }
     twkApp.owner.onError = _renderFailed;
+    twkApp.owner.onObjectLog = _renderLogged;
     debug = DebugAids._(this);
     if (!(assertsEnabled ?? debugAssertsEnabled)) {
       twkApp.logs.add(
@@ -1387,6 +1388,18 @@ final class AppBinding implements FrameClock {
       stack,
       phase == RenderPhase.layout ? ErrorOrigin.layout : ErrorOrigin.paint,
       path,
+    );
+  }
+
+  void _renderLogged(RenderObject source, LogRecord record) {
+    twkApp.logs.add(
+      LogRecord(
+        record.time,
+        record.level,
+        '${record.message} (at ${_renderPathOf(source)})',
+        error: record.error,
+        stack: record.stack,
+      ),
     );
   }
 

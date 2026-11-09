@@ -644,6 +644,25 @@ void main() {
     });
   });
 
+  test('onObjectLog hears the warning with the object, ahead of onLog', () {
+    final v = View(4, 1);
+    final seen = <(RenderObject, LogRecord)>[];
+    final plain = <LogRecord>[];
+    v.owner
+      ..onLog = plain.add
+      ..onObjectLog = (o, r) => seen.add((o, r));
+    final row = RenderFlex(spacing: 1, children: [Label('ab'), Label('cd')]);
+    v.show(row);
+    var asserts = false;
+    assert(asserts = true, 'debug only');
+    expect(plain, isEmpty);
+    expect(seen.length, asserts ? 1 : 0);
+    if (asserts) {
+      expect(seen.single.$1, same(row));
+      expect(seen.single.$2.message, contains('RenderFlex overflowed'));
+    }
+  });
+
   group('intrinsic sizes', () {
     test('along the main axis: the inflexible children and the gaps, plus '
         'what gives each flexible child what it asks for', () {
