@@ -450,7 +450,9 @@ abstract class State<T extends StatefulWidget> {
   ///
   /// [fn] is synchronous: one that returns a [Future] (an `async` closure)
   /// is an error in a debug run, as what it changes after its first await
-  /// is not followed by a rebuild.
+  /// is not followed by a rebuild. Called from this state's own [build] it
+  /// is an error in a debug run too: the rebuild under way clears the mark
+  /// as it ends, so the change would not be shown.
   @protected
   void setState(void Function() fn) {
     assert(_element != null, 'setState() called after dispose(): $this');
@@ -1138,8 +1140,24 @@ abstract class Element implements BuildContext {
     visitChildren((child) => child.reassemble());
   }
 
+  // debug only: this element's own build() is running
+  var _debugBuilding = false;
+
   /// Rebuilds this element in its owner's next build scope.
+  ///
+  /// An element marked from its own [ComponentElement.build] fails an
+  /// assert: the rebuild in progress clears the mark as it ends, so the
+  /// change would show only when something else marked it. (Flutter ignores
+  /// the call.)
   void markNeedsBuild() {
+    assert(
+      !_debugBuilding,
+      '${_pathOf(this)} was marked dirty (setState) inside its own build, '
+      'where the mark is lost: the rebuild under way clears it, and the '
+      'screen keeps showing what the build saw.\n'
+      'Change the state before the build, or in a callback after it '
+      '(a post-frame callback, an event), not in build().',
+    );
     if (_lifecycle != _Lifecycle.active || _dirty) {
       return;
     }
@@ -1282,8 +1300,16 @@ abstract class ComponentElement extends Element with _BuildsChild {
     try {
       _beginDependencies();
       try {
+        assert(() {
+          _debugBuilding = true;
+          return true;
+        }(), 'enters the build');
         built = build();
       } finally {
+        assert(() {
+          _debugBuilding = false;
+          return true;
+        }(), 'leaves the build');
         _endDependencies();
       }
       _built();
