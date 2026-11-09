@@ -34,14 +34,18 @@ TerminalLink? ownTerminalLink() =>
 /// character device (`stdioType`). A pseudo-terminal of no size (one
 /// `script` opens with no terminal around it: a background job, CI) fails
 /// `hasTerminal` and passes isatty; `/dev/null`, a character device too,
-/// fails both; a stdout a test puts in (`IOOverrides`) says it by
-/// `hasTerminal`.
+/// fails both. A stdout a test puts in (`IOOverrides`) says it by
+/// `hasTerminal` alone: `stdioType` of it would read the process's own.
 bool stdioIsTerminal({bool error = false}) {
   final stdio = error ? stderr : stdout;
-  return stdio.hasTerminal ||
+  if (stdio.hasTerminal) {
+    return true;
+  }
+  final own = Zone.root.run(() => error ? stderr : stdout);
+  return identical(stdio, own) &&
       !Platform.isWindows &&
-          stdioType(stdio) == StdioType.terminal &&
-          c.isatty(error ? 2 : 1) == 1;
+      stdioType(stdio) == StdioType.terminal &&
+      c.isatty(error ? 2 : 1) == 1;
 }
 
 /// Whether [link] is the process's own terminal ([ownTerminalLink]), the
