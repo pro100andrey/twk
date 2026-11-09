@@ -261,6 +261,7 @@ String top(int width, List<BoxTitle> titles, {View? view}) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('BorderType', () {
     test('has a piece for every set of directions a line reaches out in', () {
       // the straight lines, the half lines, the corners, the joints

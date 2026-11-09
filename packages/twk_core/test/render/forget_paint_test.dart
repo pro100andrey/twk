@@ -103,6 +103,7 @@ const n = 10000;
 List<Line> lines() => [for (var i = 0; i < n; i++) Line('row $i')];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a 10k Column scrolled a row a frame visits what the clip shows', () {
     final children = lines();
     final viewport = RenderViewport(

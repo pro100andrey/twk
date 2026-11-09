@@ -142,6 +142,7 @@ RenderObject pin(
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('a boundary repainted under a wide glyph', () {
     test('its right edge cuts through keeps the glyph whole', () {
       final v = View(8, 1);

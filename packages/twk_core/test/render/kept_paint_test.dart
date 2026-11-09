@@ -320,6 +320,7 @@ const _filledW = 100;
 const _filledH = 30;
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('layouts of a text that does not change read the cells once', () {
     final styles = StyleTable();
     final filled = _Filled(

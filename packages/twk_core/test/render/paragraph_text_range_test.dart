@@ -34,6 +34,7 @@ List<String> row(RenderParagraph p, int y) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('the cluster a cell shows, by offsets into the spans joined; right '
       'of the text the end, left of it the start', () {
     final p = laid('', 7, spans: [('hel', plain), ('lo', red)]);

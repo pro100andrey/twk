@@ -82,6 +82,7 @@ List<String> paintInTree(
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('new spans are painted the same whether or not a query came first', () {
     TextPainter changed() => TextPainter([('hello world', plain)])
       ..layout(

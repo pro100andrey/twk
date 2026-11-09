@@ -145,6 +145,7 @@ Set<(int, int)> edgesOf(RenderObject o) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('the repaint rainbow', () {
     test('tints only the boundaries that repainted, anew on each repaint', () {
       final v = View(12, 2);

@@ -105,6 +105,7 @@ List<int> visitedTimes(List<Line> l, int times) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('a Column of 10 000 children clipped to 5 rows', () {
     test('visits and paints only the 5 the clip shows', () {
       final l = lines(10000);

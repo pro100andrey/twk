@@ -288,6 +288,7 @@ List<int> intrinsics(RenderObject o, int extent) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('EdgeInsets', () {
     test('are the cells on each side', () {
       const insets = EdgeInsets.only(left: 1, top: 2, right: 3, bottom: 4);

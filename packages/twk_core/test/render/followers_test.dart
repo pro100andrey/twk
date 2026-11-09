@@ -157,6 +157,7 @@ RenderBox layer(int pen, List<RenderObject> children) => RenderBox(
 );
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a flush that repaints no boundary with a follower in it looks at '
       'none', () {
     final followers = [for (var i = 0; i < 50; i++) Follower()];

@@ -4,6 +4,13 @@
 
 Added:
 
+- `PipelineOwner.debugCheckIntrinsics` (off by default, since it asks eight
+  more intrinsic questions of every object laid out): in debug mode, the
+  intrinsic sizes of an object just laid out, at its own extent and at
+  `BoxConstraints.unbounded`, assert when one is negative or a minimum is
+  above its maximum. Its questions are not cached, so the check changes
+  nothing else. `PipelineOwner.debugCheckIntrinsicsByDefault` sets it for
+  the owners made afterwards; the core's render tests turn it on.
 - `Surface.debugCheckWide`, run at the end of every paint flush in debug
   mode: a wide glyph split in the damaged cells (a wide cell without its
   continuation, at the last column too, or a continuation cell without a

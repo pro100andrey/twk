@@ -22,6 +22,7 @@ final class _Cell extends RenderObject {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test(
     'boundaries marked in frames of 1, 70, 3 and 70 are painted once each',
     () {

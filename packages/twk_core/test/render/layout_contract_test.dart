@@ -68,6 +68,7 @@ PipelineOwner frame(RenderObject root, List<String> reports) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a size outside the constraints is refused', () {
     final reports = <String>[];
     final root = Box(10, 2)..child = Box(50, 1, raw: true);

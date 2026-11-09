@@ -40,6 +40,7 @@ Matcher splits(String part) => throwsA(
 );
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a whole wide glyph is fine', () {
     paintRaw((s) {
       s.cells[2] = 0x4e2d | kWide;

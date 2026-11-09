@@ -163,6 +163,7 @@ final List<int> joints = [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('Canvas.mergeRun', () {
     test('joins each piece of a type with each other piece of it', () {
       for (final type in drawn) {

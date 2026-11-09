@@ -244,6 +244,7 @@ List<int> intrinsics(RenderObject o, int extent) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('the children placed by the alignment', () {
     test('are laid out loosely, and the stack is as big as the biggest', () {
       final a = Label('abc');

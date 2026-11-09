@@ -143,6 +143,7 @@ List<int> intrinsics(RenderObject o, int extent) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('RenderText', () {
     // text: its columns with graphemes and an ambiguous width of 1, of 2,
     // then the same in legacy mode
@@ -332,8 +333,12 @@ void main() {
   group('answers', () {
     test('are worked out once per extent until markNeedsLayout', () {
       final v = View(10, 1);
+      // a minimum above its maximum, and the questions counted: not the
+      // check's to ask
       final probe = Probe(minW: 3);
-      v.owner.root = probe;
+      v.owner
+        ..debugCheckIntrinsics = false
+        ..root = probe;
       v.frame();
       expect([probe.getMinIntrinsicWidth(5), probe.computed], [3, 1]);
       expect([probe.getMinIntrinsicWidth(5), probe.computed], [3, 1]);

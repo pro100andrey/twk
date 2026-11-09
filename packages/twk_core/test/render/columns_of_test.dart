@@ -50,6 +50,7 @@ RenderParagraph laid(
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a span of a row in stored order is where its text is', () {
     final p = laid(['one ', 'two'], 20);
     expect(p.columnsOf(0, 4, 0), (0, 4));

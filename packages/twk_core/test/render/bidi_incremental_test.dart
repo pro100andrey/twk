@@ -202,6 +202,7 @@ RenderParagraph _long(_Rig rig, String sentence, int width, {int n = 60}) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('edited at random, a paragraph in visual order keeps the levels, '
       'lines and rows one made from scratch has', () {
     var cases = 0;

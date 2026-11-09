@@ -164,6 +164,7 @@ RenderObject cell(
     ..columnSpan = columnSpan);
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('a hit test', () {
     test('finds the objects at a cell from the deepest to the root, each '
         'with the cell in its own coordinates', () {

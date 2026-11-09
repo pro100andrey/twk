@@ -195,6 +195,7 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('the children of a container', () {
     test('are kept in the order they are inserted, moved and removed', () {
       final [a, b, c, d] = [for (final s in 'abcd'.split('')) Label(s)];

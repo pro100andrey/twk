@@ -32,6 +32,7 @@ void _layOut(PipelineOwner o, RenderParagraph p) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   for (final (name, spans) in [
     (
       'sixty spans',

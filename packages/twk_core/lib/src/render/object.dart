@@ -1448,9 +1448,70 @@ abstract class RenderObject {
       'performLayout sets a size within them (c.constrain, c.constrainWidth, '
       'c.constrainHeight).',
     );
+    assert(
+      owner?.debugCheckIntrinsics != true || _intrinsicsAreSane(),
+      'unreachable: the check asserts itself',
+    );
     if (_errorShown != _shownNot) {
       _errorShown = _shownNot;
     }
+  }
+
+  /// The check of [PipelineOwner.debugCheckIntrinsics]: asserts what the
+  /// contract of [computeMinIntrinsicWidth] promises, at the extents the
+  /// object is laid out at and at [BoxConstraints.unbounded].
+  bool _intrinsicsAreSane() {
+    const unbounded = BoxConstraints.unbounded;
+    final failures = <String>[];
+    void check(
+      String axis,
+      int Function(int) min,
+      int Function(int) max,
+      int extent,
+    ) {
+      final lo = min(extent);
+      final hi = max(extent);
+      if (lo < 0) {
+        failures.add('computeMin${axis}Intrinsic($extent) is negative: $lo');
+      }
+      if (hi < 0) {
+        failures.add('computeMax${axis}Intrinsic($extent) is negative: $hi');
+      }
+      if (lo > hi) {
+        failures.add(
+          'computeMin${axis}Intrinsic($extent) = $lo is above '
+          'computeMax${axis}Intrinsic($extent) = $hi',
+        );
+      }
+    }
+
+    final o = owner!.._checkingIntrinsics = true;
+    try {
+      for (final extent in {unbounded, height}) {
+        check(
+          'Width',
+          computeMinIntrinsicWidth,
+          computeMaxIntrinsicWidth,
+          extent,
+        );
+      }
+      for (final extent in {unbounded, width}) {
+        check(
+          'Height',
+          computeMinIntrinsicHeight,
+          computeMaxIntrinsicHeight,
+          extent,
+        );
+      }
+    } finally {
+      o._checkingIntrinsics = false;
+    }
+    assert(
+      failures.isEmpty,
+      '$this has intrinsic sizes that break the contract '
+      '(PipelineOwner.debugCheckIntrinsics):\n * ${failures.join('\n * ')}',
+    );
+    return true;
   }
 
   /// [performLayout] threw [error]: this object shows its message, as big
@@ -1534,23 +1595,35 @@ abstract class RenderObject {
   /// What [getMaxIntrinsicHeight] answers; see [computeMinIntrinsicWidth].
   int computeMaxIntrinsicHeight(int width) => 0;
 
+  int _computeIntrinsic(int kind, int extent) => switch (kind) {
+    _minWidth => computeMinIntrinsicWidth(extent),
+    _maxWidth => computeMaxIntrinsicWidth(extent),
+    _minHeight => computeMinIntrinsicHeight(extent),
+    _ => computeMaxIntrinsicHeight(extent),
+  };
+
   /// The intrinsic size of [kind] at [extent] on the other axis; the
   /// cached answer when the last question of that kind had the same
   /// [extent].
   int _intrinsic(int kind, int extent) {
     assert(extent >= 0, 'an intrinsic size is asked at an extent of 0 or more');
+    var checking = false;
+    assert(() {
+      checking = owner?._checkingIntrinsics ?? false;
+      return true;
+    }(), 'reads the check of intrinsics');
+    if (checking) {
+      // the check leaves no trace: a cached answer changes what a mark
+      // does (markNeedsLayout)
+      return _computeIntrinsic(kind, extent);
+    }
     final cache = _intrinsics ??= Int64List(8);
     final bit = 1 << kind;
     final at = 2 * kind;
     if ((_intrinsicsCached & bit) != 0 && cache[at] == extent) {
       return cache[at + 1];
     }
-    final answer = switch (kind) {
-      _minWidth => computeMinIntrinsicWidth(extent),
-      _maxWidth => computeMaxIntrinsicWidth(extent),
-      _minHeight => computeMinIntrinsicHeight(extent),
-      _ => computeMaxIntrinsicHeight(extent),
-    };
+    final answer = _computeIntrinsic(kind, extent);
     cache[at] = extent;
     cache[at + 1] = answer;
     _intrinsicsCached |= bit;

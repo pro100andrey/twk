@@ -219,6 +219,7 @@ String _escaped(String t) => [
 ].join();
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('edited at random, a paragraph keeps what one made from scratch '
       'has, and draws and maps cells to text as it does', () {
     var cases = 0;

@@ -192,6 +192,7 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('with no children it lays out at the least it may, however its runs '
       'are aligned', () {
     for (final alignment in WrapAlignment.values) {

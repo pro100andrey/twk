@@ -91,6 +91,23 @@ final class PipelineOwner {
   bool get debugRelayoutHighlight => (_debug & _debugRelayout) != 0;
   set debugRelayoutHighlight(bool on) => _setDebug(_debugRelayout, on);
 
+  /// Checks, in debug mode, the intrinsic sizes of each object as it is laid
+  /// out: each of the four answers, at the object's own width and height
+  /// and at [BoxConstraints.unbounded], is not negative, and a minimum is
+  /// not above its maximum (see [RenderObject.computeMinIntrinsicWidth]).
+  /// A failure asserts, naming the object and the query. Off by default,
+  /// since it asks the object and the children it asks eight more
+  /// questions on every layout: turn it on in the tests of a render object
+  /// with intrinsics of its own. The questions are not cached.
+  bool debugCheckIntrinsics = debugCheckIntrinsicsByDefault;
+
+  /// What [debugCheckIntrinsics] is in an owner made from now on: a test
+  /// file sets it once, in `main`, for every owner it makes.
+  static var debugCheckIntrinsicsByDefault = false;
+
+  // the check of debugCheckIntrinsics is asking: nothing is cached
+  var _checkingIntrinsics = false;
+
   // the debug paints on (_debugRainbow, _debugRelayout); where each one's
   // cycle of tints is; the flushPaint that outlined last, and the pen it
   // outlined with

@@ -304,6 +304,7 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('tracks describe themselves and are equal by what they say', () {
     expect(
       [
