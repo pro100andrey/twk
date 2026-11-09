@@ -10,7 +10,6 @@ import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
     show Alignment, CrossAxisAlignment, EdgeInsets, MainAxisSize;
 
-import '../binding/app_binding.dart' show AppBinding;
 import '../editing/text_editing.dart';
 import '../editing/text_field.dart';
 import '../focus/focus.dart';
@@ -103,9 +102,7 @@ final class Command {
 /// );
 /// ```
 final class CommandPaletteController extends ChangeNotifier {
-  final _hosts = ControllerHost<_CommandPaletteState>(
-    timerOf: AppBinding.startTimerOf,
-  );
+  final _hosts = ControllerHost<_CommandPaletteState>();
 
   /// Whether the palette is open.
   bool get isOpen => _hosts.host?._at != null;

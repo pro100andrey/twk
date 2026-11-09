@@ -20,7 +20,6 @@ import 'package:twk_core/twk_core.dart'
         TextWrap,
         padCells;
 
-import '../binding/app_binding.dart' show AppBinding;
 import '../editing/input_decoration.dart';
 import '../editing/text_editing.dart' show TextBoundaries;
 import '../focus/focus.dart';
@@ -97,7 +96,7 @@ final class PopupController extends ChangeNotifier {
   }
 
   // the widget it is given to
-  final _hosts = ControllerHost<State>(timerOf: AppBinding.startTimerOf);
+  final _hosts = ControllerHost<State>();
 
   @override
   void dispose() {

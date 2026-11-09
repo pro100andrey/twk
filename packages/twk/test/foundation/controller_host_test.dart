@@ -115,7 +115,7 @@ void main() {
 
     test('two hosts that stay mounted with no app above fail at the '
         'handover: no clock to wait a fade-out on', () async {
-      final hosts = ControllerHost<State>(timerOf: AppBinding.startTimerOf);
+      final hosts = ControllerHost<State>();
       addTearDown(hosts.dispose);
       final tree = Tree();
       final errors = await errorsOf(() {
@@ -146,7 +146,7 @@ void main() {
 
   group('two hosts that stay mounted, in an app', () {
     ControllerHost<State> hostsOf() {
-      final hosts = ControllerHost<State>(timerOf: AppBinding.startTimerOf);
+      final hosts = ControllerHost<State>();
       addTearDown(hosts.dispose);
       return hosts;
     }

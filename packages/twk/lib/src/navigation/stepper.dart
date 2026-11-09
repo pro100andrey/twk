@@ -135,9 +135,7 @@ final class StepperController extends ChangeNotifier {
   StepperController({int initialStep = 0})
     : _current = initialStep < 0 ? 0 : initialStep;
 
-  final _hosts = ControllerHost<_StepperState>(
-    timerOf: AppBinding.startTimerOf,
-  );
+  final _hosts = ControllerHost<_StepperState>();
 
   int _current;
   final _errors = <int, String>{};

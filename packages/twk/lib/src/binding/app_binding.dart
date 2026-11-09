@@ -63,6 +63,7 @@ import '../foundation/constants.dart'
     show debugAssertsEnabled, kDebugMode, kReleaseMode;
 import '../foundation/helpers.dart';
 import '../foundation/render_elements.dart';
+import '../framework/app_clock.dart' show AppClock;
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/one_child.dart';
@@ -393,9 +394,9 @@ final class AppBinding implements FrameClock {
   static AppBinding? maybeOf(BuildContext context) =>
       context.getInheritedWidgetOfExactType<_Scope>()?.binding;
 
-  /// The [startTimer] of the app [state] is in, null where it is in none:
-  /// for what needs a clock only when there is an app, and says so itself
-  /// otherwise (`ControllerHost`'s `timerOf`).
+  /// The [startTimer] of the app [state] is in, null where it is in none.
+  /// `State.appTimer` gives the same without the binding; `ControllerHost`
+  /// needs neither, and what still passes this as its `timerOf` can drop it.
   static Timer Function(Duration, void Function())? startTimerOf(State state) =>
       maybeOf(state.context)?.startTimer;
 
@@ -697,7 +698,7 @@ final class AppBinding implements FrameClock {
       child: _mouse.scope(
         FocusScope(
           node: focusManager.rootScope,
-          child: _Scope(this, child: app),
+          child: AppClock(startTimer, child: _Scope(this, child: app)),
         ),
       ),
     );

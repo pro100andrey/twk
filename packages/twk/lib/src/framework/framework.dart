@@ -39,6 +39,7 @@ import 'package:twk_core/twk_core.dart'
         RenderObjectWithChildMixin;
 
 import '../foundation/render_elements.dart';
+import 'app_clock.dart' show AppClock;
 import 'builder.dart' show Builder;
 
 export 'package:twk_core/twk_core.dart'
@@ -384,6 +385,12 @@ abstract class State<T extends StatefulWidget> {
 
   /// Whether this state has an element: false once [dispose] has run.
   bool get mounted => _element != null;
+
+  /// The clock of the app this state is in (the [AppClock] above it), null
+  /// where there is no app: for what waits on the app's time and does
+  /// something else without one (`ControllerHost`'s grace).
+  StartTimer? get appTimer =>
+      _element?.getInheritedWidgetOfExactType<AppClock>()?.startTimer;
 
   /// Called once, when the element is placed in the tree, before the first
   /// [build]. Not the place to depend on inherited widgets: that is
@@ -3110,3 +3117,9 @@ class _Dependencies {
     return true;
   }
 }
+
+/// Starts a timer on some clock: `AppBinding.startTimer`'s shape.
+typedef StartTimer = Timer Function(
+  Duration duration,
+  void Function() callback,
+);

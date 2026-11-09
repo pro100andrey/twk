@@ -448,9 +448,7 @@ final class MarkdownController extends ChangeNotifier {
   /// A controller with no headings until a [MarkdownView] has it.
   MarkdownController();
 
-  final _hosts = ControllerHost<_MarkdownViewState>(
-    timerOf: AppBinding.startTimerOf,
-  );
+  final _hosts = ControllerHost<_MarkdownViewState>();
 
   _MarkdownViewState? get _state => _hosts.host;
 

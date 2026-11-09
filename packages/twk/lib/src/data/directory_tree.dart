@@ -60,9 +60,7 @@ final class DirectoryTreeController extends ChangeNotifier {
   }
 
   final _tree = TreeController();
-  final _hosts = ControllerHost<_DirectoryTreeState>(
-    timerOf: AppBinding.startTimerOf,
-  );
+  final _hosts = ControllerHost<_DirectoryTreeState>();
 
   _DirectoryTreeState? get _state => _hosts.host;
 

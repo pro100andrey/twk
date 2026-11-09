@@ -51,9 +51,7 @@ import 'panel.dart';
 /// hint.show();
 /// ```
 final class TooltipController extends ChangeNotifier {
-  final _hosts = ControllerHost<_TooltipState>(
-    timerOf: AppBinding.startTimerOf,
-  );
+  final _hosts = ControllerHost<_TooltipState>();
   var _shown = false;
 
   /// Whether the message shows.

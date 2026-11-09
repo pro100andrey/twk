@@ -6,13 +6,7 @@ import 'dart:async' show Timer, scheduleMicrotask;
 
 import '../../log.dart' show LogLevel, log;
 
-import '../framework/framework.dart' show State;
-
-/// Starts a timer on some clock: `AppBinding.startTimer`'s shape.
-typedef StartTimer = Timer Function(
-  Duration duration,
-  void Function() callback,
-);
+import '../framework/framework.dart' show StartTimer, State;
 
 /// The host of a controller given to one widget at a time — the `State`
 /// that serves its calls — kept by the controller, privately, and the
@@ -43,16 +37,19 @@ typedef StartTimer = Timer Function(
 /// one frame, so in debug mode [attach] checks after the build, not at
 /// once, that the host it took over from is no longer mounted
 /// (`State.mounted`, or the `mounted` of the constructor, which a host that
-/// is no `State` needs). An old host may stay mounted for a while — a
+/// is no `State` needs). A host typed as an interface a `State` implements
+/// is a `State` all the same. An old host may stay mounted for a while — a
 /// dialog's entry fading out while the next opens — so a host still
 /// mounted is checked again after a grace of two seconds, and only one
 /// that is mounted then too is a mistake: it is logged at
 /// `LogLevel.error` with a [StateError] naming both hosts, which does not
 /// end the app. The grace runs on the clock the constructor's `timerOf`
-/// gives for the host (the app's, `AppBinding.startTimerOf` for a `State`);
-/// where it gives none — no app above the host — two hosts mounted at the
-/// handover cannot be waited on, and the check throws the [StateError]
-/// instead, in debug mode only, as an uncaught error.
+/// gives for the host: for a `State`, the app's (`State.appTimer`, the
+/// `AppClock` the binding puts above the app), with no wiring; a host that
+/// is no `State` says it with `timerOf`. Where there is none — no app above
+/// the host — two hosts mounted at the handover cannot be waited on, and
+/// the check throws the [StateError] instead, in debug mode only, as an
+/// uncaught error.
 ///
 /// A controller of a popup, which its widget's state serves; it is said
 /// closed when that widget leaves and none takes over:
@@ -82,7 +79,8 @@ final class ControllerHost<H extends Object> {
   /// tree, for the check that no two are at once; by default a `State`
   /// asks its own `mounted`, and any other host is taken as gone.
   /// [timerOf] says which clock the grace of a host that stays mounted
-  /// runs on, null where there is none (no app above that host).
+  /// runs on, null where there is none (no app above that host); by
+  /// default a `State` gives the app's, any other host none.
   ControllerHost({
     bool Function(H host)? mounted,
     StartTimer? Function(H host)? timerOf,
@@ -127,13 +125,16 @@ final class ControllerHost<H extends Object> {
   bool _isMounted(H host) =>
       _mounted?.call(host) ?? (host is State && host.mounted);
 
+  StartTimer? _timerOfHost(H host) =>
+      _timerOf?.call(host) ?? (host is State ? host.appTimer : null);
+
   void _checkOneHost(H old, {bool grace = true}) {
     final current = _host;
     if (current == null || identical(current, old)) {
       return;
     }
     if (_isMounted(old) && _isMounted(current)) {
-      final startTimer = grace ? _timerOf?.call(current as Object) : null;
+      final startTimer = grace ? _timerOfHost(current) : null;
       if (startTimer != null) {
         late final Timer timer;
         timer = startTimer(_overlapGrace, () {
