@@ -108,6 +108,18 @@ Fixed:
   narrower than its title buttons logs no overflow.
 - `example/hooks/search.dart` loads its list from an effect that cancels
   its timer, so quitting leaves no timer pending.
+- `showFilePicker` fits a terminal shorter than its `height`: Cancel and
+  Open stay on screen.
+- `Table` keeps its state (rows, selection, scroll) when `rowMenu` is
+  given or taken away.
+- `SelectionList` checks its keys for duplicates again only when the count
+  or `keyOf` changed, not at every rebuild; the `MultiSelect` duplicate
+  check names `MultiSelect`.
+- `OptionList` no longer fails its paint (a negative clip width) when its
+  detail is wider than the list.
+- The "asserts are off" log line is written only in a debug run, not in
+  profile or release builds; `LogView.selectionLines`, a test counter,
+  counts only when asserts are on.
 
 ## 0.3.0
 
