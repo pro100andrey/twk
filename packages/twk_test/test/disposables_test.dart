@@ -52,7 +52,15 @@ void main() {
       'a controller left undisposed, tracking off': 'success',
       'every controller disposed': 'success',
       'a test that fails': 'failure',
+      'a timer left running': 'failure',
+      'a timer left running, checking off': 'success',
+      'the timer cancelled': 'success',
+      'a plain app': 'success',
     });
+    final timer = errors['a timer left running']!.single;
+    expect(timer, contains('failOnPendingTimers'));
+    expect(timer, contains('a periodic timer, every 1.000 s'));
+    expect(timer, contains('disposables.dart'));
     final error = errors['a controller left undisposed']!.single;
     expect(error, contains('the test made an object it did not dispose'));
     expect(error, contains('ScrollController created at:'));

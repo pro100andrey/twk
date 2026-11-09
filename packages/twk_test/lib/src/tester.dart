@@ -68,12 +68,21 @@ import 'screen_text.dart';
 /// stack that made it. An app-owned singleton that outlives the test is not
 /// one to track: leave the option off in that test. It needs asserts, so a
 /// test run with them off checks nothing.
+///
+/// With [failOnPendingTimers] (off by default) the test also fails when a
+/// timer of the app's clock ([TwkTester.clock]) still waits one frame after
+/// the app is quit: a `Timer.periodic` that `dispose` left running, a delayed
+/// call nobody cancelled. The clock moves one frame first, so the frame
+/// timer of the framework, which the quit leaves for that long, is not
+/// counted; a timer due later than that is. The failure names each timer
+/// with where it was started ([FakeClock.describeTimers]).
 @isTest
 void testTwk(
   String description,
   FutureOr<void> Function(TwkTester t) body, {
   int framesOnFailure = 3,
   bool trackDisposables = false,
+  bool failOnPendingTimers = false,
   Timeout? timeout,
   Object? skip,
   Object? tags,
@@ -99,6 +108,9 @@ void testTwk(
       await t._end();
       t._failOnErrors();
       _failOnUndisposed(tracker);
+      if (failOnPendingTimers) {
+        await t._failOnPendingTimers();
+      }
     } on Object {
       tracker?.stop();
       t._printOnFailure(framesOnFailure);
@@ -921,6 +933,21 @@ final class TwkTester {
 
   static StateError _notStarted() =>
       StateError('no app: pumpWidget starts one');
+
+  /// Fails when a timer still waits one frame after the quit.
+  Future<void> _failOnPendingTimers() async {
+    if (_vt == null) {
+      return;
+    }
+    await clock.elapse(_frameGap);
+    final count = clock.pendingTimers;
+    if (count != 0) {
+      fail(
+        'the app left ${count == 1 ? 'a timer' : '$count timers'} pending '
+        'after it was quit (failOnPendingTimers):\n${clock.describeTimers()}',
+      );
+    }
+  }
 
   /// Ends the test's app, if it started: quits it, throws an error it
   /// ended with that was not thrown yet, feeds the emulator the rest.
