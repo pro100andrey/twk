@@ -126,7 +126,7 @@ void main() {
       var asserts = false;
       assert(asserts = true, 'debug only');
       expect(printed, isEmpty);
-      expect(terminal.out.toString(), '    a\n▚▚▚▚▚▚▚▚+1\n');
+      expect(terminal.out.toString(), '    a\n    b\n');
       expect(
         terminal.err.toString(),
         [
@@ -141,7 +141,7 @@ void main() {
         () => Cli(terminal: terminal, level: LogLevel.error).show(overflowing),
       );
       expect(printed, isEmpty);
-      expect(terminal.out.toString(), '    a\n▚▚▚▚▚▚▚▚+1\n');
+      expect(terminal.out.toString(), '    a\n    b\n');
       expect(terminal.err.toString(), isEmpty);
     });
 

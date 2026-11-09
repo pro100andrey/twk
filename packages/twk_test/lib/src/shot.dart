@@ -116,10 +116,16 @@ final class Shot {
   final owner = BuildOwner();
 
   /// What lays out and paints the render tree: [frame] flushes it.
-  late final pipeline = PipelineOwner(
-    () {},
-    segmenter: screen.canvas.segmenter,
-  )..onLog = logs.add;
+  late final pipeline =
+      PipelineOwner(
+          () {},
+          segmenter: screen.canvas.segmenter,
+        )
+        // a capture is data, held to goldens: no overflow marker over it (the
+        // warning is kept in [logs] as before); a test of the marker sets
+        // `pipeline.debugOverflowIndicator` and runs a [frame]
+        ..debugOverflowIndicator = false
+        ..onLog = logs.add;
 
   /// What the render tree logged of itself, oldest first: the warnings
   /// its render objects give in debug, such as an overflow.

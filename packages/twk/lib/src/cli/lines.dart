@@ -172,6 +172,9 @@ List<String> widgetLines(
       colorMode: colorMode,
     );
     final pipeline = PipelineOwner(() {}, segmenter: screen.canvas.segmenter)
+      // what is written is data, for a pipe or a file: no marker over it,
+      // the warning still goes to onLog
+      ..debugOverflowIndicator = false
       ..onLog = onLog
       ..root = top;
     final height = top.getMaxIntrinsicHeight(width);

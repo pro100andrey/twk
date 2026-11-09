@@ -108,13 +108,26 @@ void main() {
       4,
       2,
     );
-    expect(shot.rows, [' a', '▚▚+1']);
+    expect(shot.rows, [' a', ' b']);
     var asserts = false;
     assert(asserts = true, 'only in debug');
     expect(shot.logs, hasLength(asserts ? 1 : 0));
     if (asserts) {
       expect(shot.logs.single.message, contains('overflowed by 1 row'));
     }
+  });
+  test('the overflow marker is drawn once the pipeline is asked for it', () {
+    final shot = Shot(
+      const SizedBox(
+        height: 2,
+        child: Column(children: [Text('a'), Text('b'), Text('c')]),
+      ),
+      4,
+      2,
+    );
+    shot.pipeline.debugOverflowIndicator = true;
+    shot.frame();
+    expect(shot.rows, [' a', '▚▚+1']);
   });
 }
 
