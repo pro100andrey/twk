@@ -300,16 +300,18 @@ List<MdHeading> _headingNodesOf(List<MdBlock> blocks) {
 }
 
 /// The headings of [nodes], their references resolved by [definitions],
-/// each slug told apart from those before it by a number.
+/// each slug told apart from those before it by a number; adds the labels
+/// they refer to to [uses], each with its definition.
 List<MarkdownHeading> _headingsFrom(
   List<MdHeading> nodes,
-  Map<String, MdDefinition> definitions,
-) {
+  Map<String, MdDefinition> definitions, [
+  _Uses? uses,
+]) {
   final seen = <String, int>{};
   return [
     for (final node in nodes)
       () {
-        final (:text, :base) = _headingText(node, definitions);
+        final (:text, :base) = _headingText(node, definitions, uses);
         var slug = base;
         while (seen.containsKey(slug)) {
           final n = seen[base]! + 1;
@@ -325,14 +327,17 @@ List<MarkdownHeading> _headingsFrom(
 /// The text of [heading], its references resolved by [definitions], and
 /// the slug it makes before a number tells it from another: kept by the
 /// node, as a document that streams in keeps its settled headings, and
-/// made again for one with a reference where the definitions are others.
+/// made again for one with a reference where a label it refers to is
+/// defined otherwise now, in other definitions or in the same changed.
+/// Adds those labels to [uses], each with its definition.
 ({String text, String base}) _headingText(
   MdHeading heading,
-  Map<String, MdDefinition> definitions,
-) {
+  Map<String, MdDefinition> definitions, [
+  _Uses? uses,
+]) {
   final kept = _headingTexts[heading];
-  if (kept != null &&
-      (kept.definitions == null || identical(kept.definitions, definitions))) {
+  if (kept != null && _definedAs(kept.uses, definitions)) {
+    uses?.addAll(kept.uses);
     return (text: kept.text, base: kept.base);
   }
   final text = _plain(resolveInlines(heading.children, definitions));
@@ -340,33 +345,51 @@ List<MarkdownHeading> _headingsFrom(
       .toLowerCase()
       .replaceAll(_notInSlug, '')
       .replaceAll(' ', '-');
-  _headingTexts[heading] = (
-    text: text,
-    base: base,
-    definitions: _refers(heading.children) ? definitions : null,
-  );
+  final own = <String, MdDefinition?>{};
+  _referIn(heading.children, definitions, own);
+  _headingTexts[heading] = (text: text, base: base, uses: own);
+  uses?.addAll(own);
   return (text: text, base: base);
 }
 
-/// The texts and slugs of the headings made, by the node: with the
-/// definitions they were made by where they have a reference.
-final _headingTexts =
-    Expando<
-      ({String text, String base, Map<String, MdDefinition>? definitions})
-    >();
+/// The texts and slugs of the headings made, by the node, with the labels
+/// they refer to, each with the definition it was made by.
+final _headingTexts = Expando<({String text, String base, _Uses uses})>();
 
-/// Whether [inlines] have a reference, which a definition resolves.
-bool _refers(List<MdInline> inlines) => inlines.any(
-  (inline) => switch (inline) {
-    MdReference() => true,
-    MdEmphasis(:final children) ||
-    MdStrong(:final children) ||
-    MdStrikethrough(:final children) ||
-    MdLink(:final children) ||
-    MdImage(:final children) => _refers(children),
-    MdText() || MdCode() || MdSoftBreak() || MdHardBreak() => false,
-  },
-);
+/// Whether each label of [uses] is defined in [definitions] as it says.
+bool _definedAs(_Uses uses, Map<String, MdDefinition> definitions) {
+  for (final MapEntry(:key, :value) in uses.entries) {
+    if (definitions[key] != value) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Adds the labels of the references in [inlines] to [uses], each with
+/// its definition in [definitions].
+void _referIn(
+  List<MdInline> inlines,
+  Map<String, MdDefinition> definitions,
+  _Uses uses,
+) {
+  for (final inline in inlines) {
+    switch (inline) {
+      case MdReference(:final label, :final children):
+        final key = normalizeLabel(label);
+        uses[key] = definitions[key];
+        _referIn(children, definitions, uses);
+      case MdEmphasis(:final children) ||
+          MdStrong(:final children) ||
+          MdStrikethrough(:final children) ||
+          MdLink(:final children) ||
+          MdImage(:final children):
+        _referIn(children, definitions, uses);
+      case MdText() || MdCode() || MdSoftBreak() || MdHardBreak():
+        break;
+    }
+  }
+}
 
 /// What a slug leaves out of the text: all but letters, marks, digits,
 /// connectors such as `_`, spaces and `-`.
@@ -514,9 +537,10 @@ final class _MarkdownViewState extends State<MarkdownView> {
   var _headings = const <MarkdownHeading>[];
   var _headingNodes = const <MdHeading>[];
 
-  // the controller and the definitions the headings were found for
+  // the controller the headings were found for, and the labels they refer
+  // to, each with the definition they were found by
   MarkdownController? _headingsFor;
-  Map<String, MdDefinition>? _headingsBy;
+  _Uses _headingUses = const {};
 
   @override
   void initState() {
@@ -531,8 +555,10 @@ final class _MarkdownViewState extends State<MarkdownView> {
     if (!identical(widget.controller, oldWidget.controller)) {
       oldWidget.controller?._detach(this);
       widget.controller?._attach(this);
-      // told to the new one's listeners as found
+      // told to the new one's listeners as found, the same one's too when
+      // it comes back
       _headings = const [];
+      _headingsFor = null;
     }
     _parse();
   }
@@ -616,16 +642,18 @@ final class _MarkdownViewState extends State<MarkdownView> {
   /// this frame, where they changed.
   void _findHeadings(List<MdBlock> blocks, MarkdownController controller) {
     final nodes = _headingNodesOf(blocks);
-    // the same nodes by the same definitions: the same headings, a
-    // document that streams in on past its last heading counting none
+    // the same nodes, their labels defined as they were: the same
+    // headings, a document that streams in on past its last heading
+    // counting none
     if (identical(controller, _headingsFor) &&
-        identical(_definitions, _headingsBy) &&
-        _sameNodes(nodes, _headingNodes)) {
+        _sameNodes(nodes, _headingNodes) &&
+        _stillDefined(_headingUses)) {
       return;
     }
     _headingsFor = controller;
-    _headingsBy = _definitions;
-    final headings = _headingsFrom(nodes, _definitions);
+    final uses = <String, MdDefinition?>{};
+    final headings = _headingsFrom(nodes, _definitions, uses);
+    _headingUses = uses;
     _headingNodes = nodes;
     if (!_sameHeadings(headings, _headings)) {
       _headings = headings;
@@ -730,17 +758,7 @@ final class _MarkdownViewState extends State<MarkdownView> {
     return widget;
   }
 
-  bool _stillDefined(_Uses uses) {
-    if (uses.isEmpty) {
-      return true;
-    }
-    for (final MapEntry(:key, :value) in uses.entries) {
-      if (_definitions[key] != value) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool _stillDefined(_Uses uses) => _definedAs(uses, _definitions);
 
   Widget _block(MdBlock block, int depth, _Uses uses) =>
       _kept(block, depth, uses) ?? _newBlock(block, depth, uses);
@@ -1005,24 +1023,8 @@ final class _MarkdownViewState extends State<MarkdownView> {
 
   /// Adds the labels of the references in [inlines] to [uses], each with
   /// its definition now.
-  void _refer(List<MdInline> inlines, _Uses uses) {
-    for (final inline in inlines) {
-      switch (inline) {
-        case MdReference(:final label, :final children):
-          final key = normalizeLabel(label);
-          uses[key] = _definitions[key];
-          _refer(children, uses);
-        case MdEmphasis(:final children) ||
-            MdStrong(:final children) ||
-            MdStrikethrough(:final children) ||
-            MdLink(:final children) ||
-            MdImage(:final children):
-          _refer(children, uses);
-        case MdText() || MdCode() || MdSoftBreak() || MdHardBreak():
-          break;
-      }
-    }
-  }
+  void _refer(List<MdInline> inlines, _Uses uses) =>
+      _referIn(inlines, _definitions, uses);
 }
 
 /// [child], a heading of the view: what

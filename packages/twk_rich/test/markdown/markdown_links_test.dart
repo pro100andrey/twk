@@ -347,6 +347,54 @@ void main() {
       expect(t.lines.last, 'End');
     });
 
+    testTwk('a controller taken away and given back has the headings again, '
+        'and scrolls to them', (t) async {
+      final controller = MarkdownController();
+      addTearDown(controller.dispose);
+      const data = '# One\n\ntext';
+      await t.pumpWidget(
+        MarkdownView(data, controller: controller),
+        size: (20, 4),
+      );
+      await t.pump();
+      expect(controller.headings, const [MarkdownHeading('One', 1, 'one')]);
+      await t.pumpWidget(const MarkdownView(data));
+      await t.pump();
+      expect(controller.headings, isEmpty);
+      await t.pumpWidget(MarkdownView(data, controller: controller));
+      await t.pump();
+      expect(controller.headings, const [MarkdownHeading('One', 1, 'one')]);
+      expect(controller.scrollToHeading('one'), isTrue);
+    });
+
+    testTwk('definitions changed in place: a heading with a reference takes '
+        'its text and slug anew, in markdownHeadings and in a view', (
+      t,
+    ) async {
+      final blocks = MarkdownStream('# [Docs][d]\n').blocks;
+      final defined = MarkdownStream('[d]: https://x.dev\n').definitions;
+      final definitions = <String, MdDefinition>{};
+      const before = [MarkdownHeading('[Docs][d]', 1, 'docsd')];
+      const after = [MarkdownHeading('Docs', 1, 'docs')];
+      expect(markdownHeadings(blocks, definitions), before);
+      final controller = MarkdownController();
+      addTearDown(controller.dispose);
+      Widget view() => MarkdownView.blocks(
+        blocks,
+        definitions: definitions,
+        controller: controller,
+      );
+      await t.pumpWidget(view(), size: (20, 3));
+      await t.pump();
+      expect(controller.headings, before);
+      definitions.addAll(defined);
+      expect(markdownHeadings(blocks, definitions), after);
+      await t.pumpWidget(view());
+      await t.pump();
+      expect(controller.headings, after);
+      expect(t.lines.first, 'Docs');
+    });
+
     testTwk('scrollToHeading scrolls the least that shows the heading', (
       t,
     ) async {
