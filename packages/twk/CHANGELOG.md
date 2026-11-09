@@ -34,6 +34,9 @@ Changed:
 
 Fixed:
 
+- `State.setState` asserts, in a debug run, on a callback that returns a
+  `Future` (an `async` closure), whose changes after the first await had
+  no rebuild after them.
 - `LogView` scrolled across and its controller cleared: the lines added
   next show from their start, not scrolled out of view.
 - `LogView` scrolled up into a wrapped line stays on its row as lines are

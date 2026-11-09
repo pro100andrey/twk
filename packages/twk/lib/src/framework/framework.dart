@@ -447,10 +447,22 @@ abstract class State<T extends StatefulWidget> {
   /// Runs [fn], which changes this state, and rebuilds the element in the
   /// owner's next build scope: any number of calls before then make one
   /// rebuild.
+  ///
+  /// [fn] is synchronous: one that returns a [Future] (an `async` closure)
+  /// is an error in a debug run, as what it changes after its first await
+  /// is not followed by a rebuild.
   @protected
   void setState(void Function() fn) {
     assert(_element != null, 'setState() called after dispose(): $this');
-    fn();
+    final Object? result = fn() as dynamic;
+    assert(
+      result is! Future,
+      'setState() callback returned a Future: $this.\n'
+      'The callback is probably marked "async"; what it changes after its '
+      'first await is not followed by a rebuild.\n'
+      'Do the asynchronous work first, outside of setState(), then change '
+      'the state synchronously inside a call to setState().',
+    );
     _element!.markNeedsBuild();
   }
 }

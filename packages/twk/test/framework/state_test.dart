@@ -98,6 +98,23 @@ void main() {
       expect(log, ['a build']);
     });
 
+    test('with a callback returning a Future is an error naming the state, '
+        'but any other result is fine', () {
+      final tree = Tree()..pump(Probe('a', []));
+      final state = tree.stateOf<ProbeState>();
+      expect(
+        () => state.change(() async => state.count++),
+        throwsA(
+          isA<AssertionError>().having(
+            (e) => e.message.toString(),
+            'message',
+            allOf(contains('returned a Future'), contains('ProbeState')),
+          ),
+        ),
+      );
+      expect(() => state.change(() => state.count++), returnsNormally);
+    });
+
     test('after dispose is an error, as is the context', () {
       final log = <String>[];
       final tree = Tree()..pump(Probe('a', log));
