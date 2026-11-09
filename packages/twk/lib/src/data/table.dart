@@ -744,8 +744,9 @@ final class _TableState<T> extends State<Table<T>> {
   var _checkbox = const CheckboxMarks('[', 'x', ' ', ']');
   var _checkboxWidth = 3;
 
-  // O(rows), in an assert; the rows of a lazy source are not read
-  bool _distinctRowKeys() {
+  // in an assert; all rows at initState, at an update the first
+  // debugDistinctLimit; the rows of a lazy source are not read
+  bool _distinctRowKeys({bool full = false}) {
     final rows = widget.rows;
     final key = widget.rowKey;
     if (rows == null || key == null) {
@@ -757,6 +758,7 @@ final class _TableState<T> extends State<Table<T>> {
       (k, i) =>
           'Table has two rows with the key $k (at $i): rows are kept and '
           'selected by their keys, so rowKey gives each its own',
+      full: full,
     );
   }
 
@@ -767,7 +769,7 @@ final class _TableState<T> extends State<Table<T>> {
       widget.marks?.multiple ?? true,
       'marks hold any number of rows: SelectionController(multiple: true)',
     );
-    assert(_distinctRowKeys(), 'duplicate row keys');
+    assert(_distinctRowKeys(full: true), 'duplicate row keys');
     _node.addListener(_focusChanged);
     _controller.addListener(_changed);
     widget.marks?.addListener(_marksChanged);

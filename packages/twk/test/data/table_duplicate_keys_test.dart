@@ -1,6 +1,7 @@
 // A table's rows with one key assert, with a hint; rows without a rowKey
 // are keyed by their index.
 import 'package:test/test.dart';
+import 'package:twk/src/foundation/helpers.dart' show debugDistinctLimit;
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -37,5 +38,32 @@ void main() {
     expect(errors(t), isEmpty);
     await t.pumpWidget(table(['b', 'b']));
     expect(errors(t), [contains('Table has two rows with the key b (at 1)')]);
+  });
+
+  testTwk('a duplicate past the cap asserts at the first build, and a '
+      'rebuild with an inline rowKey reads at most the cap', (t) async {
+    final rows = [for (var i = 0; i < 5000; i++) '${i == 3000 ? 0 : i}'];
+    await t.pumpWidget(table(rows));
+    expect(errors(t), [
+      contains('Table has two rows with the key 0 (at 3000)'),
+    ]);
+
+    final ok = [for (var i = 0; i < 5000; i++) '$i'];
+    var reads = 0;
+    Widget inline() => Theme.terminal(
+      child: Table<String>(
+        rows: ok,
+        rowKey: (r) {
+          reads++;
+          return r;
+        },
+        columns: const [TableColumn(title: 'name', cell: TableCell.new)],
+      ),
+    );
+    await t.pumpWidget(inline());
+    reads = 0;
+    await t.pumpWidget(inline());
+    expect(errors(t), isEmpty);
+    expect(reads, lessThanOrEqualTo(debugDistinctLimit + 200));
   });
 }

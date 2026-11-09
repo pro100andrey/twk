@@ -299,20 +299,22 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   SelectionController<K> get _controller =>
       widget.controller ?? (_own ??= SelectionController<K>());
 
-  // O(itemCount), in an assert: no two items have the same key; at an
-  // update only when the count or the keyOf given changed
-  bool _distinctKeys() => debugDistinct<K>(
+  // in an assert: no two items have the same key; all items at initState,
+  // at an update only when the count or the keyOf given changed, and then
+  // the first debugDistinctLimit
+  bool _distinctKeys({bool full = false}) => debugDistinct<K>(
     widget.itemCount,
     widget.keyOf,
     (key, i) =>
         'SelectionList has two items with the key $key (at $i): items are '
         'selected by their keys, so keyOf gives each its own',
+    full: full,
   );
 
   @override
   void initState() {
     super.initState();
-    assert(_distinctKeys(), 'duplicate keys');
+    assert(_distinctKeys(full: true), 'duplicate keys');
     _controller.addListener(_changed);
   }
 

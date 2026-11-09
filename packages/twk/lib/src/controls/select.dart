@@ -468,14 +468,18 @@ final class MultiSelect<T> extends StatelessWidget {
 
 /// Asserts that no two of [choices] have equal values: they would be
 /// chosen together.
-bool _distinctChoices<T>(List<Choice<T>> choices, String widget) =>
-    debugDistinct<T>(
-      choices.length,
-      (i) => choices[i].value,
-      (value, _) =>
-          '$widget has two choices with the value $value: choices equal in '
-          'value are chosen together, so give each its own value',
-    );
+bool _distinctChoices<T>(
+  List<Choice<T>> choices,
+  String widget, {
+  bool full = false,
+}) => debugDistinct<T>(
+  choices.length,
+  (i) => choices[i].value,
+  (value, _) =>
+      '$widget has two choices with the value $value: choices equal in '
+      'value are chosen together, so give each its own value',
+  full: full,
+);
 
 /// What a [Select] and a [MultiSelect] are: a field and the list of the
 /// choices, [chosen] those of them chosen.
@@ -594,6 +598,7 @@ final class _PickerState<T> extends State<_Picker<T>>
       _distinctChoices(
         widget.choices,
         widget.multiple ? 'MultiSelect' : 'Select',
+        full: true,
       ),
       'duplicate choices',
     );

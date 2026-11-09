@@ -268,7 +268,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   late T _value = widgetValue;
 
   // the value the widget gave as built last
-  late T _seen = widgetValue;
+  late T _seen;
 
   /// What holds the text.
   late final controller = TextEditingController(text: format(_value));
@@ -393,6 +393,9 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
         revert();
         return;
       }
+      // the value handed over was not taken, whatever the text became: it
+      // is the widget's value that gives way to, or is changed from
+      _value = widgetValue;
     }
     commit();
   }
