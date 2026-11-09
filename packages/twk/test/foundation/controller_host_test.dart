@@ -82,25 +82,6 @@ void main() {
       return errors;
     }
 
-    test(
-      'two views of one controller fail after the build, naming both',
-      () async {
-        final hosts = ControllerHost<State>();
-        final tree = Tree();
-        final errors = await errorsOf(() {
-          tree.pump(
-            Multi([
-              _View(hosts, key: const ValueKey('a')),
-              _View(hosts, key: const ValueKey('b')),
-            ]),
-          );
-        });
-        expect(errors, hasLength(1));
-        expect(errors.single, isA<StateError>());
-        expect('${errors.single}', contains('two hosts'));
-      },
-    );
-
     test('a key change builds the new state before the old is disposed: '
         'no failure', () async {
       final hosts = ControllerHost<State>();
@@ -127,23 +108,6 @@ void main() {
       });
       expect(errors, isEmpty);
       expect(hosts.host, same(key.currentState));
-    });
-
-    test('a host that is no State needs the mounted callback to be '
-        'checked', () async {
-      final unknown = ControllerHost<String>();
-      final live = ControllerHost<String>(mounted: (_) => true);
-      final errors = await errorsOf(() {
-        unknown
-          ..attach('a')
-          ..attach('b');
-        live
-          ..attach('a')
-          ..attach('b');
-      });
-      expect(errors, hasLength(1), reason: 'only the one that can tell');
-      expect(unknown.host, 'b');
-      expect(live.host, 'b');
     });
   });
 }

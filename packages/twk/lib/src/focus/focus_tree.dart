@@ -1157,7 +1157,9 @@ final class _TreeOrder {
 
   static Element? _parentOf(Element element) {
     Element? parent;
-    element.visitAncestorElements((e) {
+    // a retained walk: [element] may be the removed node's previous
+    // sibling, removed in the same frame
+    element.visitRetainedAncestors((e) {
       parent = e;
       return false;
     });
@@ -1219,7 +1221,8 @@ final class _TreeOrder {
     }
     final path = [element];
     var below = false;
-    element.visitAncestorElements((e) {
+    // retained: a path of an element removed in this frame is still asked
+    element.visitRetainedAncestors((e) {
       if (identical(e, root)) {
         below = true;
         return false;

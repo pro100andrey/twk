@@ -2,8 +2,11 @@
 /// handover from that widget to one built in its place.
 library;
 
-import 'dart:async' show scheduleMicrotask;
+import 'dart:async' show Timer, scheduleMicrotask;
 
+import '../../log.dart' show LogLevel, log;
+
+import '../binding/app_binding.dart' show AppBinding;
 import '../framework/framework.dart' show State;
 
 /// The host of a controller given to one widget at a time — the `State`
@@ -35,7 +38,13 @@ import '../framework/framework.dart' show State;
 /// one frame, so in debug mode [attach] checks after the build, not at
 /// once, that the host it took over from is no longer mounted
 /// (`State.mounted`, or the `mounted` of the constructor, which a host that
-/// is no `State` needs), and fails with a [StateError] where it is.
+/// is no `State` needs). An old host may stay mounted for a while — a
+/// dialog's entry fading out while the next opens — so a host still
+/// mounted is checked again after a grace of two seconds, and only one
+/// that is mounted then too (on the app's clock; with no app above the
+/// host, at once) is a mistake: it is logged at
+/// `LogLevel.error` with a [StateError] naming both hosts, which does not
+/// end the app.
 ///
 /// A controller of a popup, which its widget's state serves; it is said
 /// closed when that widget leaves and none takes over:
@@ -70,6 +79,7 @@ final class ControllerHost<H extends Object> {
   final bool Function(Object host)? _mounted;
 
   H? _host;
+  final _graces = <Timer>{};
   var _disposed = false;
 
   /// The host; null while the controller is given to no widget.
@@ -102,25 +112,45 @@ final class ControllerHost<H extends Object> {
   bool _isMounted(H host) =>
       _mounted?.call(host) ?? (host is State && host.mounted);
 
-  void _checkOneHost(H old) {
+  void _checkOneHost(H old, {bool grace = true}) {
     final current = _host;
     if (current == null || identical(current, old)) {
       return;
     }
     if (_isMounted(old) && _isMounted(current)) {
-      throw StateError(
+      // on the app's clock, where the host has an app above it
+      final binding = grace && current is State
+          ? AppBinding.maybeOf(current.context)
+          : null;
+      if (binding != null) {
+        late final Timer timer;
+        timer = binding.startTimer(_overlapGrace, () {
+          _graces.remove(timer);
+          _checkOneHost(old, grace: false);
+        });
+        _graces.add(timer);
+        return;
+      }
+      final error = StateError(
         'A controller has two hosts in the tree at once: $old and $current. '
         'The first is dead now, the last one attached serves the controller. '
         'Give each widget a controller of its own.',
       );
+      log(error.message, level: LogLevel.error, error: error);
     }
   }
+
+  /// How long an old host may stay mounted, fading out or the like, before
+  /// the two hosts are taken for a mistake.
+  static const _overlapGrace = Duration(seconds: 2);
 
   /// [host] lets go of the controller: where it is still the host, there
   /// is none now, and [orphaned], if given, runs after the build unless a
   /// host has attached by then or the controller was disposed. Returns
   /// whether [host] was the host.
   bool detach(H host, [void Function()? orphaned]) {
+    // a host leaving the tree ends the overlap, or the app is quitting
+    _cancelGraces();
     if (!identical(_host, host)) {
       return false;
     }
@@ -133,6 +163,13 @@ final class ControllerHost<H extends Object> {
       });
     }
     return true;
+  }
+
+  void _cancelGraces() {
+    for (final timer in _graces) {
+      timer.cancel();
+    }
+    _graces.clear();
   }
 
   /// Runs [callback] once the build under way is done (a microtask),
@@ -149,6 +186,7 @@ final class ControllerHost<H extends Object> {
   /// The controller is disposed: it has no host, and what [afterBuild] and
   /// [detach] were to run later does not run.
   void dispose() {
+    _cancelGraces();
     _disposed = true;
     _host = null;
   }
