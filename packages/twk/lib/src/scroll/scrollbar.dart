@@ -673,12 +673,12 @@ final class _RenderFrame extends RenderObject
   @override
   void attach(PipelineOwner o) {
     super.attach(o);
-    _track.axisOf.addListener(markNeedsLayout);
+    _track.axisOf.addListener(_axisChanged);
   }
 
   @override
   void detach() {
-    _track.axisOf.removeListener(markNeedsLayout);
+    _track.axisOf.removeListener(_axisChanged);
     super.detach();
   }
 
@@ -743,8 +743,28 @@ final class _RenderFrame extends RenderObject
         : child.getMaxIntrinsicHeight(width) + _bar;
   }
 
+  // The axis changes while this frame lays its child out (a scrollable first
+  // built in a LayoutBuilder): the layout in progress reads the axis after
+  // the child, so it takes the change in, and a mark would be lost with it.
+  var _laying = false;
+
+  void _axisChanged() {
+    if (!_laying) {
+      markNeedsLayout();
+    }
+  }
+
   @override
   void performLayout(BoxConstraints c) {
+    _laying = true;
+    try {
+      _layoutFrame(c);
+    } finally {
+      _laying = false;
+    }
+  }
+
+  void _layoutFrame(BoxConstraints c) {
     final child = firstChild;
     if (child == null) {
       width = c.minWidth;
@@ -908,12 +928,12 @@ final class _RenderBorderFrame extends RenderObject
   @override
   void attach(PipelineOwner o) {
     super.attach(o);
-    _track.axisOf.addListener(markNeedsLayout);
+    _track.axisOf.addListener(_axisChanged);
   }
 
   @override
   void detach() {
-    _track.axisOf.removeListener(markNeedsLayout);
+    _track.axisOf.removeListener(_axisChanged);
     super.detach();
   }
 
@@ -933,8 +953,28 @@ final class _RenderBorderFrame extends RenderObject
   int computeMaxIntrinsicHeight(int width) =>
       firstChild?.getMaxIntrinsicHeight(width) ?? 0;
 
+  // The axis changes while this frame lays its child out (a scrollable first
+  // built in a LayoutBuilder): the layout in progress reads the axis after
+  // the child, so it takes the change in, and a mark would be lost with it.
+  var _laying = false;
+
+  void _axisChanged() {
+    if (!_laying) {
+      markNeedsLayout();
+    }
+  }
+
   @override
   void performLayout(BoxConstraints c) {
+    _laying = true;
+    try {
+      _layoutFrame(c);
+    } finally {
+      _laying = false;
+    }
+  }
+
+  void _layoutFrame(BoxConstraints c) {
     final child = firstChild;
     if (child == null) {
       width = c.minWidth;

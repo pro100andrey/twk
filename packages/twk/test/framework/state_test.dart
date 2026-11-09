@@ -100,10 +100,14 @@ void main() {
 
     test('with a callback returning a Future is an error naming the state, '
         'but any other result is fine', () {
-      final tree = Tree()..pump(Probe('a', []));
+      final log = <String>[];
+      final tree = Tree()..pump(Probe('a', log));
       final state = tree.stateOf<ProbeState>();
       expect(
-        () => state.change(() async => state.count++),
+        () => state.change(() async {
+          await null;
+          state.count++;
+        }),
         throwsA(
           isA<AssertionError>().having(
             (e) => e.message.toString(),
