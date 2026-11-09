@@ -65,6 +65,7 @@ library;
 
 import 'dart:typed_data';
 
+import '../asserts.dart';
 import '../canvas.dart';
 import '../fill.dart';
 import '../log.dart';

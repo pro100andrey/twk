@@ -17,7 +17,8 @@ extension on _SampleAppState {
           ),
           FutureBuilder(
             future: Future.value(1),
-            builder: (context, snapshot) => Text('${snapshot.data}'),
+            builder: (context, snapshot) =>
+                Text(debugAssertsEnabled ? '${snapshot.data}' : ''),
           ),
           StreamBuilder(
             stream: _ticks.stream,

@@ -287,6 +287,7 @@ twk_core.dart function stdioIsTerminal
 twk_core.dart function stringWidth
 twk_core.dart function styledUnderlinesFor
 twk_core.dart function titleSequence
+twk_core.dart getter debugAssertsEnabled
 twk_core.dart mixin ContainerParentDataMixin
 twk_core.dart mixin ContainerRenderObjectMixin
 twk_core.dart mixin RenderObjectWithChildMixin

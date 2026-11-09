@@ -15,6 +15,8 @@ import 'package:test/test.dart';
 const _layers = <(String, List<String>)>[
   // Unicode segmentation, widths and bidi: tables and code only.
   ('unicode', ['unicode/']),
+  // Whether asserts are on: one probe, no imports.
+  ('asserts', ['asserts.dart']),
   // Cells, pens and their bytes, and the input decoded: no dart:io.
   (
     'draw',

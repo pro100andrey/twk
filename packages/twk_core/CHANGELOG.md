@@ -4,6 +4,9 @@
 
 Added:
 
+- `debugAssertsEnabled`, whether asserts are on, exported by the core; the
+  render pipeline's overflow marker and `package:twk`'s binding read this
+  one probe (twk re-exports it under the same name).
 - The overflow marker. A `RenderFlex`, `RenderWrap` or `RenderGrid` whose
   content needs more room than it has now paints, in debug mode, over the
   edge it is cut off at: a hatch `▚` in yellow on black down the right

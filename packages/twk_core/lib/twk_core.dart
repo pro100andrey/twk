@@ -25,6 +25,7 @@
 library;
 
 export 'src/app.dart' show FrameStats, TwkApp;
+export 'src/asserts.dart' show debugAssertsEnabled;
 export 'src/byte_sink.dart' show ByteSink;
 export 'src/canvas.dart' show Canvas, GlyphBuffer, GlyphRun;
 export 'src/graphics.dart' show GraphicsProtocol, ImagePlacement, TerminalImage;

@@ -124,13 +124,7 @@ final class PipelineOwner {
   /// What [debugOverflowIndicator] is in an owner made from now on: on
   /// while asserts are on. A test file whose screens overflow on purpose
   /// sets it once, in `main`.
-  static bool debugOverflowIndicatorByDefault = _assertsOn();
-
-  static bool _assertsOn() {
-    var on = false;
-    assert(on = true, 'an assert that runs only where asserts are on');
-    return on;
-  }
+  static bool debugOverflowIndicatorByDefault = debugAssertsEnabled;
 
   bool _overflowIndicator = debugOverflowIndicatorByDefault;
 
