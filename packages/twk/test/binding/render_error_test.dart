@@ -5,30 +5,37 @@
 // the rest of the frame is painted as ever.
 import 'package:test/test.dart';
 import 'package:twk/log.dart';
+import 'package:twk/src/foundation/render_elements.dart';
 import 'package:twk/twk.dart';
 
 import 'harness.dart';
 
 /// Eight `x`s, whose render object's layout or paint throws when told to.
 final class _Bad extends LeafRenderObjectWidget {
-  const _Bad({this.layout = false, this.paint = false});
+  const _Bad({this.layout = false, this.paint = false, this.unmapped = false});
 
   final bool layout;
   final bool paint;
+  final bool unmapped;
 
   @override
   _RenderBad createRenderObject(BuildContext context) => _RenderBad()
     ..layoutThrows = layout
-    ..paintThrows = paint;
+    ..paintThrows = paint
+    ..unmapped = unmapped;
 }
 
 final class _RenderBad extends RenderObject {
   var layoutThrows = false;
+  var unmapped = false;
   var paintThrows = false;
 
   @override
   void performLayout(BoxConstraints c) {
     if (layoutThrows) {
+      if (unmapped) {
+        renderElements[this] = null;
+      }
       throw StateError('oops');
     }
     width = c.constrainWidth(8);
@@ -64,6 +71,25 @@ final class _Wrapper extends StatelessWidget {
 }
 
 void main() {
+  test(
+    'a render object the element map does not have is found by walking '
+    'the element tree, as in a release build, with the same path',
+    () async {
+      final run = Run(
+        column([
+          const _Wrapper(_Bad(layout: true, unmapped: true)),
+          const Label('below'),
+        ]),
+        width: 16,
+      );
+      await run.settle();
+      final [record] = run.logs.records;
+      expect(record.message, 'Column → _Wrapper → _Bad failed to lay out');
+      run.term.type('\x03');
+      await run.ended();
+    },
+  );
+
   test(
     'a layout that throws shows a red block with the message in place '
     'of the render object, logged once with the path of its widget',

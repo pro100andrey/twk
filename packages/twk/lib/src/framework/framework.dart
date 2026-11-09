@@ -2015,7 +2015,10 @@ abstract class RenderObjectElement extends Element {
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
     final o = _renderObject = widget.createRenderObject(this);
-    renderElements[o] = this;
+    assert(() {
+      renderElements[o] = this;
+      return true;
+    }(), 'keeps the render-to-element map in debug only');
     attachRenderObject(newSlot);
     _dirty = false;
   }
@@ -2132,7 +2135,10 @@ abstract class RenderObjectElement extends Element {
     // there is none when createRenderObject threw
     final o = _renderObject;
     if (o != null) {
-      renderElements[o] = null;
+      assert(() {
+        renderElements[o] = null;
+        return true;
+      }(), 'keeps the render-to-element map in debug only');
       oldWidget.didUnmountRenderObject(o);
     }
     _renderObject = null;

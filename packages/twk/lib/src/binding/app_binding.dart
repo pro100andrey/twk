@@ -1414,16 +1414,49 @@ final class AppBinding implements FrameClock {
   /// the one whose render object is its child, if none, for a commit that
   /// holds one of the tree's (`Static`).
   String _renderPathOf(RenderObject object) {
+    // The tree's own map is kept in debug only; where it is not (release),
+    // or does not have the object, the element tree is walked.
+    String? path;
+    assert(() {
+      // an ancestor's element is not told by the map for the object's own
+      // (one it does not have): only the object's own element counts
+      final own = renderElements[object];
+      if (own != null) {
+        path = _pathOf(own);
+      }
+      return true;
+    }(), 'keeps the render-to-element map in debug only');
+    if (path != null) {
+      return path!;
+    }
+    final elements = Map<RenderObject, Element>.identity();
+    void visit(Element e) {
+      if (e is RenderObjectElement) {
+        elements[e.renderObject] = e;
+      }
+      e.visitChildren(visit);
+    }
+
+    _root?.visitChildren(visit);
+    return _renderPathIn(object, (o) => elements[o]) ?? '${object.runtimeType}';
+  }
+
+  /// [_renderPathOf] by [elementOf], null where it tells no element of
+  /// [object], its ancestors or its children.
+  String? _renderPathIn(
+    RenderObject object,
+    Element? Function(RenderObject) elementOf,
+  ) {
     for (RenderObject? o = object; o != null; o = o.parent) {
-      final element = renderElements[o];
+      final element = elementOf(o);
       if (element != null) {
         final path = _pathOf(element);
         return identical(o, object) ? path : '$path → ${object.runtimeType}';
       }
     }
     Element? held;
-    object.visitChildren((child) => held ??= renderElements[child]);
-    return held == null ? '${object.runtimeType}' : _pathOf(held!);
+    object.visitChildren((child) => held ??= elementOf(child));
+    return held == null ? null : _pathOf(held!);
   }
 
   void _dispatch(InputEvent event) {
