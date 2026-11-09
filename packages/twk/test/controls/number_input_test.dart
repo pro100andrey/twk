@@ -223,8 +223,9 @@ void main() {
   }
 
   testTwk('a key above that does not act on the value leaves the typing as '
-      'it was: text that is no number yet, and a number, which Escape '
-      'gives up', (t) async {
+      'it was: text that is no number yet, and a number the app takes', (
+    t,
+  ) async {
     final value = ValueNotifier<double>(30);
     addTearDown(value.dispose);
     final changes = <double>[];
@@ -247,10 +248,91 @@ void main() {
     await press(t, 'f1');
     expect(t.lines.first, startsWith('-4'));
     expect(changes, [-4]);
+    // the app took -4 (the helper sets its notifier), so Escape reverts
+    // nothing: the text typed is the value now
     await press(t, 'escape');
-    expect(t.lines.first, startsWith('30'));
-    expect(changes, [-4, 30]);
-    expect(value.value, 30);
+    expect(t.lines.first, startsWith('-4'));
+    expect(changes, [-4]);
+    expect(value.value, -4);
+  });
+
+  testTwk('Escape after the parent took the value handed over is not '
+      'consumed and reverts nothing', (t) async {
+    final shown = ValueNotifier<double>(30);
+    addTearDown(shown.dispose);
+    final changes = <double>[];
+    var closed = 0;
+    await t.pumpWidget(
+      KeyBindings(
+        {'ctrl+s': () {}, 'escape': () => closed++},
+        child: ValueListenableBuilder<double>(
+          valueListenable: shown,
+          builder: (context, v, _) => SizedBox(
+            width: 10,
+            child: NumberInput(
+              value: v,
+              onChanged: (x) {
+                changes.add(x);
+                shown.value = x;
+              },
+              autofocus: true,
+            ),
+          ),
+        ),
+      ),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'ctrl+s');
+    expect(changes, [45]);
+    await press(t, 'escape');
+    expect(closed, 1);
+    expect(changes, [45]);
+    expect(shown.value, 45);
+    expect(t.lines[1], startsWith('45'));
+  });
+
+  for (final key in [
+    'right',
+    'end',
+    'delete',
+    'ctrl+d',
+    'ctrl+y',
+  ]) {
+    testTwk('the field\'s own key "$key" at an edge hands nothing over', (
+      t,
+    ) async {
+      final value = ValueNotifier<double>(30);
+      addTearDown(value.dispose);
+      final changes = <double>[];
+      await t.pumpWidget(
+        input(value, changes: changes, autofocus: true),
+        size: (20, 3),
+      );
+      await press(t, 'backspace backspace');
+      await type(t, '4');
+      await press(t, 'backspace');
+      await type(t, '45');
+      // at the end now
+      await press(t, key);
+      expect(changes, isEmpty);
+    });
+  }
+
+  testTwk('Backspace at column 0 and Home hand nothing over', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(
+      input(value, changes: changes, autofocus: true),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'home backspace home');
+    expect(changes, isEmpty);
+    expect(t.lines.first, startsWith('45'));
   });
 
   /// A field whose parent holds [shown], rebuilt by [rebuild] (to the same

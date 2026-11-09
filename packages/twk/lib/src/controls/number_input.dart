@@ -2,7 +2,7 @@
 /// with a `DatePicker`, a value typed in a field ([TypedInputState]).
 library;
 
-import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind;
+import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 
 import '../binding/app_binding.dart' show AppBinding;
 import '../editing/text_editing.dart';
@@ -340,8 +340,10 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       // takes is given up with Escape or the focus leaving
       _value = given;
       _show();
-    } else if (!_typed) {
-      // as the widget shows it now
+    } else if (!_typed || _untyped != null) {
+      // as the widget shows it now; where it is the value handed over
+      // ([_handOver]) the parent has taken it, and Escape reverts it no
+      // more
       _show();
     }
   }
@@ -499,6 +501,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       _combos = [for (final name in _keys.keys) KeyCombo.parse(name)];
     }
     if (event.code == KeyCode.escape && event.modifiers == 0 ||
+        _editsText(event) ||
         _combos.any((combo) => combo.accepts(event))) {
       return KeyEventResult.ignored;
     }
@@ -508,6 +511,27 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       _handOver();
     }
     return KeyEventResult.ignored;
+  }
+
+  /// Whether [event] is a key of the text field's own (a character, a
+  /// caret key, a deletion) rather than one for the bindings above: it
+  /// comes here ignored at an edge of the text, with nothing to do.
+  static bool _editsText(KeyEvent event) {
+    final mods = event.modifiers;
+    final rest = mods & ~Mod.shift;
+    return switch (event.code) {
+      KeyCode.left ||
+      KeyCode.right ||
+      KeyCode.home ||
+      KeyCode.end ||
+      KeyCode.backspace ||
+      KeyCode.delete => rest == 0 || rest == Mod.ctrl || rest == Mod.alt,
+      KeyCode.char =>
+        rest == 0 ||
+            (rest == Mod.alt && 'bfd'.contains(event.char)) ||
+            (rest == Mod.ctrl && 'aedwukzy'.contains(event.char)),
+      _ => false,
+    };
   }
 
   /// Gives [onChanged] the text typed where it is a value within the
