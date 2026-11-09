@@ -180,6 +180,7 @@ twk.dart class DiagnosticsProperty
 twk.dart class Dialog
 twk.dart class DirectoryTree
 twk.dart class DirectoryTreeController
+twk.dart class DisposalTracker
 twk.dart class Dissolve
 twk.dart class Divider
 twk.dart class DockArea
@@ -487,6 +488,7 @@ twk.dart class TweenAnimationBuilder
 twk.dart class TwkLocalizations
 twk.dart class TwkStrings
 twk.dart class UnderlineInputBorder
+twk.dart class UndisposedObject
 twk.dart class UniqueKey
 twk.dart class ValueKey
 twk.dart class ValueListenable
@@ -601,6 +603,7 @@ twk.dart function stringWidth
 twk.dart function stripAnsi
 twk.dart function thumbSteps
 twk.dart function traceback
+twk.dart getter debugAssertsEnabled
 twk.dart mixin ContainerParentDataMixin
 twk.dart mixin ContainerRenderObjectMixin
 twk.dart mixin RenderObjectWithChildMixin

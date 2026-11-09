@@ -59,7 +59,7 @@ import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
-import '../foundation/constants.dart' show kReleaseMode;
+import '../foundation/constants.dart' show debugAssertsEnabled, kReleaseMode;
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
@@ -310,7 +310,11 @@ final class AppBinding implements FrameClock {
   /// whole of it. A test passes `const {}`, and turns a debug aid on
   /// through [debug] or [screenReader]; so does a server of apps to
   /// others, as twk_ssh's `serveSsh` does, whose clients are not to turn
-  /// the server's debug aids on.
+  /// the server's debug aids on. [assertsEnabled] is whether the
+  /// program runs with asserts, null (the default) as it does
+  /// ([debugAssertsEnabled]); off, one info line says so in the app's log.
+  /// A test passes it to see that line, which a test run, with asserts,
+  /// never gets.
   AppBinding(
     TerminalBackend terminal, {
     Viewport? viewport,
@@ -326,6 +330,7 @@ final class AppBinding implements FrameClock {
     this._startTime,
     bool? screenReader,
     Map<String, String>? environment,
+    bool? assertsEnabled,
   }) : twkApp = TwkApp(
          terminal,
          viewport: viewport,
@@ -343,6 +348,17 @@ final class AppBinding implements FrameClock {
     }
     twkApp.owner.onError = _renderFailed;
     debug = DebugAids._(this);
+    if (!(assertsEnabled ?? debugAssertsEnabled)) {
+      twkApp.logs.add(
+        LogRecord(
+          DateTime.now(),
+          LogLevel.info,
+          'Asserts are off, so the checks of the framework (the layout '
+          'contract, overflow warnings) do not run: `twk run` or '
+          '`dart run --enable-asserts` runs the app with them.',
+        ),
+      );
+    }
   }
 
   /// Whether `TWK_SCREEN_READER` in [environment] asks for the

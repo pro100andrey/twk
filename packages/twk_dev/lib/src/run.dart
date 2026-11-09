@@ -30,7 +30,16 @@ final class RunCommand extends Command<int> {
 
   // what follows the file is the app's
   @override
-  final argParser = ArgParser(allowTrailingOptions: false);
+  final argParser = ArgParser(allowTrailingOptions: false)
+    ..addFlag(
+      'asserts',
+      defaultsTo: true,
+      help:
+          'Run the app with asserts on (--enable-asserts), for the '
+          "framework's checks and overflow warnings. --no-asserts runs it "
+          'as it ships, for measuring; the app then logs a line saying '
+          'asserts are off.',
+    );
 
   @override
   String get name => 'run';
@@ -63,7 +72,11 @@ final class RunCommand extends Command<int> {
       stderr.writeln('twk run: no file $file');
       return 1;
     }
-    final runner = HotRunner(file, rest.sublist(1));
+    final runner = HotRunner(
+      file,
+      rest.sublist(1),
+      asserts: argResults!.flag('asserts'),
+    );
     started?.call(runner);
     return runner.run();
   }
@@ -75,7 +88,8 @@ final class RunCommand extends Command<int> {
 /// The app has the terminal: its stdin, stdout and stderr are this
 /// process's, which writes nothing to them while the app runs. What it
 /// says goes to the app's log instead (`ext.twk.log`): an error opens the
-/// app's console. The app's debug keys are on (`TWK_DEBUG=keys`).
+/// app's console. The app's debug keys are on (`TWK_DEBUG=keys`), and
+/// its asserts, unless [asserts] is false.
 ///
 /// When a `.dart` file in the `lib/` of the package [entry] is in, or
 /// [entry] itself, changes ([debounce] after the last change), or the app
@@ -92,7 +106,7 @@ final class RunCommand extends Command<int> {
 final class HotRunner {
   /// A runner of the app whose `main` is in the file [entry], given
   /// [arguments].
-  HotRunner(String entry, this.arguments)
+  HotRunner(String entry, this.arguments, {this.asserts = true})
     : entry = p.normalize(p.absolute(entry)),
       package = projectOf(p.dirname(entry)),
       serviceFile = serviceFileOf(projectOf(null));
@@ -102,6 +116,10 @@ final class HotRunner {
 
   /// The app's command line arguments.
   final List<String> arguments;
+
+  /// Whether the app runs with asserts on (`--enable-asserts`), which the
+  /// framework's checks and overflow warnings need.
+  final bool asserts;
 
   /// The directory of the package [entry] is in.
   final String package;
@@ -239,6 +257,7 @@ final class HotRunner {
       _dart,
       [
         'run',
+        if (asserts) '--enable-asserts',
         '--enable-vm-service=0',
         '--no-serve-devtools',
         // no word of the service on the app's terminal

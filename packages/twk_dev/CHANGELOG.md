@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Changed:
+
+- `twk run` runs the app with asserts on (`--enable-asserts`), so the
+  framework's checks and overflow warnings are heard in a terminal run;
+  `--no-asserts` runs it as it ships, for measuring. The templates'
+  READMEs say so.
+
 Fixed:
 
 - `twk logs` and `twk create` take a pseudo-terminal of no size for a

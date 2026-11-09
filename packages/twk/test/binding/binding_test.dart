@@ -440,6 +440,23 @@ void main() {
     await run.ended();
   });
 
+  test('a binding made with asserts off says so once, at info level, in the '
+      "app's log; with them on it says nothing", () {
+    expect(debugAssertsEnabled, isTrue, reason: 'tests run with asserts');
+    final on = AppBinding(HeadlessTerminal(), environment: const {});
+    expect(on.twkApp.logs.records, isEmpty);
+    final off = AppBinding(
+      HeadlessTerminal(),
+      environment: const {},
+      assertsEnabled: false,
+    );
+    final records = off.twkApp.logs.records.toList();
+    expect(records, hasLength(1));
+    expect(records.single.level, LogLevel.info);
+    expect(records.single.message, contains('Asserts are off'));
+    expect(records.single.message, contains('twk run'));
+  });
+
   test('the environment given is what the binding reads: TWK_SCREEN_READER '
       "and TWK_DEBUG, the core's names known without a list of its own; "
       'given none, nothing is on', () {
