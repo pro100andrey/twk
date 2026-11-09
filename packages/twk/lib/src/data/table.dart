@@ -675,7 +675,10 @@ final class _Styles {
 final class _TableState<T> extends State<Table<T>> {
   TableController? _own;
   FocusNode? _ownNode;
-  final _list = ListController();
+  // made on first use, not with the state: initState may throw (duplicate
+  // keys) and a state that never mounted is never disposed
+  ListController? _listMade;
+  ListController get _list => _listMade ??= ListController();
 
   TableController get _controller =>
       widget.controller ?? (_own ??= TableController());
@@ -817,7 +820,7 @@ final class _TableState<T> extends State<Table<T>> {
     _node.removeListener(_focusChanged);
     _own?.dispose();
     _ownNode?.dispose();
-    _list.dispose();
+    _listMade?.dispose();
     super.dispose();
   }
 

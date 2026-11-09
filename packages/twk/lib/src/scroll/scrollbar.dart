@@ -633,7 +633,9 @@ final class _Track with ChangeNotifier {
     if (hiding != null) {
       binding?.cancelFrameCallback(hiding);
     }
-    slot.removeListener(_follow);
+    slot
+      ..removeListener(_follow)
+      ..dispose();
     axisOf.dispose();
     _position?.removeListener(_moved);
     _position = null;

@@ -283,7 +283,10 @@ final class SelectionList<K> extends StatefulWidget {
 
 final class _SelectionListState<K> extends State<SelectionList<K>> {
   SelectionController<K>? _own;
-  final _list = ListController();
+  // made on first use, not with the state: initState may throw (duplicate
+  // keys) and a state that never mounted is never disposed
+  ListController? _listMade;
+  ListController get _list => _listMade ??= ListController();
 
   // where the cursor's key was found last, which it is looked for from
   var _hint = 0;
@@ -330,7 +333,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   void dispose() {
     _controller.removeListener(_changed);
     _own?.dispose();
-    _list.dispose();
+    _listMade?.dispose();
     super.dispose();
   }
 

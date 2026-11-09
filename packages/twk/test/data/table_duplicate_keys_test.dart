@@ -23,6 +23,13 @@ void main() {
     expect(errors(t), [contains('Table has two rows with the key a (at 2)')]);
   });
 
+  testTwk('a table refused for its keys leaves no controller undisposed', (
+    t,
+  ) async {
+    await t.pumpWidget(table(['a', 'b', 'a']));
+    expect(errors(t), isNotEmpty);
+  }, trackDisposables: true);
+
   testTwk('a new list with a duplicate asserts; equal rows without a '
       'rowKey do not', (t) async {
     await t.pumpWidget(table(['a', 'a'], keyed: false));

@@ -230,6 +230,20 @@ abstract class Route<T> {
 
   late final _scope = FocusScopeNode(debugLabel: settings.name ?? 'route');
 
+  var _focusDisposed = false;
+
+  // The guard and the scope go with the route's host. A route that never
+  // had one (removed before a frame built it) hands them back from the
+  // navigator, so they are not made and left.
+  void _disposeFocus() {
+    if (_focusDisposed) {
+      return;
+    }
+    _focusDisposed = true;
+    _guard.dispose();
+    _scope.dispose();
+  }
+
   /// The navigator the route is on, from its push until it is popped.
   NavigatorState? get navigator => _navigator;
 
@@ -620,6 +634,11 @@ final class NavigatorState extends State<Navigator> {
       route._navigator = null;
       route._popped.complete();
     }
+    for (final route in {..._history, ..._stage}) {
+      if (route._host == null) {
+        route._disposeFocus();
+      }
+    }
     _history.clear();
     _stage.clear();
     super.dispose();
@@ -959,6 +978,9 @@ final class NavigatorState extends State<Navigator> {
         continue;
       }
       _stage.removeAt(i);
+      if (route._host == null) {
+        route._disposeFocus();
+      }
     }
   }
 
@@ -1269,8 +1291,7 @@ final class _RouteHostState extends State<_RouteHost>
       route._host = null;
     }
     _run?.dispose();
-    route._guard.dispose();
-    route._scope.dispose();
+    route._disposeFocus();
     super.dispose();
   }
 

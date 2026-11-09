@@ -868,4 +868,27 @@ void main() {
     await t.pump();
     expect(t.lines.first, 'item 44446');
   });
+
+  testTwk('a Scrollbar and a bar on a Box border dispose what they made', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      Column(
+        children: [
+          Expanded(
+            child: Scrollbar(child: SingleChildScrollView(child: column(30))),
+          ),
+          Expanded(
+            child: Box(
+              border: const Border.all(),
+              scrollbar: .always,
+              child: SingleChildScrollView(child: column(30)),
+            ),
+          ),
+        ],
+      ),
+      size: (20, 10),
+    );
+    await t.pumpWidget(const SizedBox());
+  }, trackDisposables: true);
 }

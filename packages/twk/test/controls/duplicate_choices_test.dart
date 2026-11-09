@@ -103,5 +103,21 @@ void main() {
         contains('SelectionList has two items with the key 0 (at 2)'),
       ]);
     });
+
+    testTwk('a list refused for its keys leaves no controller undisposed', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        SizedBox(
+          height: 4,
+          child: SelectionList<int>(
+            itemCount: 3,
+            keyOf: (i) => i % 2,
+            itemBuilder: (context, i) => Text('$i'),
+          ),
+        ),
+      );
+      expect(errors(t), isNotEmpty);
+    }, trackDisposables: true);
   });
 }

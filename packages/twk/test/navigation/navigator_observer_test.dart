@@ -396,6 +396,22 @@ void main() {
     await t.pump();
     expect(() => state.popAndPushNamed<void, void>('/a'), throwsStateError);
   });
+
+  testTwk('a route removed before a frame built it disposes its focus nodes', (
+    t,
+  ) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Navigator(key: navigator, routes: {'/': (_) => const Text('home')}),
+      size: (20, 3),
+    );
+    final state = navigator.currentState!;
+    final d = page('d');
+    unawaited(state.push(d));
+    unawaited(state.push(page('e')));
+    state.removeRoute(d);
+    await t.pump();
+  }, trackDisposables: true);
 }
 
 /// Writes down the name of each route pushed, and nothing else.
