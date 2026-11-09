@@ -127,6 +127,23 @@ Fixed:
 - The Ctrl+G hint line shows copy and save at 80 columns again.
 - The `setState` Future assert names the arrow form too
   (`setState(() => _future = fetch())`) and the fix, a block body.
+- Removing a focused field together with the sibling before it in one
+  frame no longer fails the build in a debug run: the focus order walked
+  an element already out of the tree.
+- A controller served by two widgets both in the tree is logged as an
+  error after a 2 s grace on the app's clock instead of ending the app;
+  an old host kept in the tree by a fade-out is no mistake.
+- `LogController.level` and `filter` keep their old value, and tell no
+  listener, when `where` throws during the refilter, as `where` does.
+- `NumberInput` and `DatePicker` keep a number typed until the parent
+  takes it or gives another value; a rebuild with the old value no longer
+  clears it.
+- The duplicate checks of `Select`, `MultiSelect`, `SegmentedButton`,
+  `SelectionList` and `Table` read at most the first 1000 values or keys,
+  so a huge list rebuilt with an inline `keyOf` no longer costs a pass
+  over all of it in a debug run.
+- `Cli.show` writes no overflow marker over its output; the warning still
+  goes to the console's log.
 
 ## 0.3.0
 

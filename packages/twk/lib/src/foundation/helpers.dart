@@ -5,7 +5,7 @@
 library;
 
 /// How many keys [debugDistinct] reads at most.
-const int debugDistinctLimit = 1000;
+const debugDistinctLimit = 1000;
 
 /// For an assert: that the [count] keys [at] gives are all different, else
 /// the assertion fails with [message] of the key twice and the index of its
