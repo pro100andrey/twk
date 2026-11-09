@@ -4,6 +4,10 @@
 
 Added:
 
+- `TerminalEmulator.debugAssertInvariants`, the emulator's own state checked
+  (cursor, margins, screens, tab stops, saved cursors, scrollback); `feed` and
+  `resize` end with it as an `assert`. Input bytes are still clamped or
+  ignored.
 - `Pty.foregroundProcessGroup`, the process group in the foreground of the
   terminal: another than the program's while a shell runs a job, to ask
   before closing one that is busy.

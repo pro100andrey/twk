@@ -483,6 +483,7 @@ final class TerminalEmulator {
   void feed(List<int> bytes) {
     _parser.feed(bytes);
     _sweepIfDue();
+    assert(debugAssertInvariants(), 'the state after feed');
   }
 
   /// [text] as the program would write it (UTF-8).
@@ -618,6 +619,100 @@ final class TerminalEmulator {
     }
     tabs.setRange(0, w < _tabs.length ? w : _tabs.length, _tabs);
     _tabs = tabs;
+    assert(debugAssertInvariants(), 'the state after resize');
+  }
+
+  /// Asserts the emulator's own state is consistent, and returns true (for
+  /// `assert(debugAssertInvariants())`, which [feed] and [resize] end
+  /// with): the cursor on the screen, in the last column where a wrap is
+  /// pending; the scroll margins `0 <= top < bottom <= height`; both
+  /// screens [height] lines of [width] cells; one tab stop per column; the
+  /// saved cursors on the screen; the scrollback within its limit, its
+  /// lines [width] cells wide.
+  ///
+  /// It checks what the emulator keeps, never the bytes a program wrote,
+  /// which are clamped or ignored whatever they are.
+  @visibleForTesting
+  bool debugAssertInvariants() {
+    assert(_width >= 1 && _height >= 1, 'size $_width x $_height');
+    assert(
+      _x >= 0 && _x < _width && _y >= 0 && _y < _height,
+      'cursor ($_x, $_y) off the $_width x $_height screen',
+    );
+    assert(
+      !_pendingWrap || _x == _width - 1,
+      'wrap pending at column $_x of $_width',
+    );
+    assert(
+      _top >= 0 && _top < _bottom && _bottom <= _height,
+      'margins [$_top, $_bottom) of $_height rows',
+    );
+    assert(_tabs.length == _width, 'tab stops ${_tabs.length} for $_width');
+    for (final s in [_primary, _alternate]) {
+      final name = s.alternate ? 'alternate' : 'primary';
+      assert(
+        s.lines.length == _height,
+        '$name screen has ${s.lines.length} lines of $_height',
+      );
+      for (var y = 0; y < s.lines.length; y++) {
+        final l = s.lines[y];
+        assert(
+          l.cells.length == _width && l.styles.length == _width,
+          '$name line $y is ${l.cells.length}/${l.styles.length} cells '
+          'of $_width',
+        );
+      }
+      final v = s.saved;
+      assert(
+        v.x >= 0 && v.x < _width && v.y >= 0 && v.y < _height,
+        '$name saved cursor (${v.x}, ${v.y}) off the screen',
+      );
+    }
+    assert(
+      identical(_screen, _primary) || identical(_screen, _alternate),
+      'the screen is neither of the two',
+    );
+    assert(
+      _scrollback.length <= _scrollback.limit,
+      'scrollback ${_scrollback.length} lines over its limit '
+      '${_scrollback.limit}',
+    );
+    for (var i = 0; i < _scrollback.length; i++) {
+      final l = _scrollback[i];
+      assert(
+        l.cells.length == _width && l.styles.length == _width,
+        'scrollback line $i is ${l.cells.length} cells of $_width',
+      );
+    }
+    return true;
+  }
+
+  /// Breaks one thing [debugAssertInvariants] holds, to show it bites:
+  /// the cursor column, the top margin, the tab stops, the alternate
+  /// screen's height or the scrollback's width.
+  @visibleForTesting
+  void debugCorrupt({
+    int? cursorX,
+    int? top,
+    bool shortTabs = false,
+    bool shortAlternate = false,
+    bool narrowScrollback = false,
+  }) {
+    if (cursorX != null) {
+      _x = cursorX;
+    }
+    if (top != null) {
+      _top = top;
+    }
+    if (shortTabs) {
+      _tabs = Uint8List(_width - 1);
+    }
+    if (shortAlternate) {
+      _alternate.lines.removeLast();
+    }
+    if (narrowScrollback && _scrollback.length > 0) {
+      _scrollback[0].resize(_width + 1, StyleId.base);
+    }
   }
 
   static bool _isBlank(TerminalLine line) =>
