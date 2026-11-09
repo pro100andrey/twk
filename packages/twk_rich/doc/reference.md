@@ -54,9 +54,10 @@ blank row between the items and blocks of a loose list; a block quote has a
 bar down its left side, its blocks in the quote style; a block of code is a
 `CodeView` (below) in the language the first word of its info string names, on
 the code block fill, a cell in from either side, its lines broken as
-`codeWrap` says; a table is a twk `Table` showing all its rows, aligned as its
-delimiter row says, with lines between the columns and under the header, the
-mouse going through it, so that the wheel over it scrolls what is around the
+`codeWrap` says; a table shows all its rows as a twk `Table` does, a row a
+line, aligned as its delimiter row says, with lines between the columns and
+under the header, each row made once and kept (a table streaming in lays out
+the row added alone), the mouse going through it, so that the wheel over it scrolls what is around the
 view; a thematic break is a line across. With `onLinkTap(destination, title)`,
 a click (a press and a release of the left button on the same cell) on a link
 or an image goes to the app with its destination (an image's source) and

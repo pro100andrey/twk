@@ -23,6 +23,11 @@ Fixed:
 - A link destination nests 32 parentheses at most, as cmark takes it: one
   of more is no link, and text of `[a](` repeated is parsed in linear time
   (32000 of them took 2.5 s, now 32 ms).
+- `MarkdownView` draws a table's rows itself, each made once and kept by
+  its row, as a `Table` drew them: a table streaming in a row at a time
+  lays out the row added alone (an append to 2000 rows took 23 ms, now
+  1 ms; to 10 rows 0.5 ms, now 0.3), and no longer asks the terminal for
+  the mouse's drags.
 
 ## 0.3.0
 
