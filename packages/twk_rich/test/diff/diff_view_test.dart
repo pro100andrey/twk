@@ -337,6 +337,7 @@ void main() {
     final lexed = [0];
     final language = Language(name: 'count', lexer: CountingLexer(lexed));
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       DiffView(
         Diff.between(before, after, path: 'big.txt'),

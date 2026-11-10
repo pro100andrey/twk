@@ -673,6 +673,7 @@ void main() {
   testTwk('a table that grows a row at a time never overflows an inline '
       'screen', (t) async {
     final text = ValueNotifier('| a | b |\n|---|---|\n');
+    addTearDown(text.dispose);
     await t.pumpWidget(
       ValueListenableBuilder<String>(
         valueListenable: text,
