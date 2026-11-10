@@ -147,3 +147,81 @@ export function resolveUri(uri: string, packages: Packages): string | undefined 
   const root = m ? packages.get(m[1]) : undefined;
   return m && root ? new URL(m[2], root).href : undefined;
 }
+
+/**
+ * The last [keep] items of a stream, trimmed in batches (a [slack] past
+ * [keep], then the overflow dropped at once, not a copy per item), with a
+ * pause that holds what comes meanwhile: [add] answers what is to be shown
+ * now, [resume] what was held.
+ */
+export class RowBuffer<T> {
+  private items: T[] = [];
+  private heldItems: T[] = [];
+  private isPaused = false;
+
+  constructor(
+    readonly keep: number,
+    readonly slack: number = Math.max(1, Math.floor(keep / 10)),
+  ) {}
+
+  get paused(): boolean {
+    return this.isPaused;
+  }
+
+  /** The items kept, the oldest first. */
+  get kept(): readonly T[] {
+    return this.items.length > this.keep ? this.items.slice(this.items.length - this.keep) : this.items;
+  }
+
+  /** How many items are held by the pause. */
+  get held(): number {
+    return this.heldItems.length;
+  }
+
+  /** The items kept that are not held, the oldest first. */
+  get shown(): T[] {
+    const kept = this.kept;
+    return this.heldItems.length === 0 ? [...kept] : kept.slice(0, Math.max(0, kept.length - this.heldItems.length));
+  }
+
+  /** Replaces the items (and ends any pause's holding). */
+  reset(items: readonly T[]): void {
+    this.items = [...items];
+    this.heldItems = [];
+    this.trim();
+  }
+
+  /** Keeps [more]; answers those to show now: none while paused. */
+  add(more: readonly T[]): readonly T[] {
+    for (const m of more) {
+      this.items.push(m);
+    }
+    this.trim();
+    if (this.isPaused) {
+      this.heldItems.push(...more);
+      if (this.heldItems.length > this.keep) {
+        this.heldItems.splice(0, this.heldItems.length - this.keep);
+      }
+      return [];
+    }
+    return more;
+  }
+
+  pause(): void {
+    this.isPaused = true;
+  }
+
+  /** Ends the pause; answers the items held, to be shown now (they are kept already). */
+  resume(): T[] {
+    this.isPaused = false;
+    const h = this.heldItems;
+    this.heldItems = [];
+    return h;
+  }
+
+  private trim(): void {
+    if (this.items.length > this.keep + this.slack) {
+      this.items.splice(0, this.items.length - this.keep);
+    }
+  }
+}

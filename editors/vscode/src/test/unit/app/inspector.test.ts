@@ -324,6 +324,50 @@ describe('Inspector', () => {
     assert.deepEqual(details.lines, []);
   });
 
+  it('a refresh that finds the node as it was leaves the node view alone; one that finds it changed shows it', async () => {
+    const service = app();
+    await connect(service);
+    view.select(4);
+    await until('its details', () => details.lines.length > 0);
+    const shows = details.shows;
+    const asked = callsOf(service, 'ext.twk.layout').length;
+    await inspector.refresh();
+    await until('asked again', () => callsOf(service, 'ext.twk.layout').length > asked);
+    await settle();
+    assert.equal(details.shows, shows);
+    service.answers.set('ext.twk.layout', (p) => ({ version: 1, id: Number(p.id), render: 11, name: 'RenderText', size: { width: 9, height: 1 } }));
+    await inspector.refresh();
+    await until('changed', () => details.lines.includes('Layout: size 9 x 1'));
+    assert.equal(details.shows, shows + 1);
+  });
+
+  it('the node view is cleared when the app shown changes: the node was of the other app', async () => {
+    const first = app();
+    await connect(first);
+    view.select(4);
+    await until('its details', () => details.lines.length > 0);
+    const second = app();
+    const t = await terminals.create('other.dart');
+    apps.fire({ terminal: t, service: second });
+    await until('the other app', () => inspector.terminal === t);
+    await until('cleared', () => details.message === noNode);
+    assert.deepEqual(details.lines, []);
+    const asked = callsOf(second, 'ext.twk.properties').length;
+    await inspector.refresh();
+    await settle();
+    assert.equal(callsOf(second, 'ext.twk.properties').length, asked, 'the old node is not asked of the new app');
+  });
+
+  it('a layout the extension cannot read gives the properties alone', async () => {
+    const service = app();
+    await connect(service);
+    service.answers.set('ext.twk.layout', () => ({ version: 1, constraints: { minWidth: 'wide' } }));
+    view.select(3);
+    await until('properties', () => details.lines.length > 0);
+    assert.deepEqual(details.sections.map((s) => s.title), ['Padding']);
+    assert.equal(details.message, '');
+  });
+
   /** Lets what the events started settle. */
   const settle = () => new Promise((r) => setImmediate(r));
 

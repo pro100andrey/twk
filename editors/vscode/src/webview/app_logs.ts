@@ -5,7 +5,7 @@
 // opened in the editor by a click. Filtered by level, by app and by a word;
 // paused (what comes meanwhile held, shown on resume); cleared. Compiled
 // with the terminal's webview (tsconfig.webview.json).
-import { Level, formatTime, levels, matchesFilter } from '../core/app_log.js';
+import { Level, RowBuffer, formatTime, levels, matchesFilter } from '../core/app_log.js';
 import { AppInfo, FromAppLogs, LogRow, isToAppLogs } from './app_logs_protocol.js';
 
 declare function acquireVsCodeApi(): { postMessage(message: FromAppLogs): void };
@@ -18,10 +18,8 @@ const log = document.getElementById('log')!;
 const keep = 5000;
 const most = 2000;
 
-let rows: LogRow[] = [];
-let held: LogRow[] = [];
+const buffer = new RowBuffer<LogRow>(keep);
 let apps: readonly AppInfo[] = [];
-let paused = false;
 const opened = new Set<number>();
 const on = new Set<Level>(levels);
 let app = 0;
@@ -57,13 +55,12 @@ filter.addEventListener('input', () => {
 });
 const pause = element('button', { textContent: 'Pause', title: 'Hold what comes, to read what is shown' });
 pause.addEventListener('click', () => {
-  paused = !paused;
-  pause.textContent = paused ? 'Resume' : 'Pause';
-  if (!paused) {
-    const h = held;
-    held = [];
-    add(h);
+  if (buffer.paused) {
+    show(buffer.resume());
+  } else {
+    buffer.pause();
   }
+  pause.textContent = buffer.paused ? 'Resume' : 'Pause';
   status();
 });
 const clear = element('button', { textContent: 'Clear', title: 'Forget every row' });
@@ -123,24 +120,27 @@ function row(r: LogRow): HTMLElement[] {
 
 const atBottom = () => log.scrollTop + log.clientHeight >= log.scrollHeight - 4;
 
-/** Shows [more], held while paused. */
+/** Keeps [more], and shows it unless paused (then it is held). */
 function add(more: readonly LogRow[]): void {
-  rows.push(...more);
-  if (rows.length > keep) {
-    rows = rows.slice(rows.length - keep);
-  }
-  if (paused) {
-    held.push(...more);
-    status();
-    return;
-  }
+  show(buffer.add(more));
+}
+
+/** Appends [more] to the page, and drops the oldest rows past [most], each with its frames. */
+function show(more: readonly LogRow[]): void {
   const follow = atBottom();
   for (const r of more) {
     if (matches(r)) {
       log.append(...row(r));
     }
   }
-  while (log.querySelectorAll('.row').length > most && log.firstElementChild) {
+  let count = log.querySelectorAll('.row').length;
+  while (count > most && log.firstElementChild) {
+    if (log.firstElementChild.classList.contains('row')) {
+      count--;
+    }
+    log.firstElementChild.remove();
+  }
+  while (log.firstElementChild?.classList.contains('frame')) {
     log.firstElementChild.remove();
   }
   if (follow) {
@@ -151,7 +151,7 @@ function add(more: readonly LogRow[]): void {
 
 /** Shows the rows kept as the filters say, from scratch. */
 function render(): void {
-  const shown = rows.filter((r) => !held.includes(r) && matches(r)).slice(-most);
+  const shown = buffer.shown.filter(matches).slice(-most);
   log.replaceChildren(...shown.flatMap(row));
   log.scrollTop = log.scrollHeight;
   status();
@@ -167,16 +167,16 @@ function showApps(): void {
 }
 
 function status(): void {
-  const parts = [`${rows.length} rows`];
-  if (paused) {
-    parts.push(`paused, ${held.length} new`);
+  const parts = [`${buffer.kept.length} rows`];
+  if (buffer.paused) {
+    parts.push(`paused, ${buffer.held} new`);
   }
   if (apps.length === 0) {
     parts.push('no app followed: switch on the debug aid "logs" and run an app');
   }
   statusLine.textContent = parts.join(' · ');
   const last = Array.from(log.querySelectorAll('.row .msg')).slice(-20).map((n) => n.textContent ?? '');
-  vscode.postMessage({ type: 'shown', rows: log.querySelectorAll('.row').length, held: held.length, last });
+  vscode.postMessage({ type: 'shown', rows: log.querySelectorAll('.row').length, held: buffer.held, last });
 }
 
 window.addEventListener('message', (event: MessageEvent<unknown>) => {
@@ -188,8 +188,7 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
     case 'reset':
       document.title = m.title;
       apps = m.apps;
-      rows = [...m.rows];
-      held = [];
+      buffer.reset(m.rows);
       opened.clear();
       showApps();
       render();

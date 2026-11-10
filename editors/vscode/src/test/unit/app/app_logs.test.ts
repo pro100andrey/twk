@@ -131,6 +131,24 @@ describe('the apps\' log', () => {
     assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: true }]);
   });
 
+  it('follows a project once, for all its terminals: a row is shown once, and the app lives until the last terminal closes', async () => {
+    const first = await connected('a.dart');
+    const second = new FakeTerminal('b.dart');
+    logs.started(second, '/p');
+    clock.elapse(200);
+    first.conn.line(record('info', 'once'));
+    assert.equal(endpoints.connections.length, 1);
+    assert.equal(logs.appsInfo().length, 1);
+    assert.equal(logs.allRows().filter((r) => r.message === 'once').length, 1);
+    first.t.close();
+    assert.equal(logs.appsInfo()[0].state, 'connected');
+    assert.equal(endpoints.connections[0].closed, false);
+    second.close();
+    assert.equal(logs.appsInfo()[0].state, 'ended');
+    assert.equal(endpoints.connections[0].closed, true);
+    assert.equal(clock.pending, 0);
+  });
+
   it('keeps the last 5000 rows', async () => {
     const { conn } = await connected();
     for (let i = 0; i < AppLogs.keep + 10; i++) {

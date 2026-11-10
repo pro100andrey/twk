@@ -111,7 +111,10 @@ its log (`TWK_DEBUG=logs`, `LogSink.serve`, which writes the socket's
 address and token to the project's `.dart_tool/twk/logs`). The extension
 connects to it as `twk logs` does, once the app's VM service is up, and
 follows the terminal's apps one after another (a hot restart, a new
-run in the same terminal) until the terminal is closed. twk: Show the Log
+run in the same terminal) until the terminal is closed. A project is followed
+once: the `logs` file names the latest app's address only, so two terminals
+of one project share one followed app (named for the first), shown once,
+which ends with the last of them. twk: Show the Log
 of the twk Apps opens one panel beside the editor for all the apps
 followed. A row: the time (`09:05:07.042`), the level (debug, info,
 warning, error: coloured), the app (when it is not the only one), the
@@ -133,9 +136,11 @@ switching it on later takes a hot restart.
 **Opening code from the app.** The app's console (Ctrl+G c) opens a
 frame of a stack with twk's `editorCommand`, which reads `TWK_EDITOR`. The
 apps the extension runs or debugs get `TWK_EDITOR` set to VS Code's own
-command line (`"<appRoot>/bin/code" -r -g {file}:{line}:{column}`, found by
-`vscode.env.appRoot`, so `code` need not be on the `PATH`; `src/core/editor.ts`),
-unless the launch's `env` or the extension's environment already names one.
+command line (`"<bin>/code" -r -g {file}:{line}:{column}`, found from
+`vscode.env.appRoot` by platform: `<install>/bin/code` on Linux and
+`<install>\bin\code.cmd` on Windows, two directories above the
+`resources/app` that appRoot is, `<appRoot>/bin/code` on macOS; plain `code`
+for the `PATH` where the file is not there; `src/core/editor.ts`), unless the launch's `env` or the extension's environment already names one.
 It is the environment of the app's process, not a message of the shell's
 wire: the terminal does not name a command for the app to run
 (`Terminal.settingNames` leaves `TWK_EDITOR` out on purpose), so the wire and

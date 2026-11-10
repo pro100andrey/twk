@@ -577,8 +577,11 @@ export class FakeInspectorView implements InspectorView {
 export class FakeNodeDetailsView implements NodeDetailsView {
   sections: readonly DetailSection[] = [];
   message = '';
+  /** How many times it was told to show. */
+  shows = 0;
 
   show(sections: readonly DetailSection[], message: string): void {
+    this.shows++;
     this.sections = sections;
     this.message = message;
   }

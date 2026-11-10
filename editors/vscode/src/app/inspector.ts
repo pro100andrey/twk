@@ -95,6 +95,8 @@ export class Inspector {
   /** The node the node view shows, and the asking of its details in flight, the latest. */
   private detailed: number | undefined;
   private askingDetails = 0;
+  /** What the node view shows now (the app, the node and its content), so an asking that finds the same changes nothing. */
+  private shownDetails: { readonly target: Target; readonly id: number; readonly text: string } | undefined;
   /** The asking of the tree in flight, the latest; one asked meanwhile waits for it. */
   private asking = 0;
   private readonly listening: Disposable[];
@@ -238,6 +240,10 @@ export class Inspector {
     }
     const before = this.current;
     this.current = target;
+    // the node of the app before is no node of this one
+    if (this.detailed !== undefined) {
+      void this.showDetails(undefined);
+    }
     if (this.deps.view.visible) {
       if (before) {
         void this.followTree(before, false);
@@ -318,23 +324,36 @@ export class Inspector {
     const target = this.current;
     const asked = ++this.askingDetails;
     if (id === undefined || !target) {
+      this.shownDetails = undefined;
       this.deps.details.show([], target ? noNode : noApp);
       return;
     }
     let details: NodeDetails;
     try {
       const properties = parseProperties(await target.service.extension('ext.twk.properties', { id: String(id) }));
-      const layout = await target.service.extension('ext.twk.layout', { id: String(id) }).then(parseLayout, () => undefined);
+      // a layout that is not asked for, or not read, is none: the properties alone
+      const layout = await target.service
+        .extension('ext.twk.layout', { id: String(id) })
+        .then(parseLayout)
+        .catch(() => undefined);
       details = layout ? { properties, layout } : { properties };
     } catch (e) {
       if (asked === this.askingDetails) {
+        this.shownDetails = undefined;
         this.deps.details.show([], `The node's properties: ${e instanceof Error ? e.message : String(e)}`);
       }
       return;
     }
     // a node selected after it, or another app, wins
     if (asked === this.askingDetails && target === this.current) {
-      this.deps.details.show(detailSections(details), '');
+      const sections = detailSections(details);
+      const text = JSON.stringify(sections);
+      const shown = this.shownDetails;
+      if (shown?.target === target && shown.id === id && shown.text === text) {
+        return;
+      }
+      this.shownDetails = { target, id, text };
+      this.deps.details.show(sections, '');
     }
   }
 

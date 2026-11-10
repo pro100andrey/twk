@@ -4,7 +4,7 @@
 // make them places of code, the levels and word that filter.
 import * as assert from 'node:assert/strict';
 
-import { Level, formatTime, matchesFilter, parseAddressFile, parseFrames, parsePackages, parseRecord, resolveUri } from '../../../core/app_log';
+import { Level, RowBuffer, formatTime, matchesFilter, parseAddressFile, parseFrames, parsePackages, parseRecord, resolveUri } from '../../../core/app_log';
 
 describe('the address file of an app\'s log', () => {
   it('holds the place and the token on a line each', () => {
@@ -105,5 +105,32 @@ describe('what the levels and the word show', () => {
       assert.equal(matchesFilter(row, all, word), true, word);
     }
     assert.equal(matchesFilter(row, all, 'absent'), false);
+  });
+});
+
+describe('the rows kept by the webview', () => {
+  it('shows what comes, and holds it while paused: resumed, it is shown once, not kept twice', () => {
+    const b = new RowBuffer<number>(100);
+    assert.deepEqual(b.add([1, 2]), [1, 2]);
+    b.pause();
+    assert.deepEqual(b.add([3, 4]), []);
+    assert.equal(b.held, 2);
+    assert.deepEqual(b.shown, [1, 2]);
+    assert.deepEqual(b.resume(), [3, 4]);
+    assert.deepEqual([...b.kept], [1, 2, 3, 4]);
+    assert.deepEqual(b.shown, [1, 2, 3, 4]);
+    assert.equal(b.held, 0);
+    assert.equal(b.paused, false);
+  });
+
+  it('keeps the last rows, dropping the overflow in a batch', () => {
+    const b = new RowBuffer<number>(10, 5);
+    for (let i = 0; i < 25; i++) {
+      b.add([i]);
+    }
+    assert.deepEqual([...b.kept], [15, 16, 17, 18, 19, 20, 21, 22, 23, 24]);
+    b.add(Array.from({ length: 30 }, (_, i) => 100 + i));
+    assert.equal(b.kept.length, 10);
+    assert.equal(b.kept.at(-1), 129);
   });
 });

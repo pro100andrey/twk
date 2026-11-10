@@ -41,6 +41,8 @@ interface App {
   readonly id: number;
   readonly name: string;
   readonly project: string;
+  /** The terminals this app is followed for: the app ends with the last. */
+  readonly terminals: Set<AppTerminal>;
   state: AppInfo['state'];
   follower: LogFollower | undefined;
 }
@@ -54,9 +56,13 @@ interface Kept {
 export class AppLogs {
   /** The most rows kept, of all the apps. */
   static readonly keep = 5000;
+  private static readonly slack = 500;
 
   private readonly apps = new Map<number, App>();
   private readonly followed = new Map<AppTerminal, App>();
+  /** The live app of each project: its address file is one, so its apps are followed once, whatever terminals run them. */
+  private readonly byProject = new Map<string, App>();
+  /** The rows, with a slack of [AppLogs.slack] past [AppLogs.keep] trimmed at once. */
   private rows: Kept[] = [];
   private nextApp = 1;
   private nextRow = 1;
@@ -85,7 +91,7 @@ export class AppLogs {
 
   /** The rows kept, the oldest first. */
   allRows(): LogRow[] {
-    return this.rows.map((k) => k.row);
+    return this.rows.slice(-AppLogs.keep).map((k) => k.row);
   }
 
   /**
@@ -100,14 +106,29 @@ export class AppLogs {
     this.follow(terminal, project);
   }
 
-  /** Follows the log of the app of [project] in [terminal], one app after another, until the terminal is closed. */
+  /**
+   * Follows the log of the app of [project] in [terminal], one app after
+   * another, until the terminal is closed. The project's `logs` file names
+   * the address of the latest app only, and says nothing of whose it is, so
+   * a project is followed once, shown once, under the name of the terminal
+   * that asked first; a second terminal of it joins that one, and it ends
+   * with the last of them.
+   */
   follow(terminal: AppTerminal, project: string): void {
     if (this.followed.has(terminal)) {
       return;
     }
-    const app: App = { id: this.nextApp++, name: terminal.name, project, state: 'waiting', follower: undefined };
+    const joined = this.byProject.get(project);
+    if (joined) {
+      joined.terminals.add(terminal);
+      this.followed.set(terminal, joined);
+      terminal.onDidDispose(() => this.release(terminal, joined));
+      return;
+    }
+    const app: App = { id: this.nextApp++, name: terminal.name, project, terminals: new Set([terminal]), state: 'waiting', follower: undefined };
     this.apps.set(app.id, app);
     this.followed.set(terminal, app);
+    this.byProject.set(project, app);
     app.follower = new LogFollower(project, this.deps.endpoints, this.deps.clock, {
       connected: () => {
         app.state = 'connected';
@@ -121,14 +142,23 @@ export class AppLogs {
         this.appEvents.fire();
       },
     });
-    terminal.onDidDispose(() => {
-      app.follower?.dispose();
-      app.follower = undefined;
-      this.followed.delete(terminal);
-      app.state = 'ended';
-      this.note(app, 'the terminal of the app was closed');
-      this.appEvents.fire();
-    });
+    terminal.onDidDispose(() => this.release(terminal, app));
+    this.appEvents.fire();
+  }
+
+  private release(terminal: AppTerminal, app: App): void {
+    this.followed.delete(terminal);
+    app.terminals.delete(terminal);
+    if (app.terminals.size > 0 || app.state === 'ended') {
+      return;
+    }
+    app.follower?.dispose();
+    app.follower = undefined;
+    if (this.byProject.get(app.project) === app) {
+      this.byProject.delete(app.project);
+    }
+    app.state = 'ended';
+    this.note(app, 'the terminal of the app was closed');
     this.appEvents.fire();
   }
 
@@ -181,8 +211,8 @@ export class AppLogs {
 
   private push(row: LogRow, spots: readonly (SourceSpot | undefined)[]): void {
     this.rows.push({ row, spots });
-    if (this.rows.length > AppLogs.keep) {
-      this.rows = this.rows.slice(this.rows.length - AppLogs.keep);
+    if (this.rows.length > AppLogs.keep + AppLogs.slack) {
+      this.rows.splice(0, this.rows.length - AppLogs.keep);
     }
     this.rowEvents.fire([row]);
   }
@@ -213,6 +243,7 @@ export class AppLogs {
       app.follower?.dispose();
     }
     this.followed.clear();
+    this.byProject.clear();
     this.rowEvents.dispose();
     this.appEvents.dispose();
     this.resets.dispose();
