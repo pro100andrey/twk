@@ -236,6 +236,147 @@ export function detailsOf(node: InspectNode): string[] {
   ];
 }
 
+/** A node as `ext.twk.properties` gives it: what the tree has of it, with the id of its render object or of its element. */
+export interface NodeProperties {
+  readonly id: number;
+  readonly name: string;
+  readonly key?: string;
+  readonly render?: number;
+  readonly element?: number;
+  readonly properties: readonly InspectProperty[];
+  readonly flags: readonly string[];
+}
+
+/** What a render object may be laid out to: null for no limit. */
+export interface Constraints {
+  readonly minWidth: number;
+  readonly maxWidth: number | null;
+  readonly minHeight: number;
+  readonly maxHeight: number | null;
+}
+
+/** A render object's layout as `ext.twk.layout` gives it; each part once it is laid out. */
+export interface NodeLayout {
+  readonly constraints?: Constraints;
+  readonly size?: { readonly width: number; readonly height: number };
+  /** In its parent. */
+  readonly offset?: { readonly x: number; readonly y: number };
+  /** On the screen (of the inline region). */
+  readonly global?: { readonly x: number; readonly y: number };
+}
+
+/** `ext.twk.properties`' answer; throws on one this doesn't read. */
+export function parseProperties(answer: unknown): NodeProperties {
+  const a = versioned(answer);
+  if (!isId(a.id) || typeof a.name !== 'string') {
+    throw new Error('the app answered properties this does not read');
+  }
+  const node = parseNode({ ...a, children: [] });
+  if (!node) {
+    throw new Error('the app answered properties this does not read');
+  }
+  return {
+    id: node.id,
+    name: node.name,
+    ...(node.key === undefined ? {} : { key: node.key }),
+    ...(node.render === undefined ? {} : { render: node.render }),
+    ...(isId(a.element) ? { element: a.element } : {}),
+    properties: node.properties,
+    flags: node.flags,
+  };
+}
+
+/** `ext.twk.layout`'s answer; throws on one this doesn't read. */
+export function parseLayout(answer: unknown): NodeLayout {
+  const a = versioned(answer);
+  const point = (v: unknown) => (isRecord(v) && isCount(v.x) && isCount(v.y) ? { x: v.x, y: v.y } : undefined);
+  const limit = (v: unknown) => (v === null || v === undefined ? null : isCount(v) ? v : undefined);
+  const c = a.constraints;
+  let constraints: Constraints | undefined;
+  if (isRecord(c)) {
+    const maxWidth = limit(c.maxWidth);
+    const maxHeight = limit(c.maxHeight);
+    if (!isCount(c.minWidth) || !isCount(c.minHeight) || maxWidth === undefined || maxHeight === undefined) {
+      throw new Error('the app answered a layout this does not read');
+    }
+    constraints = { minWidth: c.minWidth, maxWidth, minHeight: c.minHeight, maxHeight };
+  }
+  const size = isRecord(a.size) && isCount(a.size.width) && isCount(a.size.height) ? { width: a.size.width, height: a.size.height } : undefined;
+  const offset = point(a.offset);
+  const global = point(a.global);
+  return {
+    ...(constraints ? { constraints } : {}),
+    ...(size ? { size } : {}),
+    ...(offset ? { offset } : {}),
+    ...(global ? { global } : {}),
+  };
+}
+
+/** A node's properties and layout: what the node view shows. The layout is absent where the app gave none (an element with no render object). */
+export interface NodeDetails {
+  readonly properties: NodeProperties;
+  readonly layout?: NodeLayout;
+}
+
+/** A line of the node view: a value after its label, if it has one. */
+export interface DetailRow {
+  readonly label?: string;
+  readonly value: string;
+}
+
+/** A group of lines of the node view. */
+export interface DetailSection {
+  readonly title: string;
+  readonly rows: readonly DetailRow[];
+}
+
+/** `w 0..80, h 24`: each axis's least and most, one number when they are the same, `inf` for no most (as twk inspect shows it). */
+export function constraintsText(c: Constraints): string {
+  const axis = (name: string, min: number, max: number | null) => (min === max ? `${name} ${min}` : `${name} ${min}..${max ?? 'inf'}`);
+  return `${axis('w', c.minWidth, c.maxWidth)}, ${axis('h', c.minHeight, c.maxHeight)}`;
+}
+
+/** The lines of the node view for [details], as twk inspect's right pane has them: the node, then its layout. */
+export function detailSections(details: NodeDetails): DetailSection[] {
+  const p = details.properties;
+  const node: DetailRow[] = [{ label: 'id', value: `#${p.id}` }];
+  if (p.key) {
+    node.push({ label: 'key', value: p.key });
+  }
+  if (p.render !== undefined) {
+    node.push({ label: 'render', value: `#${p.render}` });
+  } else if (p.element !== undefined) {
+    node.push({ label: 'element', value: `#${p.element}` });
+  }
+  for (const property of p.properties) {
+    node.push(property.name ? { label: property.name, value: property.value } : { value: property.value });
+  }
+  if (p.flags.length) {
+    node.push({ label: 'flags', value: p.flags.join(', ') });
+  }
+  const sections: DetailSection[] = [{ title: p.name, rows: node }];
+  const l = details.layout;
+  if (l) {
+    const rows: DetailRow[] = [];
+    if (l.constraints) {
+      rows.push({ label: 'constraints', value: constraintsText(l.constraints) });
+    }
+    if (l.size) {
+      rows.push({ label: 'size', value: `${l.size.width} x ${l.size.height}` });
+    }
+    if (l.offset) {
+      rows.push({ label: 'offset', value: `${l.offset.x}, ${l.offset.y}` });
+    }
+    if (l.global) {
+      rows.push({ label: 'on screen', value: `${l.global.x}, ${l.global.y}` });
+    }
+    if (rows.length) {
+      sections.push({ title: 'Layout', rows });
+    }
+  }
+  return sections;
+}
+
 /** The debug aids an inspector switches: the panels and highlights twk draws over the app. */
 export type Toggle = 'overlay' | 'rainbow' | 'relayout' | 'overflow' | 'console';
 

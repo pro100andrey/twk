@@ -23,22 +23,29 @@ import {
   Flags,
   InspectNode,
   InspectTree,
+  NodeDetails,
   Toggle,
   flagParams,
+  detailSections,
   nodeOf,
   parseFlags,
+  parseLayout,
   parsePicked,
+  parseProperties,
   parseSelect,
   parseTree,
   pathTo,
 } from '../core/inspect';
 import { SourceLocator, SourceSpot } from '../core/locator';
 import { AppConnection } from './hot_apps';
-import { Cell, Clock, InspectorView, Log, Notice, PickedCell, PickingIndicator, SourceOpener } from './ports';
+import { Cell, Clock, InspectorView, Log, NodeDetailsView, Notice, PickedCell, PickingIndicator, SourceOpener } from './ports';
 import { TwkTerminal } from './terminal';
 
 /** The least time between two askings of the tree that its changes cause. */
 export const refreshGap = 250;
+
+/** What the node view says while no node is selected. */
+export const noNode = 'Select a node of the twk Inspector, or pick a widget in the app.';
 
 /** What the tree view says while no app is there to inspect. */
 export const noApp = 'No twk app runs: Run or Debug one in a twk terminal (twk: Run Dart File in twk Terminal, or F5).';
@@ -47,6 +54,8 @@ export interface InspectorDeps {
   /** The apps' VM services as they come and go (HotApps.onApp). */
   readonly apps: Event<AppConnection>;
   readonly view: InspectorView;
+  /** The selected node's properties and layout. */
+  readonly details: NodeDetailsView;
   readonly opener: SourceOpener;
   /** The pick mode's button. */
   readonly picking: PickingIndicator;
@@ -83,6 +92,9 @@ export class Inspector {
   /** What the pick mode's button shows. */
   private shownPicking = false;
   private refreshTimer: Disposable | undefined;
+  /** The node the node view shows, and the asking of its details in flight, the latest. */
+  private detailed: number | undefined;
+  private askingDetails = 0;
   /** The asking of the tree in flight, the latest; one asked meanwhile waits for it. */
   private asking = 0;
   private readonly listening: Disposable[];
@@ -98,9 +110,13 @@ export class Inspector {
           void this.refresh();
         }
       }),
-      deps.view.onSelect((id) => void this.highlight(id)),
+      deps.view.onSelect((id) => {
+        void this.highlight(id);
+        void this.showDetails(id);
+      }),
     ];
     deps.view.show(undefined, noApp);
+    deps.details.show([], noNode);
     deps.picking.show(false);
   }
 
@@ -210,6 +226,7 @@ export class Inspector {
         this.refreshTimer?.dispose();
         this.refreshTimer = undefined;
         this.deps.view.show(undefined, noApp);
+        void this.showDetails(undefined);
       }
     }
   }
@@ -271,6 +288,10 @@ export class Inspector {
       if (asked === this.asking && target === this.current) {
         this.tree = tree;
         this.deps.view.show(tree, tree.root ? '' : 'The app has drawn no frame yet.');
+        // its size and place may have moved with the tree
+        if (this.detailed !== undefined) {
+          void this.showDetails(this.detailed);
+        }
         if (!tree.root) {
           // its first frame may come before it was told to say so
           this.refreshSoon();
@@ -283,6 +304,37 @@ export class Inspector {
         this.deps.view.show(undefined, `The app's tree: ${e instanceof Error ? e.message : String(e)}`);
       }
       return undefined;
+    }
+  }
+
+  /**
+   * Shows the properties and layout of the node [id] of the app shown in the
+   * node view (none for undefined). The layout is the render object's: an
+   * element with none shows its properties alone; a node gone from the app
+   * says so.
+   */
+  async showDetails(id: number | undefined): Promise<void> {
+    this.detailed = id;
+    const target = this.current;
+    const asked = ++this.askingDetails;
+    if (id === undefined || !target) {
+      this.deps.details.show([], target ? noNode : noApp);
+      return;
+    }
+    let details: NodeDetails;
+    try {
+      const properties = parseProperties(await target.service.extension('ext.twk.properties', { id: String(id) }));
+      const layout = await target.service.extension('ext.twk.layout', { id: String(id) }).then(parseLayout, () => undefined);
+      details = layout ? { properties, layout } : { properties };
+    } catch (e) {
+      if (asked === this.askingDetails) {
+        this.deps.details.show([], `The node's properties: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      return;
+    }
+    // a node selected after it, or another app, wins
+    if (asked === this.askingDetails && target === this.current) {
+      this.deps.details.show(detailSections(details), '');
     }
   }
 
@@ -327,6 +379,7 @@ export class Inspector {
     this.indicate(false);
     terminal.pick(false);
     this.deps.view.clearSelection();
+    void this.showDetails(undefined);
     const target = this.targets.find((t) => t.terminal === terminal);
     if (!target) {
       return;
@@ -395,6 +448,7 @@ export class Inspector {
       const node = tree && nodeOf(tree, id);
       if (tree && node && target === this.current) {
         this.deps.view.reveal(id);
+        void this.showDetails(id);
         await this.highlight(id);
         await this.openPicked(target, tree, node);
         return id;

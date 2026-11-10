@@ -6,9 +6,9 @@
 import * as vscode from 'vscode';
 
 import { Emitter } from '../core/events';
-import { InspectNode, InspectTree, describeNode, detailsOf, shownRoot } from '../core/inspect';
+import { DetailRow, DetailSection, InspectNode, InspectTree, describeNode, detailsOf, shownRoot } from '../core/inspect';
 import { SourceSpot } from '../core/locator';
-import { InspectorView, PickingIndicator, SourceOpener } from '../app/ports';
+import { InspectorView, NodeDetailsView, PickingIndicator, SourceOpener } from '../app/ports';
 
 /** How many levels below the app's own element are shown expanded at first. */
 const expandedLevels = 3;
@@ -120,6 +120,65 @@ export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvid
     this.listening.forEach((d) => d.dispose());
     this.visibility.dispose();
     this.selections.dispose();
+  }
+}
+
+/** An item of the node view: a section, or a line of one (a value after its label). */
+export type DetailItem = DetailSection | (DetailRow & { readonly section: string });
+
+const isSection = (i: DetailItem): i is DetailSection => 'rows' in i;
+
+/** The text a line of the node view copies: its value. */
+export const copyText = (item: DetailItem): string | undefined => (isSection(item) ? undefined : item.value);
+
+/**
+ * The node view (`twk.node`, beneath the tree): a TreeView of the selected
+ * node's sections, each with its lines, label and value, whose value a
+ * context command copies. A TreeView, not a webview: the lines are short
+ * label-value pairs, and it takes the theme, the keyboard and the copy
+ * menu for nothing.
+ */
+export class VsCodeNodeDetailsView implements NodeDetailsView, vscode.TreeDataProvider<DetailItem>, vscode.Disposable {
+  private sections: readonly DetailSection[] = [];
+  private readonly changes = new vscode.EventEmitter<DetailItem | undefined>();
+  readonly onDidChangeTreeData = this.changes.event;
+  readonly treeView: vscode.TreeView<DetailItem>;
+
+  constructor() {
+    this.treeView = vscode.window.createTreeView('twk.node', { treeDataProvider: this });
+  }
+
+  show(sections: readonly DetailSection[], message: string): void {
+    this.sections = sections;
+    this.treeView.message = message || undefined;
+    this.changes.fire(undefined);
+  }
+
+  getTreeItem(i: DetailItem): vscode.TreeItem {
+    if (isSection(i)) {
+      const item = new vscode.TreeItem(i.title, vscode.TreeItemCollapsibleState.Expanded);
+      item.id = `section:${i.title}`;
+      return item;
+    }
+    const item = new vscode.TreeItem(i.label ?? i.value, vscode.TreeItemCollapsibleState.None);
+    if (i.label !== undefined) {
+      item.description = i.value;
+    }
+    item.tooltip = i.label === undefined ? i.value : `${i.label}: ${i.value}`;
+    item.contextValue = 'twkDetail';
+    return item;
+  }
+
+  getChildren(i?: DetailItem): DetailItem[] {
+    if (!i) {
+      return [...this.sections];
+    }
+    return isSection(i) ? i.rows.map((r) => ({ ...r, section: i.title })) : [];
+  }
+
+  dispose(): void {
+    this.treeView.dispose();
+    this.changes.dispose();
   }
 }
 

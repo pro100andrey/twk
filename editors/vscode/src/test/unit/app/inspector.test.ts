@@ -4,7 +4,7 @@
 import * as assert from 'node:assert/strict';
 
 import { AppConnection } from '../../../app/hot_apps';
-import { Inspector, noApp, refreshGap } from '../../../app/inspector';
+import { Inspector, noApp, noNode, refreshGap } from '../../../app/inspector';
 import { TwkTerminal } from '../../../app/terminal';
 import { Terminals } from '../../../app/terminals';
 import { Emitter } from '../../../core/events';
@@ -15,6 +15,7 @@ import {
   FakeDesktop,
   FakeInspectorView,
   FakeLog,
+  FakeNodeDetailsView,
   FakeNotice,
   FakeOpener,
   FakePickingIndicator,
@@ -47,6 +48,21 @@ function app(): FakeAppService {
     return flagsAnswer(...on);
   });
   service.answers.set('ext.twk.highlight', (p) => ({ version: 1, id: p.id === undefined ? null : Number(p.id) }));
+  service.answers.set('ext.twk.properties', (p) =>
+    p.id === '4'
+      ? { version: 1, id: 4, name: 'Text', render: 11, properties: [{ value: '"n 0"' }, { name: 'overflow', value: 'clip' }], flags: ['needsLayout'] }
+      : { version: 1, id: Number(p.id), name: 'Padding', render: 10, properties: [{ name: 'padding', value: 'left 2' }], flags: [] },
+  );
+  service.answers.set('ext.twk.layout', (p) => ({
+    version: 1,
+    id: Number(p.id),
+    render: 11,
+    name: 'RenderText',
+    constraints: { minWidth: 0, maxWidth: 40, minHeight: 0, maxHeight: null },
+    size: { width: 3, height: 1 },
+    offset: { x: 2, y: 0 },
+    global: { x: 2, y: 1 },
+  }));
   service.answers.set('ext.twk.select', () => ({ version: 1, id: 4, path: [1, 2, 3, 4], render: [11] }));
   return service;
 }
@@ -91,6 +107,7 @@ describe('Inspector', () => {
   let views: FakeView[];
   let apps: Emitter<AppConnection>;
   let view: FakeInspectorView;
+  let details: FakeNodeDetailsView;
   let opener: FakeOpener;
   let button: FakePickingIndicator;
   let notice: FakeNotice;
@@ -114,11 +131,12 @@ describe('Inspector', () => {
     });
     apps = new Emitter();
     view = new FakeInspectorView();
+    details = new FakeNodeDetailsView();
     opener = new FakeOpener();
     button = new FakePickingIndicator();
     notice = new FakeNotice();
     clock = new FakeClock();
-    inspector = new Inspector({ apps: apps.event, view, opener, picking: button, notice, clock, log });
+    inspector = new Inspector({ apps: apps.event, view, details, opener, picking: button, notice, clock, log });
   });
 
   afterEach(async () => {
@@ -238,6 +256,72 @@ describe('Inspector', () => {
       ['ext.twk.highlight id=3', 'ext.twk.highlight'],
     );
     assert.deepEqual(opener.opened, [], 'nothing opened');
+  });
+
+  it("a node selected or picked has its properties and layout shown in the node view; none selected, the node gone, or no app, says so", async () => {
+    const service = app();
+    await connect(service);
+    assert.equal(details.message, noNode);
+    view.select(4);
+    await until('its details', () => details.lines.length > 0);
+    assert.deepEqual(details.lines, [
+      'Text: id #4',
+      'Text: render #11',
+      'Text: "n 0"',
+      'Text: overflow clip',
+      'Text: flags needsLayout',
+      'Layout: constraints w 0..40, h 0..inf',
+      'Layout: size 3 x 1',
+      'Layout: offset 2, 0',
+      'Layout: on screen 2, 1',
+    ]);
+    assert.equal(details.message, '');
+    assert.deepEqual(callsOf(service, 'ext.twk.layout'), ['ext.twk.layout id=4']);
+    // another node replaces it
+    view.select(3);
+    await until('the Padding', () => details.lines.includes('Padding: padding left 2'));
+    // its layout is asked again as the tree is: a size may have changed
+    const before = callsOf(service, 'ext.twk.layout').length;
+    await inspector.refresh();
+    await until('layout asked again', () => callsOf(service, 'ext.twk.layout').length > before);
+    // none selected
+    view.select(undefined);
+    await until('none', () => details.message === noNode);
+    assert.deepEqual(details.lines, []);
+    // a pick shows its node without the person selecting it
+    await inspector.pick();
+    await until('armed', () => inspector.picking);
+    service.post('twk.select', { version: 1, x: 3, y: 1 });
+    await until('picked details', () => details.lines.includes('Text: id #4'));
+    // the pick mode off: the selection goes, so do its details
+    await inspector.stopPicking();
+    await until('none after the pick', () => details.message === noNode);
+    // the app goes
+    view.select(3);
+    await until('details again', () => details.lines.length > 0);
+    service.end();
+    await until('no app', () => details.message === noApp);
+    assert.deepEqual(details.lines, []);
+  });
+
+  it('an element with no render object shows its properties without a layout; a node the app no more has says why', async () => {
+    const service = app();
+    await connect(service);
+    service.answers.set('ext.twk.layout', () => {
+      throw new Error('no render object');
+    });
+    view.select(3);
+    await until('properties', () => details.lines.length > 0);
+    assert.deepEqual(
+      details.sections.map((s) => s.title),
+      ['Padding'],
+    );
+    service.answers.set('ext.twk.properties', () => {
+      throw new Error('no node with id 3');
+    });
+    view.select(3);
+    await until('why', () => details.message.includes('no node with id 3'));
+    assert.deepEqual(details.lines, []);
   });
 
   /** Lets what the events started settle. */

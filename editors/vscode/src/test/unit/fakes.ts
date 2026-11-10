@@ -8,7 +8,7 @@ import { Answers, Choice, choiceOf } from '../../core/capabilities';
 import { TerminalRequest } from '../../core/emulation';
 import { Clock, Disposable, Emitter } from '../../core/events';
 import { HotStatus } from '../../core/hot';
-import { AppEvent, AppService, InspectTree } from '../../core/inspect';
+import { AppEvent, AppService, DetailSection, InspectTree } from '../../core/inspect';
 import { SourceSpot } from '../../core/locator';
 import { Switches, noSwitches } from '../../core/switches';
 import { HotRunOptions } from '../../core/runner';
@@ -20,6 +20,7 @@ import { Vm, VmEvent } from '../../core/vm';
 import { AppFrame, FrameReader, Wire, jsonFrame } from '../../core/wire';
 import {
   InspectorView,
+  NodeDetailsView,
   Notice,
   PickingIndicator,
   SourceOpener,
@@ -560,6 +561,22 @@ export class FakeInspectorView implements InspectorView {
 
   clearSelection(): void {
     this.selected = undefined;
+  }
+}
+
+/** The node view: what it was last told to show. */
+export class FakeNodeDetailsView implements NodeDetailsView {
+  sections: readonly DetailSection[] = [];
+  message = '';
+
+  show(sections: readonly DetailSection[], message: string): void {
+    this.sections = sections;
+    this.message = message;
+  }
+
+  /** The lines shown, as `section: label value`. */
+  get lines(): string[] {
+    return this.sections.flatMap((s) => s.rows.map((r) => `${s.title}: ${r.label ? `${r.label} ` : ''}${r.value}`));
   }
 }
 

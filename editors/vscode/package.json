@@ -89,6 +89,12 @@
         "icon": "$(eye)"
       },
       {
+        "command": "twk.node.copyValue",
+        "title": "Copy Value",
+        "category": "twk",
+        "icon": "$(copy)"
+      },
+      {
         "command": "twk.inspector.goToSource",
         "title": "Go to Where the Widget Was Made",
         "category": "twk",
@@ -355,6 +361,11 @@
           "id": "twk.inspector",
           "name": "twk Inspector",
           "contextualTitle": "twk"
+        },
+        {
+          "id": "twk.node",
+          "name": "twk Node",
+          "contextualTitle": "twk"
         }
       ]
     },
@@ -396,6 +407,16 @@
           "command": "twk.inspector.goToBuild",
           "when": "view == twk.inspector && viewItem == twkBuilds",
           "group": "navigation@2"
+        },
+        {
+          "command": "twk.node.copyValue",
+          "when": "view == twk.node && viewItem == twkDetail",
+          "group": "inline@1"
+        },
+        {
+          "command": "twk.node.copyValue",
+          "when": "view == twk.node && viewItem == twkDetail",
+          "group": "navigation@1"
         }
       ],
       "commandPalette": [
@@ -414,6 +435,10 @@
         {
           "command": "twk.inspector.goToBuild",
           "when": "focusedView == twk.inspector"
+        },
+        {
+          "command": "twk.node.copyValue",
+          "when": "false"
         },
         {
           "command": "twk.stopRecordings",

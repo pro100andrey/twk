@@ -3,6 +3,7 @@
 Run and debug twk apps in a terminal of the extension's own, beside the
 editor: hot reload on save, switches for what the terminal can do (its
 colours, images, keyboard protocol, a screen reader), the twk Inspector
+(the tree, and a twk Node view of the selected widget's properties and layout)
 with a pick mode that opens where a widget was made, a log of the
 sequences between the app and its terminal, and recording and replay as
 asciicast.

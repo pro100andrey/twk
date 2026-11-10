@@ -5,7 +5,7 @@ import { Answers, Choice } from '../core/capabilities';
 import { TerminalRequest } from '../core/emulation';
 import { Clock, Event } from '../core/events';
 import { HotStatus } from '../core/hot';
-import { InspectTree } from '../core/inspect';
+import { DetailSection, InspectTree } from '../core/inspect';
 import { SourceSpot } from '../core/locator';
 import { HotRunOptions } from '../core/runner';
 import { Switches } from '../core/switches';
@@ -193,6 +193,12 @@ export interface InspectorView {
   readonly onSelect: Event<number | undefined>;
   /** Selects no node. */
   clearSelection(): void;
+}
+
+/** The inspector's node view: the properties and layout of the node selected or picked. */
+export interface NodeDetailsView {
+  /** Shows [sections], or none with [message] saying why (none selected, the node gone). */
+  show(sections: readonly DetailSection[], message: string): void;
 }
 
 /** Opens a place of the code in the editor. */

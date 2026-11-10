@@ -918,6 +918,24 @@ made in.
   among several calls says so in the status bar, for a pick too. **Go to
   the Build Method** opens the `build` of a node that has one, at its
   name (after `@override`).
+- **The node view** (**twk Node**, beneath the tree in Run and Debug,
+  `twk.node`): what `twk inspect`'s right pane shows of the node selected
+  in the tree or picked. `ext.twk.properties` (id, key, its render
+  object's id or, for a render object, its element's, the properties, the
+  flags) and `ext.twk.layout` (constraints as `w 0..40, h 0..5` (one
+  number for a tight axis, `inf` for no limit), size, offset in its
+  parent, place on the screen), asked by `Inspector.showDetails` for the
+  node selected by hand, the node a pick picked and again on each tree
+  asked, so a size that moved shows; none selected (the pick mode off, a
+  selection of none) or no app says so in the view. An element with no
+  render object has no layout: its properties are shown alone. It is a
+  TreeView of two sections (the node, named by its type; Layout), each
+  line a label with its value, and a line's value is copied by **Copy
+  Value** (`twk.node.copyValue`, inline and in the context menu), not a
+  webview: the lines are short pairs, and a TreeView has the theme, the
+  keyboard and the menu already. The tree's tooltip stays. Its port is
+  `NodeDetailsView`, the lines made by `core/inspect.ts`'s
+  `detailSections`.
 - **Debug aids** (the view's title): the frame overlay, the repaint
   rainbow, the relayout highlight, the overflow marker and the log console, a pick of several
   as the app has them; kept for the terminal, and given again to the
@@ -941,7 +959,9 @@ Tests (unit, under node):
 
 - `core/inspect.test.ts` (5): the tree read, a node's fields, a version
   or a shape it doesn't read refused, the select, flags and pick answers,
-  what a tree item says, the toggles' items. `core/source_find.test.ts`
+  what a tree item says, the toggles' items; and the node view's
+  answers (properties, layout: read, refused, constraints as text, the
+  lines laid out). `core/source_find.test.ts`
   (6): the builds above an element and its place among what each made
   (a child passed through a build, a build that makes none of the type,
   a component made by the build above it), comments (nested), strings
@@ -965,7 +985,10 @@ Tests (unit, under node):
   with its terminal closed; a widget made in no build found: the build
   above opened and why said, none found said; a pick in another app's
   terminal; the aids given again after a restart; an answer it can't
-  read said in the view. `core/hot.test.ts` also covers what the app posts
+  read said in the view; the node view: a node selected or picked shown
+  with its layout, replaced, asked again on a tree, cleared with none
+  selected, with the pick mode off and with the app; an element with no
+  render object, a node gone. `core/hot.test.ts` also covers what the app posts
   and reloads passed on and the calls in the binding's isolate, and
   `app/hot_apps.test.ts` a run's, a debug session's and its restart's
   connections told.
@@ -1015,8 +1038,8 @@ type the SGR press the click would send; the webview's own pick, for
 the inline mode, is tested in its parts: the cell's and the cursor's
 arithmetic, the messages, the view's port, and against twk over a
 headless xterm.js, not clicked in a real webview); the render
-tree (`ext.twk.tree` `tree=render`) and `ext.twk.layout` in the view;
-a node's properties beyond the tooltip.
+tree (`ext.twk.tree` `tree=render`) in the view; the node view in a real
+VS Code (`npm test`: `extension.test.ts` does not open it).
 
 ## 2e. The sequence log, recording and replay
 

@@ -38,7 +38,7 @@ import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
 import { openLogPanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
-import { VsCodeInspectorView, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
+import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
 import { StatusBar } from './status_bar';
 
@@ -59,6 +59,7 @@ export interface Api {
   /** The inspector, and its tree view. */
   readonly inspector: Inspector;
   readonly inspectorView: VsCodeInspectorView;
+  readonly nodeView: VsCodeNodeDetailsView;
   /** The recordings played back now, the oldest first. */
   players(): Player[];
   /** The recordings being made. */
@@ -123,16 +124,18 @@ export function activate(context: vscode.ExtensionContext): Api {
     ),
   );
   const inspectorView = new VsCodeInspectorView();
+  const nodeView = new VsCodeNodeDetailsView();
   const inspector = new Inspector({
     apps: hot.onApp,
     view: inspectorView,
+    details: nodeView,
     opener: vsCodeOpener,
     picking: vsCodePickingIndicator,
     notice: { say: (text) => void vscode.window.setStatusBarMessage(text, 5000) },
     clock: realClock,
     log,
   });
-  context.subscriptions.push(inspectorView, { dispose: () => inspector.dispose() });
+  context.subscriptions.push(inspectorView, nodeView, { dispose: () => inspector.dispose() });
   const recordings = new Recordings({
     clock: realClock,
     epochSeconds: () => Date.now() / 1000,
@@ -247,6 +250,14 @@ export function activate(context: vscode.ExtensionContext): Api {
         }
       }),
     );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('twk.node.copyValue', async (item?: DetailItem) => {
+      const text = item ? copyText(item) : undefined;
+      if (text !== undefined) {
+        await vscode.env.clipboard.writeText(text);
+      }
+    }),
+  );
   command('twk.inspector.refresh', () => inspector.refresh());
   // the pick mode's button, pressed (stopPicking) while it is on
   command('twk.inspector.pick', () => inspector.pick());
@@ -370,6 +381,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     progressOf: (terminal) => desktop.progressOf(terminal),
     inspector,
     inspectorView,
+    nodeView,
     players: () => [...players],
     recordings,
     logOf: (screen) => logs.of(screen),
