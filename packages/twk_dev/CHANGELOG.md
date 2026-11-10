@@ -38,6 +38,12 @@ Fixed:
 
 - `twk logs` and `twk create` take a pseudo-terminal of no size for a
   terminal: colours in the log, questions asked; `/dev/null` is none.
+- `twk run` goes on when a watched `lib/` is deleted or moved (a branch
+  switch): it stops watching that directory and says so in the app's log.
+  A package without a `packageUri` in the package configuration is watched
+  from its root, as the configuration says; without a pub cache known, only
+  packages under a `.pub-cache` are taken for hosted ones.
+- `twk doctor` closes a socket that connects after its one-second wait.
 
 ## 0.3.0
 

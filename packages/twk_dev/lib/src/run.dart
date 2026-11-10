@@ -457,18 +457,43 @@ final class HotRunner {
     bool isEntry(String path) => p.equals(path, entry);
     return [
       for (final dir in [if (lib.existsSync()) lib.path, ..._deps.values])
-        Directory(dir).watch(recursive: true).listen((e) {
+        _watching(dir, recursive: true, (e) {
           if (dart(e.path) || dart(_destination(e))) {
             _changed();
           }
         }),
       if (!lib.existsSync() || !p.isWithin(lib.path, entry))
-        Directory(p.dirname(entry)).watch().listen((e) {
+        _watching(p.dirname(entry), (e) {
           if (isEntry(e.path) || isEntry(_destination(e))) {
             _changed();
           }
         }),
     ];
+  }
+
+  /// Watches [dir], giving each event to [onEvent]. A directory that goes
+  /// while the app runs (a branch switch, `git clean`) ends the watch of
+  /// that one directory, said once in the app's log, not the session.
+  StreamSubscription<FileSystemEvent> _watching(
+    String dir,
+    void Function(FileSystemEvent) onEvent, {
+    bool recursive = false,
+  }) {
+    late final StreamSubscription<FileSystemEvent> sub;
+    return sub = Directory(dir)
+        .watch(recursive: recursive)
+        .listen(
+          onEvent,
+          onError: (Object error) {
+            unawaited(sub.cancel());
+            unawaited(
+              _app?.log(
+                'hot reload: no longer watching ${_shown(dir)} ($error)',
+                level: 'warning',
+              ),
+            );
+          },
+        );
   }
 
   static String _destination(FileSystemEvent e) =>

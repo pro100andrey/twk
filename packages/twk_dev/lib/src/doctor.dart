@@ -406,7 +406,7 @@ Future<Map<String, StateReport>> _state(String project) async {
       listens:
           uri != null &&
           uri.hasPort &&
-          await _connects(
+          await connects(
             () => Socket.connect(uri.host, uri.port),
           ),
     );
@@ -416,18 +416,32 @@ Future<Map<String, StateReport>> _state(String project) async {
     if (address != null) {
       state[service] = StateReport(
         address.toString(),
-        listens: await _connects(address.connect),
+        listens: await connects(address.connect),
       );
     }
   }
   return state;
 }
 
-Future<bool> _connects(Future<Socket> Function() connect) async {
+/// Whether [connect] opens a socket within [timeout]; the socket is closed.
+/// One that opens after the timeout is closed too, not left holding a slot
+/// of the server.
+Future<bool> connects(
+  Future<Socket> Function() connect, {
+  Duration timeout = doctorConnectTimeout,
+}) async {
   try {
-    final socket = await connect().timeout(doctorConnectTimeout);
-    socket.destroy();
-    return true;
+    final attempt = connect();
+    try {
+      final socket = await attempt.timeout(timeout);
+      socket.destroy();
+      return true;
+    } on TimeoutException {
+      // the connect goes on: a socket it opens late is not left holding a
+      // slot of the server
+      unawaited(attempt.then((s) => s.destroy(), onError: (Object _) {}));
+      return false;
+    }
   } on Object {
     return false;
   }

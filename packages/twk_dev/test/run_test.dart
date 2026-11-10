@@ -497,6 +497,22 @@ void main() {
     expect(screen.rows.join('\n'), contains('hot reload: watching'));
   }, timeout: const Timeout(Duration(minutes: 3)));
 
+  test('twk run goes on when a watched dependency lib/ is deleted', () async {
+    final project = await _Project.create(side: true);
+    final screen = await _Screen.serve();
+    _runHere(project.entry, screen);
+    await screen.waitFor('side one', within: _start);
+
+    Directory(p.join(project.dir.path, 'side', 'lib')).deleteSync(
+      recursive: true,
+    );
+    // the session is kept: with the dependency back, the package's own lib/
+    // still reloads
+    project.write('side/lib/side.dart', _sideLib('one'));
+    project.write('lib/counter.dart', _counter('still'));
+    await screen.waitFor('still 0');
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
   test(
     'twk run --no-watch-deps watches the package and the file only',
     () async {

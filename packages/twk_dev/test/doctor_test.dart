@@ -1,3 +1,4 @@
+import 'dart:async';
 // `twk doctor`: the terminal's probe, the versions of the lock, the files of
 // `.dart_tool/twk` and the skill for agents, in one report, as text and as
 // JSON. The terminal is the fake one of twk_test, the project a directory
@@ -13,6 +14,7 @@ import 'package:twk_core/twk_core.dart';
 import 'package:twk_dev/src/agents.dart';
 import 'package:twk_dev/src/doctor.dart';
 import 'package:twk_test/cli.dart';
+import 'package:twk_test/twk_test.dart' show waitFor;
 
 String _lock(Map<String, String> versions) {
   final b = StringBuffer('packages:\n');
@@ -215,5 +217,29 @@ void main() {
       final (_, out) = await doctor([]);
       expect(out, isNot(contains('agents skill')));
     });
+  });
+
+  test('a connect that completes after the timeout is closed', () async {
+    final server = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(server.close);
+    final accepted = <Socket>[];
+    final closed = Completer<void>();
+    server.listen((s) {
+      accepted.add(s);
+      s.listen(null, onDone: closed.complete);
+    });
+    final late = Completer<Socket>();
+    final result = connects(
+      () => late.future,
+      timeout: const Duration(milliseconds: 1),
+    );
+    expect(await result, isFalse);
+    late.complete(Socket.connect(server.address, server.port));
+    // the server sees the client go
+    await waitFor(
+      closed.future,
+      'the server to see the late socket closed',
+      timeout: const Duration(seconds: 30),
+    );
   });
 }
