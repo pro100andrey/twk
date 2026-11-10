@@ -111,6 +111,8 @@ cp -r /tmp/twk/skills/twk .agents/skills/twk
   the log, and the terminal for an app under a debugger.
 - [twk record and twk play](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/record-play.md):
   recordings, and a recording as a test.
+- [twk decode](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/decode.md):
+  a recording or a byte trace as named sequences and frames.
 - [twk tape](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/tape.md):
   the tape language, in full.
 - [How it is laid out and tested](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/internals.md):

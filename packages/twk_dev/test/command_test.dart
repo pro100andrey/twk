@@ -17,6 +17,7 @@ const subcommands = [
   'agents',
   'completion',
   'create',
+  'decode',
   'doctor',
   'inspect',
   'logs',

@@ -9,6 +9,7 @@ import 'agents.dart';
 import 'cast_test_gen.dart';
 import 'completion.dart';
 import 'create.dart';
+import 'decode.dart';
 import 'doctor.dart';
 import 'inspect.dart';
 import 'logs.dart';
@@ -59,6 +60,7 @@ CommandRunner<int> twkRunner() =>
       ..addCommand(ShellCommand())
       ..addCommand(RecordCommand())
       ..addCommand(PlayCommand())
+      ..addCommand(DecodeCommand())
       ..addCommand(CastTestCommand())
       ..addCommand(TapeCommand())
       ..addCommand(CompletionCommand());

@@ -4,6 +4,14 @@
 
 Added:
 
+- `twk decode <file>...` names what a recording (`.cast`) or the files
+  `TWK_TRACE_INPUT` and `TWK_TRACE_OUTPUT` write hold, a row for each text
+  run, control character, escape sequence, key, mouse event and terminal
+  answer, with its time; `--frames` shows a synchronized update (DEC mode
+  2026) as one row, `--only=output|input` and `--grep=<regexp>` choose rows,
+  and several files (the two traces of one run) are merged by time. The names
+  are those of the VS Code extension's sequence log, both held to one golden,
+  `test/decode.golden.json`.
 - `twk completion <bash|zsh|fish>` prints the shell's completion script for
   `twk`: subcommands, options (with the `--no-` forms and the allowed
   values), directories for `-C`, and the files of each command (`.cast` for

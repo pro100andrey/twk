@@ -89,6 +89,11 @@ passed through in raw mode, and records the session as asciicast v2
 
 plays a recording back in this terminal
 
+### `twk decode [--frames] [--only=output|input] [--grep=<regexp>] <file>...`
+
+names the sequences of a recording or a byte trace, a row each, with its time
+(see [decode.md](decode.md))
+
 ### `twk tape <file.tape>`
 
 runs a tape, a script of what to type into a program and when, in a
@@ -100,7 +105,8 @@ and as still SVGs of the screens it names
 prints the shell's completion script for `twk`: its subcommands, the options of
 each (the `--no-` form of a flag that has one, the values an option allows,
 directories for `-C`/`--directory`, files for `--out` and `--replay`) and the
-files each command takes (`.cast` for `play` and `test-from-cast`, `.tape` for
+files each command takes (`.cast` for `play` and `test-from-cast`, recordings
+and traces for `decode`, `.tape` for
 `tape`, `.dart` for `run`, directories for `create`). The script is written
 from the command's own parsers, so an option added to a command is completed
 without a change here, and a test holds every subcommand and option to be in

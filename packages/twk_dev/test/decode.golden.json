@@ -1,0 +1,2690 @@
+{
+  "description": "The sequence names of twk_dev (lib/src/decode.dart) and of the VS Code extension (core/sequences.ts, seqlog.ts): reads are bytes cut into tokens and named, logs are bytes into entries and frames. Each side is held to it.",
+  "reads": [
+    {
+      "name": "text and controls",
+      "direction": "out",
+      "description": "a run of text; each control character one token",
+      "chunks": [
+        "68692074686572650d0a07000b0c0e0f7f01"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "6869207468657265",
+          "name": "text \"hi there\""
+        },
+        {
+          "kind": "control",
+          "raw": "0d",
+          "name": "CR carriage return"
+        },
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
+        },
+        {
+          "kind": "control",
+          "raw": "07",
+          "name": "BEL bell"
+        },
+        {
+          "kind": "control",
+          "raw": "00",
+          "name": "NUL"
+        },
+        {
+          "kind": "control",
+          "raw": "0b",
+          "name": "VT"
+        },
+        {
+          "kind": "control",
+          "raw": "0c",
+          "name": "FF"
+        },
+        {
+          "kind": "control",
+          "raw": "0e",
+          "name": "SO"
+        },
+        {
+          "kind": "control",
+          "raw": "0f",
+          "name": "SI"
+        },
+        {
+          "kind": "control",
+          "raw": "7f",
+          "name": "DEL"
+        },
+        {
+          "kind": "control",
+          "raw": "01",
+          "name": "^A"
+        }
+      ]
+    },
+    {
+      "name": "cursor movement",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b411b5b33421b5b32431b5b441b5b32451b5b33461b5b35471b5b481b5b333b35481b5b3b37481b5b343b661b5b39641b5b3132531b5b541b5b3262"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b41",
+          "name": "CUU cursor up 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3342",
+          "name": "CUD cursor down 3"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3243",
+          "name": "CUF cursor right 2"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b44",
+          "name": "CUB cursor left 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3245",
+          "name": "CNL cursor down 2, to column 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3346",
+          "name": "CPL cursor up 3, to column 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3547",
+          "name": "CHA cursor to column 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b48",
+          "name": "CUP cursor to row 1, column 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b333b3548",
+          "name": "CUP cursor to row 3, column 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3b3748",
+          "name": "CUP cursor to row 1, column 7"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b343b66",
+          "name": "CUP cursor to row 4, column 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3964",
+          "name": "VPA cursor to row 9"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313253",
+          "name": "SU scroll up 12"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b54",
+          "name": "SD scroll down 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3262",
+          "name": "REP repeat the last character 2 times"
+        }
+      ]
+    },
+    {
+      "name": "erase and edit",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b4a1b5b304a1b5b314a1b5b324a1b5b334a1b5b374a1b5b4b1b5b324b1b5b3f4a1b5b3f324b1b5b334c1b5b4d1b5b32501b5b34401b5b58"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b4a",
+          "name": "ED erase the screen to the end"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b304a",
+          "name": "ED erase the screen to the end"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b314a",
+          "name": "ED erase the screen to the start"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b324a",
+          "name": "ED erase the screen all"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b334a",
+          "name": "ED erase the screen and the scrollback"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b374a",
+          "name": "ED erase the screen 7"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b4b",
+          "name": "EL erase the line to the end"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b324b",
+          "name": "EL erase the line all"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f4a",
+          "name": "DECSED erase the screen to the end, keeping protected cells"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f324b",
+          "name": "DECSEL erase the line all, keeping protected cells"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b334c",
+          "name": "IL insert 3 lines"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b4d",
+          "name": "DL delete 1 lines"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3250",
+          "name": "DCH delete 2 characters"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3440",
+          "name": "ICH insert 4 blanks"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b58",
+          "name": "ECH erase 1 characters"
+        }
+      ]
+    },
+    {
+      "name": "sgr",
+      "direction": "out",
+      "description": "attributes, colours in all their forms",
+      "chunks": [
+        "1b5b6d1b5b306d1b5b313b333b346d1b5b33313b34326d1b5b39303b3130376d1b5b33383b353b3139366d1b5b34383b323b3235353b3133363b306d1b5b33383a323a3a313a323a336d1b5b33383a323a31303a32303a33306d1b5b35383b353b316d1b5b343a336d1b5b343a396d1b5b32313b32323b35333b35353b35396d1b5b33386d1b5b39396d1b5b313b3b326d"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b6d",
+          "name": "SGR reset"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b306d",
+          "name": "SGR reset"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b333b346d",
+          "name": "SGR bold, italic, underline"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b33313b34326d",
+          "name": "SGR fg red, bg green"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b39303b3130376d",
+          "name": "SGR fg bright black, bg bright white"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b33383b353b3139366d",
+          "name": "SGR fg 196"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b34383b323b3235353b3133363b306d",
+          "name": "SGR bg #ff8800"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b33383a323a3a313a323a336d",
+          "name": "SGR fg #010203"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b33383a323a31303a32303a33306d",
+          "name": "SGR fg #0a141e"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b35383b353b316d",
+          "name": "SGR underline colour 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b343a336d",
+          "name": "SGR underline curly"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b343a396d",
+          "name": "SGR underline 9"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b32313b32323b35333b35353b35396d",
+          "name": "SGR double underline, not bold or dim, overline, not overlined, underline colour default"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b33386d",
+          "name": "SGR fg ?"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b39396d",
+          "name": "SGR 99"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3b326d",
+          "name": "SGR bold, reset, dim"
+        }
+      ]
+    },
+    {
+      "name": "modes",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b3f32356c1b5b3f3235681b5b3f31303439681b5b3f32303236681b5b3f323032366c1b5b3f313030303b31303036681b5b3f393939396c1b5b34681b5b32306c1b5b3f3230303424701b5b31322470"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f32356c",
+          "name": "DECRST 25 cursor visible"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323568",
+          "name": "DECSET 25 cursor visible"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3130343968",
+          "name": "DECSET 1049 alternate screen, cursor saved"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3230323668",
+          "name": "DECSET 2026 synchronized output"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323032366c",
+          "name": "DECRST 2026 synchronized output"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f313030303b3130303668",
+          "name": "DECSET 1000 mouse buttons, 1006 SGR mouse"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f393939396c",
+          "name": "DECRST 9999"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3468",
+          "name": "SM set 4 insert mode"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b32306c",
+          "name": "RM reset 20 automatic newline"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323030342470",
+          "name": "DECRQM query: mode 2004 bracketed paste"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b31322470",
+          "name": "DECRQM query: ANSI mode 12 local echo off"
+        }
+      ]
+    },
+    {
+      "name": "cursor and scroll",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b721b5b323b3230721b5b32721b5b731b5b313b3130731b5b751b5b3420711b5b20711b5b3920711b5b2170"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b72",
+          "name": "DECSTBM scrolling region: all"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b323b323072",
+          "name": "DECSTBM scrolling region rows 2 to 20"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3272",
+          "name": "DECSTBM scrolling region rows 2 to the bottom"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b73",
+          "name": "SCOSC save the cursor"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b313073",
+          "name": "DECSLRM margins columns 1 to 10"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b75",
+          "name": "SCORC restore the cursor"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b342071",
+          "name": "DECSCUSR cursor shape underline"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b2071",
+          "name": "DECSCUSR cursor shape default"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b392071",
+          "name": "DECSCUSR cursor shape 9"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b2170",
+          "name": "DECSTR soft reset"
+        }
+      ]
+    },
+    {
+      "name": "queries",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b631b5b3e631b5b356e1b5b366e1b5b396e1b5b3f3939366e1b5b3f356e1b5b3e711b5b3f751b5b3e31751b5b3c751b5b3c33751b5b3d35751b5b3d353b32751b5b3f31531b5b3f323b31531b5b3e343b326d"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b63",
+          "name": "DA1 query: primary device attributes"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3e63",
+          "name": "DA2 query: secondary device attributes"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b356e",
+          "name": "DSR query: status"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b366e",
+          "name": "DSR query: the cursor position"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b396e",
+          "name": "DSR 9"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3939366e",
+          "name": "query: the colour scheme"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f356e",
+          "name": "DSR ? 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3e71",
+          "name": "XTVERSION query: the terminal name and version"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f75",
+          "name": "kitty keyboard query: the flags"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3e3175",
+          "name": "kitty keyboard push flags 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c75",
+          "name": "kitty keyboard pop 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c3375",
+          "name": "kitty keyboard pop 3"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3d3575",
+          "name": "kitty keyboard set flags 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3d353b3275",
+          "name": "kitty keyboard set flags 5 (mode 2)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3153",
+          "name": "XTSMGRAPHICS colour registers query"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323b3153",
+          "name": "XTSMGRAPHICS sixel geometry query"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3e343b326d",
+          "name": "XTMODKEYS 4;2"
+        }
+      ]
+    },
+    {
+      "name": "window operations",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b383b32343b3830741b5b38741b5b3134741b5b3136741b5b3138741b5b3232741b5b3233741b5b39393b3174"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b383b32343b383074",
+          "name": "XTWINOPS resize to 24 rows, 80 columns"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3874",
+          "name": "XTWINOPS resize to undefined rows, undefined columns"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313474",
+          "name": "XTWINOPS query: the window size in pixels"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313674",
+          "name": "XTWINOPS query: a cell size in pixels"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313874",
+          "name": "XTWINOPS query: the size in cells"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b323274",
+          "name": "XTWINOPS push the title"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b323374",
+          "name": "XTWINOPS pop the title"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b39393b3174",
+          "name": "XTWINOPS 99;1"
+        }
+      ]
+    },
+    {
+      "name": "unknown csi",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5b3f373737377a1b5b3d317a1b5b313b323b337e1b5b247a1b5b3e3563"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f373737377a",
+          "name": "CSI ?z 7777"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3d317a",
+          "name": "CSI =z 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b323b337e",
+          "name": "CSI ~ 1;2;3"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b247a",
+          "name": "CSI $z"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3e3563",
+          "name": "DA2 query: secondary device attributes"
+        }
+      ]
+    },
+    {
+      "name": "escape sequences",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b371b381b631b441b451b4d1b481b3d1b3e1b5c1b28421b28301b23381b5a1b2930"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b37",
+          "name": "DECSC save the cursor"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b38",
+          "name": "DECRC restore the cursor"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b63",
+          "name": "RIS reset the terminal"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b44",
+          "name": "IND index"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b45",
+          "name": "NEL next line"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b4d",
+          "name": "RI reverse index"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b48",
+          "name": "HTS set a tab stop"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b3d",
+          "name": "DECKPAM application keypad"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b3e",
+          "name": "DECKPNM normal keypad"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b5c",
+          "name": "ST string terminator"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b2842",
+          "name": "G0 charset ASCII"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b2830",
+          "name": "G0 charset DEC line drawing"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b2338",
+          "name": "DECALN fill with E"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b5a",
+          "name": "ESC Z"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b2930",
+          "name": "ESC )0"
+        }
+      ]
+    },
+    {
+      "name": "ss3",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b4f501b4f41"
+      ],
+      "tokens": [
+        {
+          "kind": "ss3",
+          "raw": "1b4f50",
+          "name": "SS3 P"
+        },
+        {
+          "kind": "ss3",
+          "raw": "1b4f41",
+          "name": "SS3 A"
+        }
+      ]
+    },
+    {
+      "name": "osc with bel and st",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5d303b7469746c65071b5d313b69636f6e071b5d323b61207469746c651b5c1b5d373b66696c653a2f2f2f746d70071b5d383b3b68747470733a2f2f782e79076c696e6b1b5d383b3b07"
+      ],
+      "tokens": [
+        {
+          "kind": "osc",
+          "raw": "1b5d303b7469746c6507",
+          "name": "OSC 0 title and icon \"title\""
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d313b69636f6e07",
+          "name": "OSC 1 icon \"icon\""
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d323b61207469746c651b5c",
+          "name": "OSC 2 title \"a title\""
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d373b66696c653a2f2f2f746d7007",
+          "name": "OSC 7 the working directory file:///tmp"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d383b3b68747470733a2f2f782e7907",
+          "name": "OSC 8 link to https://x.y"
+        },
+        {
+          "kind": "text",
+          "raw": "6c696e6b",
+          "name": "text \"link\""
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d383b3b07",
+          "name": "OSC 8 link end"
+        }
+      ]
+    },
+    {
+      "name": "osc colours and palette",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5d343b313b3f071b5d343b313b7267623a66662f30302f3030071b5d31303b3f071b5d31313b3f071b5d31303b23666666666666071b5d31313b7267623a30302f30302f3030071b5d31323b3f071b5d31323b2330306666303007"
+      ],
+      "tokens": [
+        {
+          "kind": "osc",
+          "raw": "1b5d343b313b3f07",
+          "name": "OSC 4 query: palette colour 1"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d343b313b7267623a66662f30302f303007",
+          "name": "OSC 4 palette 1;rgb:ff/00/00"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31303b3f07",
+          "name": "OSC 10 query: the foreground colour"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31313b3f07",
+          "name": "OSC 11 query: the background colour"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31303b2366666666666607",
+          "name": "OSC 10 foreground #ffffff"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31313b7267623a30302f30302f303007",
+          "name": "OSC 11 background rgb:00/00/00"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31323b3f07",
+          "name": "OSC 12 query: the cursor colour"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31323b2330306666303007",
+          "name": "OSC 12 cursor colour #00ff00"
+        }
+      ]
+    },
+    {
+      "name": "osc misc",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b5d393b343b313b3530071b5d393b343b30071b5d393b343b393b35071b5d393b68656c6c6f071b5d32323b071b5d32323b706f696e746572071b5d35323b633b614756736247383d071b5d35323b633b3f071b5d39393b693d313b626f6479071b5d313034071b5d313130071b5d313131071b5d313132071b5d3133333b41071b5d3737373b6e6f746966793b7469746c653b626f6479071b5d3737373b6f74686572071b5d313333373b46696c653d696e6c696e653d313a41414141071b5d313333373b5365744d61726b071b5d353535353b78071b5d3636363607"
+      ],
+      "tokens": [
+        {
+          "kind": "osc",
+          "raw": "1b5d393b343b313b353007",
+          "name": "OSC 9;4 progress set 50%"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d393b343b3007",
+          "name": "OSC 9;4 progress removed"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d393b343b393b3507",
+          "name": "OSC 9;4 progress 9 5%"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d393b68656c6c6f07",
+          "name": "OSC 9 notification \"hello\""
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d32323b07",
+          "name": "OSC 22 pointer shape default"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d32323b706f696e74657207",
+          "name": "OSC 22 pointer shape pointer"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d35323b633b614756736247383d07",
+          "name": "OSC 52 clipboard (8 base64 bytes)"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d35323b633b3f07",
+          "name": "OSC 52 clipboard query"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d39393b693d313b626f647907",
+          "name": "OSC 99 notification i=1;body"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31303407",
+          "name": "OSC 104 reset the palette"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31313007",
+          "name": "OSC 110 reset the foreground"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31313107",
+          "name": "OSC 111 reset the background"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31313207",
+          "name": "OSC 112 reset the cursor colour"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d3133333b4107",
+          "name": "OSC 133 prompt mark A"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d3737373b6e6f746966793b7469746c653b626f647907",
+          "name": "OSC 777 notification title;body"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d3737373b6f7468657207",
+          "name": "OSC 777 other"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d313333373b46696c653d696e6c696e653d313a4141414107",
+          "name": "OSC 1337 iTerm2 image (23 bytes)"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d313333373b5365744d61726b07",
+          "name": "OSC 1337 SetMark"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d353535353b7807",
+          "name": "OSC 5555 x"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d3636363607",
+          "name": "OSC 6666"
+        }
+      ]
+    },
+    {
+      "name": "dcs and strings",
+      "direction": "out",
+      "description": "",
+      "chunks": [
+        "1b50746d75783b1b1b5d303b78071b5c1b5024716d1b5c1b502b71353434651b5c1b50303b313b7122313b313b31303b31307e1b5c1b507123301b5c1b507a7a1b5c1b5f47663d3130302c613d543b414141411b5c1b5f47711b5c1b5f6f746865721b5c1b5e706d1b5c1b58736f731b5c"
+      ],
+      "tokens": [
+        {
+          "kind": "dcs",
+          "raw": "1b50746d75783b1b1b5d303b78071b5c",
+          "name": "DCS tmux passthrough"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b5024716d1b5c",
+          "name": "DECRQSS query: m"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b502b71353434651b5c",
+          "name": "XTGETTCAP query 544e"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b50303b313b7122313b313b31303b31307e1b5c",
+          "name": "DCS sixel image (16 bytes)"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b507123301b5c",
+          "name": "DCS sixel image (3 bytes)"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b507a7a1b5c",
+          "name": "DCS zz"
+        },
+        {
+          "kind": "apc",
+          "raw": "1b5f47663d3130302c613d543b414141411b5c",
+          "name": "APC kitty graphics f=100,a=T"
+        },
+        {
+          "kind": "apc",
+          "raw": "1b5f47711b5c",
+          "name": "APC kitty graphics q"
+        },
+        {
+          "kind": "apc",
+          "raw": "1b5f6f746865721b5c",
+          "name": "APC other"
+        },
+        {
+          "kind": "pm",
+          "raw": "1b5e706d1b5c",
+          "name": "PM pm"
+        },
+        {
+          "kind": "sos",
+          "raw": "1b58736f731b5c",
+          "name": "SOS sos"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 split",
+      "direction": "out",
+      "description": "the two bytes of an e acute cut between reads",
+      "chunks": [
+        "61c3",
+        "a962"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "61c3",
+          "name": "text \"a\""
+        },
+        {
+          "kind": "text",
+          "raw": "a962",
+          "name": "text \"éb\""
+        }
+      ]
+    },
+    {
+      "name": "csi split",
+      "direction": "out",
+      "description": "a CSI cut between reads waits for the rest",
+      "chunks": [
+        "781b5b33",
+        "3b354879"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "78",
+          "name": "text \"x\""
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b333b3548",
+          "name": "CUP cursor to row 3, column 5"
+        },
+        {
+          "kind": "text",
+          "raw": "79",
+          "name": "text \"y\""
+        }
+      ]
+    },
+    {
+      "name": "esc split",
+      "direction": "out",
+      "description": "ESC at the end of a read waits",
+      "chunks": [
+        "781b",
+        "5b324a79"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "78",
+          "name": "text \"x\""
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b324a",
+          "name": "ED erase the screen all"
+        },
+        {
+          "kind": "text",
+          "raw": "79",
+          "name": "text \"y\""
+        }
+      ]
+    },
+    {
+      "name": "osc split",
+      "direction": "out",
+      "description": "an OSC cut in its body",
+      "chunks": [
+        "1b5d303b7469",
+        "746c6507"
+      ],
+      "tokens": [
+        {
+          "kind": "osc",
+          "raw": "1b5d303b7469746c6507",
+          "name": "OSC 0 title and icon \"title\""
+        }
+      ]
+    },
+    {
+      "name": "st split",
+      "direction": "out",
+      "description": "a DCS cut between ESC and its backslash",
+      "chunks": [
+        "1b506162631b",
+        "5c7a"
+      ],
+      "tokens": [
+        {
+          "kind": "dcs",
+          "raw": "1b506162631b5c",
+          "name": "DCS abc"
+        },
+        {
+          "kind": "text",
+          "raw": "7a",
+          "name": "text \"z\""
+        }
+      ]
+    },
+    {
+      "name": "unfinished",
+      "direction": "out",
+      "description": "what never ends is left waiting",
+      "chunks": [
+        "6f6b1b5b3132"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "6f6b",
+          "name": "text \"ok\""
+        }
+      ],
+      "waiting": "1b5b3132"
+    },
+    {
+      "name": "three reads",
+      "direction": "out",
+      "description": "a CSI over three reads",
+      "chunks": [
+        "1b",
+        "5b",
+        "316d41"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b316d",
+          "name": "SGR bold"
+        },
+        {
+          "kind": "text",
+          "raw": "41",
+          "name": "text \"A\""
+        }
+      ]
+    },
+    {
+      "name": "invalid utf-8",
+      "direction": "out",
+      "description": "a byte that is no UTF-8 is U+FFFD",
+      "chunks": [
+        "61ff62"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "61ff62",
+          "name": "text \"a�b\""
+        }
+      ]
+    },
+    {
+      "name": "typed text",
+      "direction": "in",
+      "description": "one character is a key",
+      "chunks": [
+        "61"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "61",
+          "name": "key a"
+        }
+      ]
+    },
+    {
+      "name": "space",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "20"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "20",
+          "name": "key Space"
+        }
+      ]
+    },
+    {
+      "name": "typed string",
+      "direction": "in",
+      "description": "several characters at once were typed or pasted",
+      "chunks": [
+        "68656c6c6f"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "68656c6c6f",
+          "name": "typed \"hello\""
+        }
+      ]
+    },
+    {
+      "name": "typed non-ascii",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "c3a9"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "c3a9",
+          "name": "key é"
+        }
+      ]
+    },
+    {
+      "name": "controls",
+      "direction": "in",
+      "description": "Enter",
+      "chunks": [
+        "0d"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "0d",
+          "name": "key Enter"
+        }
+      ]
+    },
+    {
+      "name": "tab",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "09"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "09",
+          "name": "key Tab"
+        }
+      ]
+    },
+    {
+      "name": "backspace",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "7f"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "7f",
+          "name": "key Backspace"
+        }
+      ]
+    },
+    {
+      "name": "backspace 8",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "08"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "08",
+          "name": "key Backspace"
+        }
+      ]
+    },
+    {
+      "name": "ctrl space",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "00"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "00",
+          "name": "key Ctrl+Space"
+        }
+      ]
+    },
+    {
+      "name": "ctrl c",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "03"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "03",
+          "name": "key Ctrl+C"
+        }
+      ]
+    },
+    {
+      "name": "ctrl z",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1a"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "1a",
+          "name": "key Ctrl+Z"
+        }
+      ]
+    },
+    {
+      "name": "lone escape",
+      "direction": "in",
+      "description": "an ESC that ends a read is the Escape key",
+      "chunks": [
+        "1b"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        }
+      ]
+    },
+    {
+      "name": "alt key",
+      "direction": "in",
+      "description": "ESC and a key",
+      "chunks": [
+        "1b62"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b62",
+          "name": "key Alt+b"
+        }
+      ]
+    },
+    {
+      "name": "alt backspace",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b7f"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b7f",
+          "name": "key Alt+Backspace"
+        }
+      ]
+    },
+    {
+      "name": "alt O",
+      "direction": "in",
+      "description": "ESC O at the end of a read is Alt+O",
+      "chunks": [
+        "1b4f"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b4f",
+          "name": "key Alt+O"
+        }
+      ]
+    },
+    {
+      "name": "esc bracket",
+      "direction": "in",
+      "description": "ESC [ at the end of a read",
+      "chunks": [
+        "1b5b"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b5b",
+          "name": "key Alt+["
+        }
+      ]
+    },
+    {
+      "name": "ss3 keys",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b4f411b4f501b4f5a"
+      ],
+      "tokens": [
+        {
+          "kind": "ss3",
+          "raw": "1b4f41",
+          "name": "key Up"
+        },
+        {
+          "kind": "ss3",
+          "raw": "1b4f50",
+          "name": "key F1"
+        },
+        {
+          "kind": "ss3",
+          "raw": "1b4f5a",
+          "name": "key SS3 Z"
+        }
+      ]
+    },
+    {
+      "name": "cursor keys",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b411b5b421b5b431b5b441b5b481b5b461b5b313b35411b5b313b32431b5b313b33441b5b313b38421b5b313b3948"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b41",
+          "name": "key Up"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b42",
+          "name": "key Down"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b43",
+          "name": "key Right"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b44",
+          "name": "key Left"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b48",
+          "name": "key Home"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b46",
+          "name": "key End"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3541",
+          "name": "key Ctrl+Up"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3243",
+          "name": "key Shift+Right"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3344",
+          "name": "key Alt+Left"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3842",
+          "name": "key Shift+Alt+Ctrl+Down"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3948",
+          "name": "key Super+Home"
+        }
+      ]
+    },
+    {
+      "name": "tilde keys",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b327e1b5b337e1b5b333b357e1b5b357e1b5b367e1b5b31357e1b5b32347e1b5b317e1b5b347e1b5b39397e1b5b7e"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b327e",
+          "name": "key Insert"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b337e",
+          "name": "key Delete"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b333b357e",
+          "name": "key Ctrl+Delete"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b357e",
+          "name": "key PageUp"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b367e",
+          "name": "key PageDown"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b31357e",
+          "name": "key F5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b32347e",
+          "name": "key F12"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b317e",
+          "name": "key Home"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b347e",
+          "name": "key End"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b39397e",
+          "name": "key ~99"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b7e",
+          "name": "key Home"
+        }
+      ]
+    },
+    {
+      "name": "paste",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3230307e70617374656420746578741b5b3230317e"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3230307e",
+          "name": "paste begins"
+        },
+        {
+          "kind": "text",
+          "raw": "7061737465642074657874",
+          "name": "typed \"pasted text\""
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3230317e",
+          "name": "paste ends"
+        }
+      ]
+    },
+    {
+      "name": "shift tab and focus",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b5a1b5b491b5b4f"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b5a",
+          "name": "key Shift+Tab"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b49",
+          "name": "focus in"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b4f",
+          "name": "focus out"
+        }
+      ]
+    },
+    {
+      "name": "kitty keys",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3937751b5b3133751b5b3237751b5b39751b5b313237751b5b3332751b5b39373b35751b5b31333b32751b5b39383b373a33751b5b3537751b5b323333751b5b31751b5b75"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b393775",
+          "name": "key a (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313375",
+          "name": "key Enter (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b323775",
+          "name": "key Escape (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3975",
+          "name": "key Tab (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b31323775",
+          "name": "key Backspace (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b333275",
+          "name": "key Space (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b39373b3575",
+          "name": "key Ctrl+a (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b31333b3275",
+          "name": "key Shift+Enter (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b39383b373a3375",
+          "name": "key Alt+Ctrl+b (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b353775",
+          "name": "key 9 (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b32333375",
+          "name": "key é (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3175",
+          "name": "key key 1 (kitty)"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b75",
+          "name": "key key 0 (kitty)"
+        }
+      ]
+    },
+    {
+      "name": "mouse sgr",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3c303b31303b354d1b5b3c303b31303b356d1b5b3c323b333b344d1b5b3c33353b313b314d1b5b3c36343b373b384d1b5b3c36353b373b384d1b5b3c36383b313b324d1b5b3c31363b323b324d1b5b3c33323b353b354d1b5b3c393b313b316d"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3c303b31303b354d",
+          "name": "mouse left press at column 10, row 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c303b31303b356d",
+          "name": "mouse left release at column 10, row 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c323b333b344d",
+          "name": "mouse right press at column 3, row 4"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c33353b313b314d",
+          "name": "mouse none moved at column 1, row 1"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c36343b373b384d",
+          "name": "mouse wheel up at column 7, row 8"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c36353b373b384d",
+          "name": "mouse wheel down at column 7, row 8"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c36383b313b324d",
+          "name": "mouse Shift+wheel up at column 1, row 2"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c31363b323b324d",
+          "name": "mouse Ctrl+left press at column 2, row 2"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c33323b353b354d",
+          "name": "mouse left moved at column 5, row 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c393b313b316d",
+          "name": "mouse Alt+middle release at column 1, row 1"
+        }
+      ]
+    },
+    {
+      "name": "mouse x10",
+      "direction": "in",
+      "description": "CSI M and three bytes",
+      "chunks": [
+        "1b5b4d202a25",
+        "1b5b4d232122",
+        "1b5b4d402829"
+      ],
+      "tokens": [
+        {
+          "kind": "mouse",
+          "raw": "1b5b4d202a25",
+          "name": "mouse (X10) left press at column 10, row 5"
+        },
+        {
+          "kind": "mouse",
+          "raw": "1b5b4d232122",
+          "name": "mouse (X10) release at column 1, row 2"
+        },
+        {
+          "kind": "mouse",
+          "raw": "1b5b4d402829",
+          "name": "mouse (X10) left moved at column 8, row 9"
+        }
+      ]
+    },
+    {
+      "name": "mouse x10 cut",
+      "direction": "in",
+      "description": "CSI M without its three bytes is a CSI",
+      "chunks": [
+        "1b5b4d20"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b4d",
+          "name": "CSI M"
+        },
+        {
+          "kind": "text",
+          "raw": "20",
+          "name": "key Space"
+        }
+      ]
+    },
+    {
+      "name": "cursor position answer",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b32343b3830521b5b3552"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b32343b383052",
+          "name": "CPR answer: the cursor at row 24, column 80"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3552",
+          "name": "CPR answer: the cursor at row 5, column 1"
+        }
+      ]
+    },
+    {
+      "name": "size answers",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b363b31383b39741b5b343b3630303b383030741b5b383b32343b3830741b5b34383b32343b38303b3630303b383030741b5b393b313b3174"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b363b31383b3974",
+          "name": "answer: a cell is 9x18 pixels"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b343b3630303b38303074",
+          "name": "answer: the window is 800x600 pixels"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b383b32343b383074",
+          "name": "answer: the size is 80x24 cells"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b34383b32343b38303b3630303b38303074",
+          "name": "in-band resize: 48;24;80;600;800"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b393b313b3174",
+          "name": "CSI t 9;1;1"
+        }
+      ]
+    },
+    {
+      "name": "attribute answers",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3f36323b343b631b5b3e313b31303b3063"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f36323b343b63",
+          "name": "DA1 answer: 62;4;"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3e313b31303b3063",
+          "name": "DA2 answer: 1;10;0"
+        }
+      ]
+    },
+    {
+      "name": "mode answers",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3f323032363b3224791b5b3f323030343b3124791b5b3f313034393b3024791b5b3f393939393b3424791b5b3f373b392479"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323032363b322479",
+          "name": "DECRPM answer: mode 2026 synchronized output reset"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323030343b312479",
+          "name": "DECRPM answer: mode 2004 bracketed paste set"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f313034393b302479",
+          "name": "DECRPM answer: mode 1049 alternate screen, cursor saved not recognised"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f393939393b342479",
+          "name": "DECRPM answer: mode 9999 permanently reset"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f373b392479",
+          "name": "DECRPM answer: mode 7 autowrap 9"
+        }
+      ]
+    },
+    {
+      "name": "other answers",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3f30751b5b3f3331751b5b3f3939373b316e1b5b3f3939373b326e1b5b3f3939373b356e1b5b3f356e1b5b3f323b333b3053"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3075",
+          "name": "kitty keyboard answer: flags 0"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f333175",
+          "name": "kitty keyboard answer: flags 31"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3939373b316e",
+          "name": "colour scheme answer: dark"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3939373b326e",
+          "name": "colour scheme answer: light"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f3939373b356e",
+          "name": "colour scheme answer: 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f356e",
+          "name": "DSR answer ? 5"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f323b333b3053",
+          "name": "XTSMGRAPHICS answer: 2;3;0"
+        }
+      ]
+    },
+    {
+      "name": "osc answers",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5d31303b7267623a666666662f666666662f666666661b5c1b5d31313b7267623a303030302f303030302f30303030071b5d343b313b7267623a66662f30302f3030071b5d35323b633b61476b3d071b5d373b7807"
+      ],
+      "tokens": [
+        {
+          "kind": "osc",
+          "raw": "1b5d31303b7267623a666666662f666666662f666666661b5c",
+          "name": "OSC 10 answer: foreground rgb:ffff/ffff/ffff"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d31313b7267623a303030302f303030302f3030303007",
+          "name": "OSC 11 answer: background rgb:0000/0000/0000"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d343b313b7267623a66662f30302f303007",
+          "name": "OSC 4 answer: palette 1;rgb:ff/00/00"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d35323b633b61476b3d07",
+          "name": "OSC 52 clipboard (4 base64 bytes)"
+        },
+        {
+          "kind": "osc",
+          "raw": "1b5d373b7807",
+          "name": "OSC 7 the working directory x"
+        }
+      ]
+    },
+    {
+      "name": "dcs answers",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b503e7c787465726d2e6a7328352e35291b5c1b50312472306d1b5c1b503024721b5c1b50312b72353434653d373837343635373236641b5c1b506f746865721b5c"
+      ],
+      "tokens": [
+        {
+          "kind": "dcs",
+          "raw": "1b503e7c787465726d2e6a7328352e35291b5c",
+          "name": "XTVERSION answer: xterm.js(5.5)"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b50312472306d1b5c",
+          "name": "DECRQSS answer: 0m"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b503024721b5c",
+          "name": "DECRQSS answer: not recognised"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b50312b72353434653d373837343635373236641b5c",
+          "name": "XTGETTCAP answer 544e=787465726d"
+        },
+        {
+          "kind": "dcs",
+          "raw": "1b506f746865721b5c",
+          "name": "DCS other"
+        }
+      ]
+    },
+    {
+      "name": "unknown input",
+      "direction": "in",
+      "description": "",
+      "chunks": [
+        "1b5b3f373737377a1b5b313b327a1b5f6170631b5c1b5e706d1b5c"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f373737377a",
+          "name": "CSI ?z 7777"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b327a",
+          "name": "CSI z 1;2"
+        },
+        {
+          "kind": "apc",
+          "raw": "1b5f6170631b5c",
+          "name": "APC apc"
+        },
+        {
+          "kind": "pm",
+          "raw": "1b5e706d1b5c",
+          "name": "PM pm"
+        }
+      ]
+    }
+  ],
+  "logs": [
+    {
+      "name": "a frame",
+      "description": "a synchronized update is one entry with its entries below it",
+      "events": [
+        {
+          "time": 10,
+          "direction": "out",
+          "bytes": "68656c6c6f"
+        },
+        {
+          "time": 20,
+          "direction": "out",
+          "bytes": "1b5b3f32303236681b5b324a1b5b313b314861620d0a1b5b33316d631b5b306d1b5b3f323032366c"
+        },
+        {
+          "time": 30,
+          "direction": "out",
+          "bytes": "7461696c"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 10,
+          "direction": "out",
+          "kind": "text",
+          "name": "text \"hello\"",
+          "raw": "hello",
+          "bytes": 5
+        },
+        {
+          "id": 11,
+          "time": 20,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 2 text, 2 SGR, 1 DECSET, 1 ED, 1 CUP, 1 CR",
+          "raw": "40 bytes",
+          "bytes": 40,
+          "children": [
+            {
+              "id": 1,
+              "time": 20,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 2,
+              "time": 20,
+              "direction": "out",
+              "kind": "csi",
+              "name": "ED erase the screen all",
+              "raw": "ESC [2J",
+              "bytes": 4
+            },
+            {
+              "id": 3,
+              "time": 20,
+              "direction": "out",
+              "kind": "csi",
+              "name": "CUP cursor to row 1, column 1",
+              "raw": "ESC [1;1H",
+              "bytes": 6
+            },
+            {
+              "id": 4,
+              "time": 20,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"ab\"",
+              "raw": "ab",
+              "bytes": 2
+            },
+            {
+              "id": 5,
+              "time": 20,
+              "direction": "out",
+              "kind": "control",
+              "name": "CR carriage return",
+              "raw": "^M",
+              "bytes": 1
+            },
+            {
+              "id": 6,
+              "time": 20,
+              "direction": "out",
+              "kind": "control",
+              "name": "LF line feed",
+              "raw": "^J",
+              "bytes": 1
+            },
+            {
+              "id": 7,
+              "time": 20,
+              "direction": "out",
+              "kind": "csi",
+              "name": "SGR fg red",
+              "raw": "ESC [31m",
+              "bytes": 5
+            },
+            {
+              "id": 8,
+              "time": 20,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"c\"",
+              "raw": "c",
+              "bytes": 1
+            },
+            {
+              "id": 9,
+              "time": 20,
+              "direction": "out",
+              "kind": "csi",
+              "name": "SGR reset",
+              "raw": "ESC [0m",
+              "bytes": 4
+            },
+            {
+              "id": 10,
+              "time": 20,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        },
+        {
+          "id": 12,
+          "time": 30,
+          "direction": "out",
+          "kind": "text",
+          "name": "text \"tail\"",
+          "raw": "tail",
+          "bytes": 4
+        }
+      ]
+    },
+    {
+      "name": "a frame cut between reads",
+      "description": "the entry is made once the update ends, at the time it began",
+      "events": [
+        {
+          "time": 100,
+          "direction": "out",
+          "bytes": "1b5b3f32303236681b5b48"
+        },
+        {
+          "time": 150,
+          "direction": "out",
+          "bytes": "746578741b5b3f323032366c"
+        }
+      ],
+      "entries": [
+        {
+          "id": 4,
+          "time": 100,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 1 DECSET, 1 CUP, 1 text, 1 DECRST, 50 ms",
+          "raw": "23 bytes",
+          "bytes": 23,
+          "children": [
+            {
+              "id": 0,
+              "time": 100,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 1,
+              "time": 100,
+              "direction": "out",
+              "kind": "csi",
+              "name": "CUP cursor to row 1, column 1",
+              "raw": "ESC [H",
+              "bytes": 3
+            },
+            {
+              "id": 2,
+              "time": 150,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"text\"",
+              "raw": "text",
+              "bytes": 4
+            },
+            {
+              "id": 3,
+              "time": 150,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input, output and notes",
+      "description": "both ways and the session in the order they came",
+      "events": [
+        {
+          "time": 0,
+          "direction": "note",
+          "note": "recording 80x24"
+        },
+        {
+          "time": 5,
+          "direction": "out",
+          "bytes": "1b5b3f32356c"
+        },
+        {
+          "time": 7,
+          "direction": "in",
+          "bytes": "1b5b41"
+        },
+        {
+          "time": 9,
+          "direction": "in",
+          "bytes": "71"
+        },
+        {
+          "time": 12,
+          "direction": "note",
+          "note": "resized to 100x30"
+        },
+        {
+          "time": 15,
+          "direction": "out",
+          "bytes": "1b5b3f3230323668"
+        },
+        {
+          "time": 16,
+          "direction": "in",
+          "bytes": "1b5b3c303b313b314d"
+        },
+        {
+          "time": 18,
+          "direction": "out",
+          "bytes": "781b5b3f323032366c"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 0,
+          "direction": "note",
+          "kind": "note",
+          "name": "recording 80x24",
+          "raw": "",
+          "bytes": 0
+        },
+        {
+          "id": 1,
+          "time": 5,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DECRST 25 cursor visible",
+          "raw": "ESC [?25l",
+          "bytes": 6
+        },
+        {
+          "id": 2,
+          "time": 7,
+          "direction": "in",
+          "kind": "csi",
+          "name": "key Up",
+          "raw": "ESC [A",
+          "bytes": 3
+        },
+        {
+          "id": 3,
+          "time": 9,
+          "direction": "in",
+          "kind": "text",
+          "name": "key q",
+          "raw": "q",
+          "bytes": 1
+        },
+        {
+          "id": 4,
+          "time": 12,
+          "direction": "note",
+          "kind": "note",
+          "name": "resized to 100x30",
+          "raw": "",
+          "bytes": 0
+        },
+        {
+          "id": 6,
+          "time": 16,
+          "direction": "in",
+          "kind": "csi",
+          "name": "mouse left press at column 1, row 1",
+          "raw": "ESC [<0;1;1M",
+          "bytes": 9
+        },
+        {
+          "id": 9,
+          "time": 15,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 1 DECSET, 1 text, 1 DECRST, 3 ms",
+          "raw": "17 bytes",
+          "bytes": 17,
+          "children": [
+            {
+              "id": 5,
+              "time": 15,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 7,
+              "time": 18,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"x\"",
+              "raw": "x",
+              "bytes": 1
+            },
+            {
+              "id": 8,
+              "time": 18,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two frames and a summary",
+      "description": "a summary counts the first word of each name, the most first, equal counts in the order seen",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b3f32303236681b5b481b5b324b1b5b313b31481b5b306d1b5b316d1b5b4b611b5b4b621b5b3f323032366c"
+        },
+        {
+          "time": 2,
+          "direction": "out",
+          "bytes": "1b5b3f32303236681b5b3f32303236681b5b3f323032366c1b5b3f323032366c1b5b3f32303236681b5b3f323032366c"
+        }
+      ],
+      "entries": [
+        {
+          "id": 11,
+          "time": 1,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 3 EL, 2 CUP, 2 SGR, 2 text, 1 DECSET, 1 DECRST",
+          "raw": "45 bytes",
+          "bytes": 45,
+          "children": [
+            {
+              "id": 0,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 1,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "CUP cursor to row 1, column 1",
+              "raw": "ESC [H",
+              "bytes": 3
+            },
+            {
+              "id": 2,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "EL erase the line all",
+              "raw": "ESC [2K",
+              "bytes": 4
+            },
+            {
+              "id": 3,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "CUP cursor to row 1, column 1",
+              "raw": "ESC [1;1H",
+              "bytes": 6
+            },
+            {
+              "id": 4,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "SGR reset",
+              "raw": "ESC [0m",
+              "bytes": 4
+            },
+            {
+              "id": 5,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "SGR bold",
+              "raw": "ESC [1m",
+              "bytes": 4
+            },
+            {
+              "id": 6,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "EL erase the line to the end",
+              "raw": "ESC [K",
+              "bytes": 3
+            },
+            {
+              "id": 7,
+              "time": 1,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"a\"",
+              "raw": "a",
+              "bytes": 1
+            },
+            {
+              "id": 8,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "EL erase the line to the end",
+              "raw": "ESC [K",
+              "bytes": 3
+            },
+            {
+              "id": 9,
+              "time": 1,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"b\"",
+              "raw": "b",
+              "bytes": 1
+            },
+            {
+              "id": 10,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        },
+        {
+          "id": 16,
+          "time": 2,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 2: 2 DECSET, 2 DECRST",
+          "raw": "32 bytes",
+          "bytes": 32,
+          "children": [
+            {
+              "id": 12,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 13,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 14,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            },
+            {
+              "id": 15,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        },
+        {
+          "id": 19,
+          "time": 2,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 3: 1 DECSET, 1 DECRST",
+          "raw": "16 bytes",
+          "bytes": 16,
+          "children": [
+            {
+              "id": 17,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 18,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an update that never ends",
+      "description": "its entries wait: no entry is made",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "6265666f72651b5b3f32303236681b5b486c6f7374"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "text",
+          "name": "text \"before\"",
+          "raw": "before",
+          "bytes": 6
+        }
+      ]
+    },
+    {
+      "name": "modes among others",
+      "description": "a 2026 among other modes counts",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b3f32353b32303236681b5b48781b5b3f32353b323032366c"
+        }
+      ],
+      "entries": [
+        {
+          "id": 4,
+          "time": 1,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 1 DECSET, 1 CUP, 1 text, 1 DECRST",
+          "raw": "26 bytes",
+          "bytes": 26,
+          "children": [
+            {
+              "id": 0,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 25 cursor visible, 2026 synchronized output",
+              "raw": "ESC [?25;2026h",
+              "bytes": 11
+            },
+            {
+              "id": 1,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "CUP cursor to row 1, column 1",
+              "raw": "ESC [H",
+              "bytes": 3
+            },
+            {
+              "id": 2,
+              "time": 1,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"x\"",
+              "raw": "x",
+              "bytes": 1
+            },
+            {
+              "id": 3,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 25 cursor visible, 2026 synchronized output",
+              "raw": "ESC [?25;2026l",
+              "bytes": 11
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
