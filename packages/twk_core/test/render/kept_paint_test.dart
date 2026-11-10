@@ -396,6 +396,161 @@ void main() {
     expect(auto.paragraph.keepsPaint, isTrue);
   });
 
+  // A paragraph of a fixed size whose rows all change at each edit: words of
+  // five digits and a space (six cells), sixteen to a row of a hundred, the
+  // text moved on by a word.
+  String shifted(int from, [int words = 16 * 40]) => [
+    for (var k = from; k < from + words; k++) k.toString().padLeft(5, '0'),
+  ].join(' ');
+
+  ({_Filled filled, RenderParagraph paragraph, void Function(int) shift}) wide({
+    bool auto = true,
+    bool keeps = false,
+  }) {
+    final paragraph = RenderParagraph(
+      [(shifted(0), _pens[0])],
+      maxLines: 30,
+      autoKeepsPaint: auto,
+      keepsPaint: keeps,
+    );
+    final filled = _Filled(StyleTable(), GlyphTable(), paragraph)..frame();
+    return (
+      filled: filled,
+      paragraph: paragraph,
+      shift: (int k) {
+        paragraph.spans = [(shifted(k), _pens[0])];
+        filled.frame();
+      },
+    );
+  }
+
+  // shifts until it keeps; returns the shift it is at
+  int keepUp(
+    ({_Filled filled, RenderParagraph paragraph, void Function(int) shift}) r,
+  ) {
+    var k = 0;
+    while (!r.paragraph.keepsPaint) {
+      expect(k, lessThan(20), reason: 'turns to keeping');
+      r.shift(++k);
+    }
+    return k;
+  }
+
+  test('four paints of nearly all the rows in a row turn it plain', () {
+    final r = wide();
+    var k = keepUp(r);
+    final base = r.paragraph.debugKeptPaints;
+    // three wide kept paints: still keeping
+    for (var i = 0; i < 3; i++) {
+      r.shift(++k);
+    }
+    expect(r.paragraph.debugKeptPaints - base, greaterThanOrEqualTo(3));
+    expect(r.paragraph.keepsPaint, isTrue, reason: 'three are not enough');
+    // the fourth asks for the turn, taken at the next edit
+    r.shift(++k);
+    expect(r.paragraph.keepsPaint, isTrue, reason: 'taken at the next edit');
+    r.shift(++k);
+    expect(r.paragraph.keepsPaint, isFalse);
+  });
+
+  test('a narrow paint or a paint of the whole paragraph ends the run', () {
+    for (final whole in [false, true]) {
+      final r = wide();
+      var k = keepUp(r);
+      for (var round = 0; round < 3; round++) {
+        for (var i = 0; i < 3; i++) {
+          r.shift(++k);
+        }
+        if (whole) {
+          // a paint of all of it: the owner paints it again from above
+          r.filled.owner.root.markNeedsPaint();
+          r.filled.frame();
+        } else {
+          // one word changed in the first row only
+          r.paragraph.spans = [
+            (shifted(k).replaceFirst('$k'.padLeft(5, '0'), 'zzzzz'), _pens[0]),
+          ];
+          r.filled.frame();
+        }
+        expect(r.paragraph.keepsPaint, isTrue, reason: 'round $round');
+      }
+      r.shift(++k);
+      r.shift(++k);
+      expect(r.paragraph.keepsPaint, isTrue, reason: 'whole: $whole');
+    }
+  });
+
+  test('keepsPaint does not turn plain by wide paints', () {
+    final r = wide(auto: false, keeps: true);
+    for (var k = 1; k <= 30; k++) {
+      r.shift(k);
+    }
+    expect(r.paragraph.keepsPaint, isTrue);
+    expect(r.paragraph.debugKeptPaints, greaterThan(20));
+  });
+
+  test('a turn by wide paints waits up to 64 times three layouts', () {
+    final r = wide();
+    var k = 0;
+    // layouts that held the size, counted until it turns to keeping again
+    int layoutsToKeep() {
+      var n = 0;
+      while (!r.paragraph.keepsPaint) {
+        expect(n, lessThan(400), reason: 'turns to keeping');
+        r.shift(++k);
+        n++;
+      }
+      return n;
+    }
+
+    final waits = <int>[];
+    for (var turn = 0; turn < 9; turn++) {
+      waits.add(layoutsToKeep());
+      while (r.paragraph.keepsPaint) {
+        expect(k, lessThan(5000));
+        r.shift(++k);
+      }
+    }
+    // doubles, then stays at 64 * 3, give or take the edits that carry it
+    expect(waits.last, greaterThan(64 * 3 - 4));
+    expect(waits.last, lessThanOrEqualTo(64 * 3 + 4));
+    expect(waits[2], lessThan(waits.last));
+  });
+
+  test('the screen is the same with the rule as without autoKeepsPaint', () {
+    final styles = StyleTable();
+    final glyphs = GlyphTable();
+    final plain = _Filled(
+      styles,
+      glyphs,
+      RenderParagraph([(shifted(0), _pens[0])], maxLines: 30),
+    )..frame();
+    final auto = _Filled(
+      styles,
+      glyphs,
+      RenderParagraph(
+        [(shifted(0), _pens[0])],
+        maxLines: 30,
+        autoKeepsPaint: true,
+      ),
+    )..frame();
+    var turns = 0;
+    var was = false;
+    for (var k = 1; k <= 60; k++) {
+      plain.paragraph.spans = [(shifted(k), _pens[0])];
+      auto.paragraph.spans = [(shifted(k), _pens[0])];
+      final bytes = plain.frame();
+      expect(auto.frame(), bytes, reason: 'bytes of frame $k');
+      expect(auto.surface.cells, plain.surface.cells, reason: 'frame $k');
+      expect(auto.surface.styles, plain.surface.styles, reason: 'frame $k');
+      if (auto.paragraph.keepsPaint != was) {
+        turns++;
+        was = auto.paragraph.keepsPaint;
+      }
+    }
+    expect(turns, greaterThanOrEqualTo(3));
+  });
+
   // a paragraph in a tree of `around` (in a root box), edited by `edit`
   ({RenderParagraph paragraph, void Function() frame}) rig(
     RenderObject Function(RenderParagraph) around,

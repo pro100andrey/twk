@@ -9,6 +9,12 @@ Added:
 
 Changed:
 
+- A `RenderParagraph` that keeps its paint by itself (`autoKeepsPaint`, which
+  `Text` sets) turns plain after four paints in a row of seven eighths of its
+  rows or more, as a text of a fixed size whose lines all change at each edit
+  gives (a text shifted by a word, a log's tail): keeping saved it nothing and
+  cost 5 to 6 %. It waits up to 64 times three layouts before it tries again
+  (16 after a glyph found under it). `keepsPaint` never turns.
 - `renderToString` draws no overflow marker (its output is data, as `Cli.show`'s
   and `Shot`'s); the warning still goes to `onLog`. Nor do the inline
   commits (`TwkApp.commit`, a line written to the scrollback) and
