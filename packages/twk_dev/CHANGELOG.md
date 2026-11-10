@@ -15,6 +15,12 @@ Fixed:
 
 Added:
 
+- `twk record --replay=<file>` (with `--replay-speed=<factor>|asap` and
+  `--replay-then=handover|end`): types the keys of a recording (`--keys`) into
+  the command, at their times or each once the command has settled, then
+  hands the terminal over or ends, to reproduce a bug from a session. The
+  terminal's answers to queries are told from keys by their shape
+  (`doc/record-play.md`) and not typed again.
 - `twk test-from-cast <file.cast> [--out=<file>]`: copies the recording next
   to a new test (`test/<name>_test.dart` by default) that plays it through
   twk_test's `screenFrames` and checks a line of the screen at each marker,

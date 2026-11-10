@@ -84,6 +84,67 @@ paused (status line shown) while keys are read: Space plays it again from the
 start, Left goes back, `q` quits. Where stdin is no terminal there are no
 keys, and it exits at the end.
 
+## What a recording keeps of the input, and `--replay`
+
+With `--keys` a recording has an `i` event for each read of the terminal's
+input, whatever it holds, which is two kinds of bytes: the keys, mouse
+reports, focus changes and pastes of the person, and the answers of the
+terminal to the queries the app wrote (mode reports to `CSI ? … $ p`, device
+attributes, the cursor position, colours, the terminal's name, the kitty
+flags, the size). Nothing in the event tells them apart, and one event can
+hold both, so they are told by their shape (`InputSplitter`): an answer is a
+sequence a person's keys never make, namely `CSI ? … c`, `CSI > … c`,
+`CSI = … c`, `CSI … $ y`, `CSI ? … u`, `CSI ? … R`, `CSI … n`, `CSI … t`, or
+a string (OSC, DCS, APC, PM, SOS) up to its terminator; everything else is a
+key, `CSI A`, `CSI … ~`, kitty's `CSI … u` (it has no `?`), SS3, focus
+(`CSI I`, `CSI O`), the mouse (`CSI < … M`), and a paste with whatever is
+inside it. One shape is both: `CSI row ; column R` answers `CSI 6 n` and is
+the modified F3 (`CSI 1 ; 2 R`) too; it is an answer once the output has the
+query and none has been answered since it, a key otherwise. An Alt+letter
+that opens a string (`ESC ]`, `ESC P`) looks like the start of an answer: with
+no terminator it is taken for keys at the end. A recording made without
+`--keys` has no input to replay, and the resizes (`r`) are not replayed: play
+it in a terminal of its size.
+
+```bash
+dart run packages/twk_dev/bin/twk.dart record --out=again.cast --keys \
+    --replay=s.cast --replay-speed=asap --replay-then=handover -- \
+    dart run packages/twk/example/counter.dart
+```
+
+`--replay=<file>` types the keys of a recording (the answers left out: this
+terminal answers the app's queries itself, as it did) into the command, and
+records the session as usual. Once the command has written, the keys are typed
+either
+
+- `--replay-speed=<factor>` (1 by default) at their recorded times divided by
+  the factor, counted from the command's first output (the recording's times
+  already have their pauses cut to the idle limit); or
+- `--replay-speed=asap`, each once the command has written nothing for 100 ms
+  and, when the recording shows the app wrote after the key before the next,
+  has answered the last key (waited for 2 s at most). Without it three keys
+  typed in a row reach an app that has not drawn for the first.
+
+Meanwhile this terminal's own keys are dropped, but the terminal's answers
+to the command's queries and Ctrl+C. After the last key `--replay-then`
+decides: `handover` (the default) gives the terminal to the command, as
+`twk record` does (the person goes on from the screen the recording
+reached, to look at it or to reproduce the rest), `end` hangs the command up
+once it has written nothing for a second and exits 0, a recording of the
+replay made for a test. The command's own exit, Ctrl+C or a signal end it as
+always. `--replay-speed` and `--replay-then` without `--replay`, a replay
+that can't be read or a speed that is no number above 0 (or `asap`) exit with
+64.
+
+Without a causal sync with the app (a driver that says when the app has
+consumed a key and drawn the frame it makes), "as fast as the app takes them" is
+a guess: the quiet of the output and the reaction the recording shows. An
+app that is slow to start, writes late after a key, or redraws without one
+(a clock) can be typed at too early or late; a recorded time is exact but the
+app's pace is not the recording's. A driver would make each key wait for the
+frame the previous one produced, rather than for a pause, and would tell the
+very start (the app is reading input) from a silence.
+
 A recording is a regression test of the app: its `Cast.writes`, the output
 events and each resize, are what twk_test's `screenFrames` plays through its
 emulator (`Vt`) of the recording's size, a resize keeping what the screen

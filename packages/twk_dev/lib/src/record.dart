@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -11,6 +12,7 @@ import 'package:twk_term/twk_term.dart';
 
 import 'cast.dart';
 import 'modes.dart';
+import 'replay.dart';
 
 /// `twk record`: runs a command in a pseudo-terminal and records the
 /// session as asciicast v2 ([Recorder]).
@@ -41,6 +43,29 @@ final class RecordCommand extends Command<int> {
         'keys',
         negatable: false,
         help: 'Record what is typed too ("i" events).',
+      )
+      ..addOption(
+        'replay',
+        valueHelp: 'file',
+        help:
+            'Type what this recording typed (its keys, not the '
+            "terminal's answers) into the command.",
+      )
+      ..addOption(
+        'replay-speed',
+        valueHelp: 'factor|asap',
+        defaultsTo: '1',
+        help:
+            'How many times faster than recorded the keys are typed, or '
+            '"asap": each once the command has stopped writing.',
+      )
+      ..addOption(
+        'replay-then',
+        allowed: ['handover', 'end'],
+        defaultsTo: 'handover',
+        help:
+            'After the last key: this terminal goes to the command, or the '
+            'command is hung up once it has been quiet.',
       );
   }
 
@@ -78,6 +103,31 @@ final class RecordCommand extends Command<int> {
     if (limit == null || limit < 0 || !limit.isFinite) {
       usageException('--idle-limit takes a number of seconds, 0 or more.');
     }
+    final replayPath = results.option('replay');
+    Cast? replay;
+    double? speed = 1;
+    if (replayPath == null) {
+      if (results.wasParsed('replay-speed') ||
+          results.wasParsed('replay-then')) {
+        usageException('--replay-speed and --replay-then go with --replay.');
+      }
+    } else {
+      try {
+        replay = Cast.read(replayPath);
+      } on FileSystemException catch (e) {
+        usageException(
+          'Cannot read $replayPath: ${e.osError?.message ?? e.message}',
+        );
+      } on FormatException catch (e) {
+        usageException('$replayPath: ${e.message}');
+      }
+      final option = results.option('replay-speed')!;
+      speed = option == 'asap' ? null : double.tryParse(option);
+      if (option != 'asap' &&
+          (speed == null || speed <= 0 || !speed.isFinite)) {
+        usageException('--replay-speed takes a number above 0, or asap.');
+      }
+    }
     return Recorder(
       command,
       out: results.option('out')!,
@@ -86,6 +136,9 @@ final class RecordCommand extends Command<int> {
           : Duration(microseconds: (limit * 1e6).round()),
       title: results.option('title'),
       keys: results.flag('keys'),
+      replay: replay,
+      replaySpeed: speed,
+      replayEnds: results.option('replay-then') == 'end',
     ).run();
   }
 }
@@ -121,6 +174,9 @@ final class Recorder {
     this.idleLimit = const Duration(seconds: 2),
     this.title,
     this.keys = false,
+    this.replay,
+    this.replaySpeed = 1,
+    this.replayEnds = false,
   });
 
   /// The program and its arguments.
@@ -138,6 +194,39 @@ final class Recorder {
   /// Whether what is typed is recorded too (`i` events).
   final bool keys;
 
+  /// A recording whose keys are typed into the command (see
+  /// [replaySteps]), or null.
+  ///
+  /// They are typed once the command has written: at the recorded times
+  /// divided by [replaySpeed] counted from its first output, or, with a
+  /// null [replaySpeed], each once the command has been quiet for
+  /// [settle]. Meanwhile this terminal's keys are not passed on, except
+  /// Ctrl+C and the terminal's answers to the command's queries (the
+  /// recording's own are never typed: this terminal answers them again).
+  /// After the last, this terminal goes to the command, or with
+  /// [replayEnds] the command is hung up once it has been quiet for
+  /// [endQuiet].
+  final Cast? replay;
+
+  /// How many times faster than recorded [replay] is typed; null for as
+  /// soon as the command has settled.
+  final double? replaySpeed;
+
+  /// Whether the command is hung up when [replay] has been typed.
+  final bool replayEnds;
+
+  /// How long the command writes nothing before the next key of a replay
+  /// as soon as possible is typed.
+  static const settle = Duration(milliseconds: 100);
+
+  /// How long a replay as soon as possible waits for the command to
+  /// answer a key that it answered when it was recorded.
+  static const reactionLimit = Duration(seconds: 2);
+
+  /// How long the command writes nothing before a replay that ends hangs
+  /// it up.
+  static const endQuiet = Duration(seconds: 1);
+
   /// How often the terminal is checked for the modes it should have.
   static const guard = Duration(milliseconds: 200);
 
@@ -150,6 +239,10 @@ final class Recorder {
   final _clock = Stopwatch();
   final _modes = ModeTracker();
   final _outputDone = Completer<void>();
+  final _firstOutput = Completer<void>();
+  var _replaying = false;
+  Duration _lastOutput = Duration.zero;
+  var _outputs = 0;
 
   // the exit code a signal set, and what went wrong
   int? _stopped;
@@ -260,7 +353,26 @@ final class Recorder {
               tty.reenter();
             }
           });
-    final input = stdin.listen((bytes) {
+    final live = replay == null ? null : InputSplitter();
+    _replaying = replay != null;
+    final input = stdin.listen((typed) {
+      var bytes = typed;
+      if (_replaying) {
+        // the terminal's answers, and a way out; not the person's keys
+        final pieces = live!.add(latin1.decode(bytes));
+        final kept = StringBuffer();
+        for (final piece in pieces) {
+          kept.write(
+            piece.isAnswer
+                ? piece.text
+                : piece.text.replaceAll(RegExp('[^\x03]'), ''),
+          );
+        }
+        bytes = latin1.encode(kept.toString());
+        if (bytes.isEmpty) {
+          return;
+        }
+      }
       _pty.write(bytes);
       if (keys) {
         _cast.input(_clock.elapsed, bytes);
@@ -269,13 +381,23 @@ final class Recorder {
     late final StreamSubscription<Uint8List> output;
     output = _pty.output.listen(
       (bytes) {
-        _modes.add(_cast.output(_clock.elapsed, bytes));
+        _lastOutput = _clock.elapsed;
+        _outputs++;
+        final text = _cast.output(_lastOutput, bytes);
+        live?.sawOutput(text);
+        if (!_firstOutput.isCompleted) {
+          _firstOutput.complete();
+        }
+        _modes.add(text);
         stdout.add(bytes);
         output.pause(stdout.flush().catchError(_fail));
       },
       onError: _fail,
       onDone: _outputDone.complete,
     );
+    if (replay != null) {
+      unawaited(_replay(live!));
+    }
     int? code;
     try {
       code = await _ended();
@@ -309,6 +431,122 @@ final class Recorder {
       '${_cast.count} events',
     );
     return stopped ?? (code == null ? 0 : (code < 0 ? 128 - code : code));
+  }
+
+  /// Types the keys of [replay] into the command, then hands this terminal
+  /// over (or ends it); stops when the command ended.
+  Future<void> _replay(InputSplitter live) async {
+    try {
+      await Future.any([_firstOutput.future, _outputDone.future]);
+      final steps = replaySteps(replay!);
+      final first = replay!.events
+          .firstWhere(
+            (e) => e.code == CastEvent.output,
+            orElse: () => const CastEvent(0, CastEvent.output, ''),
+          )
+          .time;
+      final base = _clock.elapsed;
+      stderr.writeln(
+        'twk record: replaying ${steps.length} inputs of '
+        '${replay!.duration.toStringAsFixed(1)} s',
+      );
+      var reaction = false;
+      var sent = (_outputs, _clock.elapsed);
+      for (var k = 0; k < steps.length; k++) {
+        final step = steps[k];
+        final speed = replaySpeed;
+        if (speed == null) {
+          if (reaction) {
+            // the command answered the last key when it was recorded
+            await _wait(() => _outputs > sent.$1, reactionLimit);
+          }
+          await _quiet(settle, since: sent.$2);
+        } else {
+          final due =
+              base +
+              Duration(
+                microseconds: ((step.time - first) / speed * 1e6).round(),
+              );
+          await _waitUntil(due);
+        }
+        if (_outputDone.isCompleted) {
+          return;
+        }
+        final bytes = utf8.encode(step.keys);
+        _pty.write(bytes);
+        if (keys) {
+          _cast.input(_clock.elapsed, bytes);
+        }
+        sent = (_outputs, _clock.elapsed);
+        final until = k + 1 < steps.length
+            ? steps[k + 1].time
+            : double.infinity;
+        reaction = replay!.events.any(
+          (e) =>
+              e.code == CastEvent.output &&
+              e.time > step.time &&
+              e.time < until,
+        );
+      }
+      if (replayEnds) {
+        await _quiet(endQuiet);
+        if (!_outputDone.isCompleted) {
+          _stop(0);
+        }
+      }
+    } finally {
+      _replaying = false;
+      // what was kept of a sequence is the person's now
+      final rest = live.flush().map((p) => p.text).join();
+      if (rest.isNotEmpty && !_outputDone.isCompleted) {
+        final bytes = latin1.encode(rest);
+        _pty.write(bytes);
+        if (keys) {
+          _cast.input(_clock.elapsed, bytes);
+        }
+      }
+    }
+  }
+
+  /// Waits until the clock reads [due], or the command is gone.
+  Future<void> _waitUntil(Duration due) async {
+    while (!_outputDone.isCompleted) {
+      final left = due - _clock.elapsed;
+      if (left <= Duration.zero) {
+        return;
+      }
+      await Future.any([
+        Future<void>.delayed(left),
+        _outputDone.future,
+      ]);
+    }
+  }
+
+  /// Waits until [done], for [limit] at most, or until the command is gone.
+  Future<void> _wait(bool Function() done, Duration limit) async {
+    final end = _clock.elapsed + limit;
+    while (!_outputDone.isCompleted && !done() && _clock.elapsed < end) {
+      await Future.any([
+        Future<void>.delayed(const Duration(milliseconds: 5)),
+        _outputDone.future,
+      ]);
+    }
+  }
+
+  /// Waits until the command has written nothing for [quiet] (since
+  /// [since], when later than its last output), or is gone.
+  Future<void> _quiet(Duration quiet, {Duration since = Duration.zero}) async {
+    while (!_outputDone.isCompleted) {
+      final last = _lastOutput > since ? _lastOutput : since;
+      final left = last + quiet - _clock.elapsed;
+      if (left <= Duration.zero) {
+        return;
+      }
+      await Future.any([
+        Future<void>.delayed(left),
+        _outputDone.future,
+      ]);
+    }
   }
 
   /// Waits for the command to end and its terminal to hang up, which
