@@ -13,3 +13,7 @@ devtools_options.yaml
 # Reports written on demand (`xtask undocumented`, `xtask coverage`).
 doc/internals/quality/coverage/
 doc/internals/quality/undocumented/
+
+# The screen a failing golden test got, written beside its golden
+# (twk_test's matchesScreenFile); the twk Screen editor shows and accepts it.
+*.txt.actual
