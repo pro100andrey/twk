@@ -50,8 +50,8 @@ const _packaged = [
 const vsixName = 'twk-vscode.vsix';
 
 /// Paths the .vsix must hold (vsce lowercases readme.md and changelog.md and
-/// names the licence LICENSE.txt): the entry, the webview's scripts and the three
-/// files of xterm.js the page loads from node_modules.
+/// names the licence LICENSE.txt): the entry, the webview's scripts and the
+/// three files of xterm.js the page loads from node_modules.
 const vsixRequired = [
   'extension/out/vscode/extension.js',
   'extension/out/media/webview/main.js',
@@ -69,7 +69,7 @@ const vsixRequired = [
 /// node_modules.
 final vsixForbidden = RegExp(
   r'^extension/(src/|out/test/|tool/|DESIGN\.md|tsconfig|package-lock|'
-  r'node_modules/@types|node_modules/typescript|node_modules/mocha)'
+  'node_modules/@types|node_modules/typescript|node_modules/mocha)'
   r'|\.map$',
 );
 
@@ -185,7 +185,9 @@ Future<int> vscode(VerbContext c, Cpus cpus) async {
         ]),
         workingDirectory: vscodeGate,
       );
-      if (code != ExitCode.success) return answer(code);
+      if (code != ExitCode.success) {
+        return answer(code);
+      }
       return answer(_checkVsix('${gate.path}/$vsixName', c));
     default:
       if (!Directory('${gate.path}/out/test/unit').existsSync()) {
@@ -254,7 +256,7 @@ List<String>? _listZip(String vsix) {
     [
       'python3',
       '-c',
-      'import sys,zipfile;print("\\n".join(zipfile.ZipFile(sys.argv[1]).namelist()))',
+      r'import sys,zipfile;print("\n".join(zipfile.ZipFile(sys.argv[1]).namelist()))',
       vsix,
     ],
   ]) {

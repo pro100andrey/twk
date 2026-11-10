@@ -508,8 +508,9 @@ void main() {
     );
     // the session is kept: with the dependency back, the package's own lib/
     // still reloads
-    project.write('side/lib/side.dart', _sideLib('one'));
-    project.write('lib/counter.dart', _counter('still'));
+    project
+      ..write('side/lib/side.dart', _sideLib('one'))
+      ..write('lib/counter.dart', _counter('still'));
     await screen.waitFor('still 0');
   }, timeout: const Timeout(Duration(minutes: 3)));
 
