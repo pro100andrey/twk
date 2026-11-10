@@ -43,6 +43,16 @@
   ],
   "main": "./out/vscode/extension.js",
   "contributes": {
+    "customEditors": [
+      {
+        "viewType": "twk.screenFile",
+        "displayName": "twk Screen",
+        "selector": [
+          { "filenamePattern": "**/goldens/**/*.txt" }
+        ],
+        "priority": "option"
+      }
+    ],
     "commands": [
       {
         "command": "twk.openTerminal",
@@ -57,6 +67,11 @@
       {
         "command": "twk.debugFile",
         "title": "Debug Dart File in twk Terminal",
+        "category": "twk"
+      },
+      {
+        "command": "twk.openScreenFile",
+        "title": "Open Screen File as a twk Screen (Golden of matchesScreenFile)",
         "category": "twk"
       },
       {
@@ -520,6 +535,11 @@
         {
           "command": "twk.play",
           "when": "resourceExtname == .cast",
+          "group": "navigation"
+        },
+        {
+          "command": "twk.openScreenFile",
+          "when": "resourcePath =~ /[\\\\/]goldens[\\\\/].*\\.txt$/",
           "group": "navigation"
         }
       ]

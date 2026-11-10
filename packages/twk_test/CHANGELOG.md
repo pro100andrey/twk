@@ -4,6 +4,10 @@
 
 Added:
 
+- `matchesScreenFile` leaves the screen it did not match beside the file as
+  `<file>.actual` (the file as updating would write it), and removes it on a
+  match or an update; the VS Code extension shows it against the golden and
+  accepts it. Add `*.txt.actual` to a project's `.gitignore`.
 - `testTwk(failOnOverflow:)` fails the test when a row, column, wrap or
   grid of its app was overflowed by its children (the warning of the log
   that the debug marker of the screen shows), naming each with the widget

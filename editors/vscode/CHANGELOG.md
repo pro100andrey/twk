@@ -20,5 +20,11 @@ The first packaged version (a preview, `.vsix` built from this repository).
 - Code lenses Run in twk Terminal and Debug in twk Terminal over the `main` of a
   twk app (`runApp` or `TwkApp` in a file importing twk), off with
   `twk.codeLens`.
+- Golden screens: a file of twk_test's `matchesScreenFile` opens in a custom
+  editor, twk Screen (twk: Open Screen File as a twk Screen, "Open With...", the
+  explorer's menu in a `goldens` folder), drawn in its colours with Text and
+  Styles toggles; with the `<file>.actual` a failed test leaves (twk_test
+  after this version), the golden and the actual side by side with the
+  differing cells marked, and Accept Actual.
 - Needs twk 0.3.0 or later in the app's project for the Inspector, the log
   and the debug aids.

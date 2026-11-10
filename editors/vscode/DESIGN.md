@@ -54,6 +54,9 @@ says it was not.
   `screenFrames`, and a recording (any of theirs too) played back in a
   terminal of its own, paused, a frame on or back.
 - **Copy the screen** as text.
+- **Golden screens**: the files of twk_test's `matchesScreenFile` in a
+  custom editor, the golden and the `<file>.actual` a failed test leaves
+  beside it (part 2g).
 
 ### Installing it
 
@@ -1596,3 +1599,47 @@ What the repository offers for the wished features:
 Left for later: kitty keyboard's flags beyond disambiguation (event
 types, all keys as escape codes, alternate keys, text), the
 external-terminal flavour of B (`twk shell` already is).
+
+## 2g. Golden screens
+
+twk_test's `matchesScreenFile` keeps a screen in a text file (a layer of
+text, a layer of styles of a character a cell, a legend:
+`packages/twk_test/lib/src/screen_file.dart`). The extension draws one as
+the screen it is.
+
+- **Where the actual screen is.** twk_test did not keep it: a failure
+  said the differing rows in its message only. It now writes the screen it
+  saw, as the file would hold it (the legend's characters kept, as
+  `TWK_UPDATE_GOLDENS=1` writes it), to `<file>.actual` on a mismatch and for
+  a missing file, and removes it on a match and on an update
+  (`actualScreenFilePath`, twk_test's CHANGELOG). Chosen over a message to
+  parse: the file is the same format, and the editor reads it by the same
+  code. It leaves a file in the test tree, so a project ignores
+  `*.txt.actual`.
+- **Staleness.** An `.actual` older than the golden (the golden changed
+  after the run) is ignored and said so (`stale`).
+- `src/core/screen_file.ts` (pure): the parse with twk_test's messages, the
+  cells of a row (a wide glyph in the cell it begins; the width is an
+  approximation of twk's, a row that does not add up to its width falls back
+  to a glyph a cell), `diffScreens` (the cells whose text or style differ, the
+  cursor, the size) and `parseStyle` (a style's name as CSS fields). Held to
+  `packages/twk_test/test/screen_file.golden.txt`, the file twk_test's
+  `screen_file_test.dart` makes `matchesScreenFile` match and write: a change
+  to the format on either side fails the other's test.
+- `src/app/goldens.ts`: `screenState` (golden, actual, diff), `acceptActual`
+  and `GoldenEditor`, over a `GoldenFiles` port and a
+  `WebviewPanelPort<ToScreen>`; `src/webview/screen.ts` and
+  `screen_protocol.ts` the page (the grids, Text and Styles, Golden / Actual
+  / Diff) and its checked messages; `src/vscode/screen_editor.ts` the custom
+  editor `twk.screenFile` (`priority: option`, for `**/goldens/**/*.txt`: a
+  golden stays text in a diff unless chosen), watching the file and its
+  `.actual`.
+- **Accept Actual** writes the `.actual` over the golden and removes it. The
+  brief was to rerun the test alone with `TWK_UPDATE_GOLDENS=1`; the result is
+  the same text, as the update writes what `.actual` holds, and a rerun needs
+  the test's id and a hook into Dart-Code's test runner (its API, not
+  checked). Not done: that rerun.
+- Not run: the editor in a real VS Code (the page and the custom editor are
+  checked by their parts: the protocol, the state and the editor over a fake
+  panel).
+

@@ -221,6 +221,11 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// directories, and matches. The styles keep the characters the file gave
 /// them, so a file written again changes where the screen did.
 ///
+/// A screen that does not match is also written, as the file would hold
+/// it, to the file's path and `.actual` (`form.txt.actual`), which the
+/// VS Code extension shows against the file and accepts; a match removes
+/// it, and so does a write while updating.
+///
 /// The file is text: a line `screen 40×10, cursor at 5,2` (or `cursor
 /// hidden`); `text` and a row a line, the text of its cells between `│`,
 /// a wide glyph once; `styles` and a row a line, a character a cell, a
@@ -704,12 +709,16 @@ final class _MatchesScreenFile extends _ScreenMatcher {
       matchState[#error] = 'cannot hold the screen: ${e.message}';
       return false;
     }
+    final actual = File(actualScreenFilePath(_path));
     if (updatingScreenFiles) {
       file.parent.createSync(recursive: true);
       file.writeAsStringSync(shown.write());
+      _forget(actual);
       return true;
     }
     if (held == null) {
+      actual.parent.createSync(recursive: true);
+      actual.writeAsStringSync(shown.write());
       matchState[#error] =
           'does not exist; $updateScreenFilesVariable=1 writes the screen '
           'to it';
@@ -717,7 +726,19 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     }
     matchState[#held] = held;
     matchState[#shown] = shown;
-    return _differences(held, shown, _styles).isEmpty;
+    if (_differences(held, shown, _styles).isEmpty) {
+      _forget(actual);
+      return true;
+    }
+    actual.writeAsStringSync(shown.write());
+    return false;
+  }
+
+  /// Removes [actual], the screen left by an earlier failure, if it is there.
+  static void _forget(File actual) {
+    if (actual.existsSync()) {
+      actual.deleteSync();
+    }
   }
 
   @override

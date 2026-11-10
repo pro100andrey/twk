@@ -37,6 +37,7 @@ import { TerminalShell } from '../core/shell';
 import { VmClient } from '../core/vm';
 import { chooseCapabilities } from './capabilities_pick';
 import { TwkMainLenses } from './code_lens';
+import { ScreenFileEditors, screenFileViewType } from './screen_editor';
 import { VsCodeDebugger } from './debugger';
 import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
@@ -229,6 +230,14 @@ export function activate(context: vscode.ExtensionContext): Api {
   command('twk.debugFile', (uri) => hot.debugFile(dartFile(uri)));
   const lenses = new TwkMainLenses();
   context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
+  context.subscriptions.push(vscode.window.registerCustomEditorProvider(screenFileViewType, new ScreenFileEditors(context.extensionUri)));
+  command('twk.openScreenFile', async (uri) => {
+    const file = uri ?? vscode.window.activeTextEditor?.document.uri;
+    if (!file) {
+      throw new Error('no screen file open');
+    }
+    await vscode.commands.executeCommand('vscode.openWith', file, screenFileViewType);
+  });
   command('twk.hotReload', () => hot.reloadAll());
   command('twk.hotRestart', () => hot.restartAll());
   command('twk.showOutput', async () => log.show(true));

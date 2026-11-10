@@ -7,6 +7,7 @@ import { Emitter } from '../core/events';
 import { WebviewPanelPort, WebviewTerminalView } from '../app/webview_view';
 import { ToAppLogs } from '../webview/app_logs_protocol';
 import { ToLog } from '../webview/log_protocol';
+import { ToScreen } from '../webview/screen_protocol';
 import { ToWebview } from '../webview/protocol';
 
 /** A webview panel of [viewType] titled [title], beside the editor, its page [page], as the port its view speaks over. */
@@ -22,6 +23,11 @@ function openPanel<To>(viewType: string, title: string, extensionUri: vscode.Uri
     },
   );
   panel.webview.html = page(panel.webview);
+  return portOf(panel);
+}
+
+/** [panel], whoever made it, as the port a view speaks over. */
+function portOf<To>(panel: vscode.WebviewPanel): WebviewPanelPort<To> {
   const messages = new Emitter<unknown>();
   const disposes = new Emitter<void>();
   const listening = [
@@ -61,6 +67,39 @@ export function openAppLogsPanel(title: string, extensionUri: vscode.Uri): Webvi
   return openPanel<ToAppLogs>('twk.appLogs', title, extensionUri, (w) => logPage(w, extensionUri, 'app_logs.js'));
 }
 
+/**
+ * Fills [panel], the editor VS Code made for a screen file, with the page of
+ * webview/screen.ts, and returns the port its editor speaks over.
+ */
+export function fillScreenPanel(panel: vscode.WebviewPanel, extensionUri: vscode.Uri): WebviewPanelPort<ToScreen> {
+  panel.webview.options = { enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'out', 'media')] };
+  panel.webview.html = logPage(panel.webview, extensionUri, 'screen.js', screenStyle, '<header id="bar"></header><main id="screens"></main>');
+  return portOf<ToScreen>(panel);
+}
+
+/** The screen file editor's look: a grid of cells in the terminal's font and colours. */
+const screenStyle = `
+html, body { margin: 0; padding: 0; }
+body { --twk-fg: var(--vscode-terminal-foreground, var(--vscode-editor-foreground)); --twk-bg: var(--vscode-terminal-background, var(--vscode-editor-background)); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); color: var(--vscode-foreground); background: var(--vscode-editor-background); }
+#bar { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; padding: 6px 8px; background: var(--vscode-editor-background); border-bottom: 1px solid var(--vscode-panel-border, transparent); }
+#bar label { display: inline-flex; gap: 4px; align-items: center; }
+#bar button { color: var(--vscode-button-foreground); background: var(--vscode-button-background); border: none; padding: 3px 10px; cursor: pointer; }
+#bar button:hover { background: var(--vscode-button-hoverBackground); }
+.status { opacity: 0.8; }
+#screens { padding: 8px; }
+.screens { display: flex; flex-wrap: wrap; gap: 16px; }
+.caption { opacity: 0.7; margin-bottom: 2px; }
+.grid { display: inline-block; font-family: var(--vscode-editor-font-family, monospace); font-size: var(--vscode-editor-font-size); line-height: 1.25; background: var(--twk-bg); color: var(--twk-fg); }
+.grid .row { display: flex; white-space: pre; height: 1.25em; }
+.grid .row span { display: inline-block; width: 1ch; overflow: visible; }
+.grid .row span.wide { width: 2ch; }
+.grid .row span.changed { outline: 1px solid var(--vscode-editorError-foreground, red); outline-offset: -1px; }
+.grid .row span.cursor { box-shadow: inset 0 -2px var(--vscode-terminalCursor-foreground, currentColor); }
+.legend, .diff { margin-top: 12px; font-family: var(--vscode-editor-font-family, monospace); }
+.legend .sample { display: inline-block; min-width: 1.5ch; text-align: center; }
+.bad { color: var(--vscode-editorError-foreground, red); padding: 8px; }
+`;
+
 const nonceOf = () => [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
 /** The log's look, in VS Code's colours and font. */
@@ -99,7 +138,7 @@ body { display: flex; flex-direction: column; font-family: var(--vscode-font-fam
 `;
 
 /** The log's page: its module, styled by VS Code's colours. */
-function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js'): string {
+function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js', style = logStyle, content = '<header id="bar"></header>\n<main id="log"></main>'): string {
   const uri = (...p: string[]) => w.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...p)).toString();
   const nonce = nonceOf();
   return `<!DOCTYPE html>
@@ -108,11 +147,10 @@ function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js')
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${w.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${w.cspSource};">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>${logStyle}</style>
+<style>${style}</style>
 </head>
 <body>
-<header id="bar"></header>
-<main id="log"></main>
+${content}
 <script nonce="${nonce}" type="module" src="${uri('out', 'media', 'webview', script)}"></script>
 </body>
 </html>`;

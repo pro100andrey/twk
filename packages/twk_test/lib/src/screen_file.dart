@@ -30,6 +30,12 @@ bool get updatingScreenFiles {
 @visibleForTesting
 bool? updateScreenFilesOverride;
 
+/// Where `matchesScreenFile` leaves the screen it did not match, as the
+/// file would hold it: [path] and `.actual`. The editor tooling reads it to
+/// show the difference and to accept it. A match, or a write while
+/// updating, removes it. Not exported by the package.
+String actualScreenFilePath(String path) => '$path.actual';
+
 /// A screen as the file holds it: its size, its cursor, the rows of its
 /// text and of its styles, and the style each character of the styles
 /// stands for.

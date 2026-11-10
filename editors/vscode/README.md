@@ -22,6 +22,13 @@ in a terminal of the extension's own, beside the editor.
 - **The sequence log** of what the app and its terminal send each other,
   **recording and replay** as asciicast (the format of `twk record` and
   `twk play`), and **copy the screen** as text.
+- **Golden screens**: a file of twk_test's `matchesScreenFile` opened with
+  twk: Open Screen File as a twk Screen (or "Open With..." twk Screen) is drawn
+  cell by cell in its colours, with Text and Styles toggles. When a test
+  failed on it, twk_test leaves the screen it saw beside the file as
+  `<file>.actual`; the editor then shows both with the cells that differ marked,
+  and **Accept Actual** makes that screen the golden (the file
+  `TWK_UPDATE_GOLDENS=1` would write). Add `*.txt.actual` to `.gitignore`.
 
 Open a Dart file of a twk app, press Ctrl+Shift+P and type "twk".
 
