@@ -9,6 +9,7 @@ import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
 import 'package:twk_test/twk_test.dart';
 
+
 const dart = 'https://dart.dev';
 const pub = 'https://pub.dev';
 
@@ -96,6 +97,7 @@ void main() {
       final first = <String>[];
       final second = <String>[];
       final which = ValueNotifier<void Function(String)?>(null);
+      addTearDown(which.dispose);
       await t.pumpWidget(
         ValueListenableBuilder(
           valueListenable: which,
@@ -123,6 +125,7 @@ void main() {
     ) async {
       final taps = <String>[];
       final shown = ValueNotifier<Widget>(links(null));
+      addTearDown(shown.dispose);
       await t.pumpWidget(
         ValueListenableBuilder(
           valueListenable: shown,

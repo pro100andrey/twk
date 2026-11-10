@@ -93,6 +93,7 @@ void main() {
     testTwk('keyHints false: none, the keys doing what they do', (t) async {
       final submitted = <String>[];
       final c = TextEditingController();
+      addTearDown(c.dispose);
       await t.pumpWidget(
         TextField(
           controller: c,
@@ -114,6 +115,7 @@ void main() {
         'hint shows in place of its own', (t) async {
       final undone = <String>[];
       final c = TextEditingController();
+      addTearDown(c.dispose);
       await t.pumpWidget(
         KeyBindings(
           {'ctrl+z': () => undone.add('above')},
@@ -137,6 +139,7 @@ void main() {
     testTwk('Enter a new line; with onSubmitted, Enter submit and '
         'Alt+Enter a new line; Ctrl+Z once there is a change', (t) async {
       final submits = ValueNotifier(false);
+      addTearDown(submits.dispose);
       await t.pumpWidget(
         ListenableBuilder(
           listenable: submits,
@@ -181,7 +184,9 @@ void main() {
   ]) {
     testTwk('a $name given a new controller follows that one', (t) async {
       final a = TextEditingController();
+      addTearDown(a.dispose);
       final b = TextEditingController();
+      addTearDown(b.dispose);
       await t.pumpWidget(field(a), size: (20, 4));
       await t.pumpWidget(field(b), size: (20, 4));
       var told = 0;
@@ -201,6 +206,7 @@ void main() {
     testTwk("while its suggestions show, their keys first, the field's "
         "Enter left out, the popover's Escape last", (t) async {
       final c = TextEditingController();
+      addTearDown(c.dispose);
       await t.pumpWidget(
         completed(
           c,
@@ -225,6 +231,7 @@ void main() {
 
     testTwk('in a TextArea, the same', (t) async {
       final c = TextEditingController();
+      addTearDown(c.dispose);
       await t.pumpWidget(
         completed(c, TextArea(controller: c, autofocus: true)),
         size: (30, 8),
@@ -245,6 +252,7 @@ void main() {
     testTwk("keyHints false: none of its own, the field's Enter left out "
         'still while Enter puts one in', (t) async {
       final c = TextEditingController();
+      addTearDown(c.dispose);
       await t.pumpWidget(
         completed(
           c,

@@ -6,6 +6,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// [child] in the dark theme with [glyphs].
 Widget themed(Glyphs glyphs, Widget child) => Theme(
   data: ThemeData.dark.copyWith(glyphs: glyphs),
@@ -545,7 +547,7 @@ void main() {
 
     testTwk('a masked TextField shows the bullet of the set', (t) async {
       Widget field({String? mask}) => TextField(
-        controller: TextEditingController(text: 'abc'),
+        controller: disposing(TextEditingController(text: 'abc')),
         obscureText: true,
         obscuringCharacter: mask,
       );

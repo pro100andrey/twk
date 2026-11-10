@@ -65,6 +65,7 @@ void main() {
   testTwk('useValueListenable is the value of its listenable, rebuilt when '
       'it changes', (t) async {
     final value = ValueNotifier('a');
+    addTearDown(value.dispose);
     await t.pumpWidget(
       HookBuilder(builder: (context) => Text(useValueListenable(value))),
       size: (10, 1),

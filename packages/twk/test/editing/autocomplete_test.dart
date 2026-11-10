@@ -83,6 +83,7 @@ void main() {
       'first highlighted; Down and Enter put one in place of the query and '
       'hide them', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final log = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: field(c, log: log)),
@@ -122,6 +123,7 @@ other'''),
       'a plain look', (t) async {
     const dark = ThemeData.dark;
     final c = TextEditingController();
+    addTearDown(c.dispose);
     // the default look without one
     Widget of([PanelLook? look]) => Theme(
       data: dark,
@@ -166,6 +168,7 @@ other'''),
     t,
   ) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 8));
     await t.pump();
     await type(t, '/hc');
@@ -176,6 +179,7 @@ other'''),
   testTwk('a trigger starts a word: at the start of the text or after a '
       'blank', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final asked = <String>[];
     await t.pumpWidget(
       Theme.terminal(
@@ -204,6 +208,7 @@ other'''),
   testTwk('without a trigger the text before the caret is the query, and an '
       'empty one asks for nothing', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final asked = <String>[];
     await t.pumpWidget(
       Theme.terminal(
@@ -235,6 +240,7 @@ other'''),
   testTwk('suggestions that come in a future show when they come; an answer '
       'that comes after the query changed again does not', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: field(
@@ -270,6 +276,7 @@ other'''),
     t,
   ) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final log = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: field(c, log: log)),
@@ -289,6 +296,7 @@ other'''),
   testTwk('Escape hides the suggestions until the text changes, the caret '
       'moved or not', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 8));
     await t.pump();
     await type(t, '/h');
@@ -304,6 +312,7 @@ other'''),
   testTwk('while the suggestions show Enter picks one, not submits; hidden, '
       'it submits', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final log = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: field(c, log: log)),
@@ -319,6 +328,7 @@ other'''),
 
   testTwk('the suggestions hide when the focus leaves the field', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final other = FocusNode();
     addTearDown(other.dispose);
     await t.pumpWidget(
@@ -336,6 +346,7 @@ other'''),
   testTwk('in a TextArea Up and Down move among the suggestions while they '
       'show, and the caret while they do not', (t) async {
     final c = TextEditingController(text: 'first\n');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, area: true)),
       size: (20, 9),
@@ -355,6 +366,7 @@ other'''),
   testTwk('an Autocomplete without an Overlay above fails to build, saying '
       'where to place one', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Autocomplete(
         controller: c,

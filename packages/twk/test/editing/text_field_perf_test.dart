@@ -6,12 +6,15 @@ import 'package:twk/src/editing/text_buffer.dart' show TextBuffer;
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 void main() {
   testTwk('a change in a long field puts its text together once, for the '
       'field: onChanged puts it together no more', (t) async {
     // 10k characters: more than one of the pieces the controller keeps
     final text = List.filled(1000, 'some words').join(' ').substring(0, 10000);
-    final c = TextEditingController(text: text)..moveCaret(text.length ~/ 2);
+    final c = disposing(TextEditingController(text: text))
+      ..moveCaret(text.length ~/ 2);
     final told = <String>[];
     Widget app({bool changed = false}) => TextField(
       controller: c,
