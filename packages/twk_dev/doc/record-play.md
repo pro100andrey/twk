@@ -76,7 +76,13 @@ wiped when playing goes on or it stops. It is drawn with `ESC 7` and
 `ESC 8`, the terminal's one saved cursor, so a recording that saved its own
 cursor before a pause and restores it after finds the status line's. Keys are
 read also as application-cursor and kitty-keyboard sequences; the terminal's
-answers are not keys. Where stdin is no terminal there are no keys.
+answers are not keys; a key release (kitty event type 3) is none, and Ctrl+C
+quits wherever it comes, an Escape at the end of a read is dropped, and an
+Alt+letter that starts a string (`ESC P`, `ESC ]`) swallows the keys after it
+only until the next read. Played to its last step, the recording stays there
+paused (status line shown) while keys are read: Space plays it again from the
+start, Left goes back, `q` quits. Where stdin is no terminal there are no
+keys, and it exits at the end.
 
 A recording is a regression test of the app: its `Cast.writes`, the output
 events and each resize, are what twk_test's `screenFrames` plays through its

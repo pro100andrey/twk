@@ -126,7 +126,11 @@ void main() {
     await r.clock.elapse(0.9);
     expect(r.writes.last, 'D');
     await r.clock.elapse(1);
-    expect(r.writes.last, '${_up}E');
+    expect(r.played, endsWith('${_up}E'));
+    // keys are read: it stays at the end, paused
+    expect(r.exit, isNull);
+    expect(r.status, contains('paused  frame 3/3'));
+    await r.type('q');
     expect(await r.result, 0);
   });
 
@@ -216,7 +220,10 @@ void main() {
   test('Space after the end plays again from the start', () async {
     final r = await started();
     await r.clock.elapse(3);
-    expect(await r.result, 0);
+    expect(r.exit, isNull, reason: 'stays at the end');
+    // Space from the end plays from the start
+    await r.type(' ');
+    expect(r.played.endsWith('\x1bcA'), isTrue);
     final paused = await started();
     await paused.type(_right);
     await paused.type(_right);
@@ -292,8 +299,13 @@ void main() {
   );
 
   group('readPlayKeys', () {
-    void reads(String typed, List<PlayKey> keys, [String rest = '']) {
-      final (read, left) = readPlayKeys(typed);
+    void reads(
+      String typed,
+      List<PlayKey> keys, [
+      String rest = '',
+      bool continued = false,
+    ]) {
+      final (read, left) = readPlayKeys(typed, continued: continued);
       expect(read, keys);
       expect(left, rest);
     }
@@ -312,8 +324,30 @@ void main() {
       reads('\x1b[32;1:3u\x1b[1;2C', [PlayKey.next]);
     });
 
+    test('a release is no key, in any form', () {
+      reads('\x1b[1;1:3C\x1b[1;1:3D\x1b[1;1:3H\x1b[1;1:3~', []);
+      reads('\x1b[1;1:1C\x1b[1;1:2C', [PlayKey.next, PlayKey.next]);
+      reads('\x1b[113;1:3u\x1b[99;5:3u\x1b[113;1:1u', [PlayKey.quit]);
+    });
+
+    test('Ctrl+C quits after a lone Escape or an unended string', () {
+      reads('\x1b\x03', [PlayKey.interrupt]);
+      reads('\x1bP\x03', [PlayKey.interrupt]);
+      reads('\x1b]xx\x03q', [PlayKey.interrupt, PlayKey.quit]);
+      reads('\x1b[1\x03', [PlayKey.interrupt]);
+    });
+
+    test('a lone Escape is dropped, not held for the next piece', () {
+      reads('\x1b', []);
+      reads('q\x1b', [PlayKey.quit]);
+    });
+
+    test('a string not ended by the next piece is given up', () {
+      reads('\x1bPq', [], '\x1bPq');
+      reads('\x1bPq q', [PlayKey.quit, PlayKey.toggle, PlayKey.quit], '', true);
+    });
+
     test('a sequence cut between two pieces is put together', () {
-      reads('\x1b', [], '\x1b');
       reads('\x1b[?1;', [], '\x1b[?1;');
       reads('\x1bP1\$r0', [], '\x1bP1\$r0');
       reads('q\x1bP1\$r0', [PlayKey.quit], '\x1bP1\$r0');

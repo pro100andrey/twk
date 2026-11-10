@@ -28,7 +28,10 @@ aids) are the same set. `--no-asserts` is described above.
 holds a `pubspec.yaml`, the `lib/` of every path dependency and workspace
 member in that package's `.dart_tool/package_config.json` (the packages
 outside the pub cache, so not hosted or git ones; `--no-watch-deps` leaves
-them out), and `<file>`. When a `.dart` file there changes, or is
+them out; always the `lib/`, whatever the package's `packageUri`), and
+`<file>`. A directory that goes while the app runs (a branch switch) ends its
+watch only, said in the app's log (`no longer watching ...`); it is not
+watched again when it comes back until `twk run` is started again. When a `.dart` file there changes, or is
 moved there as editors that save safely do, it reloads the sources 100 ms
 after the last change (`reloadSources`) and calls the binding's
 `ext.twk.reassemble` (twk's `AppBinding.reassemble`): every element is

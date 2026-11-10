@@ -58,11 +58,14 @@ void main() {
     await t.until(() => t.text.contains('third'), 'the last event');
     final sinceStart = started.elapsedMilliseconds;
     final sinceFirst = first.elapsedMilliseconds;
+    // keys are read: it waits at the end, paused, for q
+    await t.until(() => t.text.contains('paused'), 'the end');
+    t.type('q');
 
     expect(await t.ended(), exits(0));
     expect(sinceStart, greaterThanOrEqualTo(550));
     expect(sinceFirst, lessThanOrEqualTo(1000));
-    expect(t.text, 'first\r\nsecond\r\nthird\r\n');
+    expect(t.text, startsWith('first\r\nsecond\r\nthird\r\n'));
     expect(t.modes.same(before), isTrue, reason: '${t.modes}');
   });
 
@@ -120,6 +123,9 @@ void main() {
       ]);
       await t.until(() => t.text.contains('playing') && t.modes.raw, 'playing');
       t.type('typed');
+      // keys are read: it waits at the end for q
+      await t.until(() => t.text.contains('paused'), 'the end');
+      t.type('q');
       await t.until(() => t.text.contains('ready'), 'the shell');
       t.type('line\r');
 

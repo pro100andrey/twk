@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+Fixed:
+
+- `twk play`: Ctrl+C always quits (a lone Escape or an Alt+key that opens a
+  string no longer swallows it); a key release is no second press of an arrow
+  or Home; played to its end with keys read, it stays paused there (Space
+  plays again, Left goes back, `q` quits); the frame count of the status line
+  is not recounted at each key.
+- `twk run` says `no longer watching` also when a watched directory's stream
+  just ends, and a path dependency is watched at its `lib/` always, not at
+  its root (`.dart_tool/`, `build/`, `test/` edits no longer reload the app).
+
 Added:
 
 - `twk inspect`: `g` opens where the selected widget was made in the editor

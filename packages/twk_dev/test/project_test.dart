@@ -77,8 +77,8 @@ void main() {
     expect(pathDependencyLibs(p.join(dir, 'ws')), isEmpty);
   });
 
-  test('a package entry without a packageUri is the package root, as the '
-      'package configuration says', () {
+  test('a package entry without a packageUri is watched at its lib/, not '
+      'at the package root', () {
     final root = Directory.systemTemp.createTempSync('twk_deps');
     addTearDown(() => root.deleteSync(recursive: true));
     final dir = p.normalize(root.absolute.path);
@@ -94,7 +94,7 @@ void main() {
           }),
         );
     expect(pathDependencyLibs(p.join(dir, 'app'), pubCache: '/none'), {
-      'b': p.join(dir, 'b'),
+      'b': p.join(dir, 'b', 'lib'),
     });
   });
 

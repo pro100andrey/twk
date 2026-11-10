@@ -20,9 +20,11 @@ String projectOf(String? directory) =>
 /// one up from [package], a workspace's the same for each member) that is
 /// not [package] itself and is not in the pub cache ([pubCache], else
 /// `PUB_CACHE`, else pub's default one) — path dependencies and workspace
-/// members, not hosted or git ones — whose package directory (its
-/// `packageUri` from the root, the root itself where the entry has none, as
-/// the package configuration says) exists. Where no pub cache is known (no
+/// members, not hosted or git ones — whose `lib/` exists. It is the
+/// `lib/` of the package's root, not its `packageUri` (which is the root
+/// itself where an entry has none, as the package configuration says): the
+/// directories are watched for changes of library code, and the root holds
+/// `.dart_tool/`, `build/` and `test/` too. Where no pub cache is known (no
 /// [pubCache], no `PUB_CACHE`, no home directory in [environment]), a
 /// package under a directory called `.pub-cache` or `Pub/Cache` counts as
 /// hosted, and only those are left out. Empty where there is no
@@ -67,12 +69,10 @@ Map<String, String> pathDependencyLibs(
     if (p.equals(dir, own) || _inCache(dir, cache)) {
       continue;
     }
-    final lib = p.normalize(
-      p.join(
-        dir,
-        '${entry['packageUri'] ?? ''}'.replaceAll('/', p.separator),
-      ),
-    );
+    // watched is the `lib/` always, whatever the packageUri says (the root
+    // where there is none): a reload is about library code, and the root
+    // holds `.dart_tool/`, `build/` and `test/`, whose edits are none
+    final lib = p.join(dir, 'lib');
     if (Directory(lib).existsSync()) {
       libs['${entry['name']}'] = lib;
     }

@@ -117,10 +117,20 @@ enum PlayKey {
 }
 
 /// The keys in [typed], and what of it is not a whole key yet (the start
-/// of an escape sequence, to be put in front of the next piece). The
-/// terminal's answers to the queries of the recording are whole escape
-/// sequences, and give no key.
-(List<PlayKey>, String) readPlayKeys(String typed) {
+/// of an escape sequence, to be put in front of the next piece, which is
+/// then read with [continued]). The terminal's answers to the queries of
+/// the recording are whole escape sequences, and give no key.
+///
+/// Ctrl+C is a key wherever it is, in a string too (it is no part of one).
+/// An Escape at the end is a key of its own (dropped), not the start of
+/// something waited for. A string (DCS, OSC, APC, PM, SOS) is kept for the
+/// next piece when it has not ended, once: [continued] and still not ended,
+/// it was Alt and a letter, not an answer, and its introducer is dropped
+/// so that the keys after it count.
+(List<PlayKey>, String) readPlayKeys(
+  String typed, {
+  bool continued = false,
+}) {
   final keys = <PlayKey>[];
   var i = 0;
   while (i < typed.length) {
@@ -138,18 +148,23 @@ enum PlayKey {
       continue;
     }
     if (i + 1 == typed.length) {
-      return (keys, typed.substring(i));
+      // a lone Escape
+      break;
     }
     switch (typed[i + 1]) {
       case '[':
         var j = i + 2;
         while (j < typed.length && typed.codeUnitAt(j) < 0x40) {
+          if (typed.codeUnitAt(j) == 0x03 || typed.codeUnitAt(j) == 0x1b) {
+            break;
+          }
           j++;
         }
         if (j == typed.length) {
           return (keys, typed.substring(i));
         }
-        if (typed.codeUnitAt(j) > 0x7e) {
+        if (typed.codeUnitAt(j) < 0x40 || typed.codeUnitAt(j) > 0x7e) {
+          // not a sequence after all: what follows is read as keys
           i = j;
           continue;
         }
@@ -175,22 +190,41 @@ enum PlayKey {
           (_, -1) => st + 2,
           _ => math.min(st + 2, bel + 1),
         };
+        final stop = typed.indexOf('\x03', i + 2);
+        if (stop != -1 && (end == -1 || stop < end)) {
+          // Ctrl+C always quits, as it did before there were strings
+          keys.add(PlayKey.interrupt);
+          i = stop + 1;
+          continue;
+        }
         if (end == -1) {
-          return (keys, typed.length - i > 4096 ? '' : typed.substring(i));
+          if (continued && i == 0 || typed.length - i > 4096) {
+            i += 2;
+            continue;
+          }
+          return (keys, typed.substring(i));
         }
         i = end;
       default:
-        i += 2;
+        // Alt and a key: none, but Ctrl+C is read for itself
+        i += typed.codeUnitAt(i + 1) == 0x03 ? 1 : 2;
     }
   }
   return (keys, '');
 }
 
-/// The key a CSI sequence with [params] and [final], or an SS3 with
-/// [final], is: the arrows and Home as a terminal sends them, and, where
+/// The key a CSI sequence with [params] and [final_], or an SS3 with
+/// [final_], is: the arrows and Home as a terminal sends them, and, where
 /// the recording turned the kitty keyboard flags on, Space, `q` and
-/// Ctrl+C as CSI u (a release is no key).
+/// Ctrl+C as CSI u. With kitty's event types on, a release (type 3) is no
+/// key, in any of these forms; a press and a repeat (1, 2) are, so that a
+/// key held goes on as it does without the flags.
 PlayKey? _csiKey(String params, String final_) {
+  final parts = params.split(';');
+  final second = parts.length > 1 ? parts[1].split(':') : const <String>[];
+  if (second.length > 1 && second[1] == '3') {
+    return null;
+  }
   switch (final_) {
     case 'C':
       return PlayKey.next;
@@ -199,16 +233,12 @@ PlayKey? _csiKey(String params, String final_) {
     case 'H':
       return PlayKey.start;
     case '~':
-      return const {'1', '7'}.contains(params.split(';').first)
+      return const {'1', '7'}.contains(parts.first.split(':').first)
           ? PlayKey.start
           : null;
     case 'u':
-      final parts = params.split(';');
-      if (params.contains(':3') || parts.first.contains(':')) {
-        return null;
-      }
-      final modifiers = parts.length > 1 ? int.tryParse(parts[1]) ?? 1 : 1;
-      return switch (int.tryParse(parts.first)) {
+      final modifiers = second.isEmpty ? 1 : int.tryParse(second.first) ?? 1;
+      return switch (int.tryParse(parts.first.split(':').first)) {
         32 when modifiers == 1 => PlayKey.toggle,
         113 when modifiers == 1 => PlayKey.quit,
         99 when modifiers == 5 => PlayKey.interrupt,
@@ -257,7 +287,9 @@ typedef _Step = ({String output, double at, double time, int frame});
 /// terminal has one saved cursor, so a recording that saved its own
 /// before a pause and restores it after finds the status line's. Stopped
 /// (q, Ctrl+C, SIGINT, SIGTERM, SIGHUP), what the recording left turned on
-/// is turned off. At the end, input not read yet is dropped as the
+/// is turned off. Played to its last step with keys read, it stays there
+/// paused (Space plays again from the start, `q` quits); without keys it
+/// returns. At the end, input not read yet is dropped as the
 /// terminal is put back, after [grace] for answers still on their way.
 final class Player {
   /// A player of [cast] at its own pace, every pause kept. `output`,
@@ -361,7 +393,10 @@ final class Player {
     var wake = Completer<void>();
     var typed = '';
     void onKeys(List<int> bytes) {
-      final (keys, rest) = readPlayKeys('$typed${latin1.decode(bytes)}');
+      final (keys, rest) = readPlayKeys(
+        '$typed${latin1.decode(bytes)}',
+        continued: typed.isNotEmpty,
+      );
       typed = rest;
       for (final key in keys) {
         if (key == PlayKey.interrupt) {
@@ -401,7 +436,12 @@ final class Player {
     final rows = _rows ?? (stdout.hasTerminal ? stdout.terminalLines : null);
     final room = rows != null && rows > cast.header.height;
     final steps = _steps();
-    final frames = steps.where((s) => s.frame > 0).length;
+    // the frames among the first n steps, once, not at each key
+    final framesIn = [0];
+    for (final step in steps) {
+      framesIn.add(framesIn.last + (step.frame > 0 ? 1 : 0));
+    }
+    final frames = framesIn.last;
     final duration = cast.duration;
     var modes = ModeTracker();
     var shown = 0;
@@ -428,7 +468,7 @@ final class Player {
       if (!room) {
         return;
       }
-      final n = steps.take(shown).where((s) => s.frame > 0).length;
+      final n = framesIn[shown];
       final time = shown == 0 ? 0.0 : steps[shown - 1].time;
       statusUp = true;
       await output(
@@ -509,7 +549,13 @@ final class Player {
           continue;
         }
         if (shown >= steps.length) {
-          break;
+          if (input == null) {
+            // no key is read: nothing could go on from here
+            break;
+          }
+          playing = false;
+          await drawStatus();
+          continue;
         }
         final wait = play(steps[shown].at) - (_clock.elapsed - anchor);
         if (wait > Duration.zero) {

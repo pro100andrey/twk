@@ -473,27 +473,52 @@ final class HotRunner {
 
   /// Watches [dir], giving each event to [onEvent]. A directory that goes
   /// while the app runs (a branch switch, `git clean`) ends the watch of
-  /// that one directory, said once in the app's log, not the session.
+  /// that one directory, as an error or as the end of its stream, said once
+  /// in the app's log, not the session. It is not watched again when it
+  /// comes back (that would take a watch of its parent for each one): the
+  /// log line says so.
   StreamSubscription<FileSystemEvent> _watching(
     String dir,
     void Function(FileSystemEvent) onEvent, {
     bool recursive = false,
   }) {
     late final StreamSubscription<FileSystemEvent> sub;
+    var said = false;
+    void gone(String why) {
+      if (said) {
+        return;
+      }
+      said = true;
+      unawaited(sub.cancel());
+      _warn(
+        'hot reload: no longer watching ${_shown(dir)} ($why); restart '
+        'twk run to watch it again',
+      );
+    }
+
     return sub = Directory(dir)
         .watch(recursive: recursive)
         .listen(
           onEvent,
-          onError: (Object error) {
-            unawaited(sub.cancel());
-            unawaited(
-              _app?.log(
-                'hot reload: no longer watching ${_shown(dir)} ($error)',
-                level: 'warning',
-              ),
-            );
-          },
+          onError: (Object error) => gone('$error'),
+          onDone: () => gone('the directory is gone'),
         );
+  }
+
+  /// [text] in the app's log as a warning, when there is an app and its
+  /// connection takes it.
+  void _warn(String text) {
+    final app = _app;
+    if (app == null) {
+      return;
+    }
+    unawaited(() async {
+      try {
+        await app.log(text, level: 'warning');
+      } on Object {
+        // the connection is closed: the app is going
+      }
+    }());
   }
 
   static String _destination(FileSystemEvent e) =>
