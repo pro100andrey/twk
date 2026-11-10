@@ -7,6 +7,7 @@
 import * as assert from 'node:assert/strict';
 
 import { LogPanel, LogPanels } from '../../../app/log_panel';
+import { parseCast } from '../../../core/cast';
 import { activeScreen, screenText } from '../../../app/screens';
 import { TwkTerminal } from '../../../app/terminal';
 import { ToLog } from '../../../webview/log_protocol';
@@ -103,6 +104,42 @@ describe('the sequence log panel', () => {
       ],
     );
     await other.dispose();
+    logs.dispose();
+  });
+
+  it('saves what it holds: the rows as text, as the webview filters them; the bytes with their times as asciicast, from the clear on; the Save button asks', async () => {
+    const asked: LogPanel[] = [];
+    const logs = new LogPanels(() => panel, clock);
+    logs.onDidAskSave((p) => asked.push(p));
+    logs.follow(t);
+    clock.elapse(7);
+    await t.write(Buffer.from('\x1b[?1049h'));
+    const log = logs.show(t);
+    clock.elapse(13);
+    (t.view as FakeView).type('q');
+    await t.write(Buffer.from('hi'));
+    panel.send({ type: 'save' });
+    assert.deepEqual(asked, [log]);
+    // whole before the webview told its filter
+    assert.equal(log.text().split('\n').length, 5);
+    const cast = parseCast(log.cast(1700000100, 'xterm-256color'));
+    assert.deepEqual(cast.events.map((e) => [e.time, e.code, e.data]), [
+      [0, 'm', 'counter.dart opened, at 100x30'],
+      [0.007, 'o', '\x1b[?1049h'],
+      [0.02, 'i', 'q'],
+      [0.02, 'o', 'hi'],
+    ]);
+    assert.deepEqual([cast.header.width, cast.header.height, cast.header.title, cast.header.timestamp], [100, 30, 'counter.dart', 1700000099]);
+    // the filter the webview applies
+    panel.send({ type: 'shown', rows: 1, held: 0, last: [], filter: { out: false, in: true, note: false, text: true, word: '' } });
+    assert.match(log.text(), /^ {4}0\.020 {2}in {2}key q +q\n$/);
+    assert.deepEqual(parseCast(log.cast(1, undefined)).events.map((e) => e.code), ['i']);
+    // cleared: the bytes before it are gone from the file too
+    panel.send({ type: 'clear' });
+    panel.send({ type: 'shown', rows: 0, held: 0, last: [] });
+    await t.write(Buffer.from('x'));
+    assert.deepEqual(parseCast(log.cast(1)).events.map((e) => e.data), ['x']);
+    assert.match(log.text(), /^ {4}0\.020 {2}out text "x" +x\n$/);
     logs.dispose();
   });
 

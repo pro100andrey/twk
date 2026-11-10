@@ -5,7 +5,7 @@
 // the terminal sent, the notes), with text runs left out or not, and by a
 // word; paused (what comes meanwhile held, shown on resume); cleared.
 // Compiled with the terminal's webview (tsconfig.webview.json).
-import type { LogEntry } from '../core/seqlog.js';
+import { LogEntry, LogFilter, entryMatches } from '../core/seqlog.js';
 import { FromLog, isToLog } from './log_protocol.js';
 
 declare function acquireVsCodeApi(): { postMessage(message: FromLog): void };
@@ -23,7 +23,7 @@ let held: LogEntry[] = [];
 let paused = false;
 let ended = false;
 const opened = new Set<number>();
-const filter = { out: true, in: true, note: true, text: true, word: '' };
+const filter: { -readonly [K in keyof LogFilter]: LogFilter[K] } = { out: true, in: true, note: true, text: true, word: '' };
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<HTMLElementTagNameMap[K]> = {}, ...children: (Node | string)[]): HTMLElementTagNameMap[K] {
   const e = Object.assign(document.createElement(tag), props);
@@ -57,19 +57,12 @@ pause.addEventListener('click', () => {
 });
 const clear = element('button', { textContent: 'Clear', title: 'Forget every entry' });
 clear.addEventListener('click', () => vscode.postMessage({ type: 'clear' }));
+const save = element('button', { textContent: 'Save…', title: 'Save the log to a file: the rows as shown (text), or the bytes with their times (asciicast)' });
+save.addEventListener('click', () => vscode.postMessage({ type: 'save' }));
 const statusLine = element('span', { id: 'status' });
-bar.append(toggle('app wrote →', 'out'), toggle('terminal sent ←', 'in'), toggle('notes', 'note'), toggle('text runs', 'text'), word, pause, clear, statusLine);
+bar.append(toggle('app wrote →', 'out'), toggle('terminal sent ←', 'in'), toggle('notes', 'note'), toggle('text runs', 'text'), word, pause, clear, save, statusLine);
 
-function matches(e: LogEntry): boolean {
-  if (!filter[e.direction] || (!filter.text && e.kind === 'text')) {
-    return false;
-  }
-  if (filter.word === '') {
-    return true;
-  }
-  const has = (x: LogEntry): boolean => x.name.toLowerCase().includes(filter.word) || x.raw.toLowerCase().includes(filter.word);
-  return has(e) || (e.children ?? []).some(has);
-}
+const matches = (e: LogEntry): boolean => entryMatches(e, filter);
 
 const arrows = { out: '→', in: '←', note: '·' } as const;
 
@@ -159,7 +152,7 @@ function status(): void {
   }
   statusLine.textContent = parts.join(' · ');
   const last = Array.from(log.querySelectorAll('.row:not(.child) .name')).slice(-20).map((n) => n.textContent ?? '');
-  vscode.postMessage({ type: 'shown', rows: log.childElementCount, held: held.length, last });
+  vscode.postMessage({ type: 'shown', rows: log.childElementCount, held: held.length, last, filter: { ...filter } });
 }
 
 window.addEventListener('message', (event: MessageEvent<unknown>) => {

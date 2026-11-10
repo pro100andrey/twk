@@ -120,6 +120,7 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Choose twk Terminal Switches | the screen reader and the debug aids, for the next app |
 | twk: Show the Log of the twk Apps (Levels, Filter, Pause; the Debug Aid logs) | the panel of the apps' logs (below) |
 | twk: Show the Sequence Log of the twk Terminal | the log of the terminal (title bar button) |
+| twk: Save the Sequence Log of the twk Terminal to a File | the log saved for a bug report: text rows, or a `.cast` (below, "The sequence log"); also the log panel's **Save…** button |
 | twk: Record the twk Terminal as asciicast (Start or Stop) | record the terminal to a `.cast` file; again to stop (title bar button) |
 | twk: Stop Recording the twk Terminals | stop every recording (also a click on `REC` in the status bar) |
 | twk: Play a Recording (asciicast) in a twk Terminal | play a `.cast` back (also the explorer's menu on a `.cast` file) |
@@ -213,6 +214,29 @@ shown on Resume), Clear. The log holds what came since the terminal
 opened, even before the log was (its probe and modes; the last 4 MB of
 bytes, decoded when it is opened, the last 20000 entries, a frame's
 first 2000), one log per terminal, a replay's too.
+
+**Saving the log** (the bar's **Save…**, or twk: Save the Sequence Log): asks
+for a file and writes it by its extension. Any name but `.cast` gets the
+rows as text, laid out as `twk decode` prints them (`    0.012  out CUP
+cursor to row 3, column 5   ESC [3;5H`, a frame's own rows indented below
+it), only those the bar's filter shows now (directions, text runs, the word;
+a frame with the rows that match the word, all of them when its own row does).
+A `.cast` gets the bytes with their times as asciicast v2, `core/cast.ts`'s
+`CastWriter`, which `twk decode`, `twk play` and the replay here read: what the
+app wrote as `o` events, what the terminal sent as `i` events, and each note
+(an app came or went, a size, the extension's own lines) as an `m` event, which
+`twk decode` prints as `marker ...` and a player can go to. The header has the
+terminal's size now, its name, the log's beginning as the timestamp, `TERM`
+and `idle_time_limit` 2; the times are the log's real ones (not cut: a player
+applies the limit). The direction toggles of the bar apply to the bytes too
+(no `o` events when the app's rows are off, and so on); the word and the text
+runs do not, as a byte stream cut by what a decoder named in it would break its
+sequences. Both hold what the log holds: Clear forgets the bytes behind it too,
+and the last 4 MB of bytes and 20000 entries are all there is. The command
+takes the file as its argument and `{ format: 'text' | 'cast', filter }` as the
+second (a test passes them in place of the dialog); without a filter it uses
+the one the log's webview last told (`shown`), the whole log before it did.
+Code: `core/seqlog_save.ts` (`logText`, `logCast`), `LogPanel.text` and `.cast`.
 
 **Recording.** twk: Record asks where (`counter.cast` in the workspace
 folder by default) and records from then on: what was written to the
@@ -363,7 +387,7 @@ not run: TCP on the loopback interface on Windows); a person's use beyond
 the tests (keys VS Code takes before the webview: Ctrl+P, Ctrl+Shift+P
 while the panel is focused); kitty's graphics protocol (not in the image
 addon for xterm.js 6.0), ambiguous width 2 and bidi (part 3); the render
-tree in the inspector; the log saved to a file; a recording's markers (`m`) shown as places to go
+tree in the inspector; a recording's markers (`m`) shown as places to go
 to (they are read, and played over); keys of the window's own menu
 (below); the keys and the drag of the selection, and the paste, in a real
 person's hands (the tests drive what the page sends, not its keys).
@@ -1533,6 +1557,12 @@ Tests (unit):
   update begins and ends; the bytes shown.
 - `core/seqlog.test.ts` (3): entries, a frame of an update with its own
   and its summary, one across reads, the limits.
+- `core/seqlog_save.test.ts` (7): the text rows as `twk decode` lays them out,
+  the filter (direction, text runs, word, a frame's matching rows), controls
+  blanked; the asciicast (header, `o`/`i`/`m` at their times, read by
+  `parseCast`, decoded again into the same entries, a direction left out, a
+  character cut between reads); in `log_panel.test.ts` the panel's text and
+  cast, the webview's filter, Clear, the Save button.
 - `app/log_panel.test.ts` (6, with `screens`): nothing sent before
   `ready`, then all, then at most every 100 ms; the extension's lines and
   the sizes as notes; clear; a webview loaded again; the terminal's end;
@@ -1575,7 +1605,7 @@ replay, the screen copied"): the counter run; twk: Show the Sequence Log;
 its webview's rows (`shown`) with `key Up` and the app's `text "1"` after
 it; the log beginning with the app's start (`DECSET 1049`, a frame, the
 probe's DA1 and the webview's answer); twk: Copy the Screen, the
-clipboard's text the screen's (`│ Count: 1 │`); twk: Record to a file,
+clipboard's text the screen's (`│ Count: 1 │`); twk: Save the Sequence Log to a text file and to a `.cast` (the key and the app's output in them; not run by the author); twk: Record to a file,
 the title `● recording`, Up, twk: Stop Recording, the header as cast.dart
 writes it, the key in it; q; twk: Play: the replay's terminal at the
 recording's size, played to its end on the alternate screen
@@ -1585,7 +1615,7 @@ run by the author): the counter run again, `twk.replayInput` of the file in
 `steps` (nothing typed, `Count: 1` after `twk.replayInputStep`, ended `done`),
 in `timed` (`Count: 2` by itself), a stop, and ended by the terminal closing.
 
-Not done: a person using it; the log's filter, pause and frames opened
+Not done: a person using it; the Save… button clicked and the save dialog (the test passes the file); the log's filter, pause and frames opened
 are the webview's, run in VS Code but not driven by a test (the test
 reads what it shows); the bar's buttons clicked (the test sends their
 messages); a recording with Dart-Code's debug session (its redraw is

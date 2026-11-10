@@ -28,6 +28,30 @@ export interface LogEntry {
   readonly children?: readonly LogEntry[];
 }
 
+/** What a log shows of its entries: which directions, the text runs, and a word (lower case) of the name or the bytes. */
+export interface LogFilter {
+  readonly out: boolean;
+  readonly in: boolean;
+  readonly note: boolean;
+  readonly text: boolean;
+  readonly word: string;
+}
+
+/** Nothing left out. */
+export const wholeLog: LogFilter = { out: true, in: true, note: true, text: true, word: '' };
+
+/** Whether the log shows [e] under [filter]: a frame also when one of its own matches the word. */
+export function entryMatches(e: LogEntry, filter: LogFilter): boolean {
+  if (!filter[e.direction] || (!filter.text && e.kind === 'text')) {
+    return false;
+  }
+  if (filter.word === '') {
+    return true;
+  }
+  const has = (x: LogEntry): boolean => x.name.toLowerCase().includes(filter.word) || x.raw.toLowerCase().includes(filter.word);
+  return has(e) || (e.children ?? []).some(has);
+}
+
 /** An open synchronized update: its entries, held until it ends. */
 interface Open {
   readonly time: number;

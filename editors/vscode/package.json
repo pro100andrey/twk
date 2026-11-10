@@ -169,6 +169,11 @@
         "icon": "$(list-flat)"
       },
       {
+        "command": "twk.saveLog",
+        "title": "Save the Sequence Log of the twk Terminal to a File (text, or asciicast with the bytes)",
+        "category": "twk"
+      },
+      {
         "command": "twk.copyScreen",
         "title": "Copy the twk Terminal's Screen as Text",
         "category": "twk",

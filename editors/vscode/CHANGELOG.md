@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- The sequence log saved to a file for a bug report: the log panel's Save… button, or twk: Save the Sequence Log of the twk Terminal to a File. A `.cast` gets the bytes with their times (asciicast: the app's output, what the terminal sent, the notes as markers) which `twk decode`, `twk play` and the replay here read; any other name gets the rows as text as `twk decode` prints them, as the bar's filter shows them.
+
 - Replay markers: the markers of a recording (`m` events: `twk record --marker-key`'s, this extension's, a hand-edited file's) are drawn on the replay bar's track with their labels as a tooltip, and `]` / `[` (or the bar's buttons, or a click on one) go to the next and the previous: paused, the screen as at the marker, each marker a stop even when several stand on one frame, as `twk play`; the bar names the marker reached. twk: Leave a Marker in the Recording of the twk Terminal (palette, while recording) leaves `marker <n>`.
 
 - Replay Input: an Escape inside a string that is no ST ends the string there, as a terminal does (the Alt+letter that opened it is a key, the rest is told afresh: an answer in it is left out), as `twk record --replay`, held to one golden with it.

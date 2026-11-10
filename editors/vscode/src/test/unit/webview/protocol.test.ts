@@ -130,6 +130,11 @@ describe('the webview protocol', () => {
     assert.ok(isFromLog({ type: 'clear' }));
     assert.ok(isFromLog({ type: 'shown', rows: 3, held: 0, last: ['a'] }));
     assert.equal(isFromLog({ type: 'shown', rows: 3, held: 0, last: [1] }), false);
+    assert.ok(isFromLog({ type: 'save' }));
+    const filter = { out: true, in: false, note: true, text: true, word: 'cup' };
+    assert.ok(isFromLog({ type: 'shown', rows: 3, held: 0, last: [], filter }));
+    assert.equal(isFromLog({ type: 'shown', rows: 3, held: 0, last: [], filter: { ...filter, word: 1 } }), false);
+    assert.equal(isFromLog({ type: 'shown', rows: 3, held: 0, last: [], filter: 'all' }), false);
     assert.equal(isFromLog({ type: 'entries', entries: [] }), false);
     assert.equal(isFromLog(null), false);
   });

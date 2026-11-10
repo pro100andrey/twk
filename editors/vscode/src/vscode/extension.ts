@@ -33,6 +33,8 @@ import { InspectNode, toggleItems, togglesPicked } from '../core/inspect';
 import { editorCommandOf } from '../core/editor';
 import { Disposable, realClock } from '../core/events';
 import { HotStatus } from '../core/hot';
+import { LogFilter } from '../core/seqlog';
+import { isFilter } from '../webview/log_protocol';
 import { startNodeProcess } from '../core/process';
 import { projectOf } from '../core/project';
 import { describeSwitches, switchItems, switchesPicked } from '../core/switches';
@@ -373,6 +375,37 @@ export function activate(context: vscode.ExtensionContext): Api {
 
   command('twk.showAppLogs', async () => appLogsView.show());
   command('twk.showLog', async () => logs.show(theScreen()));
+  // Saves a sequence log to a file: the file given or picked (a `.cast` is the bytes with their times, as asciicast; any other
+  // the rows as text), the filter given or the one its webview applies; answers what it wrote
+  const saveLog = async (panel: LogPanel, uri?: vscode.Uri, options?: { readonly format?: unknown; readonly filter?: unknown }) => {
+    const folder = vscode.workspace.workspaceFolders?.[0]?.uri;
+    const base = `${path.basename(panel.screen.name, '.dart')}.sequence-log.txt`;
+    const file =
+      uri ??
+      (await vscode.window.showSaveDialog({
+        title: `Save the sequence log of ${panel.screen.name}`,
+        ...(folder ? { defaultUri: vscode.Uri.joinPath(folder, base) } : {}),
+        filters: { 'sequence log (text rows)': ['txt', 'log'], 'asciicast (bytes with times)': ['cast'] },
+      }));
+    if (!file) {
+      return undefined;
+    }
+    const format = options?.format === 'text' || options?.format === 'cast' ? options.format : file.fsPath.endsWith('.cast') ? 'cast' : 'text';
+    const filter: LogFilter | undefined = isFilter(options?.filter) ? options.filter : undefined;
+    const content = format === 'cast' ? panel.cast(Date.now() / 1000, environmentOf(settings.capabilities().capabilities).TERM, filter) : panel.text(filter);
+    fs.writeFileSync(file.fsPath, content);
+    vscode.window.setStatusBarMessage(`twk: the sequence log of ${panel.screen.name} saved to ${path.basename(file.fsPath)}`, 5000);
+    return { file: file.fsPath, format, bytes: Buffer.byteLength(content) };
+  };
+  command('twk.saveLog', async (uri, options) => {
+    const screen = theScreen();
+    return saveLog(logs.of(screen) ?? logs.show(screen), uri, options as { format?: unknown; filter?: unknown } | undefined);
+  });
+  context.subscriptions.push(
+    logs.onDidAskSave((panel) => {
+      saveLog(panel).catch((e: unknown) => void vscode.window.showErrorMessage(`twk: ${e instanceof Error ? e.message : String(e)}`));
+    }),
+  );
   command('twk.copyScreen', async () => {
     const screen = theScreen();
     const text = screenText(await screen.view.snapshot());

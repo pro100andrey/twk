@@ -10,6 +10,7 @@ import * as path from 'node:path';
 
 import * as vscode from 'vscode';
 
+import { parseCast } from '../../core/cast';
 import type { Api } from '../../vscode/extension';
 import type { HotStatus } from '../../core/hot';
 import type { Snapshot } from '../../app/ports';
@@ -919,6 +920,21 @@ describe('the sequence log, recording and replay, the screen copied', () => {
     assert.ok(names.some((n) => /^frame \d+: /.test(n)), 'its first frame');
     assert.ok(names.some((n) => n.startsWith('DA1 query')), 'the probe');
     assert.ok(names.some((n) => n.startsWith('DA1 answer')), "the webview's answer");
+
+    // the log saved to files (the dialog's answer is the argument): the rows as text, and the bytes as asciicast that parseCast reads
+    const logText = vscode.Uri.file(path.join(casts, 'counter.sequence-log.txt'));
+    const savedText = await vscode.commands.executeCommand<{ file: string; format: string }>('twk.saveLog', logText);
+    assert.equal(savedText.format, 'text');
+    const rows = fs.readFileSync(logText.fsPath, 'utf8');
+    assert.match(rows, / in {2}key Up /, rows);
+    assert.match(rows, / out frame \d+: /, rows);
+    const logCast = vscode.Uri.file(path.join(casts, 'counter.log.cast'));
+    const savedCast = await vscode.commands.executeCommand<{ file: string; format: string }>('twk.saveLog', logCast);
+    assert.equal(savedCast.format, 'cast');
+    const saved = parseCast(fs.readFileSync(logCast.fsPath, 'utf8'));
+    assert.deepEqual([saved.header.title, saved.header.env?.TERM], ['counter.dart', 'xterm-256color']);
+    assert.ok(saved.events.some((e) => e.code === 'i' && e.data === '\x1b[A'), 'the key');
+    assert.ok(saved.events.some((e) => e.code === 'o' && e.data.includes('Count: 1')), 'the app output');
 
     // the screen copied, to VS Code's clipboard
     const copied = await vscode.commands.executeCommand<string>('twk.copyScreen');
