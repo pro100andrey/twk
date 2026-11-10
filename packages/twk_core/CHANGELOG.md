@@ -8,8 +8,16 @@ Changed:
   and `Shot`'s); the warning still goes to `onLog`. Nor do the inline
   commits (`TwkApp.commit`, a line written to the scrollback) and
   `Shot`'s captures (twk_test): they are made by `PipelineOwner.forData`.
+- In a debug run a `RenderFlex` logs a warning, once, when a flexible
+  child (`Expanded`, `Flexible`) is laid out by its content because the
+  main axis is unbounded, and the app logs one, once per character, when
+  `Canvas.text` drops a control character (an ESC leaves `[31m` as
+  letters), pointing at `Text` with spans.
 
 Added:
+
+- `Canvas.onDroppedControl`, told in a debug run the first time `text`
+  drops each control character; `TwkApp` sets it to its log.
 
 - `PipelineOwner.forData`, a constructor for an owner whose output is data
   (what `renderToString` returns, a line written to a pipe or a file, a
@@ -87,6 +95,9 @@ Added:
 
 Fixed:
 
+- `LogRecord.toString` leaves out an error that is `LogData`, as the
+  console, `toJson` and the log view do: an overflow report was printed
+  twice.
 - A layout bug found after `performLayout` (a size outside the constraints,
   an intrinsic size against the contract) is the error box of the object
   that has it also when the owner lays it out alone (a relayout boundary

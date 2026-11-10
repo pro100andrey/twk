@@ -11,6 +11,10 @@ Fixed:
   pushed since the last check, not every line of the scrollback (a resize and
   `debugAssertInvariants()` check all).
 - `TerminalEmulator.debugCorrupt` does nothing outside a debug run.
+- `TerminalSession.resize` gave the program's terminal the size asked for
+  where the emulator kept at least one column and row: `resize(0, 0)`
+  outside a `TerminalView` threw a `RangeError` from `Pty.resize`. Both
+  get the size kept.
 
 Added:
 

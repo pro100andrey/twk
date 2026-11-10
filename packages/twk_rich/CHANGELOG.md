@@ -37,6 +37,9 @@ Fixed:
   lays out the row added alone (an append to 2000 rows took 23 ms, now
   1 ms; to 10 rows 0.5 ms, now 0.3), and no longer asks the terminal for
   the mouse's drags.
+- `DiffView` asserts, in a debug run, that each hunk's `oldCount` and
+  `newCount` are the lines it has, naming the hunk: the line numbers after
+  a hunk built by hand with the wrong counts drifted without a word.
 
 ## 0.3.0
 

@@ -59,7 +59,11 @@ Changed:
   not dispose); a controller served by two widgets in the tree at once,
   checked after the build; two choices with one value in `Select`,
   `MultiSelect` and `SegmentedButton`, two items with one key in
-  `SelectionList`, two rows with one `rowKey` in `Table`.
+  `SelectionList`, two rows with one `rowKey` in `Table`; `requestFocus`
+  on a disposed `FocusNode`; `StepperController.next`, `back` or `goTo`
+  after its dispose (a validator that resolves after it stays silent); a
+  negative `duration`, `reverseDuration`, `animateTo` duration or
+  `repeat` period of an `AnimationController` (`Duration.zero` jumps).
 - Tree warnings (a flex, wrap or grid overflow, a viewport or list given
   no room) name the widget path of the render object that raised them.
 
@@ -170,6 +174,13 @@ Fixed:
   line without making a list.
 - The debug console shows an overflow report's text once, not again as
   its error.
+- `NumberInput` and `DatePicker` keep a value handed over that the parent
+  has not taken across a rebuild for another reason: Escape still gives
+  back the value from before the typing, and the focus leaving gives it
+  up.
+- A `ControllerHost` whose `timerOf` answers null has no clock, as its
+  doc says, a `State` host too; the app's clock is a `State`'s default
+  only where no `timerOf` is given.
 
 ## 0.3.0
 
