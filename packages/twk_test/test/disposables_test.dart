@@ -12,7 +12,8 @@ import 'package:twk_test/twk_test.dart' show runProcess;
 void main() {
   test('trackDisposables fails a test that left a controller undisposed, '
       'naming it and where it was made; off, or with all disposed, it '
-      'passes; a test that failed reports its own error', () async {
+      'passes, an object a tear-down disposes counted as disposed; a test '
+      'that failed reports its own error', () async {
     final run = await runProcess(Platform.resolvedExecutable, [
       'test',
       '--reporter=json',
@@ -51,6 +52,7 @@ void main() {
       'a controller left undisposed': 'failure',
       'a controller left undisposed, tracking off': 'success',
       'every controller disposed': 'success',
+      'disposed by a tear-down': 'success',
       'a test that fails': 'failure',
       'a timer left running': 'failure',
       'a timer left running, checking off': 'success',

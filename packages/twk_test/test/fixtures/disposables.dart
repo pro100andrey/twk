@@ -46,6 +46,12 @@ void main() {
     await t.pumpWidget(const Owner(leak: false));
   });
 
+  testTwk('disposed by a tear-down', trackDisposables: true, (t) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await t.pumpWidget(const Owner(leak: false));
+  });
+
   testTwk('a test that fails', trackDisposables: true, (t) async {
     await t.pumpWidget(const Owner(leak: true));
     fail('its own');

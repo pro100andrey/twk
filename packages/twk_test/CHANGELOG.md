@@ -11,7 +11,8 @@ Added:
   of what an overflow shows; a layout that clips on purpose says so with
   `overflowIntended`.
 - `testTwk(trackDisposables: true)` (off by default) fails the test, once
-  its app is quit, naming each controller or notifier made during it and not
+  its app is quit and its tear-downs ran (an `addTearDown(x.dispose)`
+  counts), naming each controller or notifier made during it and not
   disposed, with the stack that made it (`DisposalTracker` of twk).
 - `testTwk(failOnPendingTimers:)` fails the test when a timer of its clock
   still waits one frame after the app is quit (a `Timer.periodic` left

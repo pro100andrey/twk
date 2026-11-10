@@ -62,8 +62,9 @@ import 'screen_text.dart';
 /// screen shows none of.
 ///
 /// With [trackDisposables] (off by default) the test also fails when, after
-/// the app is quit, a controller or notifier made during it was never
-/// disposed (a `ScrollController`, a `TextEditingController`, a
+/// the app is quit and the test's tear-downs ran (an
+/// `addTearDown(x.dispose)` counts), a controller or notifier made during
+/// it was never disposed (a `ScrollController`, a `TextEditingController`, a
 /// `FocusNode`, an `AnimationController`, any `ValueNotifier`, and the
 /// classes of the app that join a `DisposalTracker`), naming each with the
 /// stack that made it. An app-owned singleton that outlives the test is not
@@ -100,10 +101,22 @@ void testTwk(
   description,
   () async {
     final tracker = trackDisposables ? DisposalTracker.start() : null;
+    // checked as the last tear-down (they run last first), so what the
+    // test's own tear-downs dispose is disposed; not where the test
+    // failed already, which reports its own error
+    var failed = false;
+    if (tracker != null) {
+      addTearDown(() {
+        if (!failed) {
+          _failOnUndisposed(tracker);
+        }
+      });
+    }
     final t = TwkTester._();
     try {
       await runZoned(() => body(t), zoneValues: {_testerKey: t});
     } on Object {
+      failed = true;
       tracker?.stop();
       t._printOnFailure(framesOnFailure);
       try {
@@ -120,11 +133,11 @@ void testTwk(
       if (failOnOverflow) {
         t._failOnOverflows();
       }
-      _failOnUndisposed(tracker);
       if (failOnPendingTimers) {
         await t._failOnPendingTimers();
       }
     } on Object {
+      failed = true;
       tracker?.stop();
       t._printOnFailure(framesOnFailure);
       rethrow;
