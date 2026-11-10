@@ -66,6 +66,8 @@ void main() {
               log.output(time, bytesOf(e['bytes']! as String));
             case 'in':
               log.input(time, bytesOf(e['bytes']! as String));
+            case 'end':
+              log.finish(time);
             default:
               log.note(time, e['note']! as String);
           }

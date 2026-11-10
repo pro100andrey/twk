@@ -2050,6 +2050,231 @@
           "name": "PM pm"
         }
       ]
+    },
+    {
+      "name": "alt multibyte key",
+      "direction": "in",
+      "description": "Alt and a character of two bytes is one key",
+      "chunks": [
+        "1bc3a9"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1bc3a9",
+          "name": "key Alt+é"
+        }
+      ]
+    },
+    {
+      "name": "esc multibyte",
+      "direction": "out",
+      "description": "ESC and a character of two bytes: its final is the whole character",
+      "chunks": [
+        "1bc3a9"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1bc3a9",
+          "name": "ESC é"
+        }
+      ]
+    },
+    {
+      "name": "esc multibyte split",
+      "direction": "out",
+      "description": "the character cut between reads: the ESC waits for it",
+      "chunks": [
+        "1bc3",
+        "a9"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1bc3a9",
+          "name": "ESC é"
+        }
+      ]
+    },
+    {
+      "name": "esc esc",
+      "direction": "out",
+      "description": "ESC does not end an ESC: the first is alone, the second begins a CSI",
+      "chunks": [
+        "1b1b5b41"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "ESC alone"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b41",
+          "name": "CUU cursor up 1"
+        }
+      ]
+    },
+    {
+      "name": "esc esc key",
+      "direction": "in",
+      "description": "a doubled ESC is two Escape keys",
+      "chunks": [
+        "1b1b"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        }
+      ]
+    },
+    {
+      "name": "alt control keys",
+      "direction": "in",
+      "description": "Alt with Enter, Tab, Backspace, Ctrl+X and Ctrl+Space are named, not printed",
+      "chunks": [
+        "1b0d1b091b7f1b181b00"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b0d",
+          "name": "key Alt+Enter"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b09",
+          "name": "key Alt+Tab"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b7f",
+          "name": "key Alt+Backspace"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b18",
+          "name": "key Alt+Ctrl+X"
+        },
+        {
+          "kind": "esc",
+          "raw": "1b00",
+          "name": "key Alt+Ctrl+Space"
+        }
+      ]
+    },
+    {
+      "name": "csi without a final",
+      "direction": "out",
+      "description": "a byte that cannot end a CSI ends it as invalid and is read afresh",
+      "chunks": [
+        "1b5b311b5b324a"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b5b31",
+          "name": "ESC ["
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b324a",
+          "name": "ED erase the screen all"
+        }
+      ]
+    },
+    {
+      "name": "csi cut by a control",
+      "direction": "out",
+      "description": "a control character inside the parameters is read afresh as well",
+      "chunks": [
+        "1b5b310a41"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b5b31",
+          "name": "ESC ["
+        },
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
+        },
+        {
+          "kind": "text",
+          "raw": "41",
+          "name": "text \"A\""
+        }
+      ]
+    },
+    {
+      "name": "f3 or a position",
+      "direction": "in",
+      "description": "CSI 1;5 R by bytes alone is the F3 key with Ctrl, or the cursor on row 1 at column 5: the name says it cannot tell",
+      "chunks": [
+        "1b5b313b3552"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b313b3552",
+          "name": "key Ctrl+F3, or a CPR answer: the cursor at row 1, column 5"
+        }
+      ]
+    },
+    {
+      "name": "character cut by a control",
+      "direction": "out",
+      "description": "the first byte of a character before a control character is not completed by the text after it",
+      "chunks": [
+        "41e20a82ac"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "41e2",
+          "name": "text \"A�\""
+        },
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
+        },
+        {
+          "kind": "text",
+          "raw": "82ac",
+          "name": "text \"��\""
+        }
+      ]
+    },
+    {
+      "name": "string split many times",
+      "direction": "out",
+      "description": "a string cut into many reads is one token once it ends",
+      "chunks": [
+        "1b50",
+        "71",
+        "2222",
+        "1b",
+        "5c"
+      ],
+      "tokens": [
+        {
+          "kind": "dcs",
+          "raw": "1b507122221b5c",
+          "name": "DCS sixel image (3 bytes)"
+        }
+      ]
     }
   ],
   "logs": [
@@ -2683,6 +2908,270 @@
               "bytes": 11
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "an update not closed",
+      "description": "at the end of the traffic an open update is a frame that says so",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "6265666f72651b5b3f32303236681b5b486c6f7374"
+        },
+        {
+          "time": 4,
+          "direction": "end"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "text",
+          "name": "text \"before\"",
+          "raw": "before",
+          "bytes": 6
+        },
+        {
+          "id": 4,
+          "time": 1,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 1 DECSET, 1 CUP, 1 text, 3 ms, not closed",
+          "raw": "15 bytes",
+          "bytes": 15,
+          "children": [
+            {
+              "id": 1,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 2,
+              "time": 1,
+              "direction": "out",
+              "kind": "csi",
+              "name": "CUP cursor to row 1, column 1",
+              "raw": "ESC [H",
+              "bytes": 3
+            },
+            {
+              "id": 3,
+              "time": 1,
+              "direction": "out",
+              "kind": "text",
+              "name": "text \"lost\"",
+              "raw": "lost",
+              "bytes": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "output cut short",
+      "description": "what the app wrote unfinished is a note at the end",
+      "events": [
+        {
+          "time": 2,
+          "direction": "out",
+          "bytes": "1b5d303b6869"
+        },
+        {
+          "time": 3,
+          "direction": "end"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 3,
+          "direction": "note",
+          "kind": "note",
+          "name": "output cut short: ESC ]0;hi",
+          "raw": "",
+          "bytes": 6
+        }
+      ]
+    },
+    {
+      "name": "a stray end of an update",
+      "description": "a reset with no update open is noted, and the next update is a frame whole",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b3f323032366c"
+        },
+        {
+          "time": 2,
+          "direction": "out",
+          "bytes": "1b5b3f32303236681b5b324a1b5b3f323032366c"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DECRST 2026 synchronized output",
+          "raw": "ESC [?2026l",
+          "bytes": 8
+        },
+        {
+          "id": 1,
+          "time": 1,
+          "direction": "note",
+          "kind": "note",
+          "name": "no synchronized update is open: CSI ? 2026 l ignored",
+          "raw": "",
+          "bytes": 0
+        },
+        {
+          "id": 5,
+          "time": 2,
+          "direction": "out",
+          "kind": "frame",
+          "name": "frame 1: 1 DECSET, 1 ED, 1 DECRST",
+          "raw": "20 bytes",
+          "bytes": 20,
+          "children": [
+            {
+              "id": 2,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECSET 2026 synchronized output",
+              "raw": "ESC [?2026h",
+              "bytes": 8
+            },
+            {
+              "id": 3,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "ED erase the screen all",
+              "raw": "ESC [2J",
+              "bytes": 4
+            },
+            {
+              "id": 4,
+              "time": 2,
+              "direction": "out",
+              "kind": "csi",
+              "name": "DECRST 2026 synchronized output",
+              "raw": "ESC [?2026l",
+              "bytes": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a position asked",
+      "description": "CSI 1;5 R after a cursor position query is its answer, once; then it is F3",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b366e"
+        },
+        {
+          "time": 2,
+          "direction": "in",
+          "bytes": "1b5b313b3552"
+        },
+        {
+          "time": 3,
+          "direction": "in",
+          "bytes": "1b5b313b3552"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DSR query: the cursor position",
+          "raw": "ESC [6n",
+          "bytes": 4
+        },
+        {
+          "id": 1,
+          "time": 2,
+          "direction": "in",
+          "kind": "csi",
+          "name": "CPR answer: the cursor at row 1, column 5",
+          "raw": "ESC [1;5R",
+          "bytes": 6
+        },
+        {
+          "id": 2,
+          "time": 3,
+          "direction": "in",
+          "kind": "csi",
+          "name": "key Ctrl+F3",
+          "raw": "ESC [1;5R",
+          "bytes": 6
+        }
+      ]
+    },
+    {
+      "name": "a position given up",
+      "description": "a key typed after the query gives it up: CSI 1;5 R is F3",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b366e"
+        },
+        {
+          "time": 2,
+          "direction": "in",
+          "bytes": "78"
+        },
+        {
+          "time": 3,
+          "direction": "in",
+          "bytes": "1b5b313b3552"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DSR query: the cursor position",
+          "raw": "ESC [6n",
+          "bytes": 4
+        },
+        {
+          "id": 1,
+          "time": 2,
+          "direction": "in",
+          "kind": "text",
+          "name": "key x",
+          "raw": "x",
+          "bytes": 1
+        },
+        {
+          "id": 2,
+          "time": 3,
+          "direction": "in",
+          "kind": "csi",
+          "name": "key Ctrl+F3",
+          "raw": "ESC [1;5R",
+          "bytes": 6
         }
       ]
     }

@@ -33,7 +33,20 @@ character, bytes above 0x7E in hex):
 
 A synchronized update (`CSI ? 2026 h` to `CSI ? 2026 l`) is a frame: a row
 `frame 3: 12 CUP, 9 text, ..., 4 ms` with the bytes it holds, and its own rows
-indented below it. `--frames` keeps the frame rows only.
+indented below it. `--frames` keeps the frame rows only. A frame still open
+where the traffic ends (a truncated trace, a crash before `?2026l`) is a row
+ending `not closed`, and a string or sequence the app's last write left
+unfinished is a note `output cut short: ...`; a `?2026l` with no update open is
+ignored, with a note.
+
+Every row is shown, however many, and every name and byte string is printed
+escaped (`^[` for ESC, `\x9b` for a C1 control), so a title or notification a
+file holds never acts on the terminal it is shown in.
+
+`CSI 1 ; n R` is the F3 key with modifiers n, or the cursor-position answer
+for row 1: it is the answer when the app's output asked `CSI 6 n` and it has
+not been answered, else the key; with no output to tell by, the name gives
+both.
 
 | Option | Meaning |
 | --- | --- |

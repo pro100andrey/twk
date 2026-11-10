@@ -2,6 +2,7 @@
 
 ## 0.1.0
 
+- The sequence log: a stray `?2026l` no longer breaks the frames after it (noted), `CSI 1;5 R` is the answer to a cursor-position query when the app asked for one and is not answered yet, else F3, Alt with Enter/Tab/Ctrl keys and with a multi-byte character are named and read whole, an invalid CSI ends where it breaks, text is decoded per token, and an unterminated string is scanned once; as `twk decode`, held to one golden.
 - twk: Show the Terminal Report: what the twk terminal tells an app and answers (environment, declared features, the probe's queries) for the current profile and switches, and the project part of `twk doctor --json` (twk package versions and whether they agree, Dart, running app files, the agents skill). `twk.command` says what `twk` is for it too.
 - `.tape` files: the language (highlighting, a hover on each statement), and
   the lenses Run (`twk tape`), Check (`twk tape --check`; a failed Wait or a

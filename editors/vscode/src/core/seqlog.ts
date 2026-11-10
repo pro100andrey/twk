@@ -66,6 +66,7 @@ export class SequenceLog {
   private frames = 0;
   private open: Open | undefined;
   private depth = 0;
+  private positionAsked = 0;
   private readonly limit: number;
   private readonly frameLimit: number;
 
@@ -82,7 +83,11 @@ export class SequenceLog {
       if (change > 0 && this.depth <= 0 && this.open === undefined) {
         this.open = { time, number: ++this.frames, entries: [], bytes: 0 };
       }
-      this.depth += change;
+      const stray = change < 0 && this.depth <= 0;
+      this.depth = Math.max(0, this.depth + change);
+      if (t.kind === 'csi' && t.final === 'n' && t.intermediates === '' && (t.prefix === '' || t.prefix === '?') && t.params === '6') {
+        this.positionAsked++;
+      }
       const open = this.open;
       if (open) {
         if (open.entries.length < this.frameLimit) {
@@ -94,6 +99,10 @@ export class SequenceLog {
         }
       } else {
         this.add(entry);
+        if (stray) {
+          // a capture that began inside a frame, or a frame lost its start
+          this.note(time, 'no synchronized update is open: CSI ? 2026 l ignored');
+        }
       }
     }
   }
@@ -101,7 +110,33 @@ export class SequenceLog {
   /** What the terminal sent at [time]: each read whole. */
   input(time: number, bytes: Uint8Array): void {
     for (const t of new SequenceReader(true).read(bytes)) {
-      this.add(this.entry(time, 'in', t.kind, describeInput(t), t.raw));
+      // a CSI 1 ; n R is the answer to a position query asked and not yet answered (as twk_dev's replay InputSplitter tells), else the F3 key;
+      // a key typed gives the queries up
+      const entry = this.entry(time, 'in', t.kind, describeInput(t, this.positionAsked > 0), t.raw);
+      if (t.kind === 'csi' && t.final === 'R' && t.prefix === '') {
+        if (this.positionAsked > 0 && t.params.includes(';')) {
+          this.positionAsked--;
+        }
+      } else if (t.kind === 'text' || t.kind === 'control' || t.kind === 'esc' || t.kind === 'ss3' || t.kind === 'mouse') {
+        this.positionAsked = 0;
+      }
+      this.add(entry);
+    }
+  }
+
+  /**
+   * The traffic ended at [time]: a synchronized update still open is closed as a frame saying so, and what the app's last write left
+   * unfinished (an OSC, a DCS, a CSI without its end) is a note saying it was cut short.
+   */
+  finish(time: number): void {
+    const open = this.open;
+    if (open) {
+      this.closeFrame(open, time, false);
+      this.depth = 0;
+    }
+    const waiting = this.out.waiting;
+    if (waiting !== '') {
+      this.add({ id: this.nextId++, time, direction: 'note', kind: 'note', name: `output cut short: ${visible(waiting, 60)}`, raw: '', bytes: waiting.length });
     }
   }
 
@@ -132,7 +167,7 @@ export class SequenceLog {
     return { id: this.nextId++, time, direction, kind, name, raw: visible(raw), bytes: raw.length };
   }
 
-  private closeFrame(open: Open, time: number): void {
+  private closeFrame(open: Open, time: number, closed = true): void {
     this.open = undefined;
     const cut = open.entries.length >= this.frameLimit ? ` (the first ${this.frameLimit} entries)` : '';
     const ms = time - open.time;
@@ -141,7 +176,7 @@ export class SequenceLog {
       time: open.time,
       direction: 'out',
       kind: 'frame',
-      name: `frame ${open.number}: ${summary(open.entries)}${cut}${ms > 0 ? `, ${ms} ms` : ''}`,
+      name: `frame ${open.number}: ${summary(open.entries)}${cut}${ms > 0 ? `, ${ms} ms` : ''}${closed ? '' : ', not closed'}`,
       raw: `${open.bytes} bytes`,
       bytes: open.bytes,
       children: open.entries,

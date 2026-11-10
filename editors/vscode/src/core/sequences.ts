@@ -47,6 +47,30 @@ const latin1 = (bytes: Uint8Array, from: number, to: number): string => {
   return s;
 };
 
+/** How many bytes at the end of `d[from..to]` are the start of a UTF-8 character that its next bytes complete (0 when it ends whole). */
+function incompleteTail(d: Uint8Array, from: number, to: number): number {
+  for (let k = 1; k <= 3 && to - k >= from; k++) {
+    const b = d[to - k];
+    if ((b & 0xc0) === 0x80) {
+      continue;
+    }
+    const need = b >= 0xf0 && b <= 0xf4 ? 4 : b >= 0xe0 && b < 0xf0 ? 3 : b >= 0xc2 && b < 0xe0 ? 2 : 1;
+    return need > k ? k : 0;
+  }
+  return 0;
+}
+
+/** How many bytes the UTF-8 character that starts at `d[i]` has, as far as [d] shows it: 1 for ASCII and for a byte that starts none, fewer than it needs where [d] ends in it or a byte that is no continuation comes. */
+function characterLength(d: Uint8Array, i: number): number {
+  const b = d[i];
+  const need = b >= 0xf0 && b <= 0xf4 ? 4 : b >= 0xe0 && b < 0xf0 ? 3 : b >= 0xc2 && b < 0xe0 ? 2 : 1;
+  let n = 1;
+  while (n < need && i + n < d.length && (d[i + n] & 0xc0) === 0x80) {
+    n++;
+  }
+  return n;
+}
+
 const strings: Record<number, 'osc' | 'dcs' | 'apc' | 'pm' | 'sos'> = { 0x5d: 'osc', 0x50: 'dcs', 0x5f: 'apc', 0x5e: 'pm', 0x58: 'sos' };
 
 /**
@@ -58,12 +82,16 @@ const strings: Record<number, 'osc' | 'dcs' | 'apc' | 'pm' | 'sos'> = { 0x5d: 'o
  */
 export class SequenceReader {
   private pending: Uint8Array = new Uint8Array(0);
-  private readonly decoder = new TextDecoder('utf-8');
+  /** How far into [pending] an unterminated string was scanned for its end, so the next read goes on from there. */
+  private scanned = 0;
+  /** The bytes of a character cut off at the end of the last read's text: the start of the next read's text, if that begins with text. */
+  private carry: Uint8Array = new Uint8Array(0);
 
   constructor(private readonly input = false) {}
 
   /** The tokens of [bytes], with what waited from the read before. */
   read(bytes: Uint8Array): Token[] {
+    const resumeAt = this.scanned;
     let data = bytes;
     if (this.pending.length > 0) {
       data = new Uint8Array(this.pending.length + bytes.length);
@@ -71,13 +99,29 @@ export class SequenceReader {
       data.set(bytes, this.pending.length);
       this.pending = new Uint8Array(0);
     }
+    this.scanned = 0;
+    const carried = this.carry;
+    this.carry = new Uint8Array(0);
     const tokens: Token[] = [];
     let i = 0;
     let textFrom = -1;
     const flushText = (to: number) => {
       if (textFrom >= 0) {
         const raw = latin1(data, textFrom, to);
-        const text = this.decoder.decode(data.subarray(textFrom, to), { stream: true });
+        let end = to;
+        if (to === data.length) {
+          // a character cut off by the end of the read is the next read's
+          end = to - incompleteTail(data, textFrom, to);
+          this.carry = data.slice(end, to);
+        }
+        let body = data.subarray(textFrom, end);
+        if (textFrom === 0 && carried.length > 0) {
+          const joined = new Uint8Array(carried.length + body.length);
+          joined.set(carried);
+          joined.set(body, carried.length);
+          body = joined;
+        }
+        const text = new TextDecoder('utf-8').decode(body);
         textFrom = -1;
         if (text !== '') {
           tokens.push({ kind: 'text', raw, text });
@@ -88,7 +132,7 @@ export class SequenceReader {
       const b = data[i];
       if (b === ESC) {
         flushText(i);
-        const t = this.escape(data, i);
+        const t = this.escape(data, i, i === 0 ? resumeAt : 0);
         if (t === undefined) {
           this.pending = data.slice(i);
           return tokens;
@@ -116,14 +160,14 @@ export class SequenceReader {
   }
 
   /** The escape sequence at [i] and where it ends; undefined when [d] ends inside it (output) . */
-  private escape(d: Uint8Array, i: number): { token: Token; end: number } | undefined {
+  private escape(d: Uint8Array, i: number, scanned: number): { token: Token; end: number } | undefined {
     if (i + 1 >= d.length) {
       return this.input ? { token: { kind: 'esc', raw: '\x1b', intermediates: '', final: '' }, end: i + 1 } : undefined;
     }
     const b1 = d[i + 1];
     const kind = strings[b1];
     if (kind !== undefined) {
-      return this.string(d, i, kind);
+      return this.string(d, i, kind, scanned);
     }
     if (b1 === 0x5b) {
       return this.csi(d, i);
@@ -139,10 +183,22 @@ export class SequenceReader {
     while (j < d.length && d[j] >= 0x20 && d[j] <= 0x2f) {
       j++;
     }
+    if (j < d.length && d[j] === ESC) {
+      // ESC does not end an ESC sequence: it is a new one's start
+      return { token: { kind: 'esc', raw: latin1(d, i, j), intermediates: latin1(d, i + 1, j), final: '' }, end: j };
+    }
     if (j >= d.length) {
       return this.input ? { token: { kind: 'esc', raw: latin1(d, i, j), intermediates: latin1(d, i + 1, j), final: '' }, end: j } : undefined;
     }
-    return { token: { kind: 'esc', raw: latin1(d, i, j + 1), intermediates: latin1(d, i + 1, j), final: String.fromCharCode(d[j]) }, end: j + 1 };
+    // the final is a whole character: Alt+é is ESC and the two bytes of é
+    const cut = incompleteTail(d, j, d.length);
+    if (cut > 0 && cut === d.length - j && !this.input) {
+      return undefined;
+    }
+    const length = characterLength(d, j);
+    const end = j + length;
+    const final = length === 1 ? String.fromCharCode(d[j]) : new TextDecoder('utf-8').decode(d.subarray(j, end));
+    return { token: { kind: 'esc', raw: latin1(d, i, end), intermediates: latin1(d, i + 1, j), final }, end };
   }
 
   private csi(d: Uint8Array, i: number): { token: Token; end: number } | undefined {
@@ -157,6 +213,10 @@ export class SequenceReader {
     }
     if (j >= d.length) {
       return this.input ? { token: { kind: 'esc', raw: latin1(d, i, j), intermediates: '', final: '[' }, end: j } : undefined;
+    }
+    if (d[j] < 0x40 || d[j] > 0x7e) {
+      // no final: the CSI is invalid, and what follows is read afresh
+      return { token: { kind: 'esc', raw: latin1(d, i, j), intermediates: '', final: '[' }, end: j };
     }
     let params = latin1(d, paramFrom, paramTo);
     let prefix = '';
@@ -177,8 +237,10 @@ export class SequenceReader {
   }
 
   /** A string of [kind]: OSC up to BEL or ST, the others up to ST, an ESC doubled inside tmux's passthrough. */
-  private string(d: Uint8Array, i: number, kind: 'osc' | 'dcs' | 'apc' | 'pm' | 'sos'): { token: Token; end: number } | undefined {
-    for (let j = i + 2; j < d.length; j++) {
+  private string(d: Uint8Array, i: number, kind: 'osc' | 'dcs' | 'apc' | 'pm' | 'sos', scanned: number): { token: Token; end: number } | undefined {
+    // [scanned] bytes of it were looked through for its end already
+    let j = i + 2 + (scanned > 2 ? scanned - 2 : 0);
+    for (; j < d.length; j++) {
       if (kind === 'osc' && d[j] === BEL) {
         return { token: { kind, raw: latin1(d, i, j + 1), body: latin1(d, i + 2, j) }, end: j + 1 };
       }
@@ -198,6 +260,8 @@ export class SequenceReader {
     if (this.input) {
       return { token: { kind, raw: latin1(d, i, d.length), body: latin1(d, i + 2, d.length) }, end: d.length };
     }
+    // the next read goes on from here: a trailing ESC is looked at again
+    this.scanned = Math.min(j, d.length) - i;
     return undefined;
   }
 }
@@ -598,7 +662,7 @@ function describeEscOut(t: Extract<Token, { kind: 'esc' }>): string {
     '(0': 'G0 charset DEC line drawing',
     '#8': 'DECALN fill with E',
   };
-  return names[key] ?? `ESC ${key}`;
+  return names[key] ?? (key === '' ? 'ESC alone' : `ESC ${key}`);
 }
 
 /** What [t], written by the app, is. */
@@ -685,7 +749,7 @@ function mouseButton(b: number): string {
 }
 
 /** A CSI the terminal sent, named. */
-function describeCsiIn(t: Extract<Token, { kind: 'csi' }>): string {
+function describeCsiIn(t: Extract<Token, { kind: 'csi' }>, positionAsked: boolean | undefined): string {
   const { prefix, params, intermediates, final } = t;
   const n = numbers(params, 1);
   if (prefix === '<' && (final === 'M' || final === 'm') && intermediates === '') {
@@ -693,6 +757,12 @@ function describeCsiIn(t: Extract<Token, { kind: 'csi' }>): string {
     const what = mouseButton(b);
     const act = b & 32 ? '' : b >= 64 ? '' : final === 'M' ? ' press' : ' release';
     return `mouse ${what}${act} at column ${x}, row ${y}`;
+  }
+  if (final === 'R' && prefix === '' && intermediates === '' && params.includes(';') && n[0] === 1) {
+    // `CSI 1 ; m R` is the F3 key with modifiers m, and the cursor at row 1 and column m: only a query that asked for the position tells which
+    const key = `key ${modifiers(n[1])}F3`;
+    const answer = `CPR answer: the cursor at row 1, column ${n[1]}`;
+    return positionAsked === true ? answer : positionAsked === false ? key : `${key}, or a ${answer}`;
   }
   if (prefix === '' && intermediates === '') {
     if (cursorKeys[final] && (params === '' || n[0] === 1)) {
@@ -747,8 +817,33 @@ function describeCsiIn(t: Extract<Token, { kind: 'csi' }>): string {
   return `CSI ${prefix}${intermediates}${final}${params === '' ? '' : ` ${params}`}`;
 }
 
-/** What [t], sent by the terminal (typed, or answered), is. */
-export function describeInput(t: Token): string {
+/** The key an Alt+ [final] is: the control characters by their names. */
+function altKey(final: string): string {
+  if (final.length !== 1) {
+    return final;
+  }
+  const c = final.charCodeAt(0);
+  switch (c) {
+    case 0x0d:
+      return 'Enter';
+    case 0x09:
+      return 'Tab';
+    case 0x7f:
+    case 0x08:
+      return 'Backspace';
+    case 0x00:
+      return 'Ctrl+Space';
+    default:
+      return c < 0x20 ? `Ctrl+${String.fromCharCode(c + 0x40)}` : final;
+  }
+}
+
+/**
+ * What [t], sent by the terminal (typed, or answered), is. `CSI 1 ; n R` is a key (F3) or an answer (the cursor at row 1) by
+ * [positionAsked]: whether the app has asked for the cursor position and is not answered yet; undefined where that is not
+ * known, which the name says.
+ */
+export function describeInput(t: Token, positionAsked?: boolean): string {
   switch (t.kind) {
     case 'text':
       return t.text === ' ' ? 'key Space' : [...t.text].length === 1 ? `key ${t.text}` : `typed "${t.text}"`;
@@ -770,11 +865,11 @@ export function describeInput(t: Token): string {
       if (t.final === '' && t.intermediates === '') {
         return 'key Escape';
       }
-      return `key Alt+${t.intermediates}${t.final === '\x7f' ? 'Backspace' : t.final}`;
+      return `key Alt+${t.intermediates}${altKey(t.final)}`;
     case 'ss3':
       return `key ${cursorKeys[t.final] ?? `SS3 ${t.final}`}`;
     case 'csi':
-      return describeCsiIn(t);
+      return describeCsiIn(t, positionAsked);
     case 'osc':
       return describeOsc(t.body, true);
     case 'dcs':

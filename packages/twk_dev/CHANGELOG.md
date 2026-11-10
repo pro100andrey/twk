@@ -20,6 +20,17 @@ Added:
 
 Fixed:
 
+- `twk decode`: every name and byte string it prints is escaped (a title, a
+  notification or a C1 character in a recording no longer clears the screen,
+  sets a title or writes the clipboard of the terminal it is shown in); all
+  rows are shown, not the last 20000; a synchronized update or a string left
+  open at the end of the traffic is shown (`not closed`, `output cut short`);
+  a stray `?2026l` no longer breaks the frames after it; `CSI 1;5 R` is a
+  position answer when the output asked for one, else F3; Alt with Enter, Tab
+  or a Ctrl key and with a multi-byte character are named and read whole;
+  `ESC [ 1 ESC [ 2 J` is an invalid CSI and then an ED; a text token is
+  decoded from its own bytes and a long unterminated string is scanned once.
+  The extension's sequence log follows (one golden).
 - `twk completion`: the fish script no longer breaks on sourcing when an
   option's help ends in a backslash or has one before a quote; bash completes
   file names with spaces (or glob characters) as one candidate each; each

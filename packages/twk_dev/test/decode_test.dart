@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:twk_dev/src/decode.dart' show printable;
 import 'package:twk_dev/twk_dev.dart';
 
 import 'twk.dart';
@@ -165,5 +166,71 @@ void main() {
     final bad = await twkHere(['decode', '--grep=(', other.path]);
     expect(bad.exitCode, usageExitCode);
     expect(bad.stderr, contains('--grep: not a regular expression'));
+  });
+
+  test(
+    'no byte a file holds reaches the terminal as a control: names made '
+    'of a title, a notification or a C1 character are shown escaped',
+    () async {
+      final file = cast([
+        // a title that holds a screen clear and a clipboard write
+        (0.1, 'o', '$esc]0;$esc[2J$esc]52;c;aGk=\x07'),
+        (0.2, 'o', 'a\u009b2Jb\u0085'),
+        (0.3, 'o', '$esc]777;notify;t;$esc[31mred\x07'),
+        (0.4, 'i', '$esc\r'),
+        (0.5, 'm', 'mark$esc[2J'),
+      ]);
+
+      final r = await twkHere(['decode', file]);
+
+      expect(r.exitCode, 0, reason: '${r.stderr}');
+      final out = r.stdout as String;
+      final bad = out.runes.where(
+        (c) => c != 0x0a && (c < 0x20 || c == 0x7f || (c >= 0x80 && c <= 0x9f)),
+      );
+      expect(bad, isEmpty, reason: 'control characters in: $out');
+      expect(out, contains(r'^[[2J'));
+      expect(out, contains(r'\x9b'));
+      expect(out, contains('key Alt+Enter'));
+    },
+  );
+
+  test(
+    'printable shows C0, DEL, C1 and bidi controls, and leaves the rest',
+    () {
+      expect(printable('plain é 日本'), 'plain é 日本');
+      expect(printable('a\x1b[2J\x07\x7f'), 'a^[[2J^G^?');
+      expect(printable('\u009b\u009d\u0085'), r'\x9b\x9d\x85');
+      expect(printable('a‮b'), r'a\u{202e}b');
+    },
+  );
+
+  test('every row is shown: no cap of the live viewer', () async {
+    final file = cast([for (var i = 0; i < 20500; i++) (i / 1000, 'o', 'x')]);
+
+    final r = await twkHere(['decode', file]);
+
+    expect(rows(r), hasLength(20501));
+  });
+
+  test('a synchronized update and a string left open at the end are shown, '
+      'saying so', () async {
+    final file = cast([
+      (1.0, 'o', '$esc[?2026h$esc[H'),
+      (2.0, 'o', '$esc]0;hi'),
+    ]);
+
+    final r = await twkHere(['decode', '--frames', file]);
+
+    expect(rows(r).map(columns), [
+      ['0.000', '--', 'recording 80x24'],
+      [
+        '1.000',
+        'out',
+        'frame 1: 1 DECSET, 1 CUP, 1000 ms, not closed',
+        '11 bytes',
+      ],
+      ['2.000', '--', 'output cut short: ESC ]0;hi'],
+    ]);
   });
 }

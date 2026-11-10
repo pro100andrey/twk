@@ -8,8 +8,10 @@
 /// on the other until it follows.
 library;
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' show max;
 import 'dart:typed_data';
 
 import 'package:args/command_runner.dart';
@@ -85,6 +87,45 @@ final class SeqToken {
 String _latin1(Uint8List b, int from, int to) =>
     String.fromCharCodes(b, from, to);
 
+/// How many bytes at the end of `d[from..to]` are the start of a UTF-8
+/// character that its next bytes complete (0 when it ends whole).
+int _incompleteTail(Uint8List d, int from, int to) {
+  for (var k = 1; k <= 3 && to - k >= from; k++) {
+    final b = d[to - k];
+    if (b & 0xc0 == 0x80) {
+      continue;
+    }
+    final need = b >= 0xf0 && b <= 0xf4
+        ? 4
+        : b >= 0xe0 && b < 0xf0
+        ? 3
+        : b >= 0xc2 && b < 0xe0
+        ? 2
+        : 1;
+    return need > k ? k : 0;
+  }
+  return 0;
+}
+
+/// How many bytes the UTF-8 character that starts at `d[i]` has, as far as
+/// [d] shows it: 1 for ASCII and for a byte that starts none, fewer than it
+/// needs where [d] ends in it or a byte that is no continuation comes.
+int _characterLength(Uint8List d, int i) {
+  final b = d[i];
+  final need = b >= 0xf0 && b <= 0xf4
+      ? 4
+      : b >= 0xe0 && b < 0xf0
+      ? 3
+      : b >= 0xc2 && b < 0xe0
+      ? 2
+      : 1;
+  var n = 1;
+  while (n < need && i + n < d.length && d[i + n] & 0xc0 == 0x80) {
+    n++;
+  }
+  return n;
+}
+
 const _strings = {
   0x5d: 'osc',
   0x50: 'dcs',
@@ -101,35 +142,55 @@ const _strings = {
 final class SequenceReader {
   /// A reader of what the terminal sent when [input], else of what the app
   /// wrote.
-  SequenceReader({this.input = false}) {
-    _decoder = const Utf8Decoder(
-      allowMalformed: true,
-    ).startChunkedConversion(StringConversionSink.fromStringSink(_decoded));
-  }
+  SequenceReader({this.input = false});
 
   /// Whether this reads what the terminal sent.
   final bool input;
 
   var _pending = Uint8List(0);
-  final _decoded = StringBuffer();
-  late final Sink<List<int>> _decoder;
+
+  /// How far into [_pending] an unterminated string was scanned for its end,
+  /// so the next read goes on from there and not from its start.
+  var _scanned = 0;
+
+  /// The bytes of a character cut off at the end of the last read's text: the
+  /// start of the next read's text if that begins with text.
+  var _carry = Uint8List(0);
 
   /// The tokens of [bytes], with what waited from the read before.
   List<SeqToken> read(List<int> bytes) {
+    final resumeAt = _scanned;
     var data = Uint8List.fromList(bytes);
     if (_pending.isNotEmpty) {
-      data = Uint8List.fromList([..._pending, ...bytes]);
+      data = Uint8List(_pending.length + bytes.length)
+        ..setRange(0, _pending.length, _pending)
+        ..setRange(_pending.length, _pending.length + bytes.length, bytes);
       _pending = Uint8List(0);
     }
+    _scanned = 0;
+    final carried = _carry;
+    _carry = Uint8List(0);
     final tokens = <SeqToken>[];
     var i = 0;
     var textFrom = -1;
     void flushText(int to) {
       if (textFrom >= 0) {
         final raw = _latin1(data, textFrom, to);
-        _decoded.clear();
-        _decoder.add(Uint8List.sublistView(data, textFrom, to));
-        final text = _decoded.toString();
+        var end = to;
+        var head = Uint8List(0);
+        if (textFrom == 0) {
+          head = carried;
+        }
+        if (to == data.length) {
+          // a character cut off by the end of the read is the next read's
+          end = to - _incompleteTail(data, textFrom, to);
+          _carry = Uint8List.fromList(data.sublist(end, to));
+        }
+        final body = Uint8List.sublistView(data, textFrom, end);
+        final text = utf8.decode(
+          head.isEmpty ? body : [...head, ...body],
+          allowMalformed: true,
+        );
         textFrom = -1;
         if (text.isNotEmpty) {
           tokens.add(SeqToken('text', raw, text: text));
@@ -141,7 +202,7 @@ final class SequenceReader {
       final b = data[i];
       if (b == _esc) {
         flushText(i);
-        final t = _escape(data, i);
+        final t = _escape(data, i, i == 0 ? resumeAt : 0);
         if (t == null) {
           _pending = Uint8List.fromList(data.sublist(i));
           return tokens;
@@ -167,14 +228,14 @@ final class SequenceReader {
   /// does.
   String get waiting => _latin1(_pending, 0, _pending.length);
 
-  (SeqToken, int)? _escape(Uint8List d, int i) {
+  (SeqToken, int)? _escape(Uint8List d, int i, int scanned) {
     if (i + 1 >= d.length) {
       return input ? (const SeqToken('esc', '\x1b'), i + 1) : null;
     }
     final b1 = d[i + 1];
     final kind = _strings[b1];
     if (kind != null) {
-      return _string(d, i, kind);
+      return _string(d, i, kind, scanned);
     }
     if (b1 == 0x5b) {
       return _csi(d, i);
@@ -199,6 +260,17 @@ final class SequenceReader {
     while (j < d.length && d[j] >= 0x20 && d[j] <= 0x2f) {
       j++;
     }
+    if (j < d.length && d[j] == _esc) {
+      // ESC does not end an ESC sequence: it is a new one's start
+      return (
+        SeqToken(
+          'esc',
+          _latin1(d, i, j),
+          intermediates: _latin1(d, i + 1, j),
+        ),
+        j,
+      );
+    }
     if (j >= d.length) {
       return input
           ? (
@@ -211,14 +283,23 @@ final class SequenceReader {
             )
           : null;
     }
+    // the final is a whole character: Alt+é is ESC and the two bytes of é
+    final cut = _incompleteTail(d, j, d.length);
+    if (cut > 0 && cut == d.length - j && !input) {
+      return null;
+    }
+    final length = _characterLength(d, j);
+    final end = j + length;
     return (
       SeqToken(
         'esc',
-        _latin1(d, i, j + 1),
+        _latin1(d, i, end),
         intermediates: _latin1(d, i + 1, j),
-        final_: String.fromCharCode(d[j]),
+        final_: length == 1
+            ? String.fromCharCode(d[j])
+            : utf8.decode(d.sublist(j, end), allowMalformed: true),
       ),
-      j + 1,
+      end,
     );
   }
 
@@ -234,6 +315,10 @@ final class SequenceReader {
     }
     if (j >= d.length) {
       return input ? (SeqToken('esc', _latin1(d, i, j), final_: '['), j) : null;
+    }
+    if (d[j] < 0x40 || d[j] > 0x7e) {
+      // no final: the CSI is invalid, and what follows is read afresh
+      return (SeqToken('esc', _latin1(d, i, j), final_: '['), j);
     }
     var params = _latin1(d, paramFrom, paramTo);
     var prefix = '';
@@ -278,8 +363,10 @@ final class SequenceReader {
 
   /// A string of [kind]: OSC up to BEL or ST, the others up to ST, an ESC
   /// doubled inside tmux's passthrough.
-  (SeqToken, int)? _string(Uint8List d, int i, String kind) {
-    for (var j = i + 2; j < d.length; j++) {
+  (SeqToken, int)? _string(Uint8List d, int i, String kind, int scanned) {
+    // [scanned] bytes of it were looked through for its end already
+    var j = i + 2 + (scanned > 2 ? scanned - 2 : 0);
+    for (; j < d.length; j++) {
       if (kind == 'osc' && d[j] == _bel) {
         return (
           SeqToken(kind, _latin1(d, i, j + 1), body: _latin1(d, i + 2, j)),
@@ -312,6 +399,8 @@ final class SequenceReader {
         d.length,
       );
     }
+    // the next read goes on from here: a trailing ESC is looked at again
+    _scanned = (j < d.length ? j : d.length) - i;
     return null;
   }
 }
@@ -333,24 +422,66 @@ int syncChange(SeqToken t) {
 /// notation, bytes above 0x7E in hex, cut after [max] characters.
 String visible(String raw, {int max = 160}) {
   final s = StringBuffer();
+  // whether what is written so far is empty or ends in a space
+  var spaced = true;
   for (final code in raw.codeUnits) {
-    final so = s.toString();
     if (code == _esc) {
-      s.write(so.isEmpty || so.endsWith(' ') ? 'ESC ' : ' ESC ');
+      s.write(spaced ? 'ESC ' : ' ESC ');
+      spaced = true;
     } else if (code < 0x20) {
       s.write('^${String.fromCharCode(code + 0x40)}');
+      spaced = false;
     } else if (code == 0x7f) {
       s.write('^?');
+      spaced = false;
     } else if (code > 0x7e && code <= 0xff) {
       s.write('\\x${code.toRadixString(16)}');
+      spaced = false;
     } else {
       s.write(String.fromCharCode(code));
+      spaced = code == 0x20;
     }
     if (s.length > max) {
       return '${s.toString().substring(0, max)}… (${raw.length} bytes)';
     }
   }
   return s.toString().trimRight();
+}
+
+/// [s] as the terminal shows it without being driven by it: a C0 control as
+/// `^X`, DEL as `^?`, a C1 control (U+0080-U+009F, which a UTF-8 text holds
+/// as two bytes and a terminal reads as CSI, OSC...) as `\x9b`, and the
+/// characters that reorder text (U+200E, U+200F, U+202A-U+202E,
+/// U+2066-U+2069) as `\u{202e}`. For every field of a row the CLI prints,
+/// whatever the file holds.
+String printable(String s) {
+  StringBuffer? out;
+  var from = 0;
+  for (var i = 0; i < s.length; i++) {
+    final c = s.codeUnitAt(i);
+    final String? shown;
+    if (c < 0x20) {
+      shown = '^${String.fromCharCode(c + 0x40)}';
+    } else if (c == 0x7f) {
+      shown = '^?';
+    } else if (c >= 0x80 && c <= 0x9f) {
+      shown = '\\x${c.toRadixString(16)}';
+    } else if (c == 0x200e ||
+        c == 0x200f ||
+        (c >= 0x202a && c <= 0x202e) ||
+        (c >= 0x2066 && c <= 0x2069)) {
+      shown = '\\u{${c.toRadixString(16)}}';
+    } else {
+      shown = null;
+    }
+    if (shown != null) {
+      (out ??= StringBuffer())
+        ..write(s.substring(from, i))
+        ..write(shown);
+      from = i + 1;
+    }
+  }
+  return out == null ? s : (out..write(s.substring(from))).toString();
 }
 
 // JavaScript's numbers, as the sequence names print them: a parameter that
@@ -856,7 +987,7 @@ String _escOut(SeqToken t) {
     '#8': 'DECALN fill with E',
   };
   final key = '${t.intermediates}${t.final_}';
-  return names[key] ?? 'ESC $key';
+  return names[key] ?? (key.isEmpty ? 'ESC alone' : 'ESC $key');
 }
 
 /// What a kitty graphics command says before its payload: its keys, at most
@@ -987,7 +1118,7 @@ String _mouseButton(int b) {
   return '$mods$name$motion';
 }
 
-String _csiIn(SeqToken t) {
+String _csiIn(SeqToken t, bool? positionAsked) {
   final prefix = t.prefix;
   final params = t.params;
   final intermediates = t.intermediates;
@@ -1007,6 +1138,21 @@ String _csiIn(SeqToken t) {
         ? ' press'
         : ' release';
     return 'mouse $what$act at column ${_at(v, 1)}, row ${_at(v, 2)}';
+  }
+  if (final_ == 'R' &&
+      prefix.isEmpty &&
+      intermediates.isEmpty &&
+      params.contains(';') &&
+      _get(n, 0) == 1) {
+    // `CSI 1 ; m R` is the F3 key with modifiers m, and the cursor at row 1
+    // and column m: only a query that asked for the position tells which
+    final key = 'key ${_modifiers(_get(n, 1))}F3';
+    final answer = 'CPR answer: the cursor at row 1, column ${_at(n, 1)}';
+    return switch (positionAsked) {
+      true => answer,
+      false => key,
+      null => '$key, or a $answer',
+    };
   }
   if (prefix.isEmpty && intermediates.isEmpty) {
     final cursor = _cursorKeys[final_];
@@ -1097,8 +1243,26 @@ String _csiIn(SeqToken t) {
   return 'CSI $prefix$intermediates$final_${params.isEmpty ? '' : ' $params'}';
 }
 
-/// What [t], sent by the terminal (typed, or answered), is.
-String describeInput(SeqToken t) {
+/// The key an Alt+ [final_] is: the control characters by their names.
+String _altKey(String final_) {
+  if (final_.length != 1) {
+    return final_;
+  }
+  return switch (final_.codeUnitAt(0)) {
+    0x0d => 'Enter',
+    0x09 => 'Tab',
+    0x7f || 0x08 => 'Backspace',
+    0x00 => 'Ctrl+Space',
+    final c when c < 0x20 => 'Ctrl+${String.fromCharCode(c + 0x40)}',
+    _ => final_,
+  };
+}
+
+/// What [t], sent by the terminal (typed, or answered), is. `CSI 1 ; n R` is
+/// a key (F3) or an answer (the cursor at row 1) by [positionAsked]: whether
+/// the app has asked for the cursor position and is not answered yet; null
+/// where that is not known, which the name says.
+String describeInput(SeqToken t, {bool? positionAsked}) {
   switch (t.kind) {
     case 'text':
       return t.text == ' '
@@ -1118,12 +1282,11 @@ String describeInput(SeqToken t) {
       if (t.final_.isEmpty && t.intermediates.isEmpty) {
         return 'key Escape';
       }
-      final key = t.final_ == '\x7f' ? 'Backspace' : t.final_;
-      return 'key Alt+${t.intermediates}$key';
+      return 'key Alt+${t.intermediates}${_altKey(t.final_)}';
     case 'ss3':
       return 'key ${_cursorKeys[t.final_] ?? 'SS3 ${t.final_}'}';
     case 'csi':
-      return _csiIn(t);
+      return _csiIn(t, positionAsked);
     case 'osc':
       return _osc(t.body, true);
     case 'dcs':
@@ -1217,19 +1380,20 @@ class _Open {
 /// and named, a synchronized update (DEC mode 2026) held in one frame entry
 /// with its entries below it.
 final class SequenceLog {
-  /// A log keeping at most [limit] entries, a frame at most [frameLimit]
-  /// below it.
+  /// A log keeping at most [limit] entries (all of them when null), a frame
+  /// at most [frameLimit] below it.
   SequenceLog({this.limit = 20000, this.frameLimit = 2000});
 
-  /// The most entries kept (the oldest dropped first).
-  final int limit;
+  /// The most entries kept (the oldest dropped first); null keeps them all.
+  final int? limit;
 
   /// The most entries a frame keeps below it.
   final int frameLimit;
 
   final _out = SequenceReader();
-  final _kept = <LogEntry>[];
+  final _kept = Queue<LogEntry>();
   var _nextId = 0;
+  var _positionAsked = 0;
   var _frames = 0;
   _Open? _open;
   var _depth = 0;
@@ -1242,7 +1406,15 @@ final class SequenceLog {
       if (change > 0 && _depth <= 0 && _open == null) {
         _open = _Open(time, ++_frames);
       }
-      _depth += change;
+      final stray = change < 0 && _depth <= 0;
+      _depth = max(0, _depth + change);
+      if (t.kind == 'csi' &&
+          t.final_ == 'n' &&
+          t.intermediates.isEmpty &&
+          (t.prefix.isEmpty || t.prefix == '?') &&
+          t.params == '6') {
+        _positionAsked++;
+      }
       final open = _open;
       if (open != null) {
         if (open.entries.length < frameLimit) {
@@ -1254,6 +1426,10 @@ final class SequenceLog {
         }
       } else {
         _add(e);
+        if (stray) {
+          // a capture that began inside a frame, or a frame lost its start
+          note(time, 'no synchronized update is open: CSI ? 2026 l ignored');
+        }
       }
     }
   }
@@ -1261,7 +1437,56 @@ final class SequenceLog {
   /// What the terminal sent at [time]: each read whole.
   void input(int time, List<int> bytes) {
     for (final t in SequenceReader(input: true).read(bytes)) {
-      _add(_entry(time, Direction.input, t.kind, describeInput(t), t.raw));
+      // a CSI 1 ; n R is the answer to a position query asked and not yet
+      // answered (as twk_dev's replay InputSplitter tells), else the F3 key;
+      // a key typed gives the queries up
+      final asked = _positionAsked > 0;
+      final entry = _entry(
+        time,
+        Direction.input,
+        t.kind,
+        describeInput(t, positionAsked: asked),
+        t.raw,
+      );
+      if (t.kind == 'csi' && t.final_ == 'R' && t.prefix.isEmpty) {
+        if (_positionAsked > 0 && t.params.contains(';')) {
+          _positionAsked--;
+        }
+      } else if (const {
+        'text',
+        'control',
+        'esc',
+        'ss3',
+        'mouse',
+      }.contains(t.kind)) {
+        _positionAsked = 0;
+      }
+      _add(entry);
+    }
+  }
+
+  /// The traffic ended at [time]: a synchronized update still open is closed
+  /// as a frame saying so, and what the app's last write left unfinished (an
+  /// OSC, a DCS, a CSI without its end) is a note saying it was cut short.
+  void finish(int time) {
+    final open = _open;
+    if (open != null) {
+      _closeFrame(open, time, closed: false);
+      _depth = 0;
+    }
+    final waiting = _out.waiting;
+    if (waiting.isNotEmpty) {
+      _add(
+        LogEntry(
+          id: _nextId++,
+          time: time,
+          direction: Direction.note,
+          kind: 'note',
+          name: 'output cut short: ${visible(waiting, max: 60)}',
+          raw: '',
+          bytes: waiting.length,
+        ),
+      );
     }
   }
 
@@ -1279,7 +1504,7 @@ final class SequenceLog {
   );
 
   /// Every entry kept, in order.
-  List<LogEntry> all() => List.of(_kept);
+  List<LogEntry> all() => _kept.toList();
 
   LogEntry _entry(
     int time,
@@ -1314,7 +1539,7 @@ final class SequenceLog {
     return sorted.take(6).map((e) => '${e.value} ${e.key}').join(', ');
   }
 
-  void _closeFrame(_Open open, int time) {
+  void _closeFrame(_Open open, int time, {bool closed = true}) {
     _open = null;
     final cut = open.entries.length >= frameLimit
         ? ' (the first $frameLimit entries)'
@@ -1328,7 +1553,8 @@ final class SequenceLog {
         kind: 'frame',
         name:
             'frame ${open.number}: ${_summary(open.entries)}$cut'
-            '${ms > 0 ? ', $ms ms' : ''}',
+            '${ms > 0 ? ', $ms ms' : ''}'
+            '${closed ? '' : ', not closed'}',
         raw: '${open.bytes} bytes',
         bytes: open.bytes,
         children: open.entries,
@@ -1338,8 +1564,9 @@ final class SequenceLog {
 
   void _add(LogEntry e) {
     _kept.add(e);
-    if (_kept.length > limit) {
-      _kept.removeRange(0, _kept.length - limit);
+    final cap = limit;
+    if (cap != null && _kept.length > cap) {
+      _kept.removeFirst();
     }
   }
 }
@@ -1421,16 +1648,18 @@ List<_Event> _eventsOf(String path) {
 /// The log of [events] in time order, whichever files they came from (the
 /// sort is stable: equal times keep the order given).
 SequenceLog _logOf(List<_Event> events) {
-  final order = {for (var i = 0; i < events.length; i++) i: events[i]};
-  final sorted = order.keys.toList()
+  final sorted = List.generate(events.length, (i) => i)
     ..sort((a, b) {
-      final c = order[a]!.micros.compareTo(order[b]!.micros);
+      final c = events[a].micros.compareTo(events[b].micros);
       return c != 0 ? c : a.compareTo(b);
     });
-  final log = SequenceLog();
+  // the command shows every row: no cap
+  final log = SequenceLog(limit: null);
+  var last = 0;
   for (final i in sorted) {
-    final e = order[i]!;
+    final e = events[i];
     final ms = (e.micros / 1000).round();
+    last = ms;
     switch (e.direction) {
       case Direction.note:
         log.note(ms, e.note!);
@@ -1440,6 +1669,7 @@ SequenceLog _logOf(List<_Event> events) {
         log.input(ms, e.bytes);
     }
   }
+  log.finish(last);
   return log;
 }
 
@@ -1554,8 +1784,10 @@ String _row(LogEntry e, {int indent = 0}) {
     Direction.input => 'in ',
     Direction.note => '-- ',
   };
-  final name = '${' ' * indent}${e.name}';
-  final raw = e.raw;
+  // what a file holds is never sent on as it is: a name made of a title or
+  // a notification would drive the terminal it is shown in
+  final name = '${' ' * indent}${printable(e.name)}';
+  final raw = printable(e.raw);
   return raw.isEmpty
       ? '$seconds  $dir  $name'
       : '$seconds  $dir  ${name.length < 56 ? name.padRight(56) : name}  $raw';
