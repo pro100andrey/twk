@@ -58,8 +58,15 @@ export class FakeView implements TerminalView {
   private readonly picks = new Emitter<{ x: number; y: number; cursorY: number } | null>();
   /** Whether a click picks, as it was told last. */
   picking = false;
-  /** Whether it is the active one, as the test says. */
+  /** Whether it is the active one, as the test says ([setActive]). */
   isActive = false;
+  private readonly actives = new Emitter<void>();
+  readonly onDidChangeActive = this.actives.event;
+  /** The panel gained or lost the focus. */
+  setActive(on: boolean): void {
+    this.isActive = on;
+    this.actives.fire();
+  }
   /** The player's bar as it was told, each time. */
   readonly players: (PlayerState | null)[] = [];
   private readonly controls = new Emitter<PlayerControl>();
@@ -203,6 +210,13 @@ export class FakePanel<To = ToWebview> implements WebviewPanelPort<To> {
   readonly disposes = new Emitter<void>();
   readonly onMessage = this.messages.event;
   readonly onDispose = this.disposes.event;
+  private readonly actives = new Emitter<void>();
+  readonly onDidChangeActive = this.actives.event;
+  /** The panel gained or lost the focus. */
+  setActive(on: boolean): void {
+    this.active = on;
+    this.actives.fire();
+  }
   async post(message: To): Promise<boolean> {
     this.posted.push(message);
     return !this.disposed;

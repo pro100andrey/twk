@@ -124,8 +124,11 @@ describe('WebviewTerminalView', () => {
     panel.send({ type: 'control', control: 'fly' });
     assert.deepEqual(controls, ['step']);
     assert.equal(view.isActive, false);
-    panel.active = true;
+    let changes = 0;
+    view.onDidChangeActive(() => changes++);
+    panel.setActive(true);
     assert.equal(view.isActive, true);
+    assert.equal(changes, 1);
     panel.dispose();
     assert.equal(view.isActive, false);
   });

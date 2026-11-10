@@ -30,13 +30,16 @@ function openPanel<To>(viewType: string, title: string, extensionUri: vscode.Uri
 function portOf<To>(panel: vscode.WebviewPanel): WebviewPanelPort<To> {
   const messages = new Emitter<unknown>();
   const disposes = new Emitter<void>();
+  const activity = new Emitter<void>();
   const listening = [
+    panel.onDidChangeViewState(() => activity.fire()),
     panel.webview.onDidReceiveMessage((m: unknown) => messages.fire(m)),
     panel.onDidDispose(() => {
       disposes.fire();
       listening.forEach((d) => d.dispose());
       messages.dispose();
       disposes.dispose();
+      activity.dispose();
     }),
   ];
   return {
@@ -49,6 +52,7 @@ function portOf<To>(panel: vscode.WebviewPanel): WebviewPanelPort<To> {
     dispose: () => panel.dispose(),
     onMessage: messages.event,
     onDispose: disposes.event,
+    onDidChangeActive: activity.event,
   };
 }
 

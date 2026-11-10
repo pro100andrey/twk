@@ -127,6 +127,23 @@ describe('twk terminal', () => {
     assert.equal(fs.existsSync(addressFile), false, 'nothing written into the project');
   });
 
+  it('shows the active twk terminal in the status bar: its size and profile, gone with the terminal', async () => {
+    const terminal = await vscode.commands.executeCommand<TwkTerminal>('twk.openTerminal');
+    assert.ok(terminal);
+    try {
+      const text = await until('the terminal in the status bar', async () => {
+        const t = api.terminalStatus();
+        return t?.startsWith(`twk ${terminal.columns}x${terminal.lines} · `) ? t : undefined;
+      }, 10000);
+      assert.match(text, /^twk \d+x\d+ · [^·]+/);
+    } finally {
+      await terminal.dispose();
+    }
+    if (api.terminals().length === 0) {
+      await until('the status bar item hidden', async () => (api.terminalStatus() === undefined ? true : undefined), 10000);
+    }
+  });
+
   it("answers the probe's color queries (OSC 10, 11), which headless xterm.js does not", async () => {
     const terminal = await vscode.commands.executeCommand<TwkTerminal>('twk.openTerminal');
     assert.ok(terminal);

@@ -62,6 +62,9 @@ export class TwkTerminal implements TerminalPane, Screen {
   private readonly resizes = new Emitter<void>();
   /** Its view's size changed. */
   readonly onDidResize = this.resizes.event;
+  private readonly retitles = new Emitter<void>();
+  /** Its title (size, capabilities, switches, an app there or not) may have changed. */
+  readonly onDidRetitle = this.retitles.event;
   /** Whether a line written now is the extension's ([say]), not the app's. */
   private saying = false;
   /** Whether its session is recorded: its title says so. */
@@ -154,6 +157,13 @@ export class TwkTerminal implements TerminalPane, Screen {
   /** Titles its view as it is now (the settings' capabilities and switches among it). */
   retitle(): void {
     this.view.setTitle(this.title());
+    this.retitles.fire();
+  }
+
+  /** What the status bar says of it: `twk 44x7 · xterm.js · overlay` (the size, the capabilities, the switches on). */
+  statusText(): string {
+    const switches = describeSwitches(this.deps.settings.switches());
+    return `twk ${this.columns}x${this.lines} · ${describeChoice(this.deps.settings.capabilities())}${switches === '' ? '' : ` · ${switches}`}`;
   }
 
   /** Starts serving, once the view told its size. */
@@ -290,7 +300,7 @@ export class TwkTerminal implements TerminalPane, Screen {
     this.shell = undefined;
     this.disposed.fire();
     this.disposed.dispose();
-    [this.inputs, this.reloads, this.picks, this.outputs, this.notes, this.resizes].forEach((e) => e.dispose());
+    [this.inputs, this.reloads, this.picks, this.outputs, this.notes, this.resizes, this.retitles].forEach((e) => e.dispose());
   }
 }
 

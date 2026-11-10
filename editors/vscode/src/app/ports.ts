@@ -47,6 +47,8 @@ export interface TerminalView {
   readonly isClosed: boolean;
   /** Whether it is the editor's active one (its panel focused, or the last focused). */
   readonly isActive: boolean;
+  /** Whether it is the editor's active one changed (its panel gained or lost the focus). */
+  readonly onDidChangeActive: Event<void>;
   /** Settles once the view parsed [bytes], or at once when it is closed. */
   write(bytes: Uint8Array): Promise<void>;
   /** What it shows; empty once it is closed. */
@@ -93,6 +95,11 @@ export type TerminalViewFactory = (title: string) => TerminalView;
 export interface Log {
   append(text: string): void;
   appendLine(line: string): void;
+}
+
+/** Where the size, profile and aids of the active twk terminal are shown (the status bar); [text] undefined hides it. */
+export interface TerminalStatusSink {
+  show(text: string | undefined, tooltip?: string): void;
 }
 
 /** Where the status of reloads and restarts is shown (the status bar). */

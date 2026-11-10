@@ -53,6 +53,8 @@ import { registerReport } from './report';
 import { registerCreate } from './create';
 import { cancellable, registerTape, twkCommand } from './tape';
 import { StatusBar } from './status_bar';
+import { TerminalStatus } from '../app/terminal_status';
+import { TerminalStatusItem } from './terminal_status';
 
 /** What the extension gives its tests (`activate`'s result). */
 export interface Api {
@@ -64,6 +66,8 @@ export interface Api {
   hots(): Hot[];
   /** The last status of a reload or restart, as the status bar shows it. */
   status(): { text: string; status: HotStatus | undefined };
+  /** What the status bar says of the active twk terminal (`twk 44x7 · xterm.js`); undefined while no terminal is open. */
+  terminalStatus(): string | undefined;
   /** An event for each status any app goes through. */
   onStatus: vscode.Event<HotStatus>;
   /** What the status bar says of the progress of the app in [terminal]. */
@@ -106,6 +110,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     log,
     desktop,
   });
+  const terminalItem = new TerminalStatusItem();
+  const terminalStatus = new TerminalStatus(terminals, terminalItem);
   const debug = new VsCodeDebugger();
   context.subscriptions.push(debug);
   const connectVm = (uri: string) => VmClient.connect(uri, realClock);
@@ -198,6 +204,8 @@ export function activate(context: vscode.ExtensionContext): Api {
   context.subscriptions.push(
     terminals.onDidCreate((t) => logs.follow(t)),
     recordingStatus,
+    terminalStatus,
+    terminalItem,
     recordings.onDidChange(() => void vscode.commands.executeCommand('setContext', 'twk.recording', recordings.all().length > 0)),
     recordings.onDidEnd(({ terminal, end }) => {
       if (end.error) {
@@ -564,6 +572,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     view: (terminal) => (terminal.view instanceof WebviewTerminalView ? terminal.view : undefined),
     hots: () => hot.hots(),
     status: () => ({ text: bar.text, status: hot.status }),
+    terminalStatus: () => terminalItem.text,
     onStatus: statuses.event,
     progressOf: (terminal) => desktop.progressOf(terminal),
     inspector,

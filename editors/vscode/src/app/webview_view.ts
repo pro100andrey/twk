@@ -14,6 +14,8 @@ export interface WebviewPanelPort<To = ToWebview> {
   post(message: To): Promise<boolean>;
   /** Whether the panel is the editor's active one. */
   readonly active: boolean;
+  /** [active] may have changed. */
+  readonly onDidChangeActive: Event<void>;
   setTitle(title: string): void;
   reveal(): void;
   /** Closes the panel. */
@@ -87,6 +89,10 @@ export class WebviewTerminalView implements TerminalView {
 
   get isClosed(): boolean {
     return this.closed;
+  }
+
+  get onDidChangeActive(): Event<void> {
+    return this.panel.onDidChangeActive;
   }
 
   get isActive(): boolean {

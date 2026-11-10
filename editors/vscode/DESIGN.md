@@ -131,6 +131,10 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Show the Terminal Report (what the twk terminal tells and answers an app, and twk doctor's project part) | the panel of the report (below, "The terminal report") |
 | twk: Pick Widgets in the twk Terminal (the twk Inspector's $(inspect) button) | the pick mode on: each click on the app's terminal picks the widget under it, opens where it was made; the button pressed (filled) until twk: Stop Picking Widgets, or Escape in the terminal |
 
+The status bar shows the active twk terminal as `twk 44x7 · xterm.js · overlay`
+(its size, profile and switches on); a click opens twk: Choose twk Terminal
+Capabilities.
+
 "The twk terminal" of a command is the active one: the panel focused, or
 else the newest open (a replay among them, but recording takes an app's
 terminal only). The three title bar buttons are on each twk terminal's
@@ -1857,8 +1861,17 @@ What the repository offers for the wished features:
   the extension answers nothing itself. Unit tests of the mapping
   (`theme.test.ts`); the answer changing with the colour theme is a test in
   VS Code (not run in the tests of the commit that added it).
-  Left: a status bar with the size and profile, copy and
-  paste, focus and the keys VS Code would take, OSC 52 to the clipboard.
+  The status bar item of the active terminal (`twk 44x7 · xterm.js ·
+  overlay`: the size, the profile with the switches changed, the switches
+  on; the panel focused, else the newest; hidden with no terminal open; a
+  click is twk: Choose twk Terminal Capabilities): `app/terminal_status.ts`
+  over a `TerminalStatusSink` port, `vscode/terminal_status.ts` its item,
+  refreshed when a terminal is made, closed, retitled (a resize, the
+  settings, an app coming or going) or its panel gains or loses the focus
+  (`onDidChangeActive` of the view, VS Code's `onDidChangeViewState`). Unit
+  tests over a fake sink; the item itself is in the real VS Code suite.
+  Left: copy and paste, focus and the keys VS Code would take, OSC 52 to
+  the clipboard.
 - **Capability switches** (part 3), but for ambiguous width 2 and bidi
   (part 3 says why) and kitty's graphics protocol (not in the image addon
   for xterm.js 6.0). The screen reader and the debug aids (part 2).

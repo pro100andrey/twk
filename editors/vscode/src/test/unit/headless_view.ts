@@ -19,6 +19,7 @@ export class HeadlessView implements TerminalView {
   readonly ready = Promise.resolve();
   title = '';
   isActive = false;
+  readonly onDidChangeActive = new Emitter<void>().event;
   /** The player's bar as it was told, last. */
   playerState: PlayerState | null = null;
   private closed = false;

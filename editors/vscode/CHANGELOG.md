@@ -2,6 +2,7 @@
 
 ## 0.1.0
 
+- The status bar shows the active twk terminal (the panel focused, else the newest) as `twk 44x7 · xterm.js · overlay`: its size, profile and the switches on; a click opens twk: Choose twk Terminal Capabilities.
 - Replay Input into App: twk: Type a Recording's Keys into the App in the twk Terminal (palette, a `.cast` file's menu in the explorer, or the Keys button of the replay's bar) types the keys of a recording (made with input: the extension's recordings, `twk record --keys`) into the app running in the twk terminal, either at their recorded times or a step each time the status bar item is clicked, to reproduce what the recording shows. The terminal's answers to the app's queries are left out, told from keys as `twk record --replay` does.
 - twk: New Project (`twk create`: a pick of the template with its description, of the folder and of the files for coding agents, then it offers to open the project) and twk: Install Agent Skill (`twk agents` in the project, saying what it wrote, removed and left). Where the workspace has no twk_dev the globally activated one (`dart pub global run twk_dev:twk`) is used, and where there is none the message offers to activate it (you press Enter).
 - The terminal report: an older twk_dev that does not say whether the versions agree shows no verdict (not DISAGREE), and fewer than two packages found say so. A twk run ended on SIGTERM whose child ignores it no longer leaves the child: SIGKILL goes to the group after the grace (POSIX). The Test button runs one `twk test-from-cast` per recording at a time.
