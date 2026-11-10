@@ -14,7 +14,7 @@
 // `dart pub global run twk_dev:twk`, the package activated on the machine.
 // Where that is not there either, the result says `missing`, and the
 // editor offers the person to activate it: nothing is installed by this.
-import { TwkCommandDeps, TwkRun, runTwk } from './twk_command';
+import { TwkCommandDeps, TwkRun, TwkRunOptions, runTwk } from './twk_command';
 
 export interface CreateDeps extends TwkCommandDeps {
   /** What `twk.command` is when the person never set it. */
@@ -130,25 +130,28 @@ export class Creator {
   }
 
   private async run(args: readonly string[], options: { cwd: string; label: string; cancel?: AbortSignal; timeoutMs?: number }): Promise<{ run: TwkRun; missing: boolean }> {
-    const base = { ...options, graceMs: this.deps.graceMs, echo: true };
-    const global = (): Promise<{ run: TwkRun; missing: boolean }> => this.runGlobal(args, options, base);
+    const base: TwkRunOptions = { ...options, graceMs: this.deps.graceMs, echo: true };
     if (this.canFallBack() && this.deps.hasTwkDev?.(options.cwd) === false) {
-      return global();
+      return this.runGlobal(args, base);
     }
     const first = await runTwk(this.deps, args, base);
-    const lacking = (r: TwkRun) => r.exit.code !== 0 && !r.cancelled && NO_TWK_DEV.test(r.output);
     if (!lacking(first) || !this.canFallBack()) {
       return { run: first, missing: lacking(first) };
     }
-    return global();
+    return this.runGlobal(args, base);
   }
 
-  private async runGlobal(args: readonly string[], options: { label: string }, base: object): Promise<{ run: TwkRun; missing: boolean }> {
-    const run = await runTwk({ ...this.deps, command: () => this.deps.globalCommand }, args, { ...(base as { cwd: string; label: string }), label: `${options.label} (global twk_dev)` });
-    return { run, missing: run.exit.code !== 0 && !run.cancelled && NO_TWK_DEV.test(run.output) };
+  private async runGlobal(args: readonly string[], base: TwkRunOptions): Promise<{ run: TwkRun; missing: boolean }> {
+    const run = await runTwk({ ...this.deps, command: () => this.deps.globalCommand }, args, { ...base, label: `${base.label} (global twk_dev)` });
+    return { run, missing: lacking(run) };
   }
 
   private canFallBack(): boolean {
     return sameCommand(this.deps.command(), this.deps.defaultCommand);
   }
+}
+
+/** Whether [r] failed for want of twk_dev, as dart says it (a last hint, after the facts of the folder). */
+function lacking(r: TwkRun): boolean {
+  return r.exit.code !== 0 && !r.cancelled && NO_TWK_DEV.test(r.output);
 }

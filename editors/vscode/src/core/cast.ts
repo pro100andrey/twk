@@ -274,9 +274,14 @@ export interface CastMarker {
  */
 export function castMarkers(cast: Cast, steps: readonly CastStep[]): CastMarker[] {
   const out: CastMarker[] = [];
+  // the steps end in the order of the events: one pass for all the markers
+  let ended = 0;
   cast.events.forEach((e, index) => {
     if (e.code === 'm') {
-      out.push({ at: steps.filter((s) => s.end <= index).length, label: e.data, time: e.time });
+      while (ended < steps.length && steps[ended].end <= index) {
+        ended++;
+      }
+      out.push({ at: ended, label: e.data, time: e.time });
     }
   });
   return out;

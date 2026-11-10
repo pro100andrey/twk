@@ -1191,6 +1191,172 @@
       ]
     },
     {
+      "name": "paste content ends in an Escape",
+      "description": "a lone Escape at the end of an event inside a paste may start the end marker: it is waited for, and typed with what follows when that is not the marker",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001b"
+        ],
+        [
+          0.2,
+          "i",
+          "b\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001bb\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste content ends in an OSC start",
+      "description": "an unfinished string at the end of an event inside a paste is the paste's too",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001b]11;x"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a\u001b]11;x",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste content ends in a CSI that is not the marker's start",
+      "description": "a CSI without its final that cannot be the start of the end marker is the paste's, typed at its time",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001b[1"
+        ],
+        [
+          0.2,
+          "i",
+          "x\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a\u001b[1",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "x\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "Escape before the paste end",
+      "description": "an Escape right before the end marker is a key, and the marker still ends the paste",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001b\u001b[201~\u001b[0nb"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a\u001b\u001b[201~b",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste marker with a control inside",
+      "description": "CSI 200 ~ with a control in it is no paste start (the bytes are typed as they were, as xterm.js reads a paste only whole): an answer after it is still an answer",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[20\b0~\u001b[?62;4cb"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[20\b0~b",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste end with a control inside",
+      "description": "CSI 201 ~ with a control in it does not end a paste: what follows is still its content",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001b[20\b1~\u001b[0n\u001b[201~\u001b[0nc"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a\u001b[20\b1~\u001b[0n\u001b[201~c",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste content ends in a DCS start",
+      "description": "as an OSC start",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001bPq"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a\u001bPq",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
       "name": "no keys",
       "description": "a recording without keys has nothing to type",
       "events": [

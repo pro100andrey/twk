@@ -29,6 +29,18 @@ const maxPending = 4096;
 
 const latin1Bytes = (raw: string): Buffer => Buffer.from(raw, 'latin1');
 
+const pasteEnd = '\x1b[201~';
+
+/** How many characters at the end of [raw] are the start of the paste's end marker, not all of it. */
+function markerPrefix(raw: string): number {
+  for (let n = Math.min(pasteEnd.length - 1, raw.length); n > 0; n--) {
+    if (raw.endsWith(pasteEnd.slice(0, n))) {
+      return n;
+    }
+  }
+  return 0;
+}
+
 /** Whether [t], the last token of a read, is the start of a sequence only: the rest may come in the next event. */
 function unfinished(t: Token): boolean {
   switch (t.kind) {
@@ -103,47 +115,64 @@ class InputSplitter {
 
   /** What [add] kept, as keys. */
   flush(): string {
-    return this.split(this.carry, true);
+    const keys = this.split(this.carry, true);
+    // the recording is over: a paste it left open is not the next one's
+    this.inPaste = false;
+    return keys;
   }
 
   private split(data: Buffer, flush: boolean): string {
     this.carry = Buffer.alloc(0);
     const tokens = tokensOf(data);
     const last = tokens.at(-1);
-    if (!flush && last && unfinished(last)) {
-      const rest = latin1Bytes(last.raw);
-      if (rest.length <= maxPending) {
-        this.carry = rest;
-        tokens.pop();
-      }
-    }
+    // The last token may be the start of a sequence the next event finishes; whether it is waited for depends on the paste state
+    // when it comes, so it is told apart from the rest and decided on after them.
+    const parkable = !flush && last !== undefined && unfinished(last);
+    const count = parkable ? tokens.length - 1 : tokens.length;
     const bytes = data.toString('latin1');
     let keys = Buffer.alloc(0);
     let keyed = false;
     let at = 0;
-    for (let k = 0; k < tokens.length; k++) {
+    const key = (raw: string) => {
+      keyed = true;
+      keys = Buffer.concat([keys, latin1Bytes(raw)]);
+    };
+    for (let k = 0; k < count; k++) {
       const t = tokens[k];
       if (!bytes.startsWith(t.raw, at)) {
         // A control inside a CSI is put before its token, so these pieces are not the bytes read, in this order:
-        // the controls and the CSI are keys as they were typed, the bytes at their place. The tokens after it are told as usual.
+        // the controls and the CSI are keys as they were typed, the bytes at their place, and it is no sequence of the
+        // paste's or the answers' (as in InputSplitter, which reads it as the keys they are). The tokens after it are told as usual.
         let end = k;
-        while (tokens[end].kind === 'control' && end + 1 < tokens.length) {
+        while (tokens[end].kind === 'control' && end + 1 < count) {
           end++;
         }
         let length = 0;
         for (let j = k; j <= end; j++) {
           length += tokens[j].raw.length;
         }
-        keyed = true;
-        keys = Buffer.concat([keys, latin1Bytes(bytes.slice(at, at + length))]);
+        key(bytes.slice(at, at + length));
         at += length;
         k = end;
         continue;
       }
       at += t.raw.length;
       if (!this.isAnswer(t)) {
-        keyed = true;
-        keys = Buffer.concat([keys, latin1Bytes(t.raw)]);
+        key(t.raw);
+      }
+    }
+    if (parkable && last !== undefined) {
+      // inside a paste only the start of its end marker is waited for: the rest is the person's, at its own time
+      const keep = this.inPaste ? markerPrefix(last.raw) : last.raw.length <= maxPending ? last.raw.length : 0;
+      if (keep > 0) {
+        this.carry = latin1Bytes(last.raw.slice(last.raw.length - keep));
+      }
+      if (keep < last.raw.length) {
+        if (this.inPaste) {
+          key(last.raw.slice(0, last.raw.length - keep));
+        } else if (!this.isAnswer(last)) {
+          key(last.raw);
+        }
       }
     }
     if (keyed) {
@@ -155,7 +184,8 @@ class InputSplitter {
 
   private isAnswer(t: Token): boolean {
     if (this.inPaste) {
-      this.inPaste = !(t.kind === 'csi' && t.final === '~' && t.params === '201' && t.prefix === '' && !t.alt);
+      // an Escape before the marker is a key and the marker is still one
+      this.inPaste = !(t.kind === 'csi' && t.final === '~' && t.params === '201' && t.prefix === '' && t.intermediates === '');
       return false;
     }
     switch (t.kind) {

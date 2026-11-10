@@ -10,6 +10,8 @@ Fixed:
   content from the answers it holds). One golden, `test/replay_split.golden.json`,
   holds it and the VS Code extension's Type a Recording's Keys to the same
   keys for a recording.
+- `twk record --replay`: a recording that ends inside a paste no longer leaves
+  the splitter in it for the next `add`.
 
 Added:
 

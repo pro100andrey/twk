@@ -141,11 +141,20 @@ export class TwkTerminal implements TerminalPane, Screen {
 
   /** The title for its view now. */
   title(): string {
-    const app = this.shell?.serving ? '' : ' (waiting)';
-    const switches = describeSwitches(this.deps.settings.switches());
+    const { size, choice, switches } = this.facts();
     const on = switches === '' ? '' : ` + ${switches}`;
+    const app = this.shell?.serving ? '' : ' (waiting)';
     const recording = this.recorded ? ' · ● recording' : '';
-    return `${this.name} · twk ${this.columns}x${this.lines} · ${describeChoice(this.deps.settings.capabilities())}${on}${app}${recording}`;
+    return `${this.name} · ${size} · ${choice}${on}${app}${recording}`;
+  }
+
+  /** What the title and the status bar both say: the size, the capabilities, the switches on ('' for none). */
+  private facts(): { size: string; choice: string; switches: string } {
+    return {
+      size: `twk ${this.columns}x${this.lines}`,
+      choice: describeChoice(this.deps.settings.capabilities()),
+      switches: describeSwitches(this.deps.settings.switches()),
+    };
   }
 
   /** Has its title say it is recorded, or not. */
@@ -162,8 +171,8 @@ export class TwkTerminal implements TerminalPane, Screen {
 
   /** What the status bar says of it: `twk 44x7 · xterm.js · overlay` (the size, the capabilities, the switches on). */
   statusText(): string {
-    const switches = describeSwitches(this.deps.settings.switches());
-    return `twk ${this.columns}x${this.lines} · ${describeChoice(this.deps.settings.capabilities())}${switches === '' ? '' : ` · ${switches}`}`;
+    const { size, choice, switches } = this.facts();
+    return `${size} · ${choice}${switches === '' ? '' : ` · ${switches}`}`;
   }
 
   /** Starts serving, once the view told its size. */

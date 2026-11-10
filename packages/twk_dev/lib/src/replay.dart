@@ -86,7 +86,14 @@ final class InputSplitter {
   List<InputPiece> add(String text) => _split(_carry + text, flush: false);
 
   /// What [add] kept, as keys.
-  List<InputPiece> flush() => _split(_carry, flush: true);
+  ///
+  /// The recording is over: a paste it left open does not go on in the next
+  /// [add].
+  List<InputPiece> flush() {
+    final out = _split(_carry, flush: true);
+    _inPaste = false;
+    return out;
+  }
 
   /// What is kept: the start of a sequence.
   String get pending => _carry;

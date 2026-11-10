@@ -934,7 +934,10 @@ describe('the sequence log, recording and replay, the screen copied', () => {
     const saved = parseCast(fs.readFileSync(logCast.fsPath, 'utf8'));
     assert.deepEqual([saved.header.title, saved.header.env?.TERM], ['counter.dart', 'xterm-256color']);
     assert.ok(saved.events.some((e) => e.code === 'i' && e.data === '\x1b[A'), 'the key');
-    assert.ok(saved.events.some((e) => e.code === 'o' && e.data.includes('Count: 1')), 'the app output');
+    // the app's start whole, and after the key only the cell that changed (no single output event holds `Count: 1`)
+    assert.ok(saved.events.some((e) => e.code === 'o' && e.data.includes('Count: 0')), 'the app output');
+    const keyAt = saved.events.findIndex((e) => e.code === 'i' && e.data === '\x1b[A');
+    assert.ok(saved.events.slice(keyAt + 1).some((e) => e.code === 'o' && e.data.includes('1')), 'what the app wrote for the key');
 
     // the screen copied, to VS Code's clipboard
     const copied = await vscode.commands.executeCommand<string>('twk.copyScreen');

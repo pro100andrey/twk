@@ -115,8 +115,11 @@ export class Recording {
 
   private markers = 0;
 
-  /** Leaves a marker here, labelled `marker <n>` as `twk record --marker-key` does, for a player to go to; its label. */
-  mark(): string {
+  /** Leaves a marker here, labelled `marker <n>` as `twk record --marker-key` does, for a player to go to; its label, or undefined where it was stopped (or is being: the file is closed then, nothing is written). */
+  mark(): string | undefined {
+    if (this.stopped) {
+      return undefined;
+    }
     const label = `marker ${++this.markers}`;
     this.preambleFirst();
     this.writer.marker(this.at(), label);

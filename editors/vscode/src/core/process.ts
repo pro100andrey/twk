@@ -112,8 +112,14 @@ export const startNodeProcess: ProcessStarter = (command, args, options) => {
       } else {
         try {
           process.kill(-child.pid, signal);
-        } catch {
-          // ESRCH: the group is gone already; nothing else to signal
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code === 'ESRCH') {
+            // the group is gone already; nothing else to signal
+            return;
+          }
+          // EPERM, or the child leads no group: the child itself is what can still be signalled
+          console.warn(`twk: signalling the group of ${child.pid} failed (${String(e)}); signalling the process`);
+          child.kill(signal);
         }
       }
     },

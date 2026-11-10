@@ -35,6 +35,8 @@ export class Player implements Screen {
   private readonly due: readonly number[];
   /** The recording's markers. */
   private readonly markers: readonly CastMarker[];
+  /** The markers as the state tells them, made once. */
+  private readonly markerList: readonly { label: string; time: number }[];
   /** The marker a marker key or a click last went to (from 1), while the screen is still the one it showed. */
   private pin: number | undefined;
   /** The steps written. */
@@ -76,6 +78,7 @@ export class Player implements Screen {
   ) {
     this.steps = castSteps(cast);
     this.markers = castMarkers(cast, this.steps);
+    this.markerList = this.markers.map((m) => ({ label: markerLabel(m.label), time: m.time }));
     const limit = cast.header.idleTimeLimit;
     let at = 0;
     let last = 0;
@@ -106,7 +109,7 @@ export class Player implements Screen {
   get state(): PlayerState {
     const frames = this.steps.filter((s) => s.frame > 0).length;
     const last = this.shown > 0 ? this.steps[this.shown - 1] : undefined;
-    const markers = this.markers.map((m) => ({ label: markerLabel(m.label), time: m.time }));
+    const markers = this.markerList;
     return {
       playing: this.playing,
       frame: this.steps.slice(0, this.shown).filter((s) => s.frame > 0).length,

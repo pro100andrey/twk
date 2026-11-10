@@ -452,6 +452,10 @@ export function activate(context: vscode.ExtensionContext): Api {
       return undefined;
     }
     const label = made.mark();
+    if (label === undefined) {
+      void vscode.window.showInformationMessage(`twk: the recording of ${terminal.name} has ended; nothing was marked.`);
+      return undefined;
+    }
     vscode.window.setStatusBarMessage(`twk: ${label} left in the recording of ${terminal.name}`, 3000);
     return label;
   });
@@ -599,7 +603,10 @@ export function activate(context: vscode.ExtensionContext): Api {
       return undefined;
     }
     const name = path.basename(file.fsPath);
-    const result = await cancellable(`twk test-from-cast ${name}`, (cancel) => castTests.create(file.fsPath, cancel));
+    // a busy one says so without a progress notification of its own (create keeps the guard for other callers)
+    const result = castTests.isRunning(file.fsPath)
+      ? await castTests.create(file.fsPath)
+      : await cancellable(`twk test-from-cast ${name}`, (cancel) => castTests.create(file.fsPath, cancel));
     if (result.busy) {
       void vscode.window.showInformationMessage(`twk: ${name}: already writing its test`);
     } else if (result.cancelled) {

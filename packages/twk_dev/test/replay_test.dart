@@ -120,6 +120,16 @@ void main() {
     });
   });
 
+  test('a recording that ends inside a paste leaves none open', () {
+    final s = InputSplitter()
+      ..add('\x1b[200~ab')
+      ..flush();
+    expect(
+      [for (final p in s.add('\x1b[0n')) (p.isAnswer, p.text)],
+      [(true, '\x1b[0n')],
+    );
+  });
+
   test('replaySteps are the keys of a recording at their times', () {
     final cast = Cast(const CastHeader(width: 80, height: 24), const [
       CastEvent(0.1, 'o', 'x\x1b[6n\x1b[?2026\$p'),

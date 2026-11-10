@@ -6,18 +6,26 @@ import { TerminalStatusSink } from './ports';
 import { Terminals } from './terminals';
 
 export class TerminalStatus implements Disposable {
-  private readonly listening: Disposable[] = [];
+  private readonly listening = new Set<Disposable>();
 
   constructor(
     private readonly terminals: Terminals,
     private readonly sink: TerminalStatusSink,
   ) {
-    this.listening.push(terminals.onDidCreate((t) => {
-      this.listening.push(
+    this.listening.add(terminals.onDidCreate((t) => {
+      // the terminal's own subscriptions go with it
+      const own: Disposable[] = [
         t.onDidRetitle(() => this.refresh()),
-        t.onDidDispose(() => this.refresh()),
+        t.onDidDispose(() => {
+          own.forEach((d) => {
+            d.dispose();
+            this.listening.delete(d);
+          });
+          this.refresh();
+        }),
         t.view.onDidChangeActive(() => this.refresh()),
-      );
+      ];
+      own.forEach((d) => this.listening.add(d));
       this.refresh();
     }));
   }

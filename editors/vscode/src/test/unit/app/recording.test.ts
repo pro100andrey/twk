@@ -124,6 +124,17 @@ describe('recording a twk terminal', () => {
     );
   });
 
+  it('leaves no marker once stopped, and says so', async () => {
+    const sink = new MemorySink();
+    const recording = await recordings.start(terminal, sink);
+    const stopping = recording.stop();
+    assert.equal(recording.mark(), undefined, 'while it is being stopped');
+    const end = await stopping;
+    assert.equal(recording.mark(), undefined, 'after');
+    assert.equal(end.events, 1, 'the end only');
+    assert.ok(!parseCast(sink.text).events.some((e) => e.code === 'm'));
+  });
+
   it('begun on the alternate screen, begins there, with the first output: its first frame a whole screen', async () => {
     alternate = true;
     const sink = new MemorySink();

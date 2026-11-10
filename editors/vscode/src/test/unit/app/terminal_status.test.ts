@@ -75,4 +75,13 @@ describe('TerminalStatus', () => {
     await terminals.all()[0].dispose();
     assert.equal(sink.text, undefined);
   });
+
+  it("stops listening to a terminal that is gone: nothing of its view refreshes the bar", async () => {
+    const a = await terminals.create('a.dart');
+    await a.dispose();
+    const shown = sink.shown;
+    views[0].setActive(true);
+    a.retitle();
+    assert.equal(sink.shown, shown);
+  });
 });
