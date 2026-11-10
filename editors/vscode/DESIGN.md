@@ -123,6 +123,7 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Record the twk Terminal as asciicast (Start or Stop) | record the terminal to a `.cast` file; again to stop (title bar button) |
 | twk: Stop Recording the twk Terminals | stop every recording (also a click on `REC` in the status bar) |
 | twk: Play a Recording (asciicast) in a twk Terminal | play a `.cast` back (also the explorer's menu on a `.cast` file) |
+| twk: Type a Recording's Keys into the App in the twk Terminal | the recording's keys (its answers left out) typed into the app of the active twk terminal, at their times or a step each time the status bar item is clicked (also the explorer's menu on a `.cast` file, the replay bar's Keys button) |
 | twk: New Project (twk create) | three picks (the template with its description, the folder, the files for coding agents) and `twk create <dir> --template ... --agents ...` with flags, never its prompts; offers to open the project |
 | twk: Install Agent Skill (twk agents) | `twk agents` in the active file's project (else the workspace's): what it wrote, removed and left (a file the person changed) is shown, the whole in the output |
 | twk: Copy the twk Terminal's Screen as Text | the screen on the clipboard (title bar button) |
@@ -227,13 +228,49 @@ twk_test's `screenFrames` over its `Cast.writes` makes a test of it.
 **Replay.** twk: Play a Recording opens a terminal of its own at the
 recording's size (`counter.cast · twk replay 80x24`) and plays what was
 written, each pause cut to the recording's idle limit; what the
-recording typed is not replayed, and what the replay's terminal answers
-goes nowhere. Its bar, under the terminal: from the start (Home or `r`),
+recording typed is not replayed in it, and what the replay's terminal answers
+goes nowhere (to type the keys into a live app, see "Replay input into an app"
+below). Its bar, under the terminal: from the start (Home or `r`),
 a frame back (Left or `,`), play or pause (Space), a frame on (Right or
-`.`), and where it is (`frame 3/42 · 1.25 s / 5.20 s`). A frame is what
+`.`), Test and Keys (below), and where it is (`frame 3/42 · 1.25 s / 5.20 s`). A frame is what
 `screenFrames` takes for one: an output event that leaves no synchronized
 update open. A frame back starts the terminal again (RIS) and writes the
 frames before it at once. Played to its end, Play starts it again.
+
+**Replay input into an app.** twk: Type a Recording's Keys into the App in
+the twk Terminal (the palette, a `.cast` file's menu in the explorer, or the
+**Keys** button of a replay's bar) types the keys of a recording into the app
+running in the active twk terminal (an error says so where no app is
+connected), to reproduce what the recording shows: bring the app to the state
+the recording began in, then replay. Asked, it offers **At their recorded
+times** (the first keys as long after the start as the recording had them after
+its first output, each next as long after the keys before, the pauses already
+cut to the idle limit) or **Step by step** (nothing is typed until the status
+bar item `$(keyboard) counter.cast 0/12` is clicked, or twk: Type the Next
+Keys of the Recording is run; its tooltip shows the keys to come). The item
+of a timed replay stops it when clicked (twk: Stop Typing a Recording's Keys).
+One replay at a time: starting another ends the one before. It ends after the
+last keys, when stopped, when its terminal is closed, and (timed) when the app
+has gone away, saying why in the status bar. Keys of the person typed meanwhile
+are not held back: they reach the app between the recorded ones.
+
+What is typed is the recording's `i` events with the terminal's answers to the
+app's queries (device attributes, mode reports, colours, the cursor position,
+the kitty flags...) taken out: an event holds both and nothing in it tells
+them apart, so they are told by their shape, as `twk record --replay` does
+(`core/replay_input.ts`; the rule is in `packages/twk_dev/doc/record-play.md`,
+and the unit test holds the same cases as twk_dev's `replay_test.dart`). The
+cutting of the bytes into sequences is the sequence log's `SequenceReader`
+(`core/sequences.ts`), not a third reader. `CSI row ; column R` is an answer
+only once the app's output had a `CSI 6 n` and none was answered since (else
+it is the modified F3), a paste is keys whatever it holds, a sequence cut
+between two events is put together and typed at the time it ends, and what
+still waits at the end (an Alt+`]`) is keys. The terminal in front of the app
+answers its queries itself, as it did when recording. Not done: the
+`--replay-speed=asap` of twk_dev (keys when the app has been quiet); a
+recording's resizes (`r`) are not replayed, the terminal keeps its size; a
+replay's own terminal takes no keys (any twk terminal with an app connected
+does, one started by a run or by "any app").
 
 **Selection, copy and paste.** xterm.js selects with a drag when the app
 does not take the mouse, and with Shift held when it does (Option on macOS
@@ -313,8 +350,7 @@ not run: TCP on the loopback interface on Windows); a person's use beyond
 the tests (keys VS Code takes before the webview: Ctrl+P, Ctrl+Shift+P
 while the panel is focused); kitty's graphics protocol (not in the image
 addon for xterm.js 6.0), ambiguous width 2 and bidi (part 3); the render
-tree in the inspector; the log saved to a file, or a recording's input
-replayed into an app; a recording's markers (`m`) shown as places to go
+tree in the inspector; the log saved to a file; a recording's markers (`m`) shown as places to go
 to (they are read, and played over); keys of the window's own menu
 (below); the keys and the drag of the selection, and the paste, in a real
 person's hands (the tests drive what the page sends, not its keys).
@@ -1393,6 +1429,22 @@ decoder, a sequence cut between events too), a resize carried with the
 step after it; a step at its time on the `Clock`, the next once the view
 parsed it; back is RIS and the steps before at once.
 
+**Replay input** (`core/replay_input.ts`, `app/replay_input.ts`,
+`vscode/extension.ts`'s `twk.replayInput`): `replaySteps` makes of a recording's
+`i` events the keys to type, each at its time (`ReplayStep`, as twk_dev's), the
+answers told from keys by `InputSplitter`'s shapes over core's
+`SequenceReader`, the app's `CSI 6 n` queries counted from the `o` events.
+`InputReplay` (app) types a step into an `InputTarget` (`TwkTerminal.type`: the
+sequence log and a recording of that terminal see the keys as typed ones, the
+app gets them through its shell) on the `Clock`, either each at its time since
+the previous (the first since the recording's first output), `speed` dividing
+the waits, or one on `step()`; it ends `done`, `stopped`, `the terminal was
+closed` or `the app went away`. The command takes the file and the mode as
+arguments (a test and the bar's button pass them), asks for them otherwise;
+the status bar item and the context `twk.replayingInput` follow its state.
+The bar's **Keys** is the player's `input` control, passed on as
+`onDidAskInput` like Test.
+
 **A test of a recording** (`app/cast_test.ts`, `twk.testFromCast`): the
 replay bar's **Test** button (the player's `test` control, which it only
 passes on as `onDidAskTest`) and the explorer's menu on a `.cast` run the
@@ -1455,6 +1507,17 @@ Tests (unit):
   the log names the frames, the keys and the alternate screen left. The
   counter writes each frame in one event, so the golden is what holds that
   the steps follow synchronized updates.
+- `core/replay_input.test.ts` (8): the answers left out of an event that holds
+  both (DA1/DA2, DECRPM, kitty flags, DSR, size, OSC, DCS, APC); every key kept
+  (cursor, tilde, kitty, SS3, focus, the mouse, Alt); a cursor position told
+  from the modified F3 (asked or not, one answer for one query, a query cut
+  between writes, `CSI ? r;c R`, a key giving the queries up); a sequence cut
+  between events; what waits at the end is keys; a paste whole; which keys the
+  app reacted to; a recording without keys.
+- `app/replay_input.test.ts` (7, on a fake clock): the keys at their times
+  from the first output, faster by a factor, a step each time asked and none by
+  itself, a step taken early in a timed replay, stopped, ended by the terminal
+  closing and by the app going away, a recording without keys.
 - `protocol.test.ts` and `webview_view.test.ts`: the player's and the
   log's messages, the bar's controls, `isActive`.
 
@@ -1468,7 +1531,10 @@ the title `● recording`, Up, twk: Stop Recording, the header as cast.dart
 writes it, the key in it; q; twk: Play: the replay's terminal at the
 recording's size, played to its end on the alternate screen
 (`Count: 2`), a frame back (`Count: 1`) and on; the screen of the replay
-copied.
+copied; "types the keys of that recording into a new run of the app" (not
+run by the author): the counter run again, `twk.replayInput` of the file in
+`steps` (nothing typed, `Count: 1` after `twk.replayInputStep`, ended `done`),
+in `timed` (`Count: 2` by itself), a stop, and ended by the terminal closing.
 
 Not done: a person using it; the log's filter, pause and frames opened
 are the webview's, run in VS Code but not driven by a test (the test

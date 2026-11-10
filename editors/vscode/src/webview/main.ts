@@ -242,6 +242,7 @@ const showPlayer = (state: PlayerState | null) => {
     const toggle = button('▶', 'Play or pause (Space)', 'toggle');
     button('▶|', 'A frame on (Right, .)', 'step');
     button('Test', 'Create a test from this recording (twk test-from-cast)', 'test').style.minWidth = '3.5em';
+    button('Keys', 'Type the keys of this recording into the app in a twk terminal', 'input').style.minWidth = '3.5em';
     const where = document.createElement('span');
     where.style.opacity = '0.8';
     bar.append(where);

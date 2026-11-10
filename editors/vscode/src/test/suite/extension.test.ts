@@ -16,6 +16,7 @@ import type { Snapshot } from '../../app/ports';
 import type { TwkTerminal } from '../../app/terminal';
 import type { InspectNode } from '../../core/inspect';
 import type { Player } from '../../app/player';
+import type { InputReplay } from '../../app/replay_input';
 
 const project = path.resolve(__dirname, '../../../../../packages/twk');
 
@@ -945,6 +946,36 @@ describe('the sequence log, recording and replay, the screen copied', () => {
     assert.match(await vscode.commands.executeCommand<string>('twk.copyScreen'), /Count: 2/);
     player.dispose();
     assert.deepEqual(api.players(), []);
+  });
+
+  it("types the keys of that recording into a new run of the app, a step at a time and at their times, and ends with the terminal", async () => {
+    const cast = vscode.Uri.file(path.join(casts, 'counter.cast'));
+    const file = vscode.Uri.file(path.join(project, 'example', 'counter.dart'));
+    await vscode.commands.executeCommand<number>('twk.runFile', file);
+    const terminal = newest(api);
+    await shows(terminal, 'Count: 0', 'alternate');
+    // step by step: nothing is typed until it is asked
+    const stepping = await vscode.commands.executeCommand<InputReplay>('twk.replayInput', cast, 'steps');
+    assert.ok(stepping);
+    assert.deepEqual(stepping.state, { typed: 0, total: 1 });
+    assert.equal(api.inputReplay(), stepping);
+    await vscode.commands.executeCommand('twk.replayInputStep');
+    await shows(terminal, 'Count: 1', 'alternate');
+    assert.deepEqual(stepping.state, { typed: 1, total: 1, ended: 'done' });
+    // at their times: a new one ends none (the first is done), and types the key by itself
+    const timed = await vscode.commands.executeCommand<InputReplay>('twk.replayInput', cast, 'timed');
+    assert.ok(timed);
+    await shows(terminal, 'Count: 2', 'alternate');
+    assert.equal(timed.state.ended, 'done');
+    // a replay waiting for a step ends when its terminal closes
+    const waiting = await vscode.commands.executeCommand<InputReplay>('twk.replayInput', cast, 'steps');
+    assert.ok(waiting);
+    await vscode.commands.executeCommand('twk.replayInputStop');
+    assert.equal(waiting.state.ended, 'stopped');
+    const closing = await vscode.commands.executeCommand<InputReplay>('twk.replayInput', cast, 'steps');
+    assert.ok(closing);
+    await terminal.dispose();
+    assert.equal(closing.state.ended, 'the terminal was closed');
   });
 });
 

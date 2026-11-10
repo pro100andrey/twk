@@ -132,4 +132,13 @@ describe('a recording played back', () => {
     assert.equal(player.state.playing, false);
     assert.equal(player.state.frame, 0);
   });
+
+  it('tells that the bar asked for its keys to be typed into an app, and plays on as it was', async () => {
+    await player.start(false);
+    let asked = 0;
+    player.onDidAskInput(() => asked++);
+    player.control('input');
+    assert.equal(asked, 1);
+    assert.equal(player.state.playing, false);
+  });
 });

@@ -193,6 +193,23 @@
         "icon": "$(play)"
       },
       {
+        "command": "twk.replayInput",
+        "title": "Type a Recording's Keys into the App in the twk Terminal",
+        "category": "twk"
+      },
+      {
+        "command": "twk.replayInputStep",
+        "title": "Type the Next Keys of the Recording",
+        "category": "twk",
+        "enablement": "twk.replayingInput"
+      },
+      {
+        "command": "twk.replayInputStop",
+        "title": "Stop Typing a Recording's Keys",
+        "category": "twk",
+        "enablement": "twk.replayingInput"
+      },
+      {
         "command": "twk.testFromCast",
         "title": "Create a Test from a Recording (twk test-from-cast)",
         "category": "twk"
@@ -655,6 +672,11 @@
       "explorer/context": [
         {
           "command": "twk.play",
+          "when": "resourceExtname == .cast",
+          "group": "navigation"
+        },
+        {
+          "command": "twk.replayInput",
           "when": "resourceExtname == .cast",
           "group": "navigation"
         },

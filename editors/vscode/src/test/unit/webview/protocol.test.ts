@@ -25,6 +25,7 @@ describe('the webview protocol', () => {
       { type: 'control', control: 'toggle' },
       { type: 'control', control: 'restart' },
       { type: 'control', control: 'test' },
+      { type: 'control', control: 'input' },
       { type: 'paste' },
     ]) {
       assert.ok(isFromWebview(m), JSON.stringify(m));

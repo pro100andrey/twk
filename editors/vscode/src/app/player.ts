@@ -49,6 +49,9 @@ export class Player implements Screen {
   private readonly tests = new Emitter<void>();
   /** The bar's Test button was pressed: a test of the recording is asked for. */
   readonly onDidAskTest = this.tests.event;
+  private readonly inputAsks = new Emitter<void>();
+  /** The bar's Keys button was pressed: the recording's keys are asked to be typed into an app. */
+  readonly onDidAskInput = this.inputAsks.event;
   private readonly resizes = new Emitter<void>();
   readonly onDidResize = this.resizes.event;
   private readonly disposes = new Emitter<void>();
@@ -139,6 +142,9 @@ export class Player implements Screen {
         break;
       case 'test':
         this.tests.fire();
+        break;
+      case 'input':
+        this.inputAsks.fire();
         break;
     }
   }
@@ -276,6 +282,6 @@ export class Player implements Screen {
     this.listening.forEach((d) => d.dispose());
     this.view.close();
     this.disposes.fire();
-    [this.changes, this.tests, this.outputs, this.inputs, this.notes, this.resizes, this.disposes].forEach((e) => e.dispose());
+    [this.changes, this.tests, this.inputAsks, this.outputs, this.inputs, this.notes, this.resizes, this.disposes].forEach((e) => e.dispose());
   }
 }

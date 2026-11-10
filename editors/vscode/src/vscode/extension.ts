@@ -17,6 +17,7 @@ import { AppLogs, AppLogsView } from '../app/app_logs';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
+import { InputReplay, ReplayMode } from '../app/replay_input';
 import { CastTests } from '../app/cast_test';
 import { Tapes } from '../app/tape';
 import { Recording, Recordings } from '../app/recording';
@@ -73,6 +74,8 @@ export interface Api {
   readonly nodeView: VsCodeNodeDetailsView;
   /** The recordings played back now, the oldest first. */
   players(): Player[];
+  /** The last recording's keys typed into an app, running or ended. */
+  inputReplay(): InputReplay | undefined;
   /** The recordings being made. */
   readonly recordings: Recordings;
   /** The apps' logs, and their panel. */
@@ -206,6 +209,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     inspector.dispose();
     logs.dispose();
     players.forEach((p) => p.dispose());
+    inputReplay?.stop();
     await recordings.dispose();
     await hot.dispose();
     await terminals.dispose();
@@ -220,11 +224,11 @@ export function activate(context: vscode.ExtensionContext): Api {
     return file;
   }
 
-  const command = (name: string, f: (uri?: vscode.Uri) => Promise<unknown>) =>
+  const command = (name: string, f: (uri?: vscode.Uri, ...rest: unknown[]) => Promise<unknown>) =>
     context.subscriptions.push(
-      vscode.commands.registerCommand(name, async (uri?: vscode.Uri) => {
+      vscode.commands.registerCommand(name, async (uri?: vscode.Uri, ...rest: unknown[]) => {
         try {
-          return await f(uri);
+          return await f(uri, ...rest);
         } catch (e) {
           void vscode.window.showErrorMessage(`twk: ${e instanceof Error ? e.message : String(e)}`);
           return undefined;
@@ -421,11 +425,92 @@ export function activate(context: vscode.ExtensionContext): Api {
     players.add(player);
     // the bar's Test button: the same command as the explorer's
     player.onDidAskTest(() => void vscode.commands.executeCommand('twk.testFromCast', file));
+    // the bar's Keys button: the same command as the explorer's
+    player.onDidAskInput(() => void vscode.commands.executeCommand('twk.replayInput', file));
     logs.follow(player);
     player.onDidDispose(() => players.delete(player));
     await player.start();
     return player;
   });
+
+  // A recording's keys typed into the app of the twk terminal: at their
+  // times, or a step each time asked (the status bar's item and
+  // twk.replayInputStep); one replay at a time
+  let inputReplay: InputReplay | undefined;
+  const replayItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
+  context.subscriptions.push(replayItem);
+  const showReplay = (r: InputReplay) => {
+    const { typed, total, ended } = r.state;
+    void vscode.commands.executeCommand('setContext', 'twk.replayingInput', ended === undefined);
+    if (ended !== undefined) {
+      replayItem.hide();
+      vscode.window.setStatusBarMessage(`twk: keys of ${r.name} ${ended === 'done' ? `typed, ${total}` : `not all typed (${typed} of ${total}): ${ended}`}`, 5000);
+      return;
+    }
+    replayItem.text = `$(keyboard) ${r.name} ${typed}/${total}`;
+    replayItem.tooltip = r.mode === 'steps' ? `Type the next keys (${JSON.stringify(r.next)}); twk: Stop Typing a Recording's Keys ends it` : 'Click to stop typing the recording\'s keys';
+    replayItem.command = r.mode === 'steps' ? 'twk.replayInputStep' : 'twk.replayInputStop';
+    replayItem.show();
+  };
+  command('twk.replayInput', async (uri, mode) => {
+    const terminal = theTerminal();
+    if (!terminal.shell?.serving) {
+      throw new Error(`no app is connected to ${terminal.name}: run one in it first`);
+    }
+    const file =
+      uri ??
+      (
+        await vscode.window.showOpenDialog({
+          title: 'Type the keys of an asciicast recording into the app',
+          canSelectMany: false,
+          filters: { asciicast: ['cast'], 'all files': ['*'] },
+        })
+      )?.[0];
+    if (!file) {
+      return undefined;
+    }
+    const chosen =
+      mode === 'timed' || mode === 'steps'
+        ? mode
+        : (
+            await vscode.window.showQuickPick(
+              [
+                { label: 'At their recorded times', mode: 'timed' as ReplayMode },
+                { label: 'Step by step', description: 'a click on the status bar item types the next keys', mode: 'steps' as ReplayMode },
+              ],
+              { title: `Type the keys of ${path.basename(file.fsPath)} into ${terminal.name}` },
+            )
+          )?.mode;
+    if (!chosen) {
+      return undefined;
+    }
+    const name = path.basename(file.fsPath);
+    const cast = parseCast(fs.readFileSync(file.fsPath, 'utf8'));
+    inputReplay?.stop();
+    const replay = new InputReplay(
+      name,
+      cast,
+      {
+        name: terminal.name,
+        type: (text) => terminal.type(text),
+        get hasApp() {
+          return terminal.shell?.serving === true;
+        },
+        onDidDispose: terminal.onDidDispose,
+      },
+      chosen,
+      realClock,
+    );
+    inputReplay = replay;
+    replay.onDidChange(() => showReplay(replay));
+    replay.start();
+    if (!replay.isEnded) {
+      showReplay(replay);
+    }
+    return replay;
+  });
+  command('twk.replayInputStep', async () => inputReplay?.step());
+  command('twk.replayInputStop', async () => inputReplay?.stop());
 
   // A test of a recording: `twk test-from-cast`, run in the recording's
   // project; the test it wrote is opened
@@ -485,6 +570,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     inspectorView,
     nodeView,
     players: () => [...players],
+    inputReplay: () => inputReplay,
     recordings,
     appLogs,
     appLogsView,
