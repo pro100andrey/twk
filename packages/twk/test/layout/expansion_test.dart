@@ -228,6 +228,7 @@ void main() {
     addTearDown(b.dispose);
     final told = <bool>[];
     final which = ValueNotifier(a);
+    addTearDown(which.dispose);
     await t.pumpWidget(
       ValueListenableBuilder(
         valueListenable: which,

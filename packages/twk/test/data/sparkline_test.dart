@@ -256,6 +256,7 @@ void main() {
       'their data change', (t) async {
     const panel = Color.rgb(0x22, 0x25, 0x2c);
     final data = ValueNotifier<List<double>>([1, 2, 3]);
+    addTearDown(data.dispose);
     await t.pumpWidget(
       Align(
         alignment: Alignment.topLeft,

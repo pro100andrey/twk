@@ -6,6 +6,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 const List<Choice<String>> modes = [
   Choice('dark', 'dark'),
   Choice('light', 'light'),
@@ -50,7 +52,7 @@ Widget stepper(
     ),
     Button(
       'next',
-      focusNode: FocusNode(debugLabel: 'next'),
+      focusNode: disposing(FocusNode(debugLabel: 'next')),
       onPressed: () {},
     ),
   ],
@@ -60,6 +62,7 @@ void main() {
   testTwk('the value between ‹ and ›, padded to the widest label so that '
       '› stays in its place; the arrows in the primary color', (t) async {
     final v = ValueNotifier('dark');
+    addTearDown(v.dispose);
     await t.pumpWidget(Theme.terminal(child: stepper(v)), size: (30, 2));
     expect(t.lines.first, '‹ dark           ›');
     expect(t, styleAt(0, 0, hasFg(Color.blue)));
@@ -73,6 +76,7 @@ void main() {
   testTwk('Left and Right step to the value before and after, round and '
       'past a disabled one; one stop of Tab; hinted', (t) async {
     final v = ValueNotifier('dark');
+    addTearDown(v.dispose);
     final changes = <String>[];
     final node = FocusNode(debugLabel: 'mode');
     addTearDown(node.dispose);
@@ -112,6 +116,7 @@ void main() {
     t,
   ) async {
     final v = ValueNotifier('light');
+    addTearDown(v.dispose);
     final changes = <String>[];
     final node = FocusNode(debugLabel: 'mode');
     addTearDown(node.dispose);
@@ -156,6 +161,7 @@ void main() {
   testTwk('a click on ‹ steps back, on › forward, on the value nothing; it '
       'takes the focus', (t) async {
     final v = ValueNotifier('light');
+    addTearDown(v.dispose);
     final changes = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: stepper(v, changes: changes)),
@@ -181,6 +187,7 @@ void main() {
   testTwk('a value that is none of the values shows nothing; Right steps '
       'to the first, Left to the last', (t) async {
     final v = ValueNotifier('nope');
+    addTearDown(v.dispose);
     final node = FocusNode(debugLabel: 'mode');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -201,6 +208,7 @@ void main() {
   testTwk('without onChanged, or with fewer than two enabled values, it '
       'is muted and takes neither focus nor click', (t) async {
     final v = ValueNotifier('dark');
+    addTearDown(v.dispose);
     final changes = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: stepper(v, enabled: false, changes: changes)),
@@ -231,12 +239,14 @@ void main() {
 
   testTwk('a label wider than the room is cut off with …', (t) async {
     final v = ValueNotifier('auto');
+    addTearDown(v.dispose);
     await t.pumpWidget(Theme.terminal(child: stepper(v)), size: (12, 2));
     expect(t.lines.first, '‹ auto-sw… ›');
   });
 
   testTwk('the hidden cursor rests on ‹ while it has the focus', (t) async {
     final v = ValueNotifier('dark');
+    addTearDown(v.dispose);
     final node = FocusNode(debugLabel: 'mode');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -251,6 +261,7 @@ void main() {
   testTwk('a screen reader reads a slider of the label of the value, '
       'disabled while it is', (t) async {
     final v = ValueNotifier('light');
+    addTearDown(v.dispose);
     await t.pumpWidget(Theme.terminal(child: stepper(v)), size: (30, 2));
     expect(t.binding.semantics.lines.first, startsWith('slider light'));
     await t.pumpWidget(

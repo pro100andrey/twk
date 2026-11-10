@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
 import '../text/ambiguous.dart';
 import '../text/plain_lines.dart';
 
@@ -72,7 +73,7 @@ Widget segmented(
     ),
     Button(
       'next',
-      focusNode: FocusNode(debugLabel: 'next'),
+      focusNode: disposing(FocusNode(debugLabel: 'next')),
       onPressed: () {},
     ),
   ],
@@ -83,6 +84,7 @@ void main() {
       'color and bold, the lines in the border color, one that cannot be '
       'pressed muted', (t) async {
     final on = ValueNotifier({'errors'});
+    addTearDown(on.dispose);
     await t.pumpWidget(Theme.terminal(child: segmented(on)), size: (50, 2));
     expect(t.lines.first, '[ All │ Errors (3) │ Warnings (12) │ Info ]');
     expect(t, styleAt(10, 0, allOf(hasFg(Color.blue), hasAttr(Attr.bold))));
@@ -119,6 +121,7 @@ void main() {
       'on, passing a disabled one by, round; Space and Enter press it; '
       'hinted', (t) async {
     final on = ValueNotifier({'errors'});
+    addTearDown(on.dispose);
     final changes = <Set<String>>[];
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
@@ -165,6 +168,7 @@ void main() {
   testTwk('the hidden cursor rests on the highlighted segment as it '
       'moves', (t) async {
     final on = ValueNotifier({'errors'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -188,6 +192,7 @@ void main() {
   testTwk('1 to 9 press the segment of that number, highlighting it; a '
       'disabled one not', (t) async {
     final on = ValueNotifier({'all'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -208,6 +213,7 @@ void main() {
   testTwk('a click presses a segment and focuses the control; one disabled, '
       'the caps and the lines do nothing', (t) async {
     final on = ValueNotifier({'all'});
+    addTearDown(on.dispose);
     final changes = <Set<String>>[];
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
@@ -233,6 +239,7 @@ void main() {
   testTwk('a multiple choice toggles each segment, never the last one off '
       'unless an empty one is allowed', (t) async {
     final on = ValueNotifier({'all'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -262,6 +269,7 @@ void main() {
     t,
   ) async {
     final on = ValueNotifier({'all'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -277,6 +285,7 @@ void main() {
   testTwk('without onSelectionChanged it takes neither the focus nor the '
       'mouse, all of it muted', (t) async {
     final on = ValueNotifier({'errors'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -300,6 +309,7 @@ void main() {
   testTwk('where the segments do not fit, the labels are cut off with … '
       'evenly, the widest first, never wrapped', (t) async {
     final on = ValueNotifier({'all'});
+    addTearDown(on.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Align(
@@ -351,6 +361,7 @@ void main() {
       'surface towards its text', (t) async {
     const theme = ThemeData.dark;
     final on = ValueNotifier({'all'});
+    addTearDown(on.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Theme(data: theme, child: segmented(on)),
@@ -377,6 +388,7 @@ void main() {
   testTwk('a screen reader reads radios, or checkboxes in a multiple '
       'choice, checked while on; the highlighted one focused', (t) async {
     final on = ValueNotifier({'errors'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'views');
     addTearDown(node.dispose);
     await t.pumpWidget(

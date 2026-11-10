@@ -290,6 +290,7 @@ left     a
     final navigator = GlobalKey<NavigatorState>();
     final told = <bool>[];
     final canPop = ValueNotifier(false);
+    addTearDown(canPop.dispose);
     late BuildContext home;
     await t.pumpWidget(
       Navigator(

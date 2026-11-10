@@ -6,6 +6,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
 
 List<String> hints(TwkTester t) => [
@@ -214,7 +216,7 @@ void main() {
               choices: const [Choice(1, 'one', enabled: false)],
               value: null,
               onChanged: (_) {},
-              focusNode: FocusNode(debugLabel: 'none'),
+              focusNode: disposing(FocusNode(debugLabel: 'none')),
             ),
             const Focus(debugLabel: 'next', child: Text('next')),
           ],

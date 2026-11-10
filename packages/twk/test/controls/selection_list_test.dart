@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
 
 List<String> hints(TwkTester t) => [
@@ -332,7 +334,7 @@ void main() {
           child: names(
             list,
             controller: c,
-            node: FocusNode(debugLabel: 'list'),
+            node: disposing(FocusNode(debugLabel: 'list')),
           ),
         ),
         size: (8, 4),
@@ -579,7 +581,7 @@ void main() {
           child: names(
             list,
             controller: c,
-            node: FocusNode(debugLabel: 'list'),
+            node: disposing(FocusNode(debugLabel: 'list')),
             onSubmitted: submitted.add,
           ),
         ),
@@ -640,7 +642,7 @@ void main() {
           child: names(
             list,
             controller: c,
-            node: FocusNode(debugLabel: 'list'),
+            node: disposing(FocusNode(debugLabel: 'list')),
             disabled: (name) => 'def'.contains(name),
           ),
         ),
@@ -665,7 +667,7 @@ void main() {
                 child: names(
                   list,
                   controller: c,
-                  node: FocusNode(debugLabel: 'list'),
+                  node: disposing(FocusNode(debugLabel: 'list')),
                   enabled: false,
                 ),
               ),

@@ -346,6 +346,7 @@ void main() {
     t,
   ) async {
     final text = TextEditingController(text: 'two words');
+    addTearDown(text.dispose);
     await t.pumpWidget(
       Theme(
         data: ThemeData.dark,

@@ -120,6 +120,7 @@ void main() {
       'is told the result of a pop', (t) async {
     final calls = <String>[];
     final canPop = ValueNotifier(false);
+    addTearDown(canPop.dispose);
     final navigator = GlobalKey<NavigatorState>();
     await t.pumpWidget(
       KeyBindings(
@@ -195,6 +196,7 @@ void main() {
       'key goes on again, and what lists the keys is told', (t) async {
     final calls = <String>[];
     final canPop = ValueNotifier(false);
+    addTearDown(canPop.dispose);
     await t.pumpWidget(
       KeyBindings(
         {'escape': () => calls.add('app escape')},
