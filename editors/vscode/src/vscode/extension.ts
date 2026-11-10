@@ -46,6 +46,7 @@ import { openAppLogsPanel, openLogPanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
+import { registerReport } from './report';
 import { registerTape } from './tape';
 import { StatusBar } from './status_bar';
 
@@ -237,6 +238,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
   context.subscriptions.push(vscode.window.registerCustomEditorProvider(screenFileViewType, new ScreenFileEditors(context.extensionUri)));
   const tape = registerTape(context, log);
+  registerReport(context, settings, log);
   command('twk.openScreenFile', async (uri) => {
     const file = uri ?? vscode.window.activeTextEditor?.document.uri;
     if (!file) {

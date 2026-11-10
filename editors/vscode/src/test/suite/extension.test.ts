@@ -1214,3 +1214,28 @@ describe('a .tape file', () => {
     panel.dispose();
   });
 });
+
+describe('the terminal report', () => {
+  const twkDev = path.resolve(project, '..', 'twk_dev');
+
+  after(async () => {
+    await vscode.workspace.getConfiguration('twk').update('terminal.profile', undefined, vscode.ConfigurationTarget.Global);
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  it('shows the terminal as the settings have it and the project twk doctor reports, and follows a changed setting', async () => {
+    const doc = await vscode.workspace.openTextDocument(path.join(twkDev, 'pubspec.yaml'));
+    await vscode.window.showTextDocument(doc);
+    const panel = await vscode.commands.executeCommand<vscode.WebviewPanel>('twk.showTerminalReport');
+    assert.equal(panel.title, 'twk terminal report');
+    assert.match(panel.webview.html, /Profile <b>xterm\.js<\/b>/);
+    assert.match(panel.webview.html, /<th>COLORTERM<\/th><td>truecolor<\/td>/);
+    assert.match(panel.webview.html, new RegExp(`<th>project</th><td>${twkDev.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    assert.match(panel.webview.html, /<th>twk_dev<\/th><td>\d/);
+    await vscode.workspace.getConfiguration('twk').update('terminal.profile', 'no answers', vscode.ConfigurationTarget.Global);
+    await until('the report following the profile', () => Promise.resolve(panel.webview.html.includes('Profile <b>no answers</b>') ? true : undefined), 10000);
+    assert.match(panel.webview.html, /<td class="bad">not recognised<\/td>/);
+    assert.match(panel.webview.html, /<th>project<\/th>/, 'the project part stays');
+    panel.dispose();
+  });
+});

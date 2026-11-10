@@ -125,6 +125,7 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Play a Recording (asciicast) in a twk Terminal | play a `.cast` back (also the explorer's menu on a `.cast` file) |
 | twk: Copy the twk Terminal's Screen as Text | the screen on the clipboard (title bar button) |
 | twk: Show twk Output | the extension's log: the app's own output, reloads, errors |
+| twk: Show the Terminal Report (what the twk terminal tells and answers an app, and twk doctor's project part) | the panel of the report (below, "The terminal report") |
 | twk: Pick Widgets in the twk Terminal (the twk Inspector's $(inspect) button) | the pick mode on: each click on the app's terminal picks the widget under it, opens where it was made; the button pressed (filled) until twk: Stop Picking Widgets, or Escape in the terminal |
 
 "The twk terminal" of a command is the active one: the panel focused, or
@@ -326,6 +327,33 @@ the report, the grammar's patterns compiled and tried) and app's (`Tapes`
 over a fake and over a real process); the language registered, the lenses, the
 diagnostics on a broken tape and the Check's result are in the real VS Code
 suite.
+
+### The terminal report
+
+`twk.showTerminalReport` opens one panel (`vscode/report.ts`): the terminal's
+part and the project's.
+
+- The terminal's part, `core/report.ts`'s `terminalReportOf`, is computed from
+  the functions an app is taken with (`environmentOf`, `switchEnvironment`,
+  `declarationOf`, `answersOf`), so it cannot say otherwise than the terminal
+  does; a unit test holds each preset's rows to `answersOf`. A row of the probe's
+  queries is `answered` (by xterm.js itself or by the extension), `not
+  recognised` (a DECRQM mode denied) or `no answer`. It reads the settings
+  at each render, and the panel renders again when a `twk.terminal.*` setting
+  changes.
+- The project's part is `twk doctor --json -C <project>` (`app/report.ts`'s
+  `Doctor`), run as the tape commands are, in the project of the active file
+  (else the first folder with a `pubspec.yaml`), with `twk.tape.command` as
+  what `twk` is (a second setting would only repeat it). Exit 1 (the versions
+  disagree) is a report; output that is no report, a command that cannot
+  start and one that outlasts 60 s are `failed` in the page, with why.
+  `core/report.ts`'s `parseDoctor` checks each field and reads past a line
+  `dart run` wrote before the object. The doctor's own `terminal` section (the
+  probe of a tty) is null under a pipe and not used: this terminal is the
+  extension's, so the first part says it.
+- Refresh asks again; a setting's change does not (the project did not change).
+- The real VS Code suite opens the report from a file of `twk_dev`, and changes
+  the profile to see the panel follow.
 
 ## 1. Debugging a twk app
 

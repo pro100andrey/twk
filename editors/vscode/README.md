@@ -37,6 +37,15 @@ in a terminal of the extension's own, beside the editor.
   **Preview** (the stills of its Screenshots and its SVG Output in a strip; a
   click goes to the statement). The problems are twk tape's own: there is no
   second parser here.
+- **The terminal report** (twk: Show the Terminal Report): what an app is told
+  by the twk terminal as the settings have it (`TERM`, `COLORTERM`, `NO_COLOR`,
+  the switches' variables, what the welcome declares), which of the probe's
+  queries are answered, denied or left silent, and what the terminal does
+  for notifications, progress, links and the clipboard; and, from `twk doctor
+  --json` of the project of the active file, the versions of twk's packages in
+  its `pubspec.lock` and whether they agree, the Dart SDK, the files of
+  `.dart_tool/twk` (listening or left behind) and the skill for agents. It
+  follows a changed setting; Refresh asks `twk doctor` again.
 
 Open a Dart file of a twk app, press Ctrl+Shift+P and type "twk".
 

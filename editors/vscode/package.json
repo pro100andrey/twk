@@ -211,6 +211,11 @@
         "command": "twk.tape.preview",
         "title": "Preview the Tape (the Screenshots and the SVG Output, a strip of frames)",
         "category": "twk"
+      },
+      {
+        "command": "twk.showTerminalReport",
+        "title": "Show the Terminal Report (what the twk terminal tells and answers an app, and twk doctor's project part)",
+        "category": "twk"
       }
     ],
     "keybindings": [
@@ -413,7 +418,7 @@
             "run",
             "twk_dev:twk"
           ],
-          "description": "The command that is twk, for Run, Check and Preview of a .tape: it runs in the tape's Dart project (the nearest pubspec.yaml), with `tape [--check] <file>` after it. A twk activated globally: [\"twk\"]."
+          "description": "The command that is twk, for Run, Check and Preview of a .tape and for the project part of the terminal report (twk doctor --json): it runs in the tape's Dart project (the nearest pubspec.yaml), with `tape [--check] <file>` after it. A twk activated globally: [\"twk\"]."
         }
       }
     },
