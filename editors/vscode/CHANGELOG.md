@@ -17,6 +17,10 @@ The first packaged version (a preview, `.vsix` built from this repository).
 - A `file:` link of the app opens only a file whose real path is in a workspace
   folder (a symbolic link out of it does not), names compared without case on
   Windows and macOS.
+- The terminal's colours (background, foreground, cursor, selection, the 16 ANSI
+  colours) are VS Code's terminal colours and follow a change of the colour
+  theme; an app asking for the background (OSC 11) gets the theme's, so its
+  light or dark detection is right.
 - Code lenses Run in twk Terminal and Debug in twk Terminal over the `main` of a
   twk app (`runApp` or `TwkApp` in a file importing twk), off with
   `twk.codeLens`.

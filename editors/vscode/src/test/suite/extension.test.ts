@@ -143,6 +143,36 @@ describe('twk terminal', () => {
     }
   });
 
+  it("follows VS Code's theme: the OSC 11 answer is the terminal's background, and changes with the colour theme", async () => {
+    const workbench = vscode.workspace.getConfiguration('workbench');
+    const before = workbench.get<string>('colorTheme');
+    const terminal = await vscode.commands.executeCommand<TwkTerminal>('twk.openTerminal');
+    assert.ok(terminal);
+    await shows(terminal, 'TWK_SHELL=');
+    const luminance = async (): Promise<number> => {
+      let answers = '';
+      const listening = terminal.onDidInput((b) => (answers += Buffer.from(b).toString('latin1')));
+      try {
+        await terminal.write(Buffer.from('\x1b]11;?\x1b\\'));
+        await until('the answer to OSC 11', async () => (/\x1b\]11;rgb:[0-9a-f]+\/[0-9a-f]+\/[0-9a-f]+/.test(answers) ? true : undefined), 10000);
+      } finally {
+        listening.dispose();
+      }
+      const m = /\]11;rgb:([0-9a-f]+)\/([0-9a-f]+)\/([0-9a-f]+)/.exec(answers)!;
+      const [r, g, b] = [m[1], m[2], m[3]].map((h) => Number.parseInt(h, 16) / (16 ** h.length - 1));
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    try {
+      await workbench.update('colorTheme', 'Default Dark Modern', vscode.ConfigurationTarget.Global);
+      await until('a dark background', async () => ((await luminance()) < 0.3 ? true : undefined), 20000);
+      await workbench.update('colorTheme', 'Default Light Modern', vscode.ConfigurationTarget.Global);
+      await until('a light background after the theme changed', async () => ((await luminance()) > 0.7 ? true : undefined), 20000);
+    } finally {
+      await workbench.update('colorTheme', before, vscode.ConfigurationTarget.Global);
+      await terminal.dispose();
+    }
+  });
+
   it('closed while its app runs: the app ends with it, through its own process', async () => {
     const file = vscode.Uri.file(path.join(project, 'example', 'counter.dart'));
     const pid = await vscode.commands.executeCommand<number>('twk.runFile', file);

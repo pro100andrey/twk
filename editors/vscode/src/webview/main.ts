@@ -13,6 +13,7 @@ import type { Terminal as TerminalType } from '@xterm/xterm';
 import type { Graphics } from '../core/capabilities.js';
 import { Emulation } from './answers.js';
 import { cellAt, cursorRowShown } from './pick.js';
+import { sameTheme, terminalTheme } from './theme.js';
 import { FromWebview, PlayerControl, PlayerState, isToWebview } from './protocol.js';
 
 declare const Terminal: typeof TerminalType;
@@ -24,6 +25,7 @@ const vscode = acquireVsCodeApi();
 const post = (m: FromWebview) => vscode.postMessage(m);
 const css = getComputedStyle(document.documentElement);
 const color = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
+const currentTheme = () => terminalTheme((name) => css.getPropertyValue(name));
 /** The emulation, once made: the link handler is given before the terminal is. */
 let emulation: Emulation | undefined;
 const term = new Terminal({
@@ -32,11 +34,22 @@ const term = new Terminal({
   linkHandler: { activate: (_event, uri) => emulation?.activateLink(uri), allowNonHttpProtocols: true },
   fontFamily: color('--vscode-editor-font-family', 'monospace'),
   fontSize: Number.parseInt(color('--vscode-editor-font-size', '14'), 10) || 14,
-  theme: {
-    background: color('--vscode-terminal-background', color('--vscode-editor-background', '#1e1e1e')),
-    foreground: color('--vscode-terminal-foreground', color('--vscode-editor-foreground', '#cccccc')),
-  },
+  theme: currentTheme(),
 });
+// A theme change: VS Code sets the --vscode-* variables again on the root
+// element (its style) and the theme's kind on the body (its class); the
+// terminal takes the colours, which xterm.js answers the apps' OSC 10 and
+// 11 with from then on.
+let shown = term.options.theme ?? {};
+const followTheme = () => {
+  const next = currentTheme();
+  if (!sameTheme(shown, next)) {
+    shown = next;
+    term.options.theme = next;
+  }
+};
+new MutationObserver(followTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'class'] });
+new MutationObserver(followTheme).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 const fit = new FitAddon.FitAddon();
 term.loadAddon(fit);
 const host = document.getElementById('terminal');

@@ -1617,9 +1617,19 @@ What the repository offers for the wished features:
   comments and strings blanked, no analysis server; a `main` that hands
   over to another file is not found; `twk.codeLens` turns them off; they
   stand beside Dart-Code's Run | Debug, which cannot tell a twk app).
+  Theme: the terminal's colours are VS Code's terminal colours
+  (`webview/theme.ts`: `terminal.background` and `foreground`, falling
+  back to the editor's, the cursor, the selection, and the 16
+  `terminal.ansi*`, read from the `--vscode-terminal-*` variables of the
+  page; a colour VS Code leaves unset is xterm.js's own), taken again
+  when VS Code sets the variables (a MutationObserver on the root
+  element's style and class), and xterm.js answers the apps' OSC 10 and 11
+  with that theme, so twk's light/dark detection sees the real background;
+  the extension answers nothing itself. Unit tests of the mapping
+  (`theme.test.ts`); the answer changing with the colour theme is a test in
+  VS Code (not run in the tests of the commit that added it).
   Left: a status bar with the size and profile, copy and
-  paste, focus and the keys VS Code would take, theme colors following
-  VS Code's, OSC 52 to the clipboard.
+  paste, focus and the keys VS Code would take, OSC 52 to the clipboard.
 - **Capability switches** (part 3), but for ambiguous width 2 and bidi
   (part 3 says why) and kitty's graphics protocol (not in the image addon
   for xterm.js 6.0). The screen reader and the debug aids (part 2).

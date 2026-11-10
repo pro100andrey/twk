@@ -17,6 +17,7 @@
     "src/webview/protocol.ts",
     "src/webview/answers.ts",
     "src/webview/pick.ts",
+    "src/webview/theme.ts",
     "src/webview/log.ts",
     "src/webview/log_protocol.ts",
     "src/webview/app_logs.ts",
