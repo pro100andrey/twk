@@ -201,14 +201,14 @@ final class TerminalSession with ChangeNotifier {
       return;
     }
     // the emulator keeps at least one column and row, and so does the
-    // program's terminal: Pty.resize takes no less
-    final w = width < 1 ? 1 : width;
-    final h = height < 1 ? 1 : height;
-    if (w == emulator.width && h == emulator.height) {
+    // program's terminal (Pty.resize takes no less): both are the size it
+    // read back
+    final (oldW, oldH) = (emulator.width, emulator.height);
+    emulator.resize(width, height);
+    if (emulator.width == oldW && emulator.height == oldH) {
       return;
     }
-    emulator.resize(w, h);
-    _onResize?.call(w, h);
+    _onResize?.call(emulator.width, emulator.height);
   }
 
   void _fed(List<int> bytes) {

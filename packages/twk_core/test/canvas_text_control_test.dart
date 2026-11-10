@@ -59,4 +59,14 @@ void main() {
     });
     expect(lines, isEmpty);
   });
+
+  test('a newline is told to split the text, not about ANSI', () {
+    final lines = printed(() => cv.text(0, 0, 'a\nb', pen));
+    expect(lines.length, asserts ? 1 : 0);
+    if (asserts) {
+      expect(lines.single, contains('U+000A'));
+      expect(lines.single, contains('split the text into lines'));
+      expect(lines.single, isNot(contains('ANSI')));
+    }
+  });
 }

@@ -483,11 +483,13 @@ final class _Hunk {
     return true;
   }
 
+  /// The hunk as read: its counts are the lines it got, which a truncated
+  /// patch (or a header that counts too many) leaves short of the header's.
   DiffHunk done() => DiffHunk(
     oldStart: oldStart,
-    oldCount: oldCount,
+    oldCount: oldCount - oldLeft,
     newStart: newStart,
-    newCount: newCount,
+    newCount: newCount - newLeft,
     section: section,
     lines: _lines,
   );
