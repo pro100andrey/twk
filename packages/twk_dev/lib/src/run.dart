@@ -41,6 +41,14 @@ final class RunCommand extends Command<int> {
           'as it ships, for measuring; the app then logs a line saying '
           'asserts are off.',
     )
+    ..addFlag(
+      'watch-deps',
+      defaultsTo: true,
+      help:
+          'Reload on a change in the lib/ of the path dependencies and '
+          'workspace members of the package too (the pub cache excluded). '
+          '--no-watch-deps watches the package and the file only.',
+    )
     ..addMultiOption(
       'debug',
       valueHelp: 'aids',
@@ -72,7 +80,8 @@ final class RunCommand extends Command<int> {
       'Run an app with hot reload, in this terminal.\n\n'
       'Starts the app in <file> with the VM service, the arguments after '
       'it its own, and leaves it this terminal. Watches the lib/ of the '
-      'package <file> is in and <file>: when a .dart file changes, reloads '
+      'package <file> is in, of its path dependencies and <file>: when a '
+      '.dart file changes, reloads '
       'the sources and has the app rebuild every widget, each State kept. '
       'In the app Ctrl+G h reloads and Ctrl+G H restarts it; what a reload '
       "did goes to the app's log, its console opening when it failed. "
@@ -110,6 +119,7 @@ final class RunCommand extends Command<int> {
       debug: debug,
       screenReader: argResults!.flag('screen-reader'),
       plain: argResults!.flag('plain'),
+      watchDeps: argResults!.flag('watch-deps'),
     );
     started?.call(runner);
     return runner.run();
@@ -125,7 +135,8 @@ final class RunCommand extends Command<int> {
 /// app's console. The app's debug keys are on (`TWK_DEBUG=keys`), and
 /// its asserts, unless [asserts] is false.
 ///
-/// When a `.dart` file in the `lib/` of the package [entry] is in, or
+/// When a `.dart` file in the `lib/` of the package [entry] is in, or of a
+/// path dependency or workspace member of it ([watchDeps]), or
 /// [entry] itself, changes ([debounce] after the last change), or the app
 /// asks for it (Ctrl+G h, the event `twk.reload`), the sources are
 /// reloaded (`reloadSources`) and the app rebuilds and repaints all of
@@ -147,9 +158,11 @@ final class HotRunner {
     this.debug = const [],
     this.screenReader = false,
     this.plain = false,
+    this.watchDeps = true,
   }) : entry = p.normalize(p.absolute(entry)),
        package = projectOf(p.dirname(entry)),
-       serviceFile = serviceFileOf(projectOf(null));
+       serviceFile = serviceFileOf(projectOf(null)),
+       _deps = watchDeps ? pathDependencyLibs(projectOf(p.dirname(entry))) : {};
 
   /// The file of the app's `main`, absolute.
   final String entry;
@@ -170,6 +183,17 @@ final class HotRunner {
 
   /// Whether the app writes plain text (`TWK_PLAIN=1`).
   final bool plain;
+
+  /// Whether the `lib/` of the path dependencies and workspace members of
+  /// the package are watched too ([pathDependencyLibs]).
+  final bool watchDeps;
+
+  // the lib/ directories watched besides the package's, by package name
+  final Map<String, String> _deps;
+
+  /// The `lib/` directories of the path dependencies watched besides the
+  /// package's own, by package name: none with [watchDeps] false.
+  Map<String, String> get watchedDependencies => Map.unmodifiable(_deps);
 
   /// The directory of the package [entry] is in.
   final String package;
@@ -408,10 +432,13 @@ final class HotRunner {
           unawaited(_reload());
         }
       case 'ext.twk.log':
+        final deps = _deps.isEmpty
+            ? ''
+            : ', and the lib/ of the path dependencies ${_deps.keys.join(', ')}';
         unawaited(
           app.log(
             'hot reload: watching ${_shown(p.join(package, 'lib'))} and '
-            '${_shown(entry)}; Ctrl+G h reloads, Ctrl+G H restarts',
+            '${_shown(entry)}$deps; Ctrl+G h reloads, Ctrl+G H restarts',
           ),
         );
     }
@@ -421,15 +448,16 @@ final class HotRunner {
   static String _shown(String path) =>
       p.isWithin(p.current, path) ? p.relative(path) : path;
 
-  /// Watches the `lib/` of [package], and [entry]: a change of a `.dart`
-  /// file reloads the sources [debounce] after the last one.
+  /// Watches the `lib/` of [package] and of its path dependencies, and
+  /// [entry]: a change of a `.dart` file reloads the sources [debounce]
+  /// after the last one.
   List<StreamSubscription<FileSystemEvent>> _watch() {
     final lib = Directory(p.join(package, 'lib'));
     bool dart(String path) => path.endsWith('.dart');
     bool isEntry(String path) => p.equals(path, entry);
     return [
-      if (lib.existsSync())
-        lib.watch(recursive: true).listen((e) {
+      for (final dir in [if (lib.existsSync()) lib.path, ..._deps.values])
+        Directory(dir).watch(recursive: true).listen((e) {
           if (dart(e.path) || dart(_destination(e))) {
             _changed();
           }

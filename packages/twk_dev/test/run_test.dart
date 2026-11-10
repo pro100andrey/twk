@@ -120,6 +120,21 @@ final class Heading extends StatelessWidget {
 }
 ''';
 
+/// The `hot_side` package's library, saying [word].
+String _sideLib(String word) => "String sideWord() => 'side $word';\n";
+
+const _sideHeading = '''
+import 'package:hot_side/side.dart';
+import 'package:twk/twk.dart';
+
+final class Heading extends StatelessWidget {
+  const Heading({super.key});
+
+  @override
+  Widget build(BuildContext context) => Text(sideWord());
+}
+''';
+
 /// A counter that `+` adds one to, shown after [word]; with [broken] a
 /// semicolon left out.
 String _counter(String word, {bool broken = false}) =>
@@ -346,7 +361,9 @@ Future<int> _twkRun(
 final class _Project {
   _Project._(this.dir);
 
-  static Future<_Project> create() async {
+  /// With [side], a path dependency `hot_side` in `side/`, whose
+  /// `sideWord()` the heading shows.
+  static Future<_Project> create({bool side = false}) async {
     final dir = await Directory.systemTemp.createTemp('twk_run_test');
     addTearDown(() => dir.delete(recursive: true));
     final twk = p.normalize(p.join(await packageDirectory(), '..', 'twk'));
@@ -358,12 +375,18 @@ environment:
 dependencies:
   twk:
     path: $twk
+${side ? '  hot_side:\n    path: side' : ''}
 dependency_overrides:
   twk_core:
     path: $twk/../twk_core
 ''')
       ..write('lib/counter.dart', _counter('count'))
-      ..write('bin/heading.dart', _heading)
+      ..write('bin/heading.dart', side ? _sideHeading : _heading)
+      ..write(
+        'side/pubspec.yaml',
+        'name: hot_side\nenvironment:\n  sdk: ^3.13.5\n',
+      )
+      ..write('side/lib/side.dart', _sideLib('one'))
       ..write('bin/main.dart', _main('first footer'));
     final got = await runProcess(
       Platform.resolvedExecutable,
@@ -452,6 +475,47 @@ void main() {
     type('\x03');
     expect(await run.exitCode, 0, reason: '${run.err}');
   }, timeout: const Timeout(Duration(minutes: 4)));
+
+  test('twk run reloads the app as the lib/ of a path dependency changes, '
+      'and says it watches it', () async {
+    final project = await _Project.create(side: true);
+    final screen = await _Screen.serve();
+    late final HotRunner runner;
+    _runHere(project.entry, screen, const [], (r) => runner = r);
+    await screen.waitFor('side one', within: _start);
+    expect(runner.watchedDependencies.keys, containsAll(['hot_side', 'twk']));
+    expect(
+      runner.watchedDependencies['hot_side'],
+      p.join(project.dir.path, 'side', 'lib'),
+    );
+
+    project.write('side/lib/side.dart', _sideLib('two'));
+    await screen.waitFor('side two');
+    // an error opens the console, which says what is watched
+    project.write('lib/counter.dart', _counter('count', broken: true));
+    await screen.waitFor('hot reload failed');
+    expect(screen.rows.join('\n'), contains('hot reload: watching'));
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test(
+    'twk run --no-watch-deps watches the package and the file only',
+    () async {
+      final project = await _Project.create(side: true);
+      final screen = await _Screen.serve();
+      late final HotRunner runner;
+      _runHere(
+        project.entry,
+        screen,
+        const [],
+        (r) => runner = r,
+        ['--no-watch-deps'],
+      );
+      await screen.waitFor('side one', within: _start);
+      expect(runner.watchDeps, isFalse);
+      expect(runner.watchedDependencies, isEmpty);
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 
   test('twk run passes the arguments after the file to the app, and '
       'reloads what changed while the app started once its binding '

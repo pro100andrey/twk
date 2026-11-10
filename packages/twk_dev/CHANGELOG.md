@@ -4,6 +4,10 @@
 
 Added:
 
+- `twk run` reloads on a change in the `lib/` of the path dependencies and
+  workspace members of the app's package too, found from
+  `package_config.json` (hosted and git packages are not watched); the app
+  log names them. `--no-watch-deps` turns it off.
 - `twk run --debug=<aids>`, `--screen-reader` and `--plain` set `TWK_DEBUG`
   (added to the app's own and to `keys`), `TWK_SCREEN_READER=1` and
   `TWK_PLAIN=1` for the app, before the file; an unknown aid is refused

@@ -25,13 +25,17 @@ aids) are the same set. `--no-asserts` is described above.
 
 `twk run` connects to the VM service (`package:vm_service`) and watches the
 `lib/` of the package `<file>` is in, the nearest directory from it up that
-holds a `pubspec.yaml`, and `<file>`. When a `.dart` file there changes, or is
+holds a `pubspec.yaml`, the `lib/` of every path dependency and workspace
+member in that package's `.dart_tool/package_config.json` (the packages
+outside the pub cache, so not hosted or git ones; `--no-watch-deps` leaves
+them out), and `<file>`. When a `.dart` file there changes, or is
 moved there as editors that save safely do, it reloads the sources 100 ms
 after the last change (`reloadSources`) and calls the binding's
 `ext.twk.reassemble` (twk's `AppBinding.reassemble`): every element is
 rebuilt, each State kept, every render object laid out and painted again and
 the whole screen written again, so the code changed shows. A file elsewhere, a
-sibling of `<file>` or one of another package, is reloaded by hand: Ctrl+G h
+sibling of `<file>` or one of a package that is not a path dependency, is
+reloaded by hand: Ctrl+G h
 in the app. What `main` built, and code that ran already, a reload leaves as
 it was: Ctrl+G H restarts the app — SIGTERM, on which the app puts the
 terminal back and exits, SIGKILL if it has not after 5 s — and starts it
