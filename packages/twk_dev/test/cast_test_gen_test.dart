@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:twk_dev/src/cast_test_gen.dart' show castTestPath;
 import 'package:twk_dev/twk_dev.dart';
 import 'package:twk_test/twk_test.dart' show screenFrames;
 
@@ -53,6 +54,32 @@ void main() {
       expect(source, isNot(contains('four')));
       expect(source, contains(r"expect(frames[1].lines[2], 'three \$\'');"));
       expect(source, contains('expect(frames.last.errors, isEmpty);'));
+    });
+
+    test('a marker with no frame at or before it is said, not dropped', () {
+      final notes = <String>[];
+      final source = castTestSource(
+        _cast([
+          (0.0, 'm', 'early'),
+          (0.1, 'o', 'one'),
+          (0.2, 'm', 'late'),
+        ]),
+        castPath: 'a.cast',
+        note: notes.add,
+      );
+
+      expect(notes, hasLength(1));
+      expect(notes.single, contains('early'));
+      expect(source, contains('// the marker early at 0.000 s: no frame'));
+      expect(source, contains("test('the marker late', () {"));
+      expect(source, isNot(contains("test('the marker early'")));
+    });
+
+    test("the test goes in the project's test/, not the working one", () {
+      expect(
+        castTestPath('/work/packages/foo', 'demo'),
+        '/work/packages/foo/test/demo_test.dart',
+      );
     });
 
     test('checks the last screen of a recording without markers', () {
@@ -119,6 +146,22 @@ void main() {
       expect(
         File(out).readAsStringSync(),
         contains("Cast.read('test/sub/my_demo.cast')"),
+      );
+    });
+
+    test('a recording already beside the test is used where it is', () async {
+      final cast = p.join(temp, 'test', 'my-demo.cast');
+      Directory(p.dirname(cast)).createSync();
+      File(cast).writeAsStringSync(_text(plan));
+      final out = p.join(temp, 'test', 'x_test.dart');
+
+      final run = await twkHere(['test-from-cast', cast, '--out=$out']);
+
+      expect(run.exitCode, 0, reason: '${run.stderr}');
+      expect(File(p.join(temp, 'test', 'my_demo.cast')).existsSync(), isFalse);
+      expect(
+        File(out).readAsStringSync(),
+        contains("Cast.read('test/my-demo.cast')"),
       );
     });
 

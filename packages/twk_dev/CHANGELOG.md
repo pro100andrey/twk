@@ -4,6 +4,18 @@
 
 Fixed:
 
+- `twk play`: Alt+P (or Alt+] and the like) no longer swallows `q` and Space
+  until Ctrl+C: the start of a terminal answer is held for 100 ms only, not
+  up to 1024 characters.
+- `twk test-from-cast` writes its test in the project's `test/` also when run
+  from a subdirectory (it wrote `lib/test/`); a recording already beside the
+  test is used where it is, not copied under the sanitised name; a marker
+  with no screen at or before it is reported on stderr and in a comment of
+  the test instead of being dropped silently.
+- `twk record --replay`: a failure while replaying (an odd recording, a write
+  error) ends the recording with a message and the terminal put back; a
+  cursor-position query cut between two writes of the program is found, and
+  one nobody answered no longer makes a later modified F3 an answer.
 - `twk play`: an answer of the terminal cut right after its Escape, or over
   three reads, is no longer read as keys (a `q` in it quit); Escape then `q`
   still quits.

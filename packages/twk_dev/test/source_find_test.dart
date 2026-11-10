@@ -87,6 +87,13 @@ void main() {
     expect(code.split('\n').length, source.split('\n').length);
   });
 
+  test('an unclosed one-line string ends at its newline, which stays code', () {
+    expect(
+      codeOnly("a 'Text(\nvoid main() {}\n"),
+      'a       \nvoid main() {}\n',
+    );
+  });
+
   test('a quote in an interpolation does not end its string', () {
     const source =
         "a '\${m['k']} Text(' b \"x\${xs.map((e) => 'y').join()}Text(\" c "

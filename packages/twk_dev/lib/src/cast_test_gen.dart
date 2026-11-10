@@ -76,9 +76,12 @@ final class CastTestCommand extends Command<int> {
     final name = _identifier(p.basenameWithoutExtension(source));
     final project = projectOf(null);
     final out = p.absolute(
-      argResults!['out'] as String? ?? p.join('test', '${name}_test.dart'),
+      argResults!['out'] as String? ?? castTestPath(project, name),
     );
-    final copy = p.join(p.dirname(out), '$name.cast');
+    // a recording already beside the test is used where it is
+    final copy = p.equals(p.dirname(p.absolute(source)), p.dirname(out))
+        ? p.absolute(source)
+        : p.join(p.dirname(out), '$name.cast');
     try {
       Directory(p.dirname(out)).createSync(recursive: true);
       if (!p.equals(p.absolute(source), copy)) {
@@ -101,6 +104,7 @@ final class CastTestCommand extends Command<int> {
             p.split(p.relative(copy, from: _packageOf(out) ?? project)),
           ),
           source: p.basename(source),
+          note: (text) => stderr.writeln('twk test-from-cast: $text'),
         ),
       );
     } on FileSystemException catch (e) {
@@ -114,6 +118,11 @@ final class CastTestCommand extends Command<int> {
     return 0;
   }
 }
+
+/// Where the test of the recording called [name] is written by default: in
+/// the `test/` of [project], whatever directory the command runs in.
+String castTestPath(String project, String name) =>
+    p.join(project, 'test', '${name}_test.dart');
 
 bool _sameBytes(File a, File b) {
   final x = a.readAsBytesSync();
@@ -201,6 +210,7 @@ String castTestSource(
   Cast cast, {
   required String castPath,
   String source = 'the recording',
+  void Function(String)? note,
 }) {
   final frames = _frames(cast);
   final marks = [
@@ -208,16 +218,32 @@ String castTestSource(
       if (e.code == CastEvent.marker) e,
   ];
   // the frame each check is of: the last shown at the marker's time, or the
-  // last one
-  final targets = <(String?, _Frame)>[
-    if (frames.isNotEmpty)
-      if (marks.isEmpty)
-        (null, frames.last)
-      else
-        for (final m in marks)
-          if (frames.where((f) => f.time <= m.time).lastOrNull case final f?)
-            (m.data, f),
-  ];
+  // last one; one pass, both lists being in time order
+  final targets = <(String?, _Frame)>[];
+  final unchecked = <String>[];
+  if (frames.isNotEmpty) {
+    if (marks.isEmpty) {
+      targets.add((null, frames.last));
+    } else {
+      var at = -1;
+      for (final m in marks) {
+        while (at + 1 < frames.length && frames[at + 1].time <= m.time) {
+          at++;
+        }
+        if (at >= 0) {
+          targets.add((m.data, frames[at]));
+        } else {
+          unchecked.add(
+            'the marker ${m.data.isEmpty ? '' : '${m.data} '}at '
+            '${m.time.toStringAsFixed(3)} s: no frame at or before it',
+          );
+        }
+      }
+    }
+  }
+  for (final text in unchecked) {
+    note?.call('$text, no check for it');
+  }
   final out = StringBuffer()
     ..writeln('// Written by `twk test-from-cast` from $source.')
     ..writeln('// The recording is played through the test emulator; each')
@@ -278,6 +304,11 @@ String castTestSource(
         );
     }
     out.write('  });');
+  }
+  for (final text in unchecked) {
+    out
+      ..writeln()
+      ..write('  // $text, so no check');
   }
   out
     ..writeln()

@@ -136,9 +136,9 @@ enum PlayKey {
 /// so: if the piece that followed does not start with a byte that continues
 /// a sequence (`[`, `]`, `P`, `O`, `X`, `^`, `_`), it was a lone Escape, and
 /// what follows is read as keys (Escape and `q` quits). A string (DCS, OSC,
-/// APC, PM, SOS) is kept across pieces while it has not ended, up to
-/// [_playStringBound] characters; longer, it was not an answer, and its
-/// introducer is dropped so that the keys after it count.
+/// APC, PM, SOS) is kept across pieces while it has not ended; [Player]
+/// drops what is held for longer than [_heldLimit] (by its clock, not by
+/// size), so that the keys after an Alt+P count.
 (List<PlayKey>, String) readPlayKeys(
   String typed, {
   bool escaped = false,
@@ -219,10 +219,6 @@ enum PlayKey {
           continue;
         }
         if (end == -1) {
-          if (typed.length - i > _playStringBound) {
-            i += 2;
-            continue;
-          }
           return (keys, typed.substring(i));
         }
         i = end;
@@ -234,8 +230,10 @@ enum PlayKey {
   return (keys, '');
 }
 
-/// The most of an unended string that [readPlayKeys] holds for the next piece.
-const _playStringBound = 1024;
+/// How long [Player] holds the start of an escape sequence for the rest of
+/// it: a terminal's answer arrives within milliseconds, so what is older is
+/// no answer (Alt+P is an Escape and `P`), and is dropped.
+const _heldLimit = Duration(milliseconds: 100);
 
 /// The key a CSI sequence with [params] and [final_], or an SS3 with
 /// [final_], is: the arrows and Home as a terminal sends them, and, where
@@ -440,11 +438,20 @@ final class Player {
     final queue = <PlayKey>[];
     var wake = Completer<void>();
     var typed = '';
+    var heldSince = Duration.zero;
     void onKeys(List<int> bytes) {
+      final now = _clock.elapsed;
+      if (typed.length > 1 && now - heldSince > _heldLimit) {
+        // no answer takes this long: Alt and a key, what follows is keys
+        typed = '';
+      }
       final (keys, rest) = readPlayKeys(
         '$typed${latin1.decode(bytes)}',
         escaped: typed == '\x1b',
       );
+      if (rest.isNotEmpty && (typed.isEmpty || !rest.startsWith(typed))) {
+        heldSince = now;
+      }
       typed = rest;
       for (final key in keys) {
         if (key == PlayKey.interrupt) {

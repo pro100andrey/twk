@@ -59,13 +59,21 @@ final class InputSplitter {
   var _carry = '';
   var _positionAsked = 0;
 
+  /// The start of a query the last output ended in.
+  var _queryStart = '';
+
   /// The program wrote [text]: each cursor-position query in it makes a
-  /// `CSI row ; column R` an answer.
+  /// `CSI row ; column R` an answer, until the person types a key (an
+  /// answer comes within milliseconds; a query nobody answered must not
+  /// make a later modified F3 one). A query cut between two writes counts.
   void sawOutput(String text) {
-    _positionAsked += _positionQuery.allMatches(text).length;
+    final all = '$_queryStart$text';
+    _positionAsked += _positionQuery.allMatches(all).length;
+    _queryStart = _queryCut.firstMatch(all)?.group(0) ?? '';
   }
 
   static final _positionQuery = RegExp(r'\x1b\[\??6n');
+  static final _queryCut = RegExp(r'\x1b(\[\??6?)?$');
 
   /// The pieces in [text] after what [add] kept of the one before; what is
   /// the start of a sequence only is kept for the next call.
@@ -80,7 +88,9 @@ final class InputSplitter {
   List<InputPiece> _split(String s, {required bool flush}) {
     _carry = '';
     final out = <InputPiece>[];
+    var keyed = false;
     void emit(String text, bool answer) {
+      keyed |= !answer;
       if (out.isNotEmpty && out.last.isAnswer == answer) {
         out[out.length - 1] = InputPiece(
           out.last.text + text,
@@ -103,13 +113,23 @@ final class InputSplitter {
         // not finished
         if (!flush && s.length - i <= maxPending) {
           _carry = s.substring(i);
+          if (keyed) {
+            _positionAsked = 0;
+          }
           return out;
         }
         emit(s.substring(i), false);
+        if (keyed) {
+          _positionAsked = 0;
+        }
         return out;
       }
       emit(s.substring(i, r.end), r.answer);
       i = r.end;
+    }
+    if (keyed) {
+      // the queries before a key are given up
+      _positionAsked = 0;
     }
     return out;
   }
@@ -198,7 +218,10 @@ final class InputSplitter {
 }
 
 /// A time at which the keys of a recording were typed.
-typedef ReplayStep = ({double time, String keys});
+///
+/// `reacts` is whether the recorded program wrote something after the keys
+/// and before the next ones.
+typedef ReplayStep = ({double time, String keys, bool reacts});
 
 /// The keys of [cast], the input events with the terminal's answers taken
 /// out ([InputSplitter]), each at its time; the events that were answers
@@ -206,17 +229,33 @@ typedef ReplayStep = ({double time, String keys});
 List<ReplayStep> replaySteps(Cast cast) {
   final splitter = InputSplitter();
   final steps = <ReplayStep>[];
+  var reacts = false;
+  void close() {
+    if (steps.isNotEmpty && reacts) {
+      steps[steps.length - 1] = (
+        time: steps.last.time,
+        keys: steps.last.keys,
+        reacts: true,
+      );
+    }
+    reacts = false;
+  }
+
   for (final event in cast.events) {
     switch (event.code) {
       case CastEvent.output:
         splitter.sawOutput(event.data);
+        if (steps.isNotEmpty && event.time > steps.last.time) {
+          reacts = true;
+        }
       case CastEvent.input:
         final keys = [
           for (final piece in splitter.add(event.data))
             if (!piece.isAnswer) piece.text,
         ].join();
         if (keys.isNotEmpty) {
-          steps.add((time: event.time, keys: keys));
+          close();
+          steps.add((time: event.time, keys: keys, reacts: false));
         }
     }
   }
@@ -224,8 +263,9 @@ List<ReplayStep> replaySteps(Cast cast) {
     for (final piece in splitter.flush())
       if (!piece.isAnswer) piece.text,
   ].join();
+  close();
   if (rest.isNotEmpty) {
-    steps.add((time: cast.duration, keys: rest));
+    steps.add((time: cast.duration, keys: rest, reacts: false));
   }
   return steps;
 }

@@ -68,6 +68,27 @@ void main() {
       expect(_keys('\x1b[12;40R\x1b[12;40R', output: '\x1b[6n'), '\x1b[12;40R');
     });
 
+    test('an unanswered query is given up at the next key', () {
+      final s = InputSplitter()..sawOutput('\x1b[6n');
+      expect([for (final p in s.add('q')) p.text], ['q']);
+      expect(
+        [for (final p in s.add('\x1b[1;5R')) (p.isAnswer, p.text)],
+        [(false, '\x1b[1;5R')],
+      );
+    });
+
+    test('a query cut between two writes is found', () {
+      final s = InputSplitter()
+        ..sawOutput('a\x1b[')
+        ..sawOutput('6nb');
+      expect([for (final p in s.add('\x1b[12;40R')) p.isAnswer], [true]);
+      final t = InputSplitter()
+        ..sawOutput('\x1b')
+        ..sawOutput('[?6')
+        ..sawOutput('n');
+      expect([for (final p in t.add('\x1b[12;40R')) p.isAnswer], [true]);
+    });
+
     test('waits for the rest of a sequence and keys the end', () {
       final s = InputSplitter();
       expect(s.add('a\x1b[?20'), hasLength(1));
@@ -104,6 +125,22 @@ void main() {
         (0.5, '+'),
         (0.9, 'q'),
       ],
+    );
+  });
+
+  test('replaySteps say which keys the program reacted to', () {
+    final cast = Cast(const CastHeader(width: 80, height: 24), const [
+      CastEvent(0.1, 'o', 'x'),
+      CastEvent(0.5, 'i', '+'),
+      CastEvent(0.6, 'o', 'y'),
+      CastEvent(0.9, 'i', 'a'),
+      CastEvent(1, 'i', 'b'),
+      CastEvent(1.5, 'o', 'z'),
+      CastEvent(2, 'i', 'q'),
+    ]);
+    expect(
+      [for (final s in replaySteps(cast)) (s.keys, s.reacts)],
+      [('+', true), ('a', false), ('b', true), ('q', false)],
     );
   });
 }

@@ -544,15 +544,7 @@ final class Recorder {
           _cast.input(_clock.elapsed, bytes);
         }
         sent = (_outputs, _clock.elapsed);
-        final until = k + 1 < steps.length
-            ? steps[k + 1].time
-            : double.infinity;
-        reaction = replay!.events.any(
-          (e) =>
-              e.code == CastEvent.output &&
-              e.time > step.time &&
-              e.time < until,
-        );
+        reaction = step.reacts;
       }
       if (replayEnds) {
         await _quiet(endQuiet);
@@ -560,6 +552,10 @@ final class Recorder {
           _stop(0);
         }
       }
+    } on Object catch (e, s) {
+      // an odd recording, a write to the terminal that failed: the recording
+      // fails as any other, with the terminal put back
+      _fail(e, s);
     } finally {
       _replaying = false;
       // what was kept of a sequence is the person's now

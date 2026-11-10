@@ -343,6 +343,41 @@ void main() {
     });
   });
 
+  group('an escape sequence held for its rest', () {
+    test('Alt+P is dropped after the limit: q and Space are keys', () async {
+      final r = await started();
+      await r.type('\x1bP');
+      await r.clock.elapse(0.2);
+      await r.type(' ');
+      expect(r.status, contains('paused'), reason: 'Space paused');
+      await r.type('\x1bP');
+      await r.clock.elapse(0.2);
+      await r.type('q');
+      expect(await r.result, 0);
+    });
+
+    test('an answer in three pieces within the limit gives no key', () async {
+      final r = await started();
+      await r.type('\x1bP>|qter');
+      await r.clock.elapse(0.03);
+      await r.type('minal q');
+      await r.clock.elapse(0.03);
+      await r.type(' \x1b\\');
+      expect(r.exit, isNull);
+      expect(r.status, isNot(contains('paused')));
+      await r.type('q');
+      expect(await r.result, 0);
+    });
+
+    test('Ctrl+C quits in a held string, late or not', () async {
+      final r = await started();
+      await r.type('\x1bP');
+      await r.clock.elapse(0.5);
+      await r.type('\x03');
+      expect(await r.result, 130);
+    });
+  });
+
   group('readPlayKeys', () {
     void reads(
       String typed,
@@ -411,11 +446,6 @@ void main() {
       (keys, held) = readPlayKeys('$held \x1b\\q');
       expect(keys, [PlayKey.quit]);
       expect(held, '');
-    });
-
-    test('a string past the bound is given up', () {
-      reads('\x1bP${'x' * 1100}q', [PlayKey.quit]);
-      reads('\x1bP${'x' * 100}', [], '\x1bP${'x' * 100}');
     });
 
     test('Ctrl+C quits in a string held over pieces', () {
