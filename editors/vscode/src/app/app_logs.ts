@@ -11,7 +11,7 @@
 import * as path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { Packages, parseFrames, parsePackages, parseRecord, resolveUri } from '../core/app_log';
+import { Packages, RowBuffer, parseFrames, parsePackages, parseRecord, resolveUri } from '../core/app_log';
 import { Clock, Disposable, Emitter, Event } from '../core/events';
 import { LogEndpoints, LogFollower } from '../core/log_follow';
 import { SourceSpot } from '../core/locator';
@@ -56,14 +56,13 @@ interface Kept {
 export class AppLogs {
   /** The most rows kept, of all the apps. */
   static readonly keep = 5000;
-  private static readonly slack = 500;
 
   private readonly apps = new Map<number, App>();
   private readonly followed = new Map<AppTerminal, App>();
   /** The live app of each project: its address file is one, so its apps are followed once, whatever terminals run them. */
   private readonly byProject = new Map<string, App>();
-  /** The rows, with a slack of [AppLogs.slack] past [AppLogs.keep] trimmed at once. */
-  private rows: Kept[] = [];
+  /** The rows, trimmed by the buffer's rule: a slack past [AppLogs.keep] at once. */
+  private readonly rows = new RowBuffer<Kept>(AppLogs.keep);
   private nextApp = 1;
   private nextRow = 1;
   private readonly packages = new Map<string, Packages>();
@@ -91,7 +90,7 @@ export class AppLogs {
 
   /** The rows kept, the oldest first. */
   allRows(): LogRow[] {
-    return this.rows.slice(-AppLogs.keep).map((k) => k.row);
+    return this.rows.kept.map((k) => k.row);
   }
 
   /**
@@ -210,16 +209,13 @@ export class AppLogs {
   }
 
   private push(row: LogRow, spots: readonly (SourceSpot | undefined)[]): void {
-    this.rows.push({ row, spots });
-    if (this.rows.length > AppLogs.keep + AppLogs.slack) {
-      this.rows.splice(0, this.rows.length - AppLogs.keep);
-    }
+    this.rows.add([{ row, spots }]);
     this.rowEvents.fire([row]);
   }
 
   /** Opens the [frame] of the stack of the row [row]; false where it is not a place of code on the disk. */
   async open(row: number, frame: number): Promise<boolean> {
-    const spot = this.rows.find((k) => k.row.id === row)?.spots[frame];
+    const spot = this.rows.kept.find((k) => k.row.id === row)?.spots[frame];
     if (!spot) {
       return false;
     }
@@ -229,7 +225,7 @@ export class AppLogs {
 
   /** Forgets every row (and the apps that went away). */
   clear(): void {
-    this.rows = [];
+    this.rows.reset([]);
     for (const [id, app] of this.apps) {
       if (app.state === 'ended') {
         this.apps.delete(id);

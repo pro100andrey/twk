@@ -201,7 +201,7 @@ export class TwkTerminal implements TerminalPane, Screen {
           desktop.openLink(r.uri);
         } else {
           const file = fileLinkOf(r.uri);
-          if (file && inFolders(file.path, desktop.workspaceFolders())) {
+          if (file && inFolders(file.path, desktop.workspaceFolders(), desktop)) {
             desktop.openFile(file.path, file.line, file.column);
           }
         }
@@ -265,11 +265,22 @@ export class TwkTerminal implements TerminalPane, Screen {
   }
 }
 
-/** Whether [file], absolute, is in one of the [folders] (or is one): lexically, `..` resolved first. */
-export function inFolders(file: string, folders: readonly string[]): boolean {
-  const target = path.resolve(file);
+/**
+ * Whether [file], absolute, is in one of the [folders] (or is one): by the real
+ * paths of both (a link inside a folder to a place outside it is outside),
+ * their case ignored where [fs] says names fold it. A [file] with no real path
+ * is in none.
+ */
+export function inFolders(file: string, folders: readonly string[], fs: Pick<Desktop, 'realPath' | 'foldsCase'>): boolean {
+  const real = fs.realPath(path.resolve(file));
+  if (real === undefined) {
+    return false;
+  }
+  const norm = (p: string): string => (fs.foldsCase ? p.toLowerCase() : p);
+  const target = norm(real);
   return folders.some((folder) => {
-    const rel = path.relative(path.resolve(folder), target);
+    const resolved = path.resolve(folder);
+    const rel = path.relative(norm(fs.realPath(resolved) ?? resolved), target);
     return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
   });
 }

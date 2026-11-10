@@ -14,5 +14,8 @@ The first packaged version (a preview, `.vsix` built from this repository).
   panel.
 - The sequence log, recording and replay as asciicast, copy of the screen
   as text.
+- A `file:` link of the app opens only a file whose real path is in a workspace
+  folder (a symbolic link out of it does not), names compared without case on
+  Windows and macOS.
 - Needs twk 0.3.0 or later in the app's project for the Inspector, the log
   and the debug aids.

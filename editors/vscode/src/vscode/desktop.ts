@@ -4,6 +4,7 @@
 // terminal's app in a status bar item of its own, the clipboard VS Code's,
 // a link opened outside it (app/terminal.ts lets only http, https and
 // mailto through), a `file:` link of a workspace folder opened at its line.
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 
 import { progressText } from '../core/emulation';
@@ -52,6 +53,16 @@ export class VsCodeDesktop implements Desktop, vscode.Disposable {
   workspaceFolders(): readonly string[] {
     return (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
   }
+
+  realPath(file: string): string | undefined {
+    try {
+      return fs.realpathSync.native(file);
+    } catch {
+      return undefined;
+    }
+  }
+
+  readonly foldsCase = process.platform === 'win32' || process.platform === 'darwin';
 
   openFile(path: string, line: number, column: number): void {
     const at = new vscode.Position(line - 1, column - 1);

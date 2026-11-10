@@ -112,6 +112,10 @@ export interface Desktop {
   openLink(uri: string): void;
   /** The folders of the workspace: the only places [openFile] is asked to open. */
   workspaceFolders(): readonly string[];
+  /** [path] with its symbolic links followed (the real file); undefined where there is none. */
+  realPath(path: string): string | undefined;
+  /** Whether file names differing by case alone are one (Windows, macOS). */
+  readonly foldsCase: boolean;
   /** Opens the file [path] in the editor at [line] and [column] (from 1). */
   openFile(path: string, line: number, column: number): void;
 }

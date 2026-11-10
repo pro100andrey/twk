@@ -275,6 +275,13 @@ export class FakeDesktop implements Desktop {
   workspaceFolders(): readonly string[] {
     return this.folders;
   }
+  /** Real paths of the links the test made; any other path is its own. A path in [missing] has none. */
+  links = new Map<string, string>();
+  missing = new Set<string>();
+  foldsCase = false;
+  realPath(path: string): string | undefined {
+    return this.missing.has(path) ? undefined : (this.links.get(path) ?? path);
+  }
   openFile(path: string, line: number, column: number): void {
     this.done.push(`file ${path}:${line}:${column}`);
   }
