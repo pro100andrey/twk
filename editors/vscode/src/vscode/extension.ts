@@ -13,6 +13,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { HotApps, Hot } from '../app/hot_apps';
+import { AppLogs, AppLogsView } from '../app/app_logs';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
@@ -23,6 +24,7 @@ import { TwkTerminal } from '../app/terminal';
 import { WebviewTerminalView } from '../app/webview_view';
 import { parseCast } from '../core/cast';
 import { fileSink } from '../core/cast_file';
+import { nodeLogEndpoints } from '../core/log_socket';
 import { describeChoice, environmentOf } from '../core/capabilities';
 import { InspectNode, toggleItems, togglesPicked } from '../core/inspect';
 import { realClock } from '../core/events';
@@ -36,7 +38,7 @@ import { chooseCapabilities } from './capabilities_pick';
 import { VsCodeDebugger } from './debugger';
 import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
-import { openLogPanel, openWebviewTerminal } from './panel';
+import { openAppLogsPanel, openLogPanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
@@ -64,6 +66,9 @@ export interface Api {
   players(): Player[];
   /** The recordings being made. */
   readonly recordings: Recordings;
+  /** The apps' logs, and their panel. */
+  readonly appLogs: AppLogs;
+  readonly appLogsView: AppLogsView;
   /** The sequence log open of [screen], where one is. */
   logOf(screen: TwkTerminal | Player): LogPanel | undefined;
 }
@@ -136,6 +141,32 @@ export function activate(context: vscode.ExtensionContext): Api {
     log,
   });
   context.subscriptions.push(inspectorView, nodeView, { dispose: () => inspector.dispose() });
+  // The log the apps serve (the debug aid `logs`): followed for each app
+  // the extension runs, once its VM service is connected
+  const appLogs = new AppLogs({
+    endpoints: nodeLogEndpoints,
+    clock: realClock,
+    settings,
+    opener: vsCodeOpener,
+    readText: (file) => {
+      try {
+        return fs.readFileSync(file, 'utf8');
+      } catch {
+        return undefined;
+      }
+    },
+  });
+  const appLogsView = new AppLogsView(appLogs, (title) => openAppLogsPanel(title, context.extensionUri), realClock);
+  context.subscriptions.push(
+    appLogsView,
+    { dispose: () => appLogs.dispose() },
+    hot.onApp(({ terminal, service }) => {
+      const app = service && hot.hots().find((h) => h.terminal === terminal);
+      if (app) {
+        appLogs.started(terminal, app.project);
+      }
+    }),
+  );
   const recordings = new Recordings({
     clock: realClock,
     epochSeconds: () => Date.now() / 1000,
@@ -293,6 +324,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     return t;
   };
 
+  command('twk.showAppLogs', async () => appLogsView.show());
   command('twk.showLog', async () => logs.show(theScreen()));
   command('twk.copyScreen', async () => {
     const screen = theScreen();
@@ -384,6 +416,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     nodeView,
     players: () => [...players],
     recordings,
+    appLogs,
+    appLogsView,
     logOf: (screen) => logs.of(screen),
   };
 }

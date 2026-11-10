@@ -107,6 +107,11 @@
         "icon": "$(symbol-method)"
       },
       {
+        "command": "twk.showAppLogs",
+        "title": "Show the Log of the twk Apps (Levels, Filter, Pause; the Debug Aid logs)",
+        "category": "twk"
+      },
+      {
         "command": "twk.showLog",
         "title": "Show the Sequence Log of the twk Terminal",
         "category": "twk",

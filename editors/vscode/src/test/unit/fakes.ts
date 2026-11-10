@@ -3,12 +3,13 @@
 import * as net from 'node:net';
 import * as os from 'node:os';
 
-import { fromVariable } from '../../core/address';
+import { ShellAddress, fromVariable } from '../../core/address';
 import { Answers, Choice, choiceOf } from '../../core/capabilities';
 import { TerminalRequest } from '../../core/emulation';
 import { Clock, Disposable, Emitter } from '../../core/events';
 import { HotStatus } from '../../core/hot';
 import { AppEvent, AppService, DetailSection, InspectTree } from '../../core/inspect';
+import { LogConnection, LogEndpoints } from '../../core/log_follow';
 import { SourceSpot } from '../../core/locator';
 import { Switches, noSwitches } from '../../core/switches';
 import { HotRunOptions } from '../../core/runner';
@@ -643,3 +644,52 @@ export const treeAnswer = {
     ],
   },
 };
+
+/** A connection to an app's log the test feeds ([line], [end]). */
+export class FakeLogConnection implements LogConnection {
+  closed = false;
+  private readonly lines = new Emitter<string>();
+  private readonly ends = new Emitter<void>();
+  readonly onLine = this.lines.event;
+  readonly onEnd = this.ends.event;
+  line(text: string): void {
+    this.lines.fire(text);
+  }
+  /** The app went away. */
+  end(): void {
+    this.ends.fire();
+  }
+  close(): void {
+    this.closed = true;
+  }
+}
+
+/** The address files and sockets of apps' logs: the test says what each project's file holds ([serve]) and what a connection is. */
+export class FakeLogEndpoints implements LogEndpoints {
+  private readonly files = new Map<string, ShellAddress>();
+  /** The addresses connected to, in order. */
+  readonly connected: ShellAddress[] = [];
+  /** The connections made, in order. */
+  readonly connections: FakeLogConnection[] = [];
+  /** Addresses nobody listens at. */
+  readonly refused = new Set<string>();
+  address(project: string): ShellAddress | undefined {
+    return this.files.get(project);
+  }
+  /** The file of [project] now holds an address [name] (its token). */
+  serve(project: string, name: string): void {
+    this.files.set(project, { where: `unix:/tmp/logs-${name}`, token: name });
+  }
+  forget(project: string): void {
+    this.files.delete(project);
+  }
+  async connect(address: ShellAddress): Promise<LogConnection> {
+    if (this.refused.has(address.token)) {
+      throw new Error('connection refused');
+    }
+    this.connected.push(address);
+    const connection = new FakeLogConnection();
+    this.connections.push(connection);
+    return connection;
+  }
+}

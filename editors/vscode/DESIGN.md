@@ -40,6 +40,11 @@ says it was not.
   button is pressed, each click on the terminal picks the widget under it
   and opens where it was made; where a widget was made, from the tree;
   the frame overlay, the repaint rainbow, the relayout highlight.
+- **The app's log** (the debug aid `logs`): the records the app serves
+  (`LogSink.serve()`, what `twk logs` tails in another terminal), in a
+  panel of the editor: time, level in its colour, message, error, and by
+  a click the stack, whose frames of code on the disk open in the editor;
+  the levels to show, a word to filter by, which app, pause, clear.
 - **The sequence log**: what the app wrote, decoded (each CSI, OSC, DCS,
   APC named, text runs, a synchronized update one frame), and what the
   terminal sent (keys, the mouse, the answers to the app's queries),
@@ -82,6 +87,7 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Open twk Terminal for Any App | a terminal that shows the `TWK_SHELL=...` an app started anywhere takes it with |
 | twk: Choose twk Terminal Capabilities | a preset, or each switch; the next app gets them (a hot restart is offered) |
 | twk: Choose twk Terminal Switches | the screen reader and the debug aids, for the next app |
+| twk: Show the Log of the twk Apps (Levels, Filter, Pause; the Debug Aid logs) | the panel of the apps' logs (below) |
 | twk: Show the Sequence Log of the twk Terminal | the log of the terminal (title bar button) |
 | twk: Record the twk Terminal as asciicast (Start or Stop) | record the terminal to a `.cast` file; again to stop (title bar button) |
 | twk: Stop Recording the twk Terminals | stop every recording (also a click on `REC` in the status bar) |
@@ -98,6 +104,31 @@ panel. The settings are under `twk.` (`twk.terminal.profile`,
 `twk.terminal.debugAids`, `twk.terminal.columns` and `lines` for a fixed
 size, `twk.hotReloadOnSave`); keep Dart-Code's `dart.hotReloadOnSave` at
 `never`, or both reload.
+
+**The app's log.** Switch the debug aid `logs` on (twk: Choose twk
+Terminal Switches) and the next app the extension runs or debugs serves
+its log (`TWK_DEBUG=logs`, `LogSink.serve`, which writes the socket's
+address and token to the project's `.dart_tool/twk/logs`). The extension
+connects to it as `twk logs` does, once the app's VM service is up, and
+follows the terminal's apps one after another (a hot restart, a new
+run in the same terminal) until the terminal is closed. twk: Show the Log
+of the twk Apps opens one panel beside the editor for all the apps
+followed. A row: the time (`09:05:07.042`), the level (debug, info,
+warning, error: coloured), the app (when it is not the only one), the
+message and `: error`; a click opens its stack, and a frame that names a
+file (`file:` or `package:`, the latter by the project's
+`package_config.json`, looked for up the directories for a workspace's)
+opens that line in the editor. Notes (`connected to the log of the app`,
+`the app ended`, `the terminal of the app was closed`) are rows too. The
+bar: the levels to show, which app, a word (the message, the error or
+the stack), Pause (what comes meanwhile is held and counted, shown on
+Resume), Clear (the extension's rows too). The extension keeps the last
+5000 rows of all the apps, so a panel opened later shows them; a line
+that is no record of this version is a row of its own at the level info,
+as `twk logs` prints the line itself. Not done: an app started by a
+shell (not the extension's) is not followed, as the `logs` file is of the
+project and one app at a time; the aid is read when the app starts, so
+switching it on later takes a hot restart.
 
 **The sequence log.** A panel beside the terminal, a row each: the time
 (seconds since the terminal opened), the direction (`→` what the app
@@ -305,6 +336,14 @@ The code is in layers (part 2b); what each part does:
   terminal recorded), `src/app/player.ts` (a recording played back in a
   `TerminalView`), `src/app/screens.ts` (the screen a command takes, its
   text), `src/vscode/recording.ts` (the status bar's `REC`).
+- `src/core/app_log.ts`, `log_follow.ts`, `log_socket.ts`: the app's log
+  (part 2e'): the address file, a record, the frames of a stack and the
+  package configuration that makes them places of code, all pure;
+  following the log of a project's apps behind `LogEndpoints` (the file
+  and the socket), node's in `log_socket.ts`. `src/app/app_logs.ts`: the
+  apps followed and the rows kept (`AppLogs`), the panel over a
+  `WebviewPanelPort<ToAppLogs>` (`AppLogsPanel`, `AppLogsView`);
+  `src/webview/app_logs.ts`, `app_logs_protocol.ts` its webview.
 - `src/app/webview_view.ts` (the view, over a `WebviewPanelPort`),
   `src/vscode/panel.ts` (VS Code's panel as that port, and the page),
   `src/webview/main.ts`, `src/webview/protocol.ts`:
@@ -1163,6 +1202,82 @@ messages); a recording with Dart-Code's debug session (its redraw is
 `HotApp.redraw`, the same as a run's, run in the inspector's tests); a
 replay of `twk tape`'s or `twk record`'s files in VS Code (the golden and
 the counter's recording are of the same format).
+
+## 2e'. The app's log
+
+What `twk logs` does (twk_dev's `lib/src/logs.dart`), in the editor.
+
+**The protocol** is twk_core's, not the extension's (`LogSink.serve` in
+`lib/src/log.dart`, `LogServer` in `lib/src/platform/log_server.dart`):
+the address file `<project>/.dart_tool/twk/logs` holds the place
+(`unix:<path>` or `tcp:<host>:<port>`) and the token on two lines
+(`core/app_log.ts` `parseAddressFile`, as `address.ts` reads TWK_SHELL); a
+client sends the token and a line feed and gets the records kept, one
+line of JSON each (`LogRecord.toJson`: `time` in local time ISO 8601,
+`level`, `message`, and `error` and `stack` as text where there are),
+then each record as it is added. The aid `logs` is what makes an app
+serve it (`TwkApp.serveLogs`), and the extension's switches already set
+it in the welcome's `TWK_DEBUG` (part 4, item 2).
+
+**Choices.**
+
+- *Reuse.* twk_dev's `formatRecord` writes a record as ANSI text for a
+  terminal; the panel needs the parts (a coloured level, a stack that
+  can be clicked), so the extension reads the JSON itself
+  (`parseRecord`, `formatTime` as `LogRecord.formatTime`) and reuses
+  the shape of the sequence log's panel (the panel port, the 100 ms
+  batching, `ready` then everything, `shown` for the tests) rather than
+  its code.
+- *One panel for all apps*, with a choice of the app, not one per
+  terminal as the sequence log's: a log is read across a restart and
+  between a server and its client, and a panel for each would
+  have to be found again. Rows are kept in `AppLogs`, not the
+  webview, so a closed panel loses nothing.
+- *Followed per terminal, not per run.* The address file is the
+  project's and one app writes it at a time, so a follower
+  (`LogFollower`) per twk terminal polls it every 200 ms, as `twk logs`
+  does, connects to the address it holds, and on the app's end waits for
+  an address it has not used (a stale file left by an app that was killed
+  is tried and refused, then tried again each time the poll finds it). A
+  hot restart or a debug restart is the next app of the same terminal.
+- *Started by the VM service connection* (`HotApps.onApp`, the same
+  moment the inspector attaches), when the aid `logs` is on in the
+  settings; the project is the app's (`Hot.project`).
+- *Stack frames.* The VM's lines (`#0 f (file:///x.dart:3:4)`, `package:`
+  ones too) and package:stack_trace's (`package:a/b.dart 3:4  f`) are
+  parsed; a `package:` frame is resolved through the project's
+  `package_config.json` (the nearest above, a workspace's included) and
+  opens by `SourceOpener`, the inspector's. `dart:` frames and lines with
+  no place are shown, not links. The webview asks to open `(row, frame)`
+  and the extension holds the places, so a message from the page cannot
+  name a file.
+
+**Tests.** `core/app_log.test.ts` (the address file, the record and a line
+that is none, frames of both formats, the package configuration relative,
+absolute and unknown, the filter), `core/log_follow.test.ts` (the follower
+on fakes and a fake clock: wait, connect, lines, the next app, a refused
+address, dispose also while connecting; node's endpoints on a real file
+and a real Unix socket: the token first, lines cut between reads, a
+refused connection), `webview/app_logs_protocol.test.ts`,
+`app/app_logs.test.ts` (the aid, one follow per terminal, rows with
+levels, error, stack and notes, restart and close, two apps of one name,
+frames opened, a workspace's package configuration, the 5000 bound, the
+panel: nothing before `ready`, batching, apps, clear, a second `ready`)
+and `app/app_logs_twk.test.ts`, against a real Dart app serving its log
+with `LogSink.serve` in a project of its own (`dart` with the
+workspace's package configuration): its kept record, the ones added with
+error and stack, a `package:twk_core` frame opened at its file, the end,
+and the next app of the terminal.
+
+**In VS Code, not tested** (`npm test` is in no gate, and no test of it
+was added): that the page loads under the webview's content security
+policy and draws (the levels' colours, the stack's links), the filter,
+pause and clear buttons, a click on a frame opening the editor at the
+line, `twk.showAppLogs` from the palette, and the aid switched on in
+settings reaching a real run or debug session. The unit tests send the
+messages the page sends and check the extension's side; the page itself
+(`webview/app_logs.ts`) is DOM code run in no test, as the sequence
+log's is.
 
 ## 3. What a terminal can declare, and what the extension can emulate
 
