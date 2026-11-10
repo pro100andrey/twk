@@ -39,6 +39,8 @@ const _sources = ['src', 'tsconfig.json', 'tsconfig.webview.json'];
 /// and what vsce reads to make it.
 const _packaged = [
   'package.json',
+  'language-configuration.json',
+  'syntaxes/tape.tmLanguage.json',
   'README.md',
   'CHANGELOG.md',
   'LICENSE',
@@ -63,6 +65,8 @@ const vsixRequired = [
   'extension/changelog.md',
   'extension/LICENSE.txt',
   'extension/package.json',
+  'extension/language-configuration.json',
+  'extension/syntaxes/tape.tmLanguage.json',
 ];
 
 /// What the .vsix must not hold: sources, tests, maps, the rest of
@@ -170,7 +174,9 @@ Future<int> vscode(VerbContext c, Cpus cpus) async {
           c.log('vscode package: no $vscodeSource/$name');
           return ExitCode.invalidFile;
         }
-        from.copySync('${gate.path}/$name');
+        final to = File('${gate.path}/$name');
+        to.parent.createSync(recursive: true);
+        from.copySync(to.path);
       }
       c.log('$vscodeGate: npm run package -> $vsixName');
       final code = await c.run(

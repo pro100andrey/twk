@@ -668,10 +668,15 @@ void main() {
       write('$vscodeGate/out/vscode/extension.js', '\n');
       final bare = await step(['package']);
       expect(bare.code, ExitCode.invalidFile);
-      expect(bare.log.single, 'vscode package: no $vscodeSource/README.md');
+      expect(
+        bare.log.single,
+        'vscode package: no $vscodeSource/language-configuration.json',
+      );
       expect(bare.ran, isEmpty);
 
       for (final f in [
+        'language-configuration.json',
+        'syntaxes/tape.tmLanguage.json',
         'README.md',
         'CHANGELOG.md',
         'LICENSE',
@@ -693,6 +698,10 @@ void main() {
       ]);
       expect(read('$vscodeGate/README.md'), 'README.md\n');
       expect(read('$vscodeGate/.vscodeignore'), '.vscodeignore\n');
+      expect(
+        read('$vscodeGate/syntaxes/tape.tmLanguage.json'),
+        'syntaxes/tape.tmLanguage.json\n',
+      );
       // the fake npm wrote no .vsix to list
       expect(r.code, 1);
       expect(r.log.last, contains('cannot list'));
