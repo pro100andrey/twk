@@ -189,7 +189,7 @@ void main() {
         (c) => c != 0x0a && (c < 0x20 || c == 0x7f || (c >= 0x80 && c <= 0x9f)),
       );
       expect(bad, isEmpty, reason: 'control characters in: $out');
-      expect(out, contains(r'^[[2J'));
+      expect(out, contains('^[[2J'));
       expect(out, contains(r'\x9b'));
       expect(out, contains('key Alt+Enter'));
     },
@@ -201,7 +201,7 @@ void main() {
       expect(printable('plain é 日本'), 'plain é 日本');
       expect(printable('a\x1b[2J\x07\x7f'), 'a^[[2J^G^?');
       expect(printable('\u009b\u009d\u0085'), r'\x9b\x9d\x85');
-      expect(printable('a‮b'), r'a\u{202e}b');
+      expect(printable('a${String.fromCharCode(0x202e)}b'), r'a\u{202e}b');
     },
   );
 
