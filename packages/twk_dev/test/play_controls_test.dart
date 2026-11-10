@@ -298,6 +298,51 @@ void main() {
     },
   );
 
+  group('markers', () {
+    // frames A (0), B (1), C (2), D (3); markers between them
+    final text = [
+      '{"version": 2, "width": 40, "height": 6}',
+      '[0.0, "o", "A"]',
+      '[1.0, "o", "B"]',
+      '[1.5, "m", "second"]',
+      '[2.0, "o", "C"]',
+      r'[3.0, "m", "third\u001b[31m"]',
+      '[3.0, "o", "D"]',
+    ].join('\n');
+
+    test('] and [ go to the markers, paused, the screen as at their time; '
+        'the status names the last one reached', () async {
+      final r = await started(text);
+      await r.type(' ');
+      expect(r.status, contains('marker 0/2 '));
+      await r.type(']');
+      expect(r.status, contains('frame 2/4'));
+      expect(r.status, contains('marker 1/2 second'));
+      expect(r.writes.where((w) => w.startsWith('\x1bc')).last, '\x1bcAB');
+      await r.type(']');
+      expect(r.status, contains('frame 3/4'));
+      expect(r.status, contains('marker 2/2 third '), reason: 'no ESC');
+      expect(r.status, isNot(contains('\x1b[31m')));
+      // none after the last: stays
+      await r.type(']');
+      expect(r.status, contains('frame 3/4'));
+      await r.type('[');
+      expect(r.status, contains('marker 1/2 second'));
+      await r.type('[');
+      expect(r.status, contains('frame 2/4'), reason: 'none before the first');
+      await r.type('\x1b[93;1u');
+      expect(r.status, contains('marker 2/2'), reason: 'kitty ]');
+    });
+
+    test('a recording without markers shows none and ] does nothing', () async {
+      final r = await started();
+      await r.type(' ');
+      await r.type(']');
+      expect(r.status, isNot(contains('marker')));
+      expect(r.status, contains('frame 1/3'));
+    });
+  });
+
   group('readPlayKeys', () {
     void reads(
       String typed,

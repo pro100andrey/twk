@@ -45,6 +45,14 @@ final class RecordCommand extends Command<int> {
         help: 'Record what is typed too ("i" events).',
       )
       ..addOption(
+        'marker-key',
+        valueHelp: 'ctrl+<letter>',
+        help:
+            'A key that leaves a marker ("m" event) in the recording, for '
+            '`twk play` to go to, instead of reaching the command: ctrl+] '
+            'for one. Off by default.',
+      )
+      ..addOption(
         'replay',
         valueHelp: 'file',
         help:
@@ -103,6 +111,17 @@ final class RecordCommand extends Command<int> {
     if (limit == null || limit < 0 || !limit.isFinite) {
       usageException('--idle-limit takes a number of seconds, 0 or more.');
     }
+    int? markerKey;
+    if (results.option('marker-key') case final option?) {
+      markerKey = markerKeyByte(option);
+      if (markerKey == null) {
+        usageException(
+          r'--marker-key takes ctrl+ and a letter, or one of [ \ ] ^ _ '
+          '(not ctrl+c, ctrl+i, ctrl+j, ctrl+m or ctrl+[, which are keys '
+          'of the terminal).',
+        );
+      }
+    }
     final replayPath = results.option('replay');
     Cast? replay;
     double? speed = 1;
@@ -136,11 +155,27 @@ final class RecordCommand extends Command<int> {
           : Duration(microseconds: (limit * 1e6).round()),
       title: results.option('title'),
       keys: results.flag('keys'),
+      markerKey: markerKey,
       replay: replay,
       replaySpeed: speed,
       replayEnds: results.option('replay-then') == 'end',
     ).run();
   }
+}
+
+/// The byte of the key [name] (`ctrl+]`, `ctrl+a`) that `twk record
+/// --marker-key` takes, or null for a name that is none or a key the
+/// terminal needs (Ctrl+C, Tab, Enter, Escape).
+int? markerKeyByte(String name) {
+  final m = RegExp(
+    r'^ctrl\+([a-z\[\\\]^_])$',
+    caseSensitive: false,
+  ).firstMatch(name);
+  if (m == null) {
+    return null;
+  }
+  final byte = m[1]!.toLowerCase().codeUnitAt(0) & 0x1f;
+  return const {3, 9, 10, 13, 27}.contains(byte) ? null : byte;
 }
 
 /// Runs [command] in a pseudo-terminal of this terminal's size (twk_term's
@@ -174,6 +209,7 @@ final class Recorder {
     this.idleLimit = const Duration(seconds: 2),
     this.title,
     this.keys = false,
+    this.markerKey,
     this.replay,
     this.replaySpeed = 1,
     this.replayEnds = false,
@@ -193,6 +229,13 @@ final class Recorder {
 
   /// Whether what is typed is recorded too (`i` events).
   final bool keys;
+
+  /// The byte of a key that leaves a marker (`m` event, labelled
+  /// `marker <n>`) instead of reaching the command, or null for none (see
+  /// [markerKeyByte]). Read as the plain byte only: a terminal that has
+  /// the kitty keyboard flags on sends it as another sequence, which the
+  /// command gets.
+  final int? markerKey;
 
   /// A recording whose keys are typed into the command (see
   /// [replaySteps]), or null.
@@ -243,6 +286,7 @@ final class Recorder {
   var _replaying = false;
   Duration _lastOutput = Duration.zero;
   var _outputs = 0;
+  var _markers = 0;
 
   // the exit code a signal set, and what went wrong
   int? _stopped;
@@ -373,9 +417,31 @@ final class Recorder {
           return;
         }
       }
-      _pty.write(bytes);
-      if (keys) {
-        _cast.input(_clock.elapsed, bytes);
+      final mark = markerKey;
+      if (mark == null || _replaying || !bytes.contains(mark)) {
+        _pty.write(bytes);
+        if (keys) {
+          _cast.input(_clock.elapsed, bytes);
+        }
+        return;
+      }
+      // the marker key is cut out; what is around it goes on in order
+      var from = 0;
+      for (var i = 0; i <= bytes.length; i++) {
+        if (i < bytes.length && bytes[i] != mark) {
+          continue;
+        }
+        final piece = bytes.sublist(from, i);
+        if (piece.isNotEmpty) {
+          _pty.write(piece);
+          if (keys) {
+            _cast.input(_clock.elapsed, piece);
+          }
+        }
+        if (i < bytes.length) {
+          _cast.marker(_clock.elapsed, 'marker ${++_markers}');
+        }
+        from = i + 1;
       }
     }, onError: (Object _) {});
     late final StreamSubscription<Uint8List> output;

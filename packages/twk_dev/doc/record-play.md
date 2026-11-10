@@ -32,6 +32,16 @@ character split between two pieces put together. The header has the size, the
 time, `TERM` and `SHELL`, the command line and `--title` (the command line by
 default).
 
+`--marker-key=ctrl+]` (any `ctrl+<letter>`, or `[ \\ ] ^ _`; not Ctrl+C, I, J,
+M or `[`, which the terminal needs; off by default, so no key of the app is
+taken) makes that key leave a marker instead of reaching the command: an `m`
+event at its time, labelled `marker 1`, `marker 2` and so on, for `twk play`
+to go to (`--keys` does not record the key). It is read as the plain byte:
+where the app turned the kitty keyboard flags on, the terminal sends the key
+as another sequence, which reaches the command. A recording can also have
+markers from elsewhere (the VS Code extension's, a hand-edited file); `twk
+play` takes any `m` event.
+
 It ends with the command's exit code, once the command has ended and its
 terminal hung up (what it left running is hung up 2 s after it ended); with
 128 and the signal's number on SIGINT, SIGTERM or SIGHUP, which hang the
@@ -62,14 +72,20 @@ is not asciicast v2, exits with 1; no file, or a `--speed` not above 0, with
 64.
 
 While it plays: Space pauses and plays on (from the start once it ended),
-Right goes a frame on, Left a frame back, Home plays from the start, `q`
-quits (exit 0, with what the recording left on turned off as Ctrl+C does). A
+Right goes a frame on, Left a frame back, `]` goes to the next marker and `[`
+to the one before (paused, the screen as at the marker's place among the
+events: the frames before it written at once, as Left does; none before the
+first or after the last marker stays where it is), Home plays from the start,
+`q` quits (exit 0, with what the recording left on turned off as Ctrl+C does). A
 frame is what `screenFrames` takes for one: the output up to where no
 synchronized update (DEC 2026) is open, written in one piece, so an update is
 never shown half; output after the last frame, inside an update never ended,
 is a step of its own that counts for no frame. Back is the terminal reset
 (RIS) and the frames before written at once. Paused, a status line
-(`paused  frame 3/12  1.250 s / 4.000 s`) shows on the row under the
+(`paused  frame 3/12  1.250 s / 4.000 s  marker 2/5 label`; the marker is the
+last at or before the screen shown, `marker 0/5` before the first, and the
+part is left out of a recording without markers; a label is cut to 40
+characters, its control characters blanked) shows on the row under the
 recording, where the terminal has one (a recording as tall as the terminal
 has no room: nothing is drawn); it is not part of what is played, and is
 wiped when playing goes on or it stops. It is drawn with `ESC 7` and

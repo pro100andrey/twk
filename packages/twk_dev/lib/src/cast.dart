@@ -289,6 +289,10 @@ final class CastWriter {
   void resize(Duration at, int width, int height) =>
       _event(at, CastEvent.resize, '${width}x$height', always: true);
 
+  /// A marker labelled [label], at [at].
+  void marker(Duration at, String label) =>
+      _event(at, CastEvent.marker, label, always: true);
+
   /// Writes what is left of a character cut off at the end, at [at].
   void close(Duration at) {
     _event(at, CastEvent.output, _output.close());

@@ -23,6 +23,11 @@ Fixed:
 
 Added:
 
+- `twk play`: `]` and `[` go to the next and the previous marker of the
+  recording (its `m` events), paused, at the screen as at the marker; the
+  paused status line names the last marker reached (`marker 2/5 label`).
+  `twk record --marker-key=ctrl+]` leaves a marker (`marker 1`, ...) at that
+  key instead of passing it on (off by default); `doc/record-play.md`.
 - `doc/run.md`: how to record a `twk run` session, restarts included
   (`twk record -- twk run <file>`), and why `twk run` has no `--record`.
 - `twk tape --check`: runs a tape as a test, writing no Output or Screenshot,

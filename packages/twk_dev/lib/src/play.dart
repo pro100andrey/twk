@@ -48,9 +48,11 @@ final class PlayCommand extends Command<int> {
       'terminal is not resized: play a recording in one of its size. '
       'Space pauses and plays, Right goes a frame on and Left a frame back '
       '(a frame is a screen the recording showed: the output up to where '
-      'no synchronized update is open), Home plays from the start, q '
-      'quits. Paused, a status line (frame n/m, the time) shows under '
-      'the recording, where this terminal has a row for it. '
+      'no synchronized update is open), ] goes to the next marker of the '
+      'recording (its "m" events) and [ to the one before, Home plays from '
+      'the start, q quits. Paused, a status line (frame n/m, the time, '
+      'the marker reached) shows under the recording, where this terminal '
+      'has a row for it. '
       'Ctrl+C stops; what the recording left turned on in the terminal '
       '(the alternate screen, mouse reports, a hidden cursor) is turned '
       'off then, after q too.';
@@ -109,6 +111,12 @@ enum PlayKey {
   /// Home: played from the start.
   start,
 
+  /// `[`: paused, at the marker before the one shown.
+  previousMarker,
+
+  /// `]`: paused, at the next marker.
+  nextMarker,
+
   /// `q`: stops, exit 0.
   quit,
 
@@ -147,6 +155,10 @@ enum PlayKey {
           keys.add(PlayKey.toggle);
         case 0x71:
           keys.add(PlayKey.quit);
+        case 0x5b:
+          keys.add(PlayKey.previousMarker);
+        case 0x5d:
+          keys.add(PlayKey.nextMarker);
       }
       i++;
       continue;
@@ -253,6 +265,8 @@ PlayKey? _csiKey(String params, String final_) {
       return switch (int.tryParse(parts.first.split(':').first)) {
         32 when modifiers == 1 => PlayKey.toggle,
         113 when modifiers == 1 => PlayKey.quit,
+        91 when modifiers == 1 => PlayKey.previousMarker,
+        93 when modifiers == 1 => PlayKey.nextMarker,
         99 when modifiers == 5 => PlayKey.interrupt,
         _ => null,
       };
@@ -279,7 +293,9 @@ class PlayClock {
 
 /// What [Player] writes at one time: the output up to a frame, or, with
 /// `frame` 0, what follows the last one inside an update never ended.
-typedef _Step = ({String output, double at, double time, int frame});
+///
+/// `end` is how many events of the recording the step has taken in.
+typedef _Step = ({String output, double at, double time, int frame, int end});
 
 /// Plays [cast] back on stdout: what the program wrote (its `o` events),
 /// each frame at its time divided by [speed], every pause longer than
@@ -289,7 +305,10 @@ typedef _Step = ({String output, double at, double time, int frame});
 ///
 /// A terminal on stdin is put in raw mode meanwhile; Space pauses and
 /// plays, Right goes a frame on, Left a frame back (the terminal reset
-/// and the frames before it written at once), Home plays from the start,
+/// and the frames before it written at once), `]` and `[` go to the next
+/// marker (an `m` event of the recording) and the one before, the screen as
+/// at its time, paused; the status line names the last marker reached
+/// (`marker 2/5 label`). Home plays from the start,
 /// `q` stops, and Ctrl+C stops with 130. Other keys are dropped, and so
 /// is what the terminal answers to the queries the program sent, which
 /// the recording has too. Paused, a status line (`frame 3/12`, the time)
@@ -352,7 +371,7 @@ final class Player {
     var time = 0.0;
     var pending = false;
     var frames = 0;
-    for (final event in cast.events) {
+    for (final (index, event) in cast.events.indexed) {
       final gap = math.max<double>(event.time - last, 0);
       last = event.time;
       at += idleLimit == null ? gap : math.min(gap, idleLimit!);
@@ -379,14 +398,31 @@ final class Player {
         at: at,
         time: time,
         frame: ++frames,
+        end: index + 1,
       ));
       output = StringBuffer();
       pending = false;
     }
     if (pending) {
-      steps.add((output: '$output', at: at, time: time, frame: 0));
+      steps.add((
+        output: '$output',
+        at: at,
+        time: time,
+        frame: 0,
+        end: cast.events.length,
+      ));
     }
     return steps;
+  }
+
+  // a marker's label as the status line shows it: no control characters,
+  // at most 40 characters
+  static String _label(String text) {
+    final clean = text.replaceAll(RegExp(r'[\x00-\x1f\x7f-\x9f]'), ' ');
+    final runes = clean.runes.toList();
+    return runes.length <= 40
+        ? clean
+        : '${String.fromCharCodes(runes.take(39))}…';
   }
 
   /// Plays [cast]; returns 0, or 130 when Ctrl+C stopped it, 128 and the
@@ -455,6 +491,15 @@ final class Player {
     }
     final frames = framesIn.last;
     final duration = cast.duration;
+    // each marker: the steps shown when the screen is as at its place
+    final markers = [
+      for (final (index, event) in cast.events.indexed)
+        if (event.code == CastEvent.marker)
+          (
+            at: steps.where((step) => step.end <= index).length,
+            label: _label(event.data),
+          ),
+    ];
     var modes = ModeTracker();
     var shown = 0;
     var playing = true;
@@ -482,12 +527,18 @@ final class Player {
       }
       final n = framesIn[shown];
       final time = shown == 0 ? 0.0 : steps[shown - 1].time;
+      final passed = markers.where((m) => m.at <= shown).length;
+      final marker = markers.isEmpty
+          ? ''
+          : passed == 0
+          ? ' marker 0/${markers.length} '
+          : ' marker $passed/${markers.length} ${markers[passed - 1].label} ';
       statusUp = true;
       await output(
         line(
           '\x1b[7m paused  frame $n/$frames  '
           '${time.toStringAsFixed(3)} s / ${duration.toStringAsFixed(3)} s '
-          '\x1b[0m',
+          '$marker\x1b[0m',
         ),
       );
     }
@@ -550,6 +601,17 @@ final class Player {
               await seek(0);
               playing = true;
               anchorHere();
+            case PlayKey.previousMarker || PlayKey.nextMarker:
+              playing = false;
+              await wipeStatus();
+              final ahead = key == PlayKey.nextMarker;
+              final target = ahead
+                  ? markers.where((m) => m.at > shown).firstOrNull
+                  : markers.where((m) => m.at < shown).lastOrNull;
+              if (target != null) {
+                await seek(target.at);
+              }
+              await drawStatus();
             case PlayKey.quit || PlayKey.interrupt:
               break;
           }
