@@ -147,3 +147,20 @@ tape with 1 and the screen, writing no output; so does an output that can't be
 written; SIGINT, SIGTERM and SIGHUP end it with 128 and the signal's number,
 writing nothing. A tape that can't be read or is wrong (the line is said)
 exits with 1, a program that can't be started with 127, no tape with 64.
+
+## `twk tape --check`
+
+Runs the tape as a test, for CI and for an editor's check: the program runs
+and the statements are done as in a recording, but nothing is recorded or
+written (no Output, no Screenshot, no directory made). Each statement that
+passes is told on stdout, `<tape>:<line>: ok <statement>` (a statement as the
+tape wrote it, but for the Type text, which has its `"` as `'`), and the last
+line says `<tape>: passed, <n> statements`. The first Wait that times out
+fails the tape: stdout has `<tape>:<line>: FAIL <statement>` and
+`<tape>: failed, <k> of <n> statements passed`, stderr the line of the
+tape, the timeout and the screen at that time (as without `--check`), and the
+exit code is 1. Exit codes are those of a run: 0 passed; 1 failed, or the
+tape cannot be read or is wrong (stderr only); 127 the program cannot be
+started; 128 and a signal's number when stopped. The Wait's timeout is
+measured by the runner's clock (`TapeClock.alarm`; a test gives it a clock it
+moves), the wall's in the command.

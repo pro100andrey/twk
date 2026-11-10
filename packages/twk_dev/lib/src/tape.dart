@@ -24,11 +24,23 @@ export 'tape/theme.dart';
 /// `twk tape`: runs a tape, a script of what to type into a program, and
 /// writes the session as asciicast v2 and SVG ([TapeRunner]).
 final class TapeCommand extends Command<int> {
+  /// Adds `--check`.
+  TapeCommand() {
+    argParser.addFlag(
+      'check',
+      negatable: false,
+      help:
+          'Run the tape as a test: write no Output or Screenshot, say on '
+          'stdout whether each statement passed, and fail on the first '
+          'Wait that times out.',
+    );
+  }
+
   @override
   String get name => 'tape';
 
   @override
-  String get invocation => 'twk tape <file.tape>';
+  String get invocation => 'twk tape [--check] <file.tape>';
 
   @override
   String get description =>
@@ -42,7 +54,11 @@ final class TapeCommand extends Command<int> {
       'the recording. When the tape has run, the program is hung up. Ends '
       'with 0; 1 when the tape cannot be read or a Wait timed out, 127 '
       'when the program cannot be started, 128 and the number of a signal '
-      'that stopped it. See doc/tape.md for the statements.';
+      'that stopped it. With --check nothing is written: each statement is '
+      'reported on stdout (`<tape>:<line>: ok <statement>`, then a line '
+      'saying how many passed), the first Wait that times out fails the '
+      'tape (exit 1, the screen then on stderr). See doc/tape.md for the '
+      'statements.';
 
   @override
   Future<int> run() async {
@@ -66,6 +82,7 @@ final class TapeCommand extends Command<int> {
     final runner = TapeRunner(
       tape,
       title: p.basenameWithoutExtension(path),
+      check: argResults!.flag('check'),
     );
     final signals = [
       for (final (signal, number) in [
@@ -108,8 +125,18 @@ final class TapeRunner {
     this.title,
     void Function(String line)? log,
     TapeClock? clock,
+    this.check = false,
+    void Function(String line)? report,
   }) : _log = log ?? stderr.writeln,
+       _report = report ?? stdout.writeln,
        _clock = clock ?? TapeClock();
+
+  /// Whether the tape is run as a test: nothing is recorded or written
+  /// (no Output, no Screenshot), each statement is told to `report` (by
+  /// default a line of stdout) as it passes, then a last line.
+  final bool check;
+
+  final void Function(String line) _report;
 
   /// The tape run.
   final Tape tape;
@@ -159,6 +186,22 @@ final class TapeRunner {
   /// file could not be written), 127 when the program cannot be started
   /// and what [stop] was given when stopped.
   Future<int> run() async {
+    final code = await _run();
+    if (check) {
+      final n = tape.steps.length;
+      _report(
+        code == 0
+            ? '${tape.name}: passed, $n statement${n == 1 ? '' : 's'}'
+            : '${tape.name}: failed, $_passed of $n statement'
+                  '${n == 1 ? '' : 's'} passed',
+      );
+    }
+    return code;
+  }
+
+  var _passed = 0;
+
+  Future<int> _run() async {
     final settings = tape.settings;
     final theme = settings.theme;
     final command = tape.command ?? const ['sh'];
@@ -223,9 +266,16 @@ final class TapeRunner {
     try {
       for (final step in tape.steps) {
         await _step(step);
+        if (check) {
+          _passed++;
+          _report('${tape.name}:${step.line}: ok ${_label(step)}');
+        }
       }
       end = _now;
     } on _Failed catch (e) {
+      if (check) {
+        _report('${tape.name}:${e.line}: FAIL ${e.label}');
+      }
       _log('twk tape: ${e.message}');
       return 1;
     } on _Stopped {
@@ -241,6 +291,9 @@ final class TapeRunner {
       await output.cancel();
     }
     _cast.close(end);
+    if (check) {
+      return 0;
+    }
     try {
       for (final path in tape.outputs) {
         _write(
@@ -263,7 +316,7 @@ final class TapeRunner {
       return;
     }
     _screen.feed(bytes);
-    if (_hiddenAt == null) {
+    if (!check && _hiddenAt == null) {
       final now = _now;
       _cast.output(now, bytes);
       if (!_screen.mode(TerminalMode.synchronizedOutput)) {
@@ -303,12 +356,16 @@ final class TapeRunner {
           final elapsed = _clock.elapsed;
           _cut += elapsed - hidden;
           _hiddenAt = null;
-          final now = elapsed - _cut;
-          _cast.output(now, utf8.encode(redraw(_screen)));
-          _film.add(now, _screen);
+          if (!check) {
+            final now = elapsed - _cut;
+            _cast.output(now, utf8.encode(redraw(_screen)));
+            _film.add(now, _screen);
+          }
         }
       case ScreenshotStep(:final path):
-        _write(path, screenSvg(_screen, _look));
+        if (!check) {
+          _write(path, screenSvg(_screen, _look));
+        }
       case DelayStep(:final delay, :final timeout):
         _typing = delay ?? _typing;
         _timeout = timeout ?? _timeout;
@@ -344,7 +401,7 @@ final class TapeRunner {
     };
     final timeout = step.timeout ?? _timeout;
     final timedOut = Completer<void>();
-    final deadline = Timer(timeout, timedOut.complete);
+    final deadline = _clock.alarm(timeout, timedOut.complete);
     try {
       await Future.any([found.future, timedOut.future, _stop.future]);
     } finally {
@@ -362,11 +419,39 @@ final class TapeRunner {
         for (var y = 0; y < _screen.height; y++) '│${_screen.lineText(y)}',
       ];
       throw _Failed(
+        step.line,
+        _label(step),
         '${tape.name}:${step.line}: Wait timed out after ${seconds}s for '
         '${step.source}$where$ended; the screen:\n${rows.join('\n')}',
       );
     }
   }
+
+  /// [step] as a line of a check says it.
+  String _label(TapeStep step) {
+    String q(String text) => '"${text.replaceAll('"', "'")}"';
+    String at(Duration? d) => d == null ? '' : '@${_time(d)}';
+    String times(int n) => n == 1 ? '' : ' $n';
+    return switch (step) {
+      TypeStep(:final text, :final delay) => 'Type${at(delay)} ${q(text)}',
+      KeyStep(:final name, :final count, :final delay) =>
+        '$name${at(delay)}${times(count)}',
+      SleepStep(:final duration) => 'Sleep ${_time(duration)}',
+      WaitStep(:final source, :final scope, :final timeout) =>
+        'Wait${scope == WaitScope.line ? '+Line' : ''}${at(timeout)} '
+            '$source',
+      HideStep(:final hide) => hide ? 'Hide' : 'Show',
+      ScreenshotStep(:final path) => 'Screenshot $path (not written)',
+      DelayStep(:final delay, :final timeout) =>
+        delay != null
+            ? 'Set TypingSpeed ${_time(delay)}'
+            : 'Set WaitTimeout ${_time(timeout!)}',
+    };
+  }
+
+  static String _time(Duration d) => d.inMilliseconds % 1000 == 0
+      ? '${d.inSeconds}s'
+      : '${d.inMilliseconds}ms';
 
   /// Writes [text] to [path], making its directory.
   void _write(String path, String text) {
@@ -407,6 +492,10 @@ class TapeClock {
 
   /// Starts the time, at zero.
   void start() => _watch.start();
+
+  /// Calls [fire] after [duration], unless the timer returned is
+  /// cancelled: the timeout of a Wait.
+  Timer alarm(Duration duration, void Function() fire) => Timer(duration, fire);
 
   /// Waits [duration], or until [stop] completes.
   Future<void> pause(Duration duration, Future<void> stop) async {
@@ -496,7 +585,11 @@ String _sgr(StyleTable styles, StyleId id) {
 
 /// A step that failed: [message] says where and why.
 final class _Failed implements Exception {
-  const _Failed(this.message);
+  const _Failed(this.line, this.label, this.message);
+
+  /// The line of the statement, and how a check names it.
+  final int line;
+  final String label;
 
   final String message;
 }

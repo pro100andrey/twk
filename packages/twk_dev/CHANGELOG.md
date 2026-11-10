@@ -23,6 +23,11 @@ Fixed:
 
 Added:
 
+- `twk tape --check`: runs a tape as a test, writing no Output or Screenshot,
+  telling each statement on stdout (`<tape>:<line>: ok <statement>`, a last
+  line with the count) and failing (exit 1, `FAIL` line, the screen on
+  stderr) on the first Wait that times out. `TapeClock.alarm` is the clock
+  of a Wait's timeout.
 - `twk record --replay=<file>` (with `--replay-speed=<factor>|asap` and
   `--replay-then=handover|end`): types the keys of a recording (`--keys`) into
   the command, at their times or each once the command has settled, then
