@@ -23,6 +23,8 @@ Fixed:
 
 Added:
 
+- `doc/run.md`: how to record a `twk run` session, restarts included
+  (`twk record -- twk run <file>`), and why `twk run` has no `--record`.
 - `twk tape --check`: runs a tape as a test, writing no Output or Screenshot,
   telling each statement on stdout (`<tape>:<line>: ok <statement>`, a last
   line with the count) and failing (exit 1, `FAIL` line, the screen on

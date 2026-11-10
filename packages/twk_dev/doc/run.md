@@ -73,3 +73,22 @@ number; Ctrl+C reaches `twk run` only while no app has the terminal in raw
 mode, as while one starts. On Windows, which has no SIGTERM, a restart kills
 the app without the terminal put back; `twk run` has not been run on Windows;
 on macOS its tests run it.
+
+## Recording a run
+
+To record what `twk run` shows, hot reloads and restarts included, record
+`twk run` itself:
+
+```bash
+dart run packages/twk_dev/bin/twk.dart record -o run.cast -- \
+    dart run packages/twk_dev/bin/twk.dart run packages/twk/example/counter.dart
+```
+
+`twk record` gives `twk run` a pseudo-terminal, and `twk run` gives the app
+its stdio, so the app has that pseudo-terminal: the recording is of the
+session, and a restart (Ctrl+G H) goes on in the same recording, as the app
+writes into the same terminal. There is no `--record` option on `twk run`:
+the recorder is built around one pseudo-terminal and one command (its raw
+mode, input, size and hang-up), and a restart starts a new process, so
+putting the app in a pseudo-terminal of its own would mean running that
+machinery inside `twk run` as well, for a result the command above gives.
