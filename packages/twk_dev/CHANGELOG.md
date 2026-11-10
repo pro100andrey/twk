@@ -15,6 +15,12 @@ Fixed:
 
 Added:
 
+- `twk test-from-cast <file.cast> [--out=<file>]`: copies the recording next
+  to a new test (`test/<name>_test.dart` by default) that plays it through
+  twk_test's `screenFrames` and checks a line of the screen at each marker,
+  or of the last screen where there are none, and that the emulator took in
+  all of it. The generator is `castTestSource`, which the VS Code
+  extension's command goes through the CLI to reach.
 - `twk inspect`: `g` opens where the selected widget was made in the editor
   (`TWK_EDITOR`, `VISUAL`, `EDITOR`; a terminal editor runs in the
   inspector's terminal while it waits). The place is found in the app's code

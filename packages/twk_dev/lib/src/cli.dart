@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import 'agents.dart';
+import 'cast_test_gen.dart';
 import 'create.dart';
 import 'doctor.dart';
 import 'inspect.dart';
@@ -47,6 +48,7 @@ Future<int> runTwk(List<String> arguments) async {
         ..addCommand(ShellCommand())
         ..addCommand(RecordCommand())
         ..addCommand(PlayCommand())
+        ..addCommand(CastTestCommand())
         ..addCommand(TapeCommand());
   try {
     return await runner.run(arguments) ?? 0;

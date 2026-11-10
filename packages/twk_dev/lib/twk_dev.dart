@@ -23,5 +23,6 @@ export 'src/agents.dart'
         dependsOnTwk,
         mergeAgentsBlock;
 export 'src/cast.dart' show Cast, CastEvent, CastHeader, CastWriter;
+export 'src/cast_test_gen.dart' show castTestSource;
 export 'src/cli.dart' show runTwk, usageExitCode;
 export 'src/logs.dart' show formatLine, formatRecord;

@@ -10,6 +10,7 @@ twk_dev.dart enum AgentsAction
 twk_dev.dart enum AgentsFile
 twk_dev.dart function agentsPlan
 twk_dev.dart function agentsProblem
+twk_dev.dart function castTestSource
 twk_dev.dart function dependsOnTwk
 twk_dev.dart function formatLine
 twk_dev.dart function formatRecord

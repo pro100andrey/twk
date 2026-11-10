@@ -24,6 +24,7 @@ const subcommands = [
   'run',
   'shell',
   'tape',
+  'test-from-cast',
 ];
 
 /// The names in the "Available commands:" section of [usage]: the lines
