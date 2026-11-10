@@ -36,6 +36,7 @@ import { HotRun } from '../core/runner';
 import { TerminalShell } from '../core/shell';
 import { VmClient } from '../core/vm';
 import { chooseCapabilities } from './capabilities_pick';
+import { TwkMainLenses } from './code_lens';
 import { VsCodeDebugger } from './debugger';
 import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
@@ -226,6 +227,8 @@ export function activate(context: vscode.ExtensionContext): Api {
   command('twk.openTerminal', () => terminals.createForAnyApp());
   command('twk.runFile', (uri) => hot.runFile(dartFile(uri)));
   command('twk.debugFile', (uri) => hot.debugFile(dartFile(uri)));
+  const lenses = new TwkMainLenses();
+  context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
   command('twk.hotReload', () => hot.reloadAll());
   command('twk.hotRestart', () => hot.restartAll());
   command('twk.showOutput', async () => log.show(true));

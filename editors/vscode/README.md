@@ -41,7 +41,7 @@ Open a Dart file of a twk app, press Ctrl+Shift+P and type "twk".
 
 `twk.terminal.profile` and `twk.terminal.capabilities` (what the terminal is),
 `twk.terminal.screenReader`, `twk.terminal.debugAids`, `twk.terminal.columns`
-and `twk.terminal.lines` (a fixed size), and `twk.hotReloadOnSave`. Keep the
+and `twk.terminal.lines` (a fixed size), `twk.codeLens` (the lenses over a twk app's `main`), and `twk.hotReloadOnSave`. Keep the
 Dart extension's `dart.hotReloadOnSave` at `never`, or both reload.
 
 ## From source

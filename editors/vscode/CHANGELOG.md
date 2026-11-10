@@ -17,5 +17,8 @@ The first packaged version (a preview, `.vsix` built from this repository).
 - A `file:` link of the app opens only a file whose real path is in a workspace
   folder (a symbolic link out of it does not), names compared without case on
   Windows and macOS.
+- Code lenses Run in twk Terminal and Debug in twk Terminal over the `main` of a
+  twk app (`runApp` or `TwkApp` in a file importing twk), off with
+  `twk.codeLens`.
 - Needs twk 0.3.0 or later in the app's project for the Inspector, the log
   and the debug aids.

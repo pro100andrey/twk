@@ -1572,8 +1572,14 @@ What the repository offers for the wished features:
 ## 5. Scope
 
 - **The twk terminal**: one panel per debug session (`TWK_SHELL`), a
-  launch configuration (`"type": "twk"`, part 2). Left: a "Debug in twk
-  Terminal" code lens, a status bar with the size and profile, copy and
+  launch configuration (`"type": "twk"`, part 2), the code lenses "Run in
+  twk Terminal" and "Debug in twk Terminal" over a twk app's `main`
+  (`core/main_find.ts`: a top-level `main` in a file importing a twk
+  package that calls `runApp(` or names `TwkApp`, found in the text with
+  comments and strings blanked, no analysis server; a `main` that hands
+  over to another file is not found; `twk.codeLens` turns them off; they
+  stand beside Dart-Code's Run | Debug, which cannot tell a twk app).
+  Left: a status bar with the size and profile, copy and
   paste, focus and the keys VS Code would take, theme colors following
   VS Code's, OSC 52 to the clipboard.
 - **Capability switches** (part 3), but for ambiguous width 2 and bidi

@@ -315,6 +315,11 @@
           "default": null,
           "description": "A fixed number of rows for the twk terminal; null fits it to the panel."
         },
+        "twk.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a Dart file whose main starts a twk app (it calls runApp or uses TwkApp) shows the lenses Run in twk Terminal and Debug in twk Terminal over it, beside the Dart extension's own."
+        },
         "twk.hotReloadOnSave": {
           "type": "boolean",
           "default": true,
