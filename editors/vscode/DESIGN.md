@@ -630,9 +630,44 @@ What the tests cover:
   image; with switches changed from `xterm.js`, 16 colours, no cell size,
   no progress (its OSC 9;4 dropped), no image addon, and the title saying
   so.
+- VS Code, the tooling features (without Dart-Code; `TWK_TEST_GREP=<mocha
+  pattern>` runs some tests only): the node view filled by a node
+  selected, the render tree switch (`twk.inspector.showRenderTree` and
+  back) with the counterpart of the node selected and shown in the node
+  view; `twk.showAppLogs` opening its panel and a warning logged by an
+  app run with the `logs` aid arriving in `appLogs` and in the panel's
+  `shown`; the `TWK_EDITOR` of an app run by the extension naming the
+  command line of this very VS Code, which exists and answers `--version`
+  (it is not run to open a file: the extension host has no
+  `VSCODE_IPC_HOOK_CLI`, so `code -r -g` from an app reaches the instance
+  of the default profile, which under a `--user-data-dir` of its own is
+  not the one that started the app); a `file:` link asked of a twk
+  terminal opening a workspace file at its line, one outside the
+  workspace and one through a symbolic link out of it refused (the
+  request is handed to the terminal as the webview hands it: the click on
+  a link is the page's); the code lenses (`vscode.executeCodeLensProvider`)
+  Run and Debug over a twk main, none over a plain Dart main or with
+  `twk.codeLens` off; a golden opened with `twk.openScreenFile` in a
+  custom editor of the `twk.screenFile` type (what the page draws, the
+  cell diff and Accept Actual are the webview's and not read).
+  The pick of a Box's border selects its `_DecoratedBox` (the render
+  object there is that widget's, made in `box.dart`): the inspector test
+  held the Box.
+- The packaged extension (`npm run test:installed`): the .vsix
+  (`dart run tool/xtask.dart vscode-package` writes
+  `.dart_tool/vscode/twk-vscode.vsix`, or `TWK_VSIX`) installed by
+  `code --install-extension` into an extensions directory of its own, VS
+  Code started on `packages/twk` with only that directory
+  (`src/test/runInstalled.ts`) and `suite/installed.test.ts` run against
+  the installed copy: it is in that directory with `out/` and the xterm
+  files and no `src/`, activates, registers every command of its
+  `package.json`, and runs the counter in a twk terminal (keys in, the
+  screen out), so a runtime file missing from the .vsix fails it (probed:
+  a .vsix without `xterm.js`). Packaging needs a path npm does not
+  redact: under a directory named like a session id, npm lists the
+  dependencies' paths with `***` and vsce packs no file.
 - Not done: a person using it (all of it is driven by the tests),
-  publishing, macOS and Windows, the packaged `.vsix` installed in a real
-  VS Code (its file list is checked, it was not opened), keys VS Code takes before the
+  publishing, macOS and Windows, keys VS Code takes before the
   webview gets them (Ctrl+P, Ctrl+Shift+P... while the panel is focused:
   not checked; nor that Ctrl+Alt+R typed in the panel reaches the key
   binding: the tests run the commands), kitty's encodings from a real
