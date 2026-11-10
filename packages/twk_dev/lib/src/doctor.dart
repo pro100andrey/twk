@@ -109,8 +109,8 @@ final class Doctor {
     required this.dart,
     required this.environment,
     required this.versions,
-    this.sources = const {},
     required this.state,
+    this.sources = const {},
     this.terminal,
     this.agents,
     this.lock,
@@ -447,9 +447,7 @@ Map<String, (String, String)> _resolve(File? lock, String project) {
       }
     }
   } on FormatException {
-    // Left as the lock had it.
-  } on YamlException {
-    // Left as the lock had it.
+    // Left as the lock had it (a YamlException is a FormatException).
   } on FileSystemException {
     // Left as the lock had it.
   }
