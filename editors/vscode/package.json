@@ -198,6 +198,16 @@
         "category": "twk"
       },
       {
+        "command": "twk.newProject",
+        "title": "New Project (twk create)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.installAgentSkill",
+        "title": "Install Agent Skill (twk agents)",
+        "category": "twk"
+      },
+      {
         "command": "twk.keyToApp",
         "title": "Pass the Key to the twk Terminal's App",
         "category": "twk"

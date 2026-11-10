@@ -1270,6 +1270,49 @@ describe('a test made of a recording', () => {
   });
 });
 
+describe('a new project and the agent skill', () => {
+  const twkDev = path.resolve(project, '..', 'twk_dev');
+  const root = path.join(twkDev, '.dart_tool', 'twk_vscode_test', 'new_project');
+  const dir = path.join(root, 'demo_app');
+  const config = vscode.workspace.getConfiguration('twk');
+
+  before(async () => {
+    fs.rmSync(root, { recursive: true, force: true });
+    fs.mkdirSync(root, { recursive: true });
+    // twk_dev's own script, with the workspace's package configuration
+    await config.update(
+      'command',
+      ['dart', 'run', `--packages=${path.resolve(twkDev, '..', '..', '.dart_tool', 'package_config.json')}`, path.join(twkDev, 'bin', 'twk.dart')],
+      vscode.ConfigurationTarget.Global,
+    );
+  });
+
+  after(async () => {
+    await config.update('command', undefined, vscode.ConfigurationTarget.Global);
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it('twk.newProject runs twk create with flags (the template, no files for agents) and makes the project', async () => {
+    const result = await vscode.commands.executeCommand<{ error?: string; dir: string }>('twk.newProject', { template: 'app', directory: dir, agents: [] });
+    assert.equal(result.error, undefined);
+    assert.ok(fs.existsSync(path.join(dir, 'pubspec.yaml')));
+    assert.ok(fs.existsSync(path.join(dir, 'bin', 'main.dart')));
+    assert.ok(!fs.existsSync(path.join(dir, '.agents')), 'no files for agents asked');
+  });
+
+  it('twk.installAgentSkill runs twk agents in the project and writes the skill and the AGENTS.md block, and says it left what the person changed', async () => {
+    let result = await vscode.commands.executeCommand<{ error?: string; summary?: string; left: string[] }>('twk.installAgentSkill', dir);
+    assert.equal(result.error, undefined);
+    assert.ok(fs.existsSync(path.join(dir, '.agents', 'skills', 'twk', 'SKILL.md')));
+    assert.ok(fs.existsSync(path.join(dir, '.claude', 'skills', 'twk', 'SKILL.md')));
+    assert.match(fs.readFileSync(path.join(dir, 'AGENTS.md'), 'utf8'), /twk:agents begin/);
+    fs.appendFileSync(path.join(dir, '.agents', 'skills', 'twk', 'SKILL.md'), '\nmine\n');
+    result = await vscode.commands.executeCommand('twk.installAgentSkill', dir);
+    assert.equal(result.error, undefined);
+    assert.ok(result.left.some((l) => l.includes('SKILL.md')), result.left.join('\n'));
+  });
+});
+
 describe('the terminal report', () => {
   const twkDev = path.resolve(project, '..', 'twk_dev');
 

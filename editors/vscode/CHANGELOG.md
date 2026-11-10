@@ -2,6 +2,7 @@
 
 ## 0.1.0
 
+- twk: New Project (`twk create`: a pick of the template with its description, of the folder and of the files for coding agents, then it offers to open the project) and twk: Install Agent Skill (`twk agents` in the project, saying what it wrote, removed and left). Where the workspace has no twk_dev the globally activated one (`dart pub global run twk_dev:twk`) is used, and where there is none the message offers to activate it (you press Enter).
 - Create a Test from a Recording: a Test button in the replay's bar and a command on a `.cast` file (explorer menu, palette) run `twk test-from-cast` in the recording's project and open the test it wrote (a check of a line of the screen at each marker of the recording, else of the last screen).
 - The sequence log: a stray `?2026l` no longer breaks the frames after it (noted), `CSI 1;5 R` is the answer to a cursor-position query when the app asked for one and is not answered yet, else F3, Alt with Enter/Tab/Ctrl keys and with a multi-byte character are named and read whole, an invalid CSI ends where it breaks, text is decoded per token, and an unterminated string is scanned once; as `twk decode`, held to one golden.
 - The sequence log, as `twk decode`: `CSI ? r;c R` answers `CSI ? 6 n` (DECXCPR) and uses the query up, `ESC` before a key's sequence is Alt (`ESC ESC [ A` is Alt+Up), a C0 control inside a CSI is shown and the CSI goes on (CAN and SUB cancel it, ESC begins a new sequence), and the bytes of a cut character are shown before an ESC or a control, not dropped.

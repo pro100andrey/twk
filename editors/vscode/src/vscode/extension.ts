@@ -49,6 +49,7 @@ import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
 import { registerReport } from './report';
+import { registerCreate } from './create';
 import { cancellable, registerTape, twkCommand } from './tape';
 import { StatusBar } from './status_bar';
 
@@ -239,6 +240,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   const lenses = new TwkMainLenses();
   context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
   context.subscriptions.push(vscode.window.registerCustomEditorProvider(screenFileViewType, new ScreenFileEditors(context.extensionUri)));
+  registerCreate(context, log);
   const tape = registerTape(context, log);
   registerReport(context, settings, log);
   command('twk.openScreenFile', async (uri) => {

@@ -123,6 +123,8 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Record the twk Terminal as asciicast (Start or Stop) | record the terminal to a `.cast` file; again to stop (title bar button) |
 | twk: Stop Recording the twk Terminals | stop every recording (also a click on `REC` in the status bar) |
 | twk: Play a Recording (asciicast) in a twk Terminal | play a `.cast` back (also the explorer's menu on a `.cast` file) |
+| twk: New Project (twk create) | three picks (the template with its description, the folder, the files for coding agents) and `twk create <dir> --template ... --agents ...` with flags, never its prompts; offers to open the project |
+| twk: Install Agent Skill (twk agents) | `twk agents` in the active file's project (else the workspace's): what it wrote, removed and left (a file the person changed) is shown, the whole in the output |
 | twk: Copy the twk Terminal's Screen as Text | the screen on the clipboard (title bar button) |
 | twk: Show twk Output | the extension's log: the app's own output, reloads, errors |
 | twk: Show the Terminal Report (what the twk terminal tells and answers an app, and twk doctor's project part) | the panel of the report (below, "The terminal report") |
@@ -279,6 +281,30 @@ shows; the test holds the bindings and the command.
 
 **Copy the screen**: the rows the terminal shows now, without the blanks
 that end them or the blank rows at the bottom, as plain text (no colours).
+
+### New Project and Install Agent Skill
+
+`app/create.ts` runs `twk create` and `twk agents` through `runTwk` and
+`twk.command`, as every twk command here; `vscode/create.ts` is the picks and
+messages. They decide nothing: the templates and their descriptions are what
+`twk create --list` prints, the files for agents are `--agents` values the CLI
+validates, the folder is refused by the CLI when it is not empty (the editor
+asks for a subfolder name when the picked one is not), and what `twk agents`
+did is its own text.
+
+How twk_dev is run, where the workspace has none: `dart run twk_dev:twk` (the
+default of `twk.command`) needs a `pubspec.yaml` in the working directory that
+depends on twk_dev (it says "Could not find package `twk_dev`" or "Found no
+`pubspec.yaml`" otherwise). A new project is made where there is none, so, when
+`twk.command` is that default and fails so, the command runs again as
+`dart pub global run twk_dev:twk` (twk_dev activated on the machine). Where
+that is not there either ("No active package twk_dev") the editor says so and
+offers **Activate twk_dev**, which opens a terminal with
+`dart pub global activate twk_dev` typed and not run: installing a package on the
+person's machine is theirs to confirm with Enter. The extension never installs
+anything, and never changes `twk.command` itself; a person who set it keeps what
+they set (no fallback then, only the message). Checked: `dart run twk_dev:twk`
+in a folder without a pubspec, and in one without twk_dev, fail with those words.
 
 ### Not done
 
