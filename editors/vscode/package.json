@@ -550,6 +550,7 @@
     "watch": "tsc -watch -p . & tsc -watch -p tsconfig.webview.json",
     "test:unit": "npm run compile && mocha 'out/test/unit/**/*.test.js'",
     "test": "npm run compile && node out/test/runTest.js",
+    "test:installed": "npm run compile && node out/test/runInstalled.js",
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\"",
     "vscode:prepublish": "npm run clean && npm run compile",
     "package": "vsce package"

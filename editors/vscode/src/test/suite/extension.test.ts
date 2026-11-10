@@ -3,7 +3,9 @@
 // by Dart-Code (twk.debugFile, a `"type": "twk"` launch as F5 starts it),
 // each in a terminal of its own that it finds by TWK_SHELL.
 import * as assert from 'node:assert/strict';
+import * as childProcess from 'node:child_process';
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 
 import * as vscode from 'vscode';
@@ -437,10 +439,18 @@ describe('the twk inspector', () => {
       const s = await terminal.snapshot();
       return s.backgrounds?.[row]?.indexOf('#') === s.rows[row].indexOf('Count') && !s.backgrounds[0].includes('#') ? s : undefined;
     });
-    // a second pick, the mode on still: the Box, by its border
+    // a second pick, the mode on still: the Box, by its border. The render
+    // object there is the Box's _DecoratedBox (a widget of its own since the
+    // Box draws through one), made inside the Box: the pick selects that
+    // widget, whose creation site is the call of the Box
     clickOn(terminal, screen, '╭─');
-    await until('the Box picked', async () => (api.inspectorView.treeView.selection[0]?.name === 'Box' ? true : undefined));
-    await editorAt(file, source.findIndex((l) => l.includes('child: Box(')));
+    await until('the Box picked', async () => (api.inspectorView.treeView.selection[0]?.name === '_DecoratedBox' ? true : undefined));
+    await until('where the _DecoratedBox was made', async () => {
+      const seen = vscode.window.visibleTextEditors.map((e) => e.document.uri.fsPath);
+      return seen.find((f) => f.endsWith(path.join('layout', 'box.dart'))) ?? undefined;
+    }).catch((e) => {
+      throw new Error(`${String(e)}; visible: ${vscode.window.visibleTextEditors.map((x) => x.document.uri.fsPath)}`);
+    });
     assert.equal(api.inspector.picking, true);
     // off: the outline gone from the screen, the selection from the view
     // (twk gives back the outline of before the pick mode, the Box's: the
@@ -479,6 +489,267 @@ describe('the twk inspector', () => {
     terminal.type('q');
     await shows(terminal, 'the app went away', 'normal');
     await until('no app inspected', async () => (api.inspector.tree === undefined && api.inspectorView.treeView.message?.startsWith('No twk app') ? true : undefined));
+  });
+});
+
+
+/** A Dart file of [source] in the tests' scratch directory of the project (a package of twk's, so `package:twk` resolves). */
+function scratchFile(name: string, source: string): vscode.Uri {
+  const dir = path.join(project, '.dart_tool', 'twk_vscode_test', `file${scratches++}`);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, name);
+  fs.writeFileSync(file, source);
+  return vscode.Uri.file(file);
+}
+
+/** The text of [node]'s sections in the node view: titles and `label: value` lines. */
+function nodeViewText(api: Api): string[] {
+  const view = api.nodeView;
+  return view.getChildren().flatMap((section) => [
+    `# ${'title' in section ? section.title : ''}`,
+    ...view.getChildren(section).map((r) => ('value' in r ? `${r.label ?? ''}: ${r.value}` : '')),
+  ]);
+}
+
+describe('the node view and the render tree of the inspector', () => {
+  let api: Api;
+
+  before(async () => {
+    api = await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+    await Promise.all(api.hots().map((h) => h.stop()));
+  });
+
+  after(async () => {
+    await Promise.all(api.hots().map((h) => h.stop()));
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  it('fills the node view with the node selected; the render tree switch shows the render objects with the counterpart of the node, and back', async () => {
+    const file = scratchCounter();
+    await vscode.commands.executeCommand('twk.runFile', file);
+    const terminal = newest(api);
+    await shows(terminal, 'Count: 0', 'alternate');
+    await showInspector();
+    await inspectedText(api, 'Count: 0');
+    assert.equal(api.inspector.treeKind, 'element');
+
+    // nothing selected: the node view says so; a Text selected: its sections
+    const text = inspected(api).find((n) => n.name === 'Text')!;
+    api.inspectorView.reveal(text.id);
+    const filled = await until('the node view filled', async () => {
+      const lines = nodeViewText(api);
+      return lines.length > 1 ? lines : undefined;
+    });
+    assert.ok(filled.some((l) => l.includes('Count: 0')), filled.join('\n'));
+    assert.equal(api.inspectorView.treeView.selection[0]?.id, text.id);
+
+    // the render tree: other nodes (render objects), the Text's own selected, in the node view too
+    await vscode.commands.executeCommand('twk.inspector.showRenderTree');
+    assert.equal(api.inspector.treeKind, 'render');
+    const render = await until('the render tree', async () => {
+      const all = inspected(api);
+      return all.length > 0 && all.every((n) => n.name !== 'Counter') ? all : undefined;
+    });
+    assert.ok(render.some((n) => /^Render/.test(n.name)), render.map((n) => n.name).join(' '));
+    const counterpart = await until('the counterpart of the Text selected', async () => {
+      const n = api.inspectorView.treeView.selection[0];
+      return n && /Paragraph|Text/.test(n.name) ? n : undefined;
+    });
+    const detail = await until('the counterpart in the node view', async () => {
+      const lines = nodeViewText(api);
+      return lines.some((l) => l.includes('Count: 0')) ? lines : undefined;
+    });
+    assert.ok(detail.length > 1, `${counterpart.name}: ${detail.join('\n')}`);
+
+    // back: the widget tree, the Text selected again
+    await vscode.commands.executeCommand('twk.inspector.showWidgetTree');
+    assert.equal(api.inspector.treeKind, 'element');
+    await inspectedText(api, 'Count: 0');
+    await until('the Text selected again', async () => (api.inspectorView.treeView.selection[0]?.name === 'Text' ? true : undefined));
+
+    terminal.type('q');
+    await shows(terminal, 'the app went away', 'normal');
+  });
+});
+
+/** The app of the logs and TWK_EDITOR tests: it writes the TWK_EDITOR it was started with to [out], and logs a warning when 'l' is pressed. */
+function loggingApp(out: string): vscode.Uri {
+  return scratchFile(
+    'logging.dart',
+    `import 'dart:io';
+import 'package:twk/log.dart';
+import 'package:twk/twk.dart';
+
+Future<void> main() {
+  File(${JSON.stringify(out)}).writeAsStringSync(Platform.environment['TWK_EDITOR'] ?? '(unset)');
+  return runApp(const _App());
+}
+
+final class _App extends StatelessWidget {
+  const _App();
+
+  @override
+  Widget build(BuildContext context) => KeyBindings(
+    {
+      'l': () => log('pressed l', level: LogLevel.warning),
+      'q': () => AppBinding.of(context).quit(),
+    },
+    child: const Text('Logging'),
+  );
+}
+`,
+  );
+}
+
+describe("the app's log and the editor of an app", () => {
+  let api: Api;
+  const twk = () => vscode.workspace.getConfiguration('twk');
+  const out = path.join(project, '.dart_tool', 'twk_vscode_test', 'editor.txt');
+  let terminal: TwkTerminal;
+
+  before(async function () {
+    api = await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+    await Promise.all(api.hots().map((h) => h.stop()));
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    fs.rmSync(out, { force: true });
+    await twk().update('terminal.debugAids', ['logs'], vscode.ConfigurationTarget.Global);
+    await vscode.commands.executeCommand('twk.runFile', loggingApp(out));
+    terminal = newest(api);
+    await shows(terminal, 'Logging', 'alternate');
+  });
+
+  after(async () => {
+    await twk().update('terminal.debugAids', undefined, vscode.ConfigurationTarget.Global);
+    await Promise.all(api.hots().map((h) => h.stop()));
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  it("twk.showAppLogs opens its panel, and a record of the app with the logs aid arrives", async () => {
+    await vscode.commands.executeCommand('twk.showAppLogs');
+    const panel = api.appLogsView.current;
+    assert.ok(panel, 'the panel is open');
+    await until('the app followed', async () => (api.appLogs.appsInfo().some((a) => a.state !== 'ended') ? true : undefined));
+    terminal.type('l');
+    const row = await until('the record of the app', async () => api.appLogs.allRows().find((r) => r.message.includes('pressed l')));
+    assert.equal(row.level, 'warning');
+    await until('the panel shown the row', async () => (panel.shown && panel.shown.rows >= 1 ? true : undefined));
+  });
+
+  it('TWK_EDITOR in the app names the command line of this VS Code, which exists and answers', async () => {
+    const template = fs.readFileSync(out, 'utf8');
+    assert.notEqual(template, '(unset)');
+    const words = [...template.matchAll(/"([^"]*)"|(\S+)/g)].map((m) => m[1] ?? m[2]);
+    assert.ok(path.isAbsolute(words[0]) && fs.existsSync(words[0]), `the editor of TWK_EDITOR exists: ${template}`);
+    assert.ok(template.includes('{file}') && template.includes('{line}'), template);
+
+    // it is this VS Code's own command line (found from vscode.env.appRoot), which runs: its version is this one's.
+    // Not run to open a file: without VSCODE_IPC_HOOK_CLI (the extension host has none) `code -r` goes to the
+    // instance of the default profile, which is not the one under test.
+    assert.equal(fs.realpathSync(words[0]), fs.realpathSync(path.join(vscode.env.appRoot, '..', '..', 'bin', 'code')));
+    assert.deepEqual(words.slice(1), ['-r', '-g', '{file}:{line}:{column}']);
+    console.log(`VSCODE env of the host: ${Object.keys(process.env).filter((k) => k.startsWith('VSCODE')).join(' ')}`);
+    const version = childProcess.execFileSync(words[0], ['--version'], { encoding: 'utf8', env: process.env });
+    assert.ok(version.split('\n')[0].trim() === vscode.version, `${version} against ${vscode.version}`);
+  });
+});
+
+describe('a file: link of an app in the terminal', () => {
+  let api: Api;
+
+  before(async () => {
+    api = await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+    await Promise.all(api.hots().map((h) => h.stop()));
+  });
+
+  after(async () => {
+    await Promise.all(api.hots().map((h) => h.stop()));
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  it('opens a file of the workspace at its line; one outside it, or through a link out of it, is refused', async () => {
+    const file = scratchCounter();
+    await vscode.commands.executeCommand('twk.runFile', file);
+    const terminal = newest(api);
+    await shows(terminal, 'Count: 0', 'alternate');
+    // the webview hands the app terminal an OSC 8 link it is clicked on as a request; the click itself is the page's
+    const click = (uri: string) => (terminal as unknown as { request(r: { type: 'openLink'; uri: string }): void }).request({ type: 'openLink', uri });
+
+    const inside = scratchFile('inside.dart', 'a\nb\nc\nd\n');
+    click(`${vscode.Uri.file(inside.fsPath).toString()}#3:2`);
+    const opened = await editorAt(inside, 2);
+    assert.equal(opened.selection.active.character, 1);
+
+    // outside the workspace folder: a real file, and a link in the workspace to it
+    const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), 'twk-outside-'));
+    const outside = path.join(outsideDir, 'secret.dart');
+    fs.writeFileSync(outside, 'x\ny\nz\n');
+    const through = path.join(path.dirname(inside.fsPath), 'through.dart');
+    fs.rmSync(through, { force: true });
+    fs.symlinkSync(outside, through);
+    try {
+      click(`${vscode.Uri.file(outside).toString()}#2`);
+      click(`${vscode.Uri.file(through).toString()}#2`);
+      // a link that is allowed, after them, shows they were handled in order
+      click(`${vscode.Uri.file(inside.fsPath).toString()}#1`);
+      await editorAt(inside, 0);
+      assert.ok(
+        !vscode.window.visibleTextEditors.some((e) => e.document.uri.fsPath === outside || e.document.uri.fsPath === through),
+        'a file outside the workspace is not opened',
+      );
+      assert.ok(!vscode.workspace.textDocuments.some((d) => d.uri.fsPath === outside || d.uri.fsPath === through), 'nor read');
+    } finally {
+      fs.rmSync(outsideDir, { recursive: true, force: true });
+    }
+    terminal.type('q');
+    await shows(terminal, 'the app went away', 'normal');
+  });
+});
+
+describe('the code lenses over a twk main', () => {
+  it('Run and Debug lenses over the main of a twk app, none over a plain Dart main or with twk.codeLens off', async function () {
+    if (!(await vscode.languages.getLanguages()).includes('dart')) {
+      // the lenses are for the language Dart-Code gives .dart files
+      this.skip();
+    }
+    await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+    const twkMain = vscode.Uri.file(path.join(project, 'example', 'counter.dart'));
+    const plain = scratchFile('plain.dart', "void main() {\n  print('hello');\n}\n");
+    const lenses = async (uri: vscode.Uri) => {
+      await vscode.workspace.openTextDocument(uri);
+      return (await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', uri)).filter((l) => l.command?.command.startsWith('twk.'));
+    };
+    const found = await until('the lenses of a twk main', async () => {
+      const l = await lenses(twkMain);
+      return l.length > 0 ? l : undefined;
+    });
+    assert.deepEqual(found.map((l) => l.command?.title), ['Run in twk Terminal', 'Debug in twk Terminal']);
+    assert.deepEqual(found.map((l) => l.command?.command), ['twk.runFile', 'twk.debugFile']);
+    assert.equal((await lenses(plain)).length, 0);
+    await vscode.workspace.getConfiguration('twk').update('codeLens', false, vscode.ConfigurationTarget.Global);
+    try {
+      assert.equal((await lenses(twkMain)).length, 0, 'off');
+    } finally {
+      await vscode.workspace.getConfiguration('twk').update('codeLens', undefined, vscode.ConfigurationTarget.Global);
+    }
+  });
+});
+
+describe('the golden screens view', () => {
+  it('opens a golden as a twk screen in a custom editor, the failed run beside it as .actual', async () => {
+    await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+    const golden = path.resolve(project, '..', 'gallery', 'test', 'goldens', 'animation', 'animatedbox.80x24.txt');
+    const dir = path.join(project, '.dart_tool', 'twk_vscode_test', 'goldens', 'x');
+    fs.mkdirSync(dir, { recursive: true });
+    const copy = path.join(dir, 'animatedbox.txt');
+    fs.copyFileSync(golden, copy);
+    fs.copyFileSync(golden, copy + '.actual');
+    await vscode.commands.executeCommand('twk.openScreenFile', vscode.Uri.file(copy));
+    const tab = await until('the golden in a custom editor', async () => {
+      const t = vscode.window.tabGroups.activeTabGroup.activeTab;
+      return t?.input instanceof vscode.TabInputCustom && t.input.viewType === 'twk.screenFile' ? t : undefined;
+    });
+    assert.equal((tab.input as vscode.TabInputCustom).uri.fsPath, copy);
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
   });
 });
 
