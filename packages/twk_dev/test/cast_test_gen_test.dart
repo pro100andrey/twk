@@ -1,8 +1,7 @@
 // `twk test-from-cast`: the test written over a recording. The source: a
-// check of a line a marker, of the last screen where there are none, the
-// emulator's errors; the frames it counts are those of twk_test's
-// screenFrames; the command copies the recording beside the test and says
-// what it cannot read.
+// check of the screen at a marker held to a screen file, of the last
+// screen where there are none, the emulator's errors; the command copies
+// the recording beside the test and says what it cannot read.
 import 'dart:convert';
 import 'dart:io';
 
@@ -10,7 +9,6 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:twk_dev/src/cast_test_gen.dart' show castTestPath;
 import 'package:twk_dev/twk_dev.dart';
-import 'package:twk_test/twk_test.dart' show screenFrames;
 
 import 'twk.dart';
 
@@ -35,63 +33,54 @@ void main() {
   ]);
 
   group('castTestSource', () {
-    test('checks a line a marker: the first that changed since the one '
-        'before', () {
-      final source = castTestSource(
-        plan,
-        castPath: 'test/plan.cast',
-        source: 'plan.cast',
-      );
+    String gen(Cast cast, {String source = 'the recording'}) => castTestSource(
+      cast,
+      castPath: 'test/a.cast',
+      goldens: 'test/goldens/a',
+      source: source,
+    );
 
-      expect(source, contains("Cast.read('test/plan.cast')"));
+    test('holds the frame at each marker to a screen file of its own, the '
+        'frame found by the test', () {
+      final source = gen(plan, source: 'plan.cast');
+
+      expect(source, contains("Cast.read('test/a.cast')"));
       expect(source, contains('from plan.cast.'));
+      expect(source, contains('const times = <double>[\n    0.2,\n    0.5,'));
       expect(source, contains("test('the marker first', () {"));
-      expect(source, contains("expect(frames[0].lines[0], 'one');"));
-      // the screen of 0.3 s, whose update ended: 'three' is row 2, the
-      // first row unlike the earlier screen's; the update still open at 0.4
-      // s counts for no frame, so the marker at 0.5 s is of that one
-      expect(source, contains("test('the marker at 0.300 s', () {"));
-      expect(source, isNot(contains('four')));
-      expect(source, contains(r"expect(frames[1].lines[2], 'three \$\'');"));
+      expect(source, contains('final number = at(times[0]);'));
+      expect(source, contains("matchesScreenFile('test/goldens/a/1.txt')"));
+      expect(source, contains("test('the marker at 0.500 s', () {"));
+      expect(source, contains("matchesScreenFile('test/goldens/a/2.txt')"));
       expect(source, contains('expect(frames.last.errors, isEmpty);'));
+      // nothing of the screens in it: it emulates nothing
+      expect(source, isNot(contains('one')));
+      expect(source, isNot(contains('three')));
     });
 
-    test('a marker with no frame at or before it is said, not dropped', () {
-      final notes = <String>[];
-      final source = castTestSource(
+    test('a marker with no frame at or before it is skipped by the test', () {
+      final source = gen(
         _cast([
           (0.0, 'm', 'early'),
           (0.1, 'o', 'one'),
-          (0.2, 'm', 'late'),
         ]),
-        castPath: 'a.cast',
-        note: notes.add,
       );
 
-      expect(notes, hasLength(1));
-      expect(notes.single, contains('early'));
-      expect(source, contains('// the marker early at 0.000 s: no frame'));
-      expect(source, contains("test('the marker late', () {"));
-      expect(source, isNot(contains("test('the marker early'")));
+      expect(source, contains("markTestSkipped('no frame at or before 0.000"));
+      expect(source, contains("test('the marker early', () {"));
     });
 
-    test('a label with a newline or ESC stays one escaped comment line', () {
-      final notes = <String>[];
-      final source = castTestSource(
+    test('a label with a newline or ESC stays one escaped string', () {
+      final source = gen(
         _cast([
           (0.0, 'm', 'x\nvoid evil() {}\x1b[31m'),
           (0.1, 'o', 'one'),
         ]),
-        castPath: 'a.cast',
-        note: notes.add,
       );
 
       expect(source, isNot(contains('\nvoid evil')));
       expect(source, isNot(contains('\x1b')));
       expect(source, contains(r'x\nvoid evil() {}\u{1b}[31m'));
-      expect(notes.single, isNot(contains('\x1b')));
-      expect(notes.single, isNot(contains('\n')));
-      expect(notes.single, contains(r'\u{1b}'));
     });
 
     test("the test goes in the project's test/, not the working one", () {
@@ -101,42 +90,25 @@ void main() {
       );
     });
 
-    test('checks the last screen of a recording without markers', () {
-      final source = castTestSource(
+    test('holds the last frame of a recording without markers', () {
+      final source = gen(
         _cast([(0.1, 'o', 'one\r\ntwo'), (0.2, 'o', '\x1b[3;1Hthree')]),
-        castPath: 'a.cast',
       );
 
       expect(source, contains("test('the last screen', () {"));
-      expect(source, contains("expect(frames[1].lines[0], 'one');"));
+      expect(source, contains('screens: {if (shown.isNotEmpty) shown.length}'));
+      expect(source, contains("matchesScreenFile('test/goldens/a/last.txt')"));
       expect(source, isNot(contains('marker')));
     });
 
     test('writes what makes a literal safe as an escape', () {
       final source = castTestSource(
-        _cast([(0.1, 'o', r'a\b$c')]),
-        castPath: 'a.cast',
+        _cast([(0.1, 'o', 'x')]),
+        castPath: r'a\b$c.cast',
+        goldens: 'g',
       );
 
-      expect(source, contains(r"'a\\b\$c"));
-    });
-
-    test('frames as twk_test counts them', () {
-      for (final cast in [plan, _cast([])]) {
-        final theirs = screenFrames(20, 4, cast.writes);
-        final source = castTestSource(cast, castPath: 'a.cast');
-        // the last frame is the last one checked, by its number
-        final numbers = RegExp(
-          r'frames\[(\d+)\]',
-        ).allMatches(source).map((m) => int.parse(m[1]!));
-        if (numbers.isNotEmpty) {
-          expect(numbers.every((n) => n < theirs.length), isTrue);
-        }
-        if (cast == plan) {
-          expect(theirs, hasLength(2));
-          expect(theirs[0].lines[0], 'one');
-        }
-      }
+      expect(source, contains(r"'a\\b\$c.cast'"));
     });
   });
 
@@ -155,7 +127,12 @@ void main() {
       File(cast).writeAsStringSync(_text(plan));
       final out = p.join(temp, 'test', 'sub', 'x_test.dart');
 
-      final run = await twkHere(['test-from-cast', cast, '--out=$out']);
+      final run = await twkHere([
+        'test-from-cast',
+        cast,
+        '--out=$out',
+        '--no-goldens',
+      ]);
 
       expect(run.exitCode, 0, reason: '${run.stderr}');
       expect(
@@ -174,7 +151,12 @@ void main() {
       File(cast).writeAsStringSync(_text(plan));
       final out = p.join(temp, 'test', 'x_test.dart');
 
-      final run = await twkHere(['test-from-cast', cast, '--out=$out']);
+      final run = await twkHere([
+        'test-from-cast',
+        cast,
+        '--out=$out',
+        '--no-goldens',
+      ]);
 
       expect(run.exitCode, 0, reason: '${run.stderr}');
       expect(File(p.join(temp, 'test', 'my_demo.cast')).existsSync(), isFalse);
@@ -192,7 +174,12 @@ void main() {
         File(first).writeAsStringSync(_text(plan));
         final out = p.join(temp, 'test', 'x_test.dart');
         expect(
-          (await twkHere(['test-from-cast', first, '--out=$out'])).exitCode,
+          (await twkHere([
+            'test-from-cast',
+            first,
+            '--out=$out',
+            '--no-goldens',
+          ])).exitCode,
           0,
         );
 
@@ -202,7 +189,12 @@ void main() {
         File(other).writeAsStringSync(_text(changed));
         final kept = File(p.join(temp, 'test', 'demo.cast'));
 
-        final refused = await twkHere(['test-from-cast', other, '--out=$out']);
+        final refused = await twkHere([
+          'test-from-cast',
+          other,
+          '--out=$out',
+          '--no-goldens',
+        ]);
         expect(refused.exitCode, 1);
         expect(refused.stderr, contains('demo.cast'));
         expect(refused.stderr, contains('--force'));
@@ -210,7 +202,12 @@ void main() {
 
         // the same recording again is no overwrite
         expect(
-          (await twkHere(['test-from-cast', first, '--out=$out'])).exitCode,
+          (await twkHere([
+            'test-from-cast',
+            first,
+            '--out=$out',
+            '--no-goldens',
+          ])).exitCode,
           0,
         );
 
@@ -219,6 +216,7 @@ void main() {
           other,
           '--out=$out',
           '--force',
+          '--no-goldens',
         ]);
         expect(forced.exitCode, 0, reason: '${forced.stderr}');
         expect(kept.readAsStringSync(), _text(changed));
@@ -244,6 +242,23 @@ void main() {
       expect(missing.stderr, contains('cannot read'));
       expect(none.exitCode, usageExitCode);
       expect(File(p.join(temp, 'o_test.dart')).existsSync(), isFalse);
+    });
+
+    test('without twk_test among the dev dependencies it says so, exits 1 '
+        'and leaves the test and the recording', () async {
+      final cast = p.join(temp, 'demo.cast');
+      File(cast).writeAsStringSync(_text(plan));
+      final out = p.join(temp, 'test', 'demo_test.dart');
+
+      final run = await twkHere(['test-from-cast', cast, '--out=$out']);
+
+      expect(run.exitCode, 1);
+      expect(run.stdout, startsWith('wrote '));
+      expect(run.stdout, contains('demo_test.dart and '));
+      expect(run.stderr, contains('twk_test'));
+      expect(File(out).existsSync(), isTrue);
+      expect(File(p.join(temp, 'test', 'demo.cast')).existsSync(), isTrue);
+      expect(Directory(p.join(temp, 'test', 'goldens')).existsSync(), isFalse);
     });
   });
 }

@@ -13,6 +13,19 @@ Fixed:
 - `twk record --replay`: a recording that ends inside a paste no longer leaves
   the splitter in it for the next `add`.
 
+Changed:
+
+- `twk test-from-cast` emulates nothing: the test it writes holds the frame
+  shown at each marker (the last one where there are none) to a screen file,
+  `goldens/<name>/<k>.txt` (`last.txt`) beside the test, with
+  twk_test's `matchesScreenFile`, and the command runs the test once with
+  `TWK_UPDATE_GOLDENS=1` so that the emulator that checks the screens writes
+  them, saying which files. It ends with 1, leaving the test and the
+  recording, where the project has no twk_test dev dependency or the run
+  fails; `--no-goldens` skips the run. A recording with a tab in a checked
+  row no longer fails its fresh test (twk_term's emulator and twk_test's
+  disagreed on it). `castTestSource` takes `goldens:` and no `note:`.
+
 Added:
 
 - `twk decode <file>...` names what a recording (`.cast`) or the files

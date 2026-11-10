@@ -2,11 +2,11 @@
 /// generator of a test over a recording.
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
-import 'package:twk_term/twk_term.dart';
 
 import 'cast.dart';
 import 'completion.dart';
@@ -25,6 +25,14 @@ final class CastTestCommand extends Command<int> with Completes {
         help:
             'The test file to write; by default test/<name>_test.dart of the '
             "current directory's project, <name> the recording's.",
+      )
+      ..addFlag(
+        'goldens',
+        defaultsTo: true,
+        help:
+            'Run the test once with TWK_UPDATE_GOLDENS=1 to write the screen '
+            'files it holds the recording to; --no-goldens leaves that to '
+            'the person.',
       )
       ..addFlag(
         'force',
@@ -48,7 +56,7 @@ final class CastTestCommand extends Command<int> with Completes {
 
   @override
   String get invocation =>
-      'twk test-from-cast <file.cast> [--out=<file>] [--force]';
+      'twk test-from-cast <file.cast> [--out=<file>] [--force] [--no-goldens]';
 
   @override
   String get description =>
@@ -57,10 +65,15 @@ final class CastTestCommand extends Command<int> with Completes {
       'where it is when it is already there; another recording of that name '
       'there is refused with 1 unless --force) and writes a test of it that '
       "plays its output through twk_test's screenFrames: for each marker "
-      'of the recording a check of a line of the screen it showed, or, '
-      'where it has none, of its last screen, and that the emulator took '
-      'all of it. Ends with 0; 1 when the recording cannot be read or the '
-      'files written, 64 for a wrong command line. See doc/record-play.md.';
+      'of the recording a check that the screen it showed is the one in '
+      'test/goldens/<name>/<k>.txt, or, where it has none, that its last '
+      'screen is test/goldens/<name>/last.txt, and that the emulator took '
+      'all of it. Runs the test once with TWK_UPDATE_GOLDENS=1 to write '
+      'those files (not with --no-goldens), the emulator that checks them '
+      'writing them, and says which. Ends with 0; 1 when the recording '
+      'cannot be read or the files written, the project has no twk_test '
+      'dev dependency or the run fails (the test and recording stay), 64 '
+      'for a wrong command line. See doc/record-play.md.';
 
   @override
   Future<int> run() async {
@@ -87,6 +100,12 @@ final class CastTestCommand extends Command<int> with Completes {
     final out = p.absolute(
       argResults!['out'] as String? ?? castTestPath(project, name),
     );
+    final package = _packageOf(out) ?? project;
+    final goldens = p.posix.joinAll([
+      ...p.split(p.relative(p.dirname(out), from: package)),
+      'goldens',
+      name,
+    ]);
     // a recording already beside the test is used where it is
     final copy = p.equals(p.dirname(p.absolute(source)), p.dirname(out))
         ? p.absolute(source)
@@ -110,10 +129,10 @@ final class CastTestCommand extends Command<int> with Completes {
         castTestSource(
           cast,
           castPath: p.posix.joinAll(
-            p.split(p.relative(copy, from: _packageOf(out) ?? project)),
+            p.split(p.relative(copy, from: package)),
           ),
+          goldens: goldens,
           source: p.basename(source),
-          note: (text) => stderr.writeln('twk test-from-cast: $text'),
         ),
       );
     } on FileSystemException catch (e) {
@@ -124,9 +143,108 @@ final class CastTestCommand extends Command<int> with Completes {
       return 1;
     }
     stdout.writeln('wrote ${p.relative(out)} and ${p.relative(copy)}');
+    if (!(argResults!['goldens'] as bool)) {
+      return 0;
+    }
+    return _writeGoldens(
+      package: package,
+      test: out,
+      goldens: p.join(package, goldens),
+      markers: cast.events.where((e) => e.code == CastEvent.marker).length,
+    );
+  }
+
+  /// Runs the test at [test] once in [package] with
+  /// `TWK_UPDATE_GOLDENS=1`, so that the emulator that checks the screens
+  /// writes the files in [goldens]; says which it wrote. 1 where [package]
+  /// has no dependency on twk_test or the run fails or takes longer than
+  /// [_goldensTimeout].
+  Future<int> _writeGoldens({
+    required String package,
+    required String test,
+    required String goldens,
+    required int markers,
+  }) async {
+    final pubspec = File(p.join(package, 'pubspec.yaml'));
+    if (!pubspec.existsSync() ||
+        !RegExp(r'^\s+twk_test\s*:', multiLine: true).hasMatch(
+          pubspec.readAsStringSync(),
+        )) {
+      stderr.writeln(
+        'twk test-from-cast: ${p.relative(package)} has no twk_test '
+        'dev dependency, so the screen files are not written; add it and '
+        'run `TWK_UPDATE_GOLDENS=1 dart test '
+        '${p.relative(test, from: package)}`',
+      );
+      return 1;
+    }
+    final dart =
+        p.basenameWithoutExtension(Platform.resolvedExecutable) == 'dart'
+        ? Platform.resolvedExecutable
+        : 'dart';
+    final Process process;
+    try {
+      process = await Process.start(
+        dart,
+        ['test', p.relative(test, from: package)],
+        workingDirectory: package,
+        environment: {'TWK_UPDATE_GOLDENS': '1'},
+      );
+    } on ProcessException catch (e) {
+      stderr.writeln(
+        'twk test-from-cast: cannot run the test to write the screen files: '
+        '${e.message}',
+      );
+      return 1;
+    }
+    final output = StringBuffer();
+    final reads = [
+      process.stdout.transform(utf8.decoder).forEach(output.write),
+      process.stderr.transform(utf8.decoder).forEach(output.write),
+    ];
+    final code = await process.exitCode.timeout(
+      _goldensTimeout,
+      onTimeout: () {
+        process.kill();
+        return -1;
+      },
+    );
+    await Future.wait(reads).timeout(
+      const Duration(seconds: 5),
+      onTimeout: () => const [],
+    );
+    if (code != 0) {
+      final why = code == -1
+          ? 'after ${_goldensTimeout.inSeconds} s'
+          : 'exit $code';
+      stderr
+        ..writeln(
+          'twk test-from-cast: the test did not run to the end '
+          '($why), so the screen files are not all written; the test and the '
+          'recording are left as they are:',
+        )
+        ..writeln(output.toString().trimRight());
+      return 1;
+    }
+    final names = markers == 0
+        ? ['last']
+        : [for (var k = 1; k <= markers; k++) '$k'];
+    final written = [
+      for (final n in names)
+        if (File(p.join(goldens, '$n.txt')).existsSync())
+          p.relative(p.join(goldens, '$n.txt')),
+    ];
+    stdout.writeln(
+      written.isEmpty
+          ? 'wrote no screen files (no marker has a frame)'
+          : 'wrote the screen files:\n${written.map((f) => '  $f').join('\n')}',
+    );
     return 0;
   }
 }
+
+/// How long the test that writes the screen files may run.
+const _goldensTimeout = Duration(seconds: 90);
 
 /// Where the test of the recording called [name] is written by default: in
 /// the `test/` of [project], whatever directory the command runs in.
@@ -164,47 +282,23 @@ String _identifier(String name) {
   return id.isEmpty ? 'recording' : id;
 }
 
-/// A screen the recording showed: `number` from 1, its `time` in seconds,
-/// its rows without the blanks that end them.
-typedef _Frame = ({int number, double time, List<String> lines});
-
-/// The screens of [cast]: a frame after each output that leaves no
-/// synchronized update open, a resize keeping the emulator's screen, as
-/// twk_test's `screenFrames` takes them.
-List<_Frame> _frames(Cast cast) {
-  final screen = TerminalEmulator(
-    width: cast.header.width,
-    height: cast.header.height,
-  );
-  final frames = <_Frame>[];
-  for (final write in cast.writes) {
-    if (write.size case (final w, final h)?) {
-      screen.resize(w, h);
-    } else if (write.output case final output?) {
-      screen.feedText(output);
-      if (!screen.mode(TerminalMode.synchronizedOutput)) {
-        frames.add((
-          number: frames.length + 1,
-          time: write.time,
-          lines: [
-            for (var y = 0; y < screen.height; y++) screen.lineText(y),
-          ],
-        ));
-      }
-    }
-  }
-  return frames;
-}
-
 /// The Dart source of a test of [cast]: it reads the recording at
 /// [castPath] (relative to the package, where `dart test` runs), plays it
-/// through twk_test's `screenFrames` and checks, for each marker, one line
-/// of the screen shown there; for a recording without markers, one line of
-/// its last screen. It checks too that the emulator took in all of it.
+/// through twk_test's `screenFrames` and holds, for each marker, the frame
+/// shown at or before its time to the screen file `<goldens>/<k>.txt`
+/// (`matchesScreenFile`), k from 1 in the order of the markers; for a
+/// recording without markers, its last frame to `<goldens>/last.txt`. It
+/// checks too that the emulator took in all of it.
 ///
-/// The line is the first that differs from the one checked before (the
-/// first of the screen for the first), the first that is not blank when
-/// none does. [source] is the recording's name for the comment on top.
+/// The generator emulates nothing: which frame a marker shows is found by
+/// the test itself, with the emulator that checks it, and the screen files
+/// are written by that emulator, by running the test once with
+/// `TWK_UPDATE_GOLDENS=1` (what `twk test-from-cast` does). A marker with
+/// no frame at or before it is skipped by the test, with the reason.
+///
+/// [goldens] is the directory of the screen files, relative to the package
+/// as [castPath] is. [source] is the recording's name for the comment on
+/// top.
 ///
 /// The test for a recording of one line:
 ///
@@ -213,140 +307,128 @@ List<_Frame> _frames(Cast cast) {
 ///   '{"version": 2, "width": 20, "height": 3}\n'
 ///   '[0.1, "o", "hello\\r\\n"]\n',
 /// );
-/// final source = castTestSource(cast, castPath: 'test/hello.cast');
+/// final source = castTestSource(
+///   cast,
+///   castPath: 'test/hello.cast',
+///   goldens: 'test/goldens/hello',
+/// );
 /// ```
 String castTestSource(
   Cast cast, {
   required String castPath,
+  required String goldens,
   String source = 'the recording',
-  void Function(String)? note,
 }) {
-  final frames = _frames(cast);
   final marks = [
     for (final e in cast.events)
       if (e.code == CastEvent.marker) e,
   ];
-  // the frame each check is of: the last shown at the marker's time, or the
-  // last one; one pass, both lists being in time order
-  final targets = <(String?, _Frame)>[];
-  final unchecked = <String>[];
-  if (frames.isNotEmpty) {
-    if (marks.isEmpty) {
-      targets.add((null, frames.last));
-    } else {
-      var at = -1;
-      for (final m in marks) {
-        while (at + 1 < frames.length && frames[at + 1].time <= m.time) {
-          at++;
-        }
-        if (at >= 0) {
-          targets.add((m.data, frames[at]));
-        } else {
-          unchecked.add(
-            'the marker ${m.data.isEmpty ? '' : '${_shown(m.data)} '}at '
-            '${m.time.toStringAsFixed(3)} s: no frame at or before it',
-          );
-        }
-      }
-    }
-  }
-  for (final text in unchecked) {
-    note?.call('$text, no check for it');
-  }
   final out = StringBuffer()
     ..writeln('// Written by `twk test-from-cast` from $source.')
     ..writeln('// The recording is played through the test emulator; each')
-    ..writeln('// check is a line of a screen it showed.')
+    ..writeln('// check holds a screen it showed to a screen file, written')
+    ..writeln('// by running this test with TWK_UPDATE_GOLDENS=1.')
     ..writeln("import 'package:test/test.dart';")
     ..writeln("import 'package:twk_dev/twk_dev.dart' show Cast;")
-    ..writeln("import 'package:twk_test/twk_test.dart' show screenFrames;")
+    ..writeln(
+      "import 'package:twk_test/twk_test.dart' "
+      'show matchesScreenFile, screenFrames;',
+    )
     ..writeln()
     ..writeln('void main() {')
     ..writeln('  final cast = Cast.read(${_quote(castPath)});')
-    ..writeln('  final frames = screenFrames(')
-    ..writeln('    cast.header.width,')
-    ..writeln('    cast.header.height,')
-    ..writeln('    cast.writes,')
-    ..writeln('  );')
+    ..writeln('  final writes = cast.writes.toList();')
+    ..writeln('  final width = cast.header.width;')
+    ..writeln('  final height = cast.header.height;')
+    ..writeln('  final shown = screenFrames(width, height, writes);')
+    ..writeln();
+  if (marks.isEmpty) {
+    out
+      ..writeln('  // the screens kept for the golden files: the last one')
+      ..writeln('  final frames = screenFrames(')
+      ..writeln('    width,')
+      ..writeln('    height,')
+      ..writeln('    writes,')
+      ..writeln('    screens: {if (shown.isNotEmpty) shown.length},')
+      ..writeln('  );');
+  } else {
+    out
+      ..writeln('  /// The number of the frame shown at or before [time].')
+      ..writeln('  int? at(double time) {')
+      ..writeln('    int? number;')
+      ..writeln('    for (final frame in shown) {')
+      ..writeln('      if (frame.time > time) {')
+      ..writeln('        break;')
+      ..writeln('      }')
+      ..writeln('      number = frame.number;')
+      ..writeln('    }')
+      ..writeln('    return number;')
+      ..writeln('  }')
+      ..writeln()
+      ..writeln('  // the screens kept for the golden files: those of the')
+      ..writeln('  // markers')
+      ..writeln('  const times = <double>[');
+    for (final m in marks) {
+      out.writeln('    ${m.time},');
+    }
+    out
+      ..writeln('  ];')
+      ..writeln('  final frames = screenFrames(')
+      ..writeln('    width,')
+      ..writeln('    height,')
+      ..writeln('    writes,')
+      ..writeln('    screens: {')
+      ..writeln('      for (final time in times)')
+      ..writeln('        if (at(time) case final number?) number,')
+      ..writeln('    },')
+      ..writeln('  );');
+  }
+  out
     ..writeln()
     ..writeln("  test('the emulator takes in all of it', () {")
     ..writeln('    expect(frames, isNotEmpty);')
     ..writeln('    expect(frames.last.errors, isEmpty);')
     ..write('  });');
-  List<String>? before;
-  for (final (label, frame) in targets) {
-    final lines = frame.lines;
-    var row = -1;
-    for (var y = 0; y < lines.length && row < 0; y++) {
-      if (lines[y].isNotEmpty &&
-          (before == null || _at(before, y) != lines[y])) {
-        row = y;
-      }
-    }
-    if (row < 0) {
-      row = lines.indexWhere((l) => l.isNotEmpty);
-    }
-    before = lines;
-    final what = label == null
-        ? 'the last screen'
-        : label.isEmpty
-        ? 'the marker at ${frame.time.toStringAsFixed(3)} s'
-        : 'the marker $label';
+  if (marks.isEmpty) {
     out
       ..writeln()
       ..writeln()
-      ..writeln('  test(${_quote(what)}, () {');
-    if (row < 0) {
-      out.writeln(
-        '    expect(frames[${frame.number - 1}].lines.where((l) => '
-        'l.isNotEmpty), isEmpty);',
-      );
-    } else {
-      out
-        ..writeln(
-          '    // frame ${frame.number}, at '
-          '${frame.time.toStringAsFixed(3)} s',
-        )
-        ..writeln(
-          '    expect(frames[${frame.number - 1}].lines[$row], '
-          '${_quote(lines[row])});',
-        );
-    }
-    out.write('  });');
+      ..writeln("  test('the last screen', () {")
+      ..writeln('    expect(')
+      ..writeln('      frames.last,')
+      ..writeln('      matchesScreenFile(${_quote('$goldens/last.txt')}),')
+      ..writeln('    );')
+      ..write('  });');
   }
-  for (final text in unchecked) {
+  for (final (i, m) in marks.indexed) {
+    final what = m.data.isEmpty
+        ? 'the marker at ${m.time.toStringAsFixed(3)} s'
+        : 'the marker ${m.data}';
     out
       ..writeln()
-      ..write('  // $text, so no check');
+      ..writeln()
+      ..writeln('  test(${_quote(what)}, () {')
+      ..writeln('    final number = at(times[$i]);')
+      ..writeln('    if (number == null) {')
+      ..writeln(
+        '      markTestSkipped(${_quote('no frame at or before '
+        '${m.time.toStringAsFixed(3)} s')});',
+      )
+      ..writeln('      return;')
+      ..writeln('    }')
+      ..writeln('    expect(')
+      ..writeln('      frames[number - 1],')
+      ..writeln(
+        '      matchesScreenFile(${_quote('$goldens/${i + 1}.txt')}),',
+      )
+      ..writeln('    );')
+      ..write('  });');
   }
   out
     ..writeln()
     ..writeln('}');
   return out.toString();
 }
-
-/// [text] with its control characters written out, for one line of a
-/// comment or of the terminal.
-String _shown(String text) {
-  final out = StringBuffer();
-  for (final rune in text.runes) {
-    switch (rune) {
-      case 0x0a:
-        out.write(r'\n');
-      case 0x0d:
-        out.write(r'\r');
-      case 0x09:
-        out.write(r'\t');
-      case < 0x20 || 0x7f || (>= 0x80 && <= 0x9f) || 0x2028 || 0x2029:
-        out.write('\\u{${rune.toRadixString(16)}}');
-      default:
-        out.writeCharCode(rune);
-    }
-  }
-  return out.toString();
-}
-
-String _at(List<String> lines, int y) => y < lines.length ? lines[y] : '';
 
 /// [text] as a single-quoted Dart string literal.
 String _quote(String text) {

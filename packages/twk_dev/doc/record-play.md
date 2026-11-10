@@ -189,18 +189,21 @@ expect(frames.last.lines[1], startsWith('│ › coffee     1 ■'));
 expect(frames.last.errors, isEmpty);
 ```
 
-`twk test-from-cast <file.cast> [--out=<file>]` writes that test: it copies
-the recording to `test/<name>.cast` (beside the test, which is
+`twk test-from-cast <file.cast> [--out=<file>] [--no-goldens]` writes that
+test: it copies the recording to `test/<name>.cast` (beside the test, which is
 `test/<name>_test.dart` unless `--out` names it; a recording already there is
 not copied onto itself) and writes the test over `Cast.read` and
 `screenFrames`. It checks that the emulator took in all of it
-(`frames.last.errors` is empty) and one line of a screen: for each marker of
-the recording (`m` events), the screen shown at its time, the last screen
-where there are none. The line is the first that differs from the one
-checked before (for the first check, the first that is not blank), so the
-checks follow what changed. The emulator that finds the lines is twk_term's,
-the one `twk tape` keeps, the test's is twk_test's; they agree on what an app
-draws, and a recording on which they differ fails the test, which is told by
-running it. It ends with 0, 1 for a recording it cannot read or files it
-cannot write, 64 for no recording. The same function, `castTestSource`, is
-what an editor's command calls through this one.
+(`frames.last.errors` is empty) and, for each marker of the recording (`m`
+events), that the screen shown at its time (the last frame where there are no
+markers) is the screen file `test/goldens/<name>/<k>.txt` (`last.txt`), by
+`matchesScreenFile`, which takes a `ScreenFrame` of
+`screenFrames(screens: {…})`. The generator emulates nothing: the test finds
+the frame itself, and the command runs it once with `TWK_UPDATE_GOLDENS=1`
+(`dart test` in the project, 90 s at most) so that the emulator that checks
+the screens writes them; it says which files. Review them, and commit them
+with the test. It ends with 0, 1 for a recording it cannot read, files it
+cannot write, a project without a twk_test dev dependency or a run that
+fails (the test and the recording are left for you; `--no-goldens` skips the
+run), 64 for no recording. The same function, `castTestSource`, is what an
+editor's command calls through this one.

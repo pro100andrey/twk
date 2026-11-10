@@ -12,6 +12,7 @@ import 'package:twk_core/twk_core.dart' show Attr, ClusterScan, Color;
 import '../vt.dart';
 import 'finders.dart';
 import 'screen_file.dart';
+import 'screen_frames.dart';
 import 'screen_text.dart';
 import 'tester.dart';
 
@@ -253,6 +254,11 @@ Matcher matchesScreen(String snapshot, {bool styles = false}) =>
 /// ```dart
 /// expect(t, matchesScreenFile('test/goldens/form.txt'));
 /// ```
+///
+/// It matches a [ScreenFrame] too, one whose number was asked for in
+/// `screenFrames(screens:)`, in the same file format, with the same
+/// `.actual` on a failure and the same update; a frame whose screen was
+/// not kept fails, saying so.
 Matcher matchesScreenFile(String path, {bool styles = true}) =>
     _MatchesScreenFile(
       fromPackageRoot(path, StackTrace.current.toString()),
@@ -688,7 +694,47 @@ final class _MatchesScreenFile extends _ScreenMatcher {
   bool get _showsScreen => false;
 
   @override
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
+      item is ScreenFrame
+      ? _matchesFrame(item, matchState)
+      : super.matches(item, matchState);
+
+  bool _matchesFrame(ScreenFrame frame, Map<dynamic, dynamic> matchState) {
+    final kept = frame.screenFile;
+    if (kept == null) {
+      matchState[#error] =
+          'cannot be held to it: the screen of frame ${frame.number} was '
+          'not kept (screenFrames(screens: {${frame.number}}))';
+      return false;
+    }
+    return _matchScreen(kept.relegend, matchState);
+  }
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map<dynamic, dynamic> matchState,
+    bool verbose,
+  ) => item is ScreenFrame
+      ? mismatchDescription.add(_explain(matchState))
+      : super.describeMismatch(item, mismatchDescription, matchState, verbose);
+
+  @override
   bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+    final cursor = t.cursorVisible ? t.cursor : null;
+    return _matchScreen(
+      (held) => ScreenFile.of(t.vt, cursor, previous: held),
+      matchState,
+    );
+  }
+
+  /// Whether the screen [shownFor] gives, given the file's, matches the
+  /// file; what [_explain] needs goes in [matchState].
+  bool _matchScreen(
+    ScreenFile Function(ScreenFile? held) shownFor,
+    Map<dynamic, dynamic> matchState,
+  ) {
     final file = File(_path);
     ScreenFile? held;
     if (file.existsSync()) {
@@ -701,10 +747,9 @@ final class _MatchesScreenFile extends _ScreenMatcher {
         }
       }
     }
-    final cursor = t.cursorVisible ? t.cursor : null;
     final ScreenFile shown;
     try {
-      shown = ScreenFile.of(t.vt, cursor, previous: held);
+      shown = shownFor(held);
     } on ScreenFileException catch (e) {
       matchState[#error] = 'cannot hold the screen: ${e.message}';
       return false;
@@ -761,19 +806,20 @@ final class _MatchesScreenFile extends _ScreenMatcher {
       description.add('the ${_styles ? '' : 'text of the '}screen of $_path');
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) =>
+      d.add(_explain(matchState));
+
+  /// Why the screen does not match, for the failure message.
+  String _explain(Map<dynamic, dynamic> matchState) {
     final note = _leave(matchState);
     if (matchState[#error] case final String error) {
-      d.add('$_path $error$note');
-      return;
+      return '$_path $error$note';
     }
     final held = matchState[#held] as ScreenFile;
     final shown = matchState[#shown] as ScreenFile;
-    d.add(
-      'differs from $_path (- the file, + the screen; '
-      '$updateScreenFilesVariable=1 writes the screen to it):\n'
-      '${_differences(held, shown, _styles).join('\n')}$note',
-    );
+    return 'differs from $_path (- the file, + the screen; '
+        '$updateScreenFilesVariable=1 writes the screen to it):\n'
+        '${_differences(held, shown, _styles).join('\n')}$note';
   }
 
   /// What differs between [held] and [shown], as lines of the failure

@@ -164,6 +164,61 @@ final class ScreenFile {
     return ScreenFile._(width, height, cursor, text, styles, legend);
   }
 
+  /// This screen with its styles given the characters [previous] gave
+  /// them where it had them, as [ScreenFile.of] does with `previous`, for a
+  /// screen that was taken without it.
+  ScreenFile relegend(ScreenFile? previous) {
+    if (previous == null) {
+      return this;
+    }
+    final target = <String, String>{}; // old character to new
+    final taken = <String>{};
+    final byStyle = {
+      for (final MapEntry(key: char, value: style) in previous.legend.entries)
+        style: char,
+    };
+    for (final MapEntry(key: char, value: style) in legend.entries) {
+      if (byStyle[style] case final kept? when !taken.contains(kept)) {
+        target[char] = kept;
+        taken.add(kept);
+      }
+    }
+    final reserved = {...previous.legend.keys, ...taken};
+    var next = 0;
+    for (final char in legend.keys) {
+      if (target.containsKey(char)) {
+        continue;
+      }
+      var chosen = char;
+      if (taken.contains(chosen) || previous.legend.containsKey(chosen)) {
+        do {
+          if (next == _chars.length) {
+            throw ScreenFileException(
+              'the screen has more than ${_chars.length} styles',
+            );
+          }
+          chosen = _chars[next++];
+        } while (reserved.contains(chosen) || taken.contains(chosen));
+      }
+      target[char] = chosen;
+      taken.add(chosen);
+    }
+    return ScreenFile._(
+      width,
+      height,
+      cursor,
+      text,
+      [
+        for (final row in styles)
+          [for (final c in row.split('')) target[c] ?? c].join(),
+      ],
+      {
+        for (final MapEntry(key: char, value: style) in legend.entries)
+          target[char]!: style,
+      },
+    );
+  }
+
   /// The screen's columns.
   final int width;
 
