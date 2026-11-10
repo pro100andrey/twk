@@ -7,8 +7,10 @@
 // and its view answers and emulates as they say; what the app asks of the
 // editor through it (a notification, progress, the clipboard, a link) goes
 // to the [Desktop].
+import * as path from 'path';
+
 import { Answers, answersOf, declarationOf, describeChoice, environmentOf } from '../core/capabilities';
-import { TerminalRequest, isSafeLink } from '../core/emulation';
+import { TerminalRequest, fileLinkOf, isSafeLink } from '../core/emulation';
 import { Disposable, Emitter } from '../core/events';
 import { ShellOptions, TerminalPane, TerminalShell, Welcome } from '../core/shell';
 import { describeSwitches, switchEnvironment } from '../core/switches';
@@ -181,7 +183,7 @@ export class TwkTerminal implements TerminalPane, Screen {
     };
   }
 
-  /** What the app asked of the editor, as its view passed it on; a link only of the kinds that may be opened, whatever the view says. */
+  /** What the app asked of the editor, as its view passed it on; a link only of the kinds that may be opened (the web, mail, a file of a workspace folder), whatever the view says. */
   private request(r: TerminalRequest): void {
     const { desktop } = this.deps;
     switch (r.type) {
@@ -197,6 +199,11 @@ export class TwkTerminal implements TerminalPane, Screen {
       case 'openLink':
         if (isSafeLink(r.uri)) {
           desktop.openLink(r.uri);
+        } else {
+          const file = fileLinkOf(r.uri);
+          if (file && inFolders(file.path, desktop.workspaceFolders())) {
+            desktop.openFile(file.path, file.line, file.column);
+          }
         }
         break;
     }
@@ -256,4 +263,13 @@ export class TwkTerminal implements TerminalPane, Screen {
     this.disposed.dispose();
     [this.inputs, this.reloads, this.picks, this.outputs, this.notes, this.resizes].forEach((e) => e.dispose());
   }
+}
+
+/** Whether [file], absolute, is in one of the [folders] (or is one): lexically, `..` resolved first. */
+export function inFolders(file: string, folders: readonly string[]): boolean {
+  const target = path.resolve(file);
+  return folders.some((folder) => {
+    const rel = path.relative(path.resolve(folder), target);
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+  });
 }

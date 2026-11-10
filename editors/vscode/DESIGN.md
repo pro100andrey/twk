@@ -130,6 +130,24 @@ shell (not the extension's) is not followed, as the `logs` file is of the
 project and one app at a time; the aid is read when the app starts, so
 switching it on later takes a hot restart.
 
+**Opening code from the app.** The app's console (Ctrl+G c) opens a
+frame of a stack with twk's `editorCommand`, which reads `TWK_EDITOR`. The
+apps the extension runs or debugs get `TWK_EDITOR` set to VS Code's own
+command line (`"<appRoot>/bin/code" -r -g {file}:{line}:{column}`, found by
+`vscode.env.appRoot`, so `code` need not be on the `PATH`; `src/core/editor.ts`),
+unless the launch's `env` or the extension's environment already names one.
+It is the environment of the app's process, not a message of the shell's
+wire: the terminal does not name a command for the app to run
+(`Terminal.settingNames` leaves `TWK_EDITOR` out on purpose), so the wire and
+its golden are unchanged. An app started anywhere else (the "any app"
+terminal) sets its own `TWK_EDITOR`. Also, an OSC 8 `file:` link of the app
+(no host or `localhost`, `#L12` or `#L12C3` for the place) in a folder of the
+workspace opens at its line when clicked; one outside the folders, on
+another host, or of any other scheme than http, https and mailto stays
+refused. Not run in a real VS Code: the `bin/code` started from the
+extension host (`npm test` would need an app that opens a frame, and the
+CLI's window).
+
 **The sequence log.** A panel beside the terminal, a row each: the time
 (seconds since the terminal opened), the direction (`→` what the app
 wrote, `←` what the terminal sent, `·` a note: an app connected or went

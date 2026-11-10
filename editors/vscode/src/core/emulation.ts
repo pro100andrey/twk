@@ -100,6 +100,45 @@ export function isSafeLink(uri: string): boolean {
   return /^(https?:\/\/|mailto:)/i.test(uri);
 }
 
+/** A place in a file an OSC 8 `file:` link names, [line] and [column] from 1. */
+export interface FileLink {
+  readonly path: string;
+  readonly line: number;
+  readonly column: number;
+}
+
+/**
+ * The file a `file:` link names, on this machine (no host, or `localhost`),
+ * and its place from the fragment (`#L12`, `#L12C3`, `#12`, `#12:3`), line 1
+ * where it names none; undefined for any other link, a path that is not
+ * absolute or does not decode. Whether the file is one the editor may open
+ * is the editor's to decide (app/terminal.ts: the workspace's folders).
+ */
+export function fileLinkOf(uri: string): FileLink | undefined {
+  const m = /^file:\/\/(localhost)?(\/[^?#]*)(?:\?[^#]*)?(?:#(.*))?$/i.exec(uri);
+  if (!m) {
+    return undefined;
+  }
+  let path: string;
+  try {
+    path = decodeURIComponent(m[2]);
+  } catch {
+    return undefined;
+  }
+  if (path.includes('\0')) {
+    return undefined;
+  }
+  if (/^\/[A-Za-z]:[\\/]/.test(path)) {
+    path = path.slice(1);
+  }
+  const fragment = m[3] ?? '';
+  const at = fragment === '' ? null : /^L?(\d+)(?:[:,C](\d+))?$/.exec(fragment);
+  if (fragment !== '' && at === null) {
+    return undefined;
+  }
+  return { path, line: at ? Math.max(1, Number(at[1])) : 1, column: at?.[2] ? Math.max(1, Number(at[2])) : 1 };
+}
+
 /** What the status bar says of an app's progress (OSC 9;4's [state] and [percent]) in the terminal of [source]; undefined for none (state 0). */
 export function progressText(source: string, state: number, percent: number | null): string | undefined {
   const done = percent === null ? '' : ` ${percent}%`;

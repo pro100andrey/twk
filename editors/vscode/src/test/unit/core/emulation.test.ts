@@ -7,6 +7,7 @@ import {
   cellSizeReply,
   clipboardOf,
   isColorQuery,
+  fileLinkOf,
   isSafeLink,
   modeReply,
   notificationOf,
@@ -71,6 +72,17 @@ describe("the webview's emulation", () => {
     }
     for (const no of ['command:workbench.action.quit', 'file:///etc/passwd', 'vscode://x', 'javascript:alert(1)', ' https://x']) {
       assert.equal(isSafeLink(no), false, no);
+    }
+  });
+
+  it('reads a file: link of this machine and its place', () => {
+    assert.deepEqual(fileLinkOf('file:///a/b.dart'), { path: '/a/b.dart', line: 1, column: 1 });
+    assert.deepEqual(fileLinkOf('file://localhost/a/b%20c.dart#L12'), { path: '/a/b c.dart', line: 12, column: 1 });
+    assert.deepEqual(fileLinkOf('file:///a/b.dart#L12C3'), { path: '/a/b.dart', line: 12, column: 3 });
+    assert.deepEqual(fileLinkOf('file:///a/b.dart#7:2'), { path: '/a/b.dart', line: 7, column: 2 });
+    assert.deepEqual(fileLinkOf('file:///C:/a/b.dart'), { path: 'C:/a/b.dart', line: 1, column: 1 });
+    for (const no of ['file://host/a', 'file:a/b', 'https://x/a', 'file:///a%00b', 'file:///a%zz', 'file:///a#nonsense', 'vscode://file/a']) {
+      assert.equal(fileLinkOf(no), undefined, no);
     }
   });
 

@@ -110,6 +110,10 @@ export interface Desktop {
   writeClipboard(text: string): void;
   /** Opens [uri] (http, https, mailto) outside the editor. */
   openLink(uri: string): void;
+  /** The folders of the workspace: the only places [openFile] is asked to open. */
+  workspaceFolders(): readonly string[];
+  /** Opens the file [path] in the editor at [line] and [column] (from 1). */
+  openFile(path: string, line: number, column: number): void;
 }
 
 /** The settings the use cases read, each time they need one. */

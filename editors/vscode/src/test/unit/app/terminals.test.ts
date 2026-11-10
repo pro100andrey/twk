@@ -107,6 +107,22 @@ describe('Terminals', () => {
     await until('the progress taken away', () => desktop.done.at(-1) === 'progress counter.dart: 0 null');
   });
 
+  it('opens a file: link of a workspace folder at its line, no other', async () => {
+    const t = await terminals.create('counter.dart');
+    const app = await App.connect(t.variable);
+    await app.next(ShellFrame.welcome);
+    desktop.folders = ['/work/app'];
+    const link = (uri: string) => views[0].request({ type: 'openLink', uri });
+    link('file:///work/app/lib/main.dart#L12C3');
+    link('file:///work/app/lib/my%20file.dart');
+    link('file:///work/app/lib/../../etc/passwd#L1');
+    link('file:///work/app2/x.dart');
+    link('file:///etc/passwd');
+    link('file://other-host/work/app/x.dart');
+    assert.deepEqual(desktop.done, ['file /work/app/lib/main.dart:12:3', 'file /work/app/lib/my file.dart:1:1']);
+    app.socket.destroy();
+  });
+
   it('one shell each: two terminals, two addresses; one closed is forgotten, its shell stopped, the other serving on', async () => {
     const first = await terminals.create('a.dart');
     const second = await terminals.create('b.dart');

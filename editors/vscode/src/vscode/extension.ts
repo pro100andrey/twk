@@ -27,6 +27,7 @@ import { fileSink } from '../core/cast_file';
 import { nodeLogEndpoints } from '../core/log_socket';
 import { describeChoice, environmentOf } from '../core/capabilities';
 import { InspectNode, toggleItems, togglesPicked } from '../core/inspect';
+import { editorCommandOf } from '../core/editor';
 import { realClock } from '../core/events';
 import { HotStatus } from '../core/hot';
 import { startNodeProcess } from '../core/process';
@@ -117,6 +118,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     settings,
     clock: realClock,
     env: process.env,
+    editor: editorCommandOf(vscode.env.appRoot, process.platform, fs.existsSync),
   });
   const statuses = new vscode.EventEmitter<HotStatus>();
   const forwarding = hot.onStatus((s) => statuses.fire(s));

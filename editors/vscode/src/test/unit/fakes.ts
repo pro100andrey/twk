@@ -270,6 +270,14 @@ export class FakeDesktop implements Desktop {
   openLink(uri: string): void {
     this.done.push(`open ${uri}`);
   }
+  /** What the workspace holds. */
+  folders: string[] = [];
+  workspaceFolders(): readonly string[] {
+    return this.folders;
+  }
+  openFile(path: string, line: number, column: number): void {
+    this.done.push(`file ${path}:${line}:${column}`);
+  }
 }
 
 /** A clock the test moves ([elapse]). */
