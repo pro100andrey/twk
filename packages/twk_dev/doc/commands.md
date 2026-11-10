@@ -53,11 +53,13 @@ started without a terminal (from the IDE, under the debugger)
 tails the log an app of the project serves over a local socket, with levels
 and colours
 
-### `twk run <file> [<arguments>...]`
+### `twk run [--no-asserts] [--debug=<aids>] [--screen-reader] [--plain] <file> [<arguments>...]`
 
 runs the app in `<file>` in this terminal with hot reload: watches the
 package's `lib/` and `<file>` and reloads them as they change, each State
-kept; Ctrl+G h in the app reloads, Ctrl+G H restarts
+kept; Ctrl+G h in the app reloads, Ctrl+G H restarts. `--debug`, `--screen-reader` and `--plain` set
+`TWK_DEBUG`, `TWK_SCREEN_READER` and `TWK_PLAIN` for the app; an unknown
+aid is refused with 64
 
 ### `twk inspect [<vm-service-uri>] [-C <dir>]`
 

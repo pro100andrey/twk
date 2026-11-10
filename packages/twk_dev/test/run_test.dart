@@ -20,6 +20,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:twk_dev/src/cli.dart' show usageExitCode;
 import 'package:twk_dev/src/run.dart';
 import 'package:twk_dev/twk_dev.dart' show runTwk;
 import 'package:twk_test/twk_test.dart' show runProcess, waitFor, waitUntil;
@@ -59,6 +60,11 @@ Future<void> main(List<String> args) async {
   var asserts = false;
   assert(asserts = true);
   to.writeln('asserts \${asserts ? 'on' : 'off'}');
+  final env = Platform.environment;
+  to.writeln(
+    'env debug=\${env['TWK_DEBUG']} reader=\${env['TWK_SCREEN_READER']} '
+    'plain=\${env['TWK_PLAIN']}',
+  );
   if (args.contains('--kill')) {
     Process.killPid(pid, ProcessSignal.sigkill);
   }
@@ -322,12 +328,18 @@ TwkHere _runHere(
 Future<int> _twkRun(
   List<String> arguments,
   void Function(HotRunner runner) started,
-) async =>
-    await (CommandRunner<int>(
-      'twk',
-      'twk run alone.',
-    )..addCommand(RunCommand(started: started))).run(arguments) ??
-    0;
+) async {
+  try {
+    return await (CommandRunner<int>(
+          'twk',
+          'twk run alone.',
+        )..addCommand(RunCommand(started: started))).run(arguments) ??
+        0;
+  } on UsageException catch (error) {
+    stderr.writeln(error);
+    return usageExitCode;
+  }
+}
 
 /// A package made for a test, in a temporary directory: `lib/counter.dart`
 /// with `count`, `bin/heading.dart` and `bin/main.dart`, the app.
@@ -474,6 +486,51 @@ void main() {
     final screen = await _Screen.serve();
     _runHere(project.entry, screen, const [], null, ['--no-asserts']);
     await screen.said('asserts off', within: _start);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('twk run gives the app the environment it asks for: --debug added '
+      'to TWK_DEBUG and the debug keys, --screen-reader, --plain; none, '
+      'neither of the last two', () async {
+    final project = await _Project.create();
+    final screen = await _Screen.serve();
+    _runHere(project.entry, screen);
+    await screen.said(
+      'env debug=keys reader=null plain=null',
+      within: _start,
+    );
+    final all = await _Screen.serve();
+    _runHere(
+      project.entry,
+      all,
+      const [],
+      null,
+      [
+        '--debug=rainbow,logs',
+        '--debug',
+        'relayout',
+        '--screen-reader',
+        '--plain',
+      ],
+    );
+    await all.said(
+      'env debug=rainbow,logs,relayout,keys reader=1 plain=1',
+      within: _start,
+    );
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('twk run refuses a debug aid it does not know with 64, and starts '
+      'no app', () async {
+    final project = await _Project.create();
+    final screen = await _Screen.serve();
+    final run = _runHere(
+      project.entry,
+      screen,
+      const [],
+      null,
+      ['--debug=rainbow,sparkles'],
+    );
+    expect(await run.exitCode, 64);
+    expect('${run.err}', allOf(contains('sparkles'), contains('overlay')));
   }, timeout: const Timeout(Duration(minutes: 3)));
 
   test('a test that ends while twk run runs its app leaves no app '

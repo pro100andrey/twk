@@ -13,6 +13,16 @@ while the app runs. The arguments after `<file>` are the app's (`twk run
 bin/main.dart --inline`). The app's debug keys are on: `keys` is added to the
 `TWK_DEBUG` it gets.
 
+Options go before `<file>`; what follows it is the app's. `--debug=<aids>`
+(comma-separated, or the option repeated) turns on twk's debug aids by name,
+added to the `TWK_DEBUG` of the environment `twk run` has and to `keys`: the
+names are those `DebugAids.known` lists (`keys`, `overlay`, `console`,
+`frames`, `timeline`, `logs`, `rainbow`, `relayout`, `overflow`), and any other
+is refused with exit code 64, no app started. `--screen-reader` runs the app in
+its screen-reader mode (`TWK_SCREEN_READER=1`) and `--plain` has it write
+plain text (`TWK_PLAIN=1`); the extension's switches (screen reader, debug
+aids) are the same set. `--no-asserts` is described above.
+
 `twk run` connects to the VM service (`package:vm_service`) and watches the
 `lib/` of the package `<file>` is in, the nearest directory from it up that
 holds a `pubspec.yaml`, and `<file>`. When a `.dart` file there changes, or is

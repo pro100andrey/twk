@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
+import 'package:twk/twk.dart' show DebugAids;
 import 'package:twk_core/twk_core.dart' show LocalAddress;
 import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart';
@@ -39,6 +40,25 @@ final class RunCommand extends Command<int> {
           "framework's checks and overflow warnings. --no-asserts runs it "
           'as it ships, for measuring; the app then logs a line saying '
           'asserts are off.',
+    )
+    ..addMultiOption(
+      'debug',
+      valueHelp: 'aids',
+      help:
+          "Turn on twk's debug aids, added to the TWK_DEBUG the app is run "
+          'with (the debug keys are always on): ${DebugAids.known.join(', ')}.',
+    )
+    ..addFlag(
+      'screen-reader',
+      negatable: false,
+      help: 'Run the app in its screen-reader mode (TWK_SCREEN_READER=1).',
+    )
+    ..addFlag(
+      'plain',
+      negatable: false,
+      help:
+          'Run the app writing plain text, with no escape sequences '
+          '(TWK_PLAIN=1).',
     );
 
   @override
@@ -67,6 +87,17 @@ final class RunCommand extends Command<int> {
     if (rest.isEmpty) {
       usageException('No file to run.');
     }
+    final debug = argResults!.multiOption('debug');
+    final unknown = [
+      for (final aid in debug)
+        if (!DebugAids.known.contains(aid)) aid,
+    ];
+    if (unknown.isNotEmpty) {
+      usageException(
+        'Unknown debug aid ${unknown.join(', ')}: --debug takes '
+        '${DebugAids.known.join(', ')}.',
+      );
+    }
     final file = rest.first;
     if (!File(file).existsSync()) {
       stderr.writeln('twk run: no file $file');
@@ -76,6 +107,9 @@ final class RunCommand extends Command<int> {
       file,
       rest.sublist(1),
       asserts: argResults!.flag('asserts'),
+      debug: debug,
+      screenReader: argResults!.flag('screen-reader'),
+      plain: argResults!.flag('plain'),
     );
     started?.call(runner);
     return runner.run();
@@ -106,10 +140,16 @@ final class RunCommand extends Command<int> {
 final class HotRunner {
   /// A runner of the app whose `main` is in the file [entry], given
   /// [arguments].
-  HotRunner(String entry, this.arguments, {this.asserts = true})
-    : entry = p.normalize(p.absolute(entry)),
-      package = projectOf(p.dirname(entry)),
-      serviceFile = serviceFileOf(projectOf(null));
+  HotRunner(
+    String entry,
+    this.arguments, {
+    this.asserts = true,
+    this.debug = const [],
+    this.screenReader = false,
+    this.plain = false,
+  }) : entry = p.normalize(p.absolute(entry)),
+       package = projectOf(p.dirname(entry)),
+       serviceFile = serviceFileOf(projectOf(null));
 
   /// The file of the app's `main`, absolute.
   final String entry;
@@ -120,6 +160,16 @@ final class HotRunner {
   /// Whether the app runs with asserts on (`--enable-asserts`), which the
   /// framework's checks and overflow warnings need.
   final bool asserts;
+
+  /// The debug aids asked for, added to the `TWK_DEBUG` of this process's
+  /// environment and to `keys`.
+  final List<String> debug;
+
+  /// Whether the app runs in its screen-reader mode (`TWK_SCREEN_READER=1`).
+  final bool screenReader;
+
+  /// Whether the app writes plain text (`TWK_PLAIN=1`).
+  final bool plain;
 
   /// The directory of the package [entry] is in.
   final String package;
@@ -249,8 +299,9 @@ final class HotRunner {
     if (info.existsSync()) {
       info.deleteSync();
     }
-    final debug = {
+    final aids = {
       ...(Platform.environment['TWK_DEBUG'] ?? '').split(','),
+      ...debug,
       'keys',
     }..remove('');
     final process = await Process.start(
@@ -267,7 +318,11 @@ final class HotRunner {
         ...arguments,
       ],
       mode: ProcessStartMode.inheritStdio,
-      environment: {'TWK_DEBUG': debug.join(',')},
+      environment: {
+        'TWK_DEBUG': aids.join(','),
+        if (screenReader) 'TWK_SCREEN_READER': '1',
+        if (plain) 'TWK_PLAIN': '1',
+      },
     );
     final app = _App(process);
     unawaited(_connect(app, info));

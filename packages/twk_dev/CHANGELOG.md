@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Added:
+
+- `twk run --debug=<aids>`, `--screen-reader` and `--plain` set `TWK_DEBUG`
+  (added to the app's own and to `keys`), `TWK_SCREEN_READER=1` and
+  `TWK_PLAIN=1` for the app, before the file; an unknown aid is refused
+  with 64.
+
 Changed:
 
 - `twk run` runs the app with asserts on (`--enable-asserts`), so the

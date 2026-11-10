@@ -1674,12 +1674,18 @@ final class DebugAids {
           DateTime.now(),
           LogLevel.warning,
           'TWK_DEBUG names nothing it knows as ${unknown.join(', ')}: it '
-          'takes ${{..._names, ...TwkApp.debugNamesRead}.join(', ')}, '
+          'takes ${known.join(', ')}, '
           'comma-separated',
         ),
       );
     }
   }
+
+  /// Every name `TWK_DEBUG` takes: those the debug aids read (`keys`,
+  /// `overlay`, `console`, `rainbow`, `relayout`, `overflow`) and those
+  /// the core's app does ([TwkApp.debugNamesRead]). What a tool that sets
+  /// `TWK_DEBUG` checks a name against.
+  static Set<String> get known => {..._names, ...TwkApp.debugNamesRead};
 
   static const _names = {
     'keys',

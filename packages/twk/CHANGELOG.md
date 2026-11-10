@@ -13,6 +13,7 @@ Breaking:
 
 Added:
 
+- `DebugAids.known`, every name `TWK_DEBUG` takes, for the tools that set it.
 - `LogController.addOutput` and `followFile` take `map`, which gives each
   line's spans back, changed, or null to leave the line out.
 - `LogController.where`, which lines are shown by a test of each, beside
