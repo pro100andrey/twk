@@ -75,6 +75,8 @@ export interface TerminalView {
   paste(text: string): void;
   /** A button of its player's bar was pressed. */
   readonly onControl: Event<PlayerControl>;
+  /** A marker of its player's track was clicked: its number among the markers, from 1. */
+  readonly onMarker: Event<number>;
   /** What the app in it asked of the editor, as its answers allow. */
   readonly onRequest: Event<TerminalRequest>;
   /** Its size changed. */

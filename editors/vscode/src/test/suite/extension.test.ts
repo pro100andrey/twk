@@ -934,12 +934,15 @@ describe('the sequence log, recording and replay, the screen copied', () => {
     await until('the redraw recorded', async () => (fs.readFileSync(cast.fsPath, 'utf8').includes('Count: ') ? true : undefined), 30000);
     terminal.type('\x1b[A');
     await shows(terminal, 'Count: 2', 'alternate');
+    // a marker left while recording: the command answers its label
+    assert.equal(await vscode.commands.executeCommand('twk.addMarker'), 'marker 1');
     await vscode.commands.executeCommand('twk.stopRecordings');
     assert.equal(api.recordings.of(terminal), undefined);
     assert.doesNotMatch(terminal.title(), /recording/);
     const lines = fs.readFileSync(cast.fsPath, 'utf8').trim().split('\n');
     assert.match(lines[0], /^\{"version":2,"width":\d+,"height":\d+,"timestamp":\d+,"idle_time_limit":2\.0,"title":"counter\.dart","env":\{"TERM":"xterm-256color"\}\}$/);
     assert.ok(lines.some((l) => l.includes('"i", "\\u001b[A"')), 'the key');
+    assert.ok(lines.some((l) => /^\[[\d.]+, "m", "marker 1"\]$/.test(l)), 'the marker');
     terminal.type('q');
     await shows(terminal, 'the app went away', 'normal');
 
@@ -952,6 +955,9 @@ describe('the sequence log, recording and replay, the screen copied', () => {
     assert.equal(replayed.buffer, 'alternate');
     assert.ok(replayed.rows.some((r) => r.includes('Count: 2')), replayed.rows.join('\n'));
     assert.equal(replayed.rows.length, JSON.parse(lines[0]).height);
+    // the marker is on the replay's track, reached by the end
+    assert.deepEqual(player.state.markers?.map((m) => m.label), ['marker 1']);
+    assert.equal(player.state.marker, 1);
     // a frame back, by the bar's message as the webview sends it, then on again
     player.control('back');
     await player.settled;

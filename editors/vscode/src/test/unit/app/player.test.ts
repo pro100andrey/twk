@@ -141,4 +141,98 @@ describe('a recording played back', () => {
     assert.equal(asked, 1);
     assert.equal(player.state.playing, false);
   });
+
+  describe('with markers', () => {
+    const marked = [
+      '{"version": 2, "width": 20, "height": 3}',
+      '[0.0, "m", "start"]',
+      '[0.5, "o", "\\u001b[1;1HA"]',
+      '[0.6, "m", "a"]',
+      '[0.7, "m", "b\\u001b[31m"]',
+      '[1.0, "o", "\\u001b[1;1HB"]',
+      `[2.0, "m", ${JSON.stringify('x'.repeat(50))}]`,
+    ].join('\n');
+    let marks: Player;
+    let mv: HeadlessView;
+
+    beforeEach(async () => {
+      mv = new HeadlessView(80, 24);
+      marks = new Player('marks.cast', parseCast(marked), mv, clock);
+      await marks.start(false);
+    });
+
+    afterEach(() => marks.dispose());
+
+    const at = () => [mv.playerState?.marker, mv.rows()[0]];
+
+    it('tells the markers, labels cut as twk play cuts them, and which the screen has reached', () => {
+      assert.deepEqual(mv.playerState?.markers, [
+        { label: 'start', time: 0 },
+        { label: 'a', time: 0.6 },
+        { label: 'b [31m', time: 0.7 },
+        { label: `${'x'.repeat(39)}…`, time: 2 },
+      ]);
+      assert.equal(mv.playerState?.marker, 0);
+      assert.equal(player.state.markers, undefined, 'none for a recording without');
+    });
+
+    it('] and [ go to each marker as a stop: one at the start, several on a step, one after the last', async () => {
+      const seen: unknown[] = [];
+      for (let i = 0; i < 4; i++) {
+        mv.type(']');
+        await marks.settled;
+        seen.push(at());
+      }
+      assert.deepEqual(seen, [
+        [1, ''],
+        [2, 'A'],
+        [3, 'A'],
+        [4, 'B'],
+      ]);
+      assert.equal(mv.playerState?.playing, false);
+      // no marker after the last: where it is
+      mv.type(']');
+      await marks.settled;
+      assert.deepEqual(at(), [4, 'B']);
+      const back: unknown[] = [];
+      for (let i = 0; i < 4; i++) {
+        mv.type('[');
+        await marks.settled;
+        back.push(at());
+      }
+      assert.deepEqual(back, [
+        [3, 'A'],
+        [2, 'A'],
+        [1, ''],
+        [1, ''],
+      ]);
+    });
+
+    it('the bar asks for them too, a click goes to the marker, any other move leaves the stop', async () => {
+      mv.control('nextMarker');
+      mv.clickMarker(3);
+      await marks.settled;
+      assert.deepEqual(at(), [3, 'A']);
+      mv.clickMarker(9);
+      mv.clickMarker(0);
+      assert.deepEqual(at(), [3, 'A']);
+      mv.control('step');
+      await marks.settled;
+      // the pin is left: the screen is the last, which has reached the marker after the step too
+      assert.deepEqual(at(), [4, 'B']);
+      mv.control('back');
+      await marks.settled;
+      assert.deepEqual(at(), [3, 'A']);
+      mv.control('previousMarker');
+      assert.equal(mv.playerState?.marker, 2);
+    });
+
+    it('goes paused, from a recording that plays', async () => {
+      marks.play();
+      assert.equal(mv.playerState?.playing, true);
+      mv.type(']');
+      assert.equal(mv.playerState?.playing, false);
+      assert.equal(clock.pending, 0);
+    });
+  });
 });

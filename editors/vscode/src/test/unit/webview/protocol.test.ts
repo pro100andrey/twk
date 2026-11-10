@@ -26,6 +26,9 @@ describe('the webview protocol', () => {
       { type: 'control', control: 'restart' },
       { type: 'control', control: 'test' },
       { type: 'control', control: 'input' },
+      { type: 'control', control: 'nextMarker' },
+      { type: 'control', control: 'previousMarker' },
+      { type: 'marker', marker: 2 },
       { type: 'paste' },
     ]) {
       assert.ok(isFromWebview(m), JSON.stringify(m));
@@ -60,6 +63,9 @@ describe('the webview protocol', () => {
       { type: 'picked', cell: { x: 0, y: 3, cursorY: 1.5 } },
       { type: 'control', control: 'eject' },
       { type: 'control' },
+      { type: 'marker', marker: 0 },
+      { type: 'marker', marker: 1.5 },
+      { type: 'marker' },
     ]) {
       assert.equal(isFromWebview(m), false, JSON.stringify(m));
     }
@@ -80,6 +86,11 @@ describe('the webview protocol', () => {
     assert.ok(isToWebview({ type: 'player', state: { playing: true, frame: 0, frames: 3, time: 0, duration: 1.5 } }));
     assert.equal(isToWebview({ type: 'player', state: { playing: true, frame: 0, frames: 3, time: -1, duration: 1.5 } }), false);
     assert.equal(isToWebview({ type: 'player', state: { playing: 'yes', frame: 0, frames: 3, time: 0, duration: 1 } }), false);
+    const marked = { playing: true, frame: 0, frames: 3, time: 0, duration: 1.5, markers: [{ label: 'a', time: 0.5 }], marker: 1 };
+    assert.ok(isToWebview({ type: 'player', state: marked }));
+    assert.equal(isToWebview({ type: 'player', state: { ...marked, marker: 2 } }), false);
+    assert.equal(isToWebview({ type: 'player', state: { ...marked, marker: undefined } }), false);
+    assert.equal(isToWebview({ type: 'player', state: { ...marked, markers: [{ label: 1, time: 0 }] } }), false);
     assert.equal(isToWebview({ type: 'player' }), false);
     assert.equal(isToWebview({ type: 'output', id: 1, data: [65] }), false);
     assert.equal(isToWebview({ type: 'size', columns: 'x', lines: null }), false);

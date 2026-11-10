@@ -213,7 +213,9 @@ window.addEventListener(
 // The bar of a recording played back: from the start, a frame back, play
 // or pause, a frame on, and where it is; under the terminal, which keeps
 // the recording's size.
-let playerBar: { readonly bar: HTMLElement; readonly toggle: HTMLButtonElement; readonly where: HTMLElement } | undefined;
+let playerBar:
+  | { readonly bar: HTMLElement; readonly toggle: HTMLButtonElement; readonly where: HTMLElement; readonly track: HTMLElement; markers: string }
+  | undefined;
 const showPlayer = (state: PlayerState | null) => {
   if (state === null) {
     playerBar?.bar.remove();
@@ -241,17 +243,46 @@ const showPlayer = (state: PlayerState | null) => {
     button('◀', 'A frame back (Left, ,)', 'back');
     const toggle = button('▶', 'Play or pause (Space)', 'toggle');
     button('▶|', 'A frame on (Right, .)', 'step');
+    button('[', 'The marker before (  [  )', 'previousMarker').style.minWidth = '1.6em';
+    button(']', 'The next marker (  ]  )', 'nextMarker').style.minWidth = '1.6em';
     button('Test', 'Create a test from this recording (twk test-from-cast)', 'test').style.minWidth = '3.5em';
     button('Keys', 'Type the keys of this recording into the app in a twk terminal', 'input').style.minWidth = '3.5em';
     const where = document.createElement('span');
     where.style.opacity = '0.8';
-    bar.append(where);
+    // the track: the recording's length, a stop on it for each marker
+    const track = document.createElement('div');
+    track.style.cssText = 'position:relative;flex:1;min-width:40px;height:100%';
+    bar.append(where, track);
     document.body.append(bar);
     host.style.height = 'calc(100% - 28px)';
-    playerBar = { bar, toggle, where };
+    playerBar = { bar, toggle, where, track, markers: '' };
   }
+  // The labels come from the recording's file: set as text and as a title,
+  // never as HTML.
+  const markers = state.markers ?? [];
+  const key = JSON.stringify([markers, state.duration]);
+  if (playerBar.markers !== key) {
+    playerBar.markers = key;
+    playerBar.track.replaceChildren();
+    const line = document.createElement('div');
+    line.style.cssText = 'position:absolute;left:0;right:0;top:13px;height:2px;background:var(--vscode-panel-border, currentColor);opacity:0.6';
+    playerBar.track.append(line);
+    markers.forEach((marker, i) => {
+      const b = document.createElement('button');
+      b.title = `${i + 1}. ${marker.label} (${marker.time.toFixed(2)} s)`;
+      const at = state.duration > 0 ? Math.min(100, (marker.time / state.duration) * 100) : 0;
+      b.style.cssText = `position:absolute;top:6px;width:8px;height:16px;margin-left:-4px;padding:0;border:none;cursor:pointer;left:${at}%;background:var(--vscode-charts-yellow, orange)`;
+      b.addEventListener('click', () => {
+        post({ type: 'marker', marker: i + 1 });
+        term.focus();
+      });
+      playerBar?.track.append(b);
+    });
+  }
+  const reached = state.marker ?? 0;
+  const here = markers.length === 0 ? '' : reached === 0 ? ` · marker 0/${markers.length}` : ` · marker ${reached}/${markers.length} ${markers[reached - 1].label}`;
   playerBar.toggle.textContent = state.playing ? '⏸' : '▶';
-  playerBar.where.textContent = `frame ${state.frame}/${state.frames} · ${state.time.toFixed(2)} s / ${state.duration.toFixed(2)} s${state.playing ? '' : ' · paused'}`;
+  playerBar.where.textContent = `frame ${state.frame}/${state.frames} · ${state.time.toFixed(2)} s / ${state.duration.toFixed(2)} s${state.playing ? '' : ' · paused'}${here}`;
 };
 
 term.onData((data) => post({ type: 'input', data, binary: false }));

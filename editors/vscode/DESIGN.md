@@ -123,6 +123,7 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Record the twk Terminal as asciicast (Start or Stop) | record the terminal to a `.cast` file; again to stop (title bar button) |
 | twk: Stop Recording the twk Terminals | stop every recording (also a click on `REC` in the status bar) |
 | twk: Play a Recording (asciicast) in a twk Terminal | play a `.cast` back (also the explorer's menu on a `.cast` file) |
+| twk: Leave a Marker in the Recording of the twk Terminal | while recording, an `m` event `marker <n>` at this time, a place for the replay's `]` and `[` to go to |
 | twk: Type a Recording's Keys into the App in the twk Terminal | the recording's keys (its answers left out) typed into the app of the active twk terminal, at their times or a step each time the status bar item is clicked (also the explorer's menu on a `.cast` file, the replay bar's Keys button) |
 | twk: New Project (twk create) | three picks (the template with its description, the folder, the files for coding agents) and `twk create <dir> --template ... --agents ...` with flags, never its prompts; offers to open the project |
 | twk: Install Agent Skill (twk agents) | `twk agents` in the active file's project (else the workspace's): what it wrote, removed and left (a file the person changed) is shown, the whole in the output |
@@ -1450,6 +1451,27 @@ decoder, a sequence cut between events too), a resize carried with the
 step after it; a step at its time on the `Clock`, the next once the view
 parsed it; back is RIS and the steps before at once.
 
+**Markers** (`castMarkers`, `markerLabel` in `core/cast.ts`; `twk.addMarker`):
+an `m` event is a place to go to, as in `twk play` (packages/twk_dev's
+play.dart, doc/record-play.md). Each step records `end`, how many events it
+has taken in; a marker is *at* the number of steps that end before it, so
+several can stand on one step, one at the start (at 0) and one after the
+last. `]` and `[` (and the bar's buttons, the player's `nextMarker` and
+`previousMarker` controls) go by marker *index*, each marker a stop: paused,
+`seek(at)`, with a pin on the index so that the markers on one step are told
+apart while the screen stays; any other move (a frame, play, restart) drops
+the pin, and the markers reached are those at or before the screen. None
+before the first or after the last leaves the screen where it is. A click on
+the track's tick is the `marker` message (its index from 1), `onMarker`, and
+`Player.goToMarker`. `PlayerState` carries `markers` (labels cut by
+`markerLabel` as the status line of `twk play` cuts them: control characters
+blanked, 40 characters) and `marker` (reached) only for a recording that has
+markers. The labels come from a file: the webview sets them as text and as
+a `title`, never as HTML. `twk.addMarker` (enabled while `twk.recording`)
+leaves `marker <n>` in the active terminal's recording
+(`Recording.mark()`, written after the preamble), as `twk record
+--marker-key` labels them.
+
 **Replay input** (`core/replay_input.ts`, `app/replay_input.ts`,
 `vscode/extension.ts`'s `twk.replayInput`): `replaySteps` makes of a recording's
 `i` events the keys to type, each at its time (`ReplayStep`, as twk_dev's), the
@@ -1519,7 +1541,8 @@ Tests (unit):
 - `app/recording.test.ts` (5): the header, output, input and sizes at
   their times, a pause cut; begun on the alternate screen; one at a time,
   the title; ended by the terminal's end; a sink that fails.
-- `app/player.test.ts` (4): at its size, each frame at its time, the idle
+- `app/player.test.ts` (4 + 4 with markers: the labels, `]` and `[` through
+  every stop, the bar's and the track's moves, paused from playing): at its size, each frame at its time, the idle
   limit, the bar's state; pause, on, back, from the start by the bar and
   by keys, the replay's answers going nowhere; to its end and again; a
   view that came back empty.

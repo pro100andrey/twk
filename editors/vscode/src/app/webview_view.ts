@@ -52,10 +52,12 @@ export class WebviewTerminalView implements TerminalView {
   private readonly reloads = new Emitter<void>();
   private readonly picks = new Emitter<PickedCell | null>();
   private readonly controls = new Emitter<PlayerControl>();
+  private readonly markers = new Emitter<number>();
   private readonly pastes = new Emitter<void>();
   readonly onPaste = this.pastes.event;
   readonly onPick = this.picks.event;
   readonly onControl = this.controls.event;
+  readonly onMarker = this.markers.event;
   readonly onInput = this.inputs.event;
   readonly onRequest = this.requests.event;
   readonly onResize = this.resizes.event;
@@ -82,7 +84,7 @@ export class WebviewTerminalView implements TerminalView {
         this.settle();
         this.closes.fire();
         this.listening.forEach((d) => d.dispose());
-        [this.inputs, this.requests, this.resizes, this.closes, this.reloads, this.picks, this.controls, this.pastes].forEach((e) => e.dispose());
+        [this.inputs, this.requests, this.resizes, this.closes, this.reloads, this.picks, this.controls, this.markers, this.pastes].forEach((e) => e.dispose());
       }),
     ];
   }
@@ -234,6 +236,9 @@ export class WebviewTerminalView implements TerminalView {
         break;
       case 'control':
         this.controls.fire(m.control);
+        break;
+      case 'marker':
+        this.markers.fire(m.marker);
         break;
       case 'paste':
         this.pastes.fire();

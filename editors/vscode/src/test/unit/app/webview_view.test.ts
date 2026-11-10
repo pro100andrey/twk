@@ -123,6 +123,11 @@ describe('WebviewTerminalView', () => {
     panel.send({ type: 'control', control: 'step' });
     panel.send({ type: 'control', control: 'fly' });
     assert.deepEqual(controls, ['step']);
+    const clicks: number[] = [];
+    view.onMarker((n) => clicks.push(n));
+    panel.send({ type: 'marker', marker: 2 });
+    panel.send({ type: 'marker', marker: 0 });
+    assert.deepEqual(clicks, [2]);
     assert.equal(view.isActive, false);
     let changes = 0;
     view.onDidChangeActive(() => changes++);

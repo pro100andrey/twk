@@ -30,6 +30,8 @@ export class HeadlessView implements TerminalView {
   private readonly reloads = new Emitter<void>();
   private readonly picks = new Emitter<PickedCell | null>();
   private readonly controls = new Emitter<PlayerControl>();
+  private readonly markerClicks = new Emitter<number>();
+  readonly onMarker = this.markerClicks.event;
   readonly onInput = this.inputs.event;
   readonly onRequest = this.requests.event;
   readonly onResize = this.resizes.event;
@@ -125,6 +127,11 @@ export class HeadlessView implements TerminalView {
   /** A button of its player's bar is pressed. */
   control(c: PlayerControl): void {
     this.controls.fire(c);
+  }
+
+  /** The marker [n] (from 1) of its player's track is clicked. */
+  clickMarker(n: number): void {
+    this.markerClicks.fire(n);
   }
 
   /** Comes back empty, as a webview that loaded again. */

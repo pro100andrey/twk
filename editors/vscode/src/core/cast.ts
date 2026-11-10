@@ -217,6 +217,11 @@ export class CastWriter {
     this.event(at, 'r', `${width}x${height}`, true);
   }
 
+  /** A marker labelled [label], at [at] µs: an `m` event, a place for a player to go to. */
+  marker(at: number, label: string): void {
+    this.event(at, 'm', label, true);
+  }
+
   /** Writes what is left of a character cut off at the end, at [at] µs. */
   close(at: number): void {
     this.event(at, 'o', this.output.decode());
@@ -249,6 +254,38 @@ export interface CastStep {
   readonly size?: { readonly width: number; readonly height: number };
   /** Its number among the frames, from 1; a step at the end that leaves an update open is none (0). */
   readonly frame: number;
+  /** How many events of the recording it has taken in (those before it, resizes, inputs and markers among them). */
+  readonly end: number;
+}
+
+/** A marker of a recording (an `m` event) as a place to go to. */
+export interface CastMarker {
+  /** The steps shown when the screen is as at its place among the events. */
+  readonly at: number;
+  /** The label as the file has it. */
+  readonly label: string;
+  /** Its time, in seconds. */
+  readonly time: number;
+}
+
+/**
+ * The markers of [cast], in the order of the file: each at the number of
+ * [steps] (its `castSteps`) that end before it, as `twk play` places them.
+ */
+export function castMarkers(cast: Cast, steps: readonly CastStep[]): CastMarker[] {
+  const out: CastMarker[] = [];
+  cast.events.forEach((e, index) => {
+    if (e.code === 'm') {
+      out.push({ at: steps.filter((s) => s.end <= index).length, label: e.data, time: e.time });
+    }
+  });
+  return out;
+}
+
+/** A marker's label as a bar or a status line shows it, as `twk play` does: control characters blanked, at most 40 characters (the last an ellipsis). */
+export function markerLabel(label: string): string {
+  const clean = Array.from(label.replace(/[\x00-\x1f\x7f-\x9f]/g, ' '));
+  return clean.length <= 40 ? clean.join('') : `${clean.slice(0, 39).join('')}…`;
 }
 
 /**
@@ -264,7 +301,7 @@ export function castSteps(cast: Cast): CastStep[] {
   let output = '';
   let size: CastStep['size'];
   let time = 0;
-  for (const e of cast.events) {
+  for (const [index, e] of cast.events.entries()) {
     const s = sizeOf(e);
     if (s) {
       size = s;
@@ -281,12 +318,12 @@ export function castSteps(cast: Cast): CastStep[] {
     if (depth > 0) {
       continue;
     }
-    steps.push({ time, output, frame: steps.length + 1, ...(size ? { size } : {}) });
+    steps.push({ time, output, frame: steps.length + 1, end: index + 1, ...(size ? { size } : {}) });
     output = '';
     size = undefined;
   }
   if (output !== '' || size) {
-    steps.push({ time, output, frame: 0, ...(size ? { size } : {}) });
+    steps.push({ time, output, frame: 0, end: cast.events.length, ...(size ? { size } : {}) });
   }
   return steps;
 }

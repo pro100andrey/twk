@@ -70,6 +70,8 @@ export class FakeView implements TerminalView {
   /** The player's bar as it was told, each time. */
   readonly players: (PlayerState | null)[] = [];
   private readonly controls = new Emitter<PlayerControl>();
+  private readonly markerClicks = new Emitter<number>();
+  readonly onMarker = this.markerClicks.event;
   readonly onControl = this.controls.event;
   private readonly pastes = new Emitter<void>();
   readonly onPaste = this.pastes.event;
@@ -156,6 +158,11 @@ export class FakeView implements TerminalView {
   /** A button of its player's bar is pressed. */
   control(c: PlayerControl): void {
     this.controls.fire(c);
+  }
+
+  /** The marker [n] (from 1) of its player's track is clicked. */
+  clickMarker(n: number): void {
+    this.markerClicks.fire(n);
   }
 
   /** The app in it asks [r] of the editor. */

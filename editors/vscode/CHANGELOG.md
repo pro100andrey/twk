@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Replay markers: the markers of a recording (`m` events: `twk record --marker-key`'s, this extension's, a hand-edited file's) are drawn on the replay bar's track with their labels as a tooltip, and `]` / `[` (or the bar's buttons, or a click on one) go to the next and the previous: paused, the screen as at the marker, each marker a stop even when several stand on one frame, as `twk play`; the bar names the marker reached. twk: Leave a Marker in the Recording of the twk Terminal (palette, while recording) leaves `marker <n>`.
+
 - Replay Input: an Escape inside a string that is no ST ends the string there, as a terminal does (the Alt+letter that opened it is a key, the rest is told afresh: an answer in it is left out), as `twk record --replay`, held to one golden with it.
 
 - Review fixes: after a twk run's leader exits, its group is polled and SIGKILLed after the grace only while it still has a member (an emptied group's id may be someone else's); a Replay Input event holding a control inside a CSI still has its answers left out and its paste kept; Replay Input in timed mode keeps each key at its recorded time (no drift) and shows a short preview of the next keys; nothing is shown at deactivate; New Project reads the folder's package_config.json or pubspec.yaml for twk_dev before running (no failing `dart run` first) and checks the folder's name as a package name; the Test guard is in one place.

@@ -409,6 +409,19 @@ export function activate(context: vscode.ExtensionContext): Api {
     }
     return recording;
   };
+  // Leaves a marker in the recording of the twk terminal: a place for the
+  // player to go to; returns its label
+  command('twk.addMarker', async () => {
+    const terminal = theTerminal();
+    const made = recordings.of(terminal);
+    if (!made) {
+      void vscode.window.showInformationMessage(`twk: ${terminal.name} is not being recorded; start twk: Record first.`);
+      return undefined;
+    }
+    const label = made.mark();
+    vscode.window.setStatusBarMessage(`twk: ${label} left in the recording of ${terminal.name}`, 3000);
+    return label;
+  });
   command('twk.stopRecordings', async () => {
     for (const r of recordings.all()) {
       stopped(r.screen.name, r, await r.stop());

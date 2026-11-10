@@ -8,7 +8,7 @@ import * as assert from 'node:assert/strict';
 import { CastSink } from '../../../app/ports';
 import { Recording, Recordings } from '../../../app/recording';
 import { TwkTerminal } from '../../../app/terminal';
-import { parseCast } from '../../../core/cast';
+import { castMarkers, castSteps, parseCast } from '../../../core/cast';
 import { FakeClock, FakeDesktop, FakeLog, FakeSettings, FakeView, realShell } from '../fakes';
 
 /** A sink in memory, failing from its [failAfter]th write. */
@@ -89,6 +89,39 @@ describe('recording a twk terminal', () => {
       ],
     );
     assert.deepEqual(end, { events: 5, seconds: 2.301 });
+  });
+
+  it('leaves markers, `marker <n>` as twk record does, in order with the output, after the first screen', async () => {
+    alternate = true;
+    const sink = new MemorySink();
+    const recording = await recordings.start(terminal, sink);
+    clock.elapse(100);
+    assert.equal(recording.mark(), 'marker 1');
+    clock.elapse(20);
+    view.type('x');
+    clock.elapse(30);
+    assert.equal(recording.mark(), 'marker 2');
+    const end = await recording.stop();
+    const events = parseCast(sink.text).events;
+    assert.deepEqual(
+      events.map((e) => [e.time, e.code, e.data]),
+      [
+        [0, 'o', '\x1b[?1049h\x1b[H\x1b[2J\x1b[?2026h\x1b[1;1HCount: 3\x1b[?2026l'],
+        [0.1, 'm', 'marker 1'],
+        [0.12, 'i', 'x'],
+        [0.15, 'm', 'marker 2'],
+      ],
+    );
+    assert.equal(end.events, 4);
+    // played back, each a place to go to
+    const steps = castSteps(parseCast(sink.text));
+    assert.deepEqual(
+      castMarkers(parseCast(sink.text), steps).map((m) => [m.at, m.label]),
+      [
+        [1, 'marker 1'],
+        [1, 'marker 2'],
+      ],
+    );
   });
 
   it('begun on the alternate screen, begins there, with the first output: its first frame a whole screen', async () => {

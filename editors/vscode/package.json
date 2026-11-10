@@ -187,6 +187,12 @@
         "enablement": "twk.recording"
       },
       {
+        "command": "twk.addMarker",
+        "title": "Leave a Marker in the Recording of the twk Terminal",
+        "category": "twk",
+        "enablement": "twk.recording"
+      },
+      {
         "command": "twk.play",
         "title": "Play a Recording (asciicast) in a twk Terminal",
         "category": "twk",
@@ -627,6 +633,10 @@
         },
         {
           "command": "twk.stopRecordings",
+          "when": "twk.recording"
+        },
+        {
+          "command": "twk.addMarker",
           "when": "twk.recording"
         },
         {
