@@ -101,6 +101,8 @@ export interface ProjectReport {
   readonly dart: string;
   readonly lock: string | null;
   readonly versions: Readonly<Record<string, string>>;
+  /** Where each version came from (`locked`, `path`, `workspace`); empty for an older twk_dev. */
+  readonly sources: Readonly<Record<string, string>>;
   readonly agree: boolean;
   readonly state: Readonly<Record<string, ServiceState>>;
   readonly agents: { readonly stale: readonly string[]; readonly edited: readonly string[]; readonly missing: boolean } | null;
@@ -142,6 +144,14 @@ export function parseDoctor(stdout: string): ProjectResult {
       }
     }
   }
+  const sources: Record<string, string> = {};
+  if (isRecord(json.sources)) {
+    for (const [name, v] of Object.entries(json.sources)) {
+      if (typeof v === 'string') {
+        sources[name] = v;
+      }
+    }
+  }
   const state: Record<string, ServiceState> = {};
   if (isRecord(json.state)) {
     for (const [name, s] of Object.entries(json.state)) {
@@ -158,6 +168,7 @@ export function parseDoctor(stdout: string): ProjectResult {
       dart: typeof json.dart === 'string' ? json.dart : '',
       lock: typeof json.lock === 'string' ? json.lock : null,
       versions,
+      sources,
       agree: json.agree === true,
       state,
       agents: isRecord(a) ? { stale: strings(a.stale), edited: strings(a.edited), missing: a.missing === true } : null,
@@ -181,8 +192,8 @@ function projectHtml(result: ProjectResult): string {
     `<tr><th>project</th><td>${escapeHtml(r.project)}</td></tr>`,
     `<tr><th>Dart</th><td>${escapeHtml(r.dart)}</td></tr>`,
     `<tr><th>pubspec.lock</th><td>${r.lock === null ? 'none found' : escapeHtml(r.lock)}</td></tr>`,
-    ...doctorPackages.map((p) => `<tr><th>${p}</th><td>${r.versions[p] === undefined ? '<span class="muted">not in the lock</span>' : escapeHtml(r.versions[p])}</td></tr>`),
-    `<tr><th>versions</th><td class="${r.agree ? 'ok' : 'bad'}">${r.lock === null ? 'no lock to compare' : r.agree ? 'agree' : 'DISAGREE: pub upgrade them together'}</td></tr>`,
+    ...doctorPackages.map((p) => `<tr><th>${p}</th><td>${r.versions[p] === undefined ? '<span class="muted">not found</span>' : escapeHtml(r.versions[p]) + (r.sources[p] === undefined ? '' : ` <span class="muted">(${escapeHtml(r.sources[p])})</span>`)}</td></tr>`),
+    `<tr><th>versions</th><td class="${r.agree ? 'ok' : 'bad'}">${r.agree ? 'agree' : 'DISAGREE: pub upgrade them together'}</td></tr>`,
   ];
   const services = Object.entries(r.state);
   rows.push(

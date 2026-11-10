@@ -2,7 +2,8 @@
 // tape's Run and Check, and the doctor of the terminal report. One place
 // starts it, collects what it says, and ends it: on a deadline or when asked
 // to, the whole group it started (`dart run` starts the VM as a child), by
-// SIGTERM and, if that is not heeded, SIGKILL.
+// SIGTERM and, if that is not heeded, SIGKILL; both only while the leader is
+// known alive (its pid, or group id, may be someone else's once it is gone).
 import { Exit, ProcessStarter } from '../core/process';
 import { Log } from './ports';
 
@@ -86,10 +87,6 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
   } finally {
     clearTimeout(timer);
     clearTimeout(escalation);
-    if (escalation !== undefined) {
-      // the leader is gone; what it started may have outlived it
-      process.signal('SIGKILL');
-    }
     options.cancel?.removeEventListener('abort', onAbort);
   }
   if (options.echo && output !== '' && !output.endsWith('\n')) {

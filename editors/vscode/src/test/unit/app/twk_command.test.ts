@@ -4,7 +4,7 @@
 import * as assert from 'node:assert/strict';
 
 import { runTwk } from '../../../app/twk_command';
-import { startNodeProcess } from '../../../core/process';
+import { AppProcess, Exit, startNodeProcess } from '../../../core/process';
 import { FakeLog } from '../fakes';
 
 /** Whether process [pid] exists. */
@@ -58,5 +58,35 @@ describe('runTwk over real processes', function () {
     while (alive(pid)) {
       await sleep(20);
     }
+  });
+
+  it('signals only while the leader is alive: nothing after it exited on SIGTERM', async () => {
+    const sent: string[] = [];
+    let exited = false;
+    let finish!: (e: Exit) => void;
+    const done = new Promise<Exit>((r) => (finish = r));
+    const fake: AppProcess = {
+      pid: 1,
+      get hasExited() {
+        return exited;
+      },
+      exited: done,
+      onOutput: () => {},
+      onError: () => {},
+      write: () => {},
+      signal(sig) {
+        sent.push(sig);
+        if (sig === 'SIGTERM') {
+          exited = true;
+          finish({ code: null, signal: 'SIGTERM' });
+        }
+      },
+    };
+    const abort = new AbortController();
+    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog() }, [], { cwd: '.', label: 'x', cancel: abort.signal, graceMs: 10 });
+    abort.abort();
+    await run;
+    await sleep(50);
+    assert.deepEqual(sent, ['SIGTERM']);
   });
 });

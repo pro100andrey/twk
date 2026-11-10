@@ -80,6 +80,7 @@ const doctorJson = {
   terminal: null,
   lock: '/p/pubspec.lock',
   versions: { twk: '0.3.0', twk_core: '0.3.0', twk_dev: '0.3.0' },
+  sources: { twk: 'locked', twk_core: 'locked', twk_dev: 'path' },
   agree: true,
   state: { run: { address: 'ws://x', listens: false } },
   agents: { stale: ['a'], edited: [], missing: false },
@@ -94,6 +95,7 @@ describe('twk doctor --json, read', () => {
       dart: '3.13.7',
       lock: '/p/pubspec.lock',
       versions: { twk: '0.3.0', twk_core: '0.3.0', twk_dev: '0.3.0' },
+      sources: { twk: 'locked', twk_core: 'locked', twk_dev: 'path' },
       agree: true,
       state: { run: { address: 'ws://x', listens: false } },
       agents: { stale: ['a'], edited: [], missing: false },
@@ -102,7 +104,7 @@ describe('twk doctor --json, read', () => {
 
   it('with no lock, no agents and fields of the wrong type left out', () => {
     const r = parseDoctor(JSON.stringify({ project: '/p', dart: 7, lock: null, versions: { twk: 1, twk_core: '1' }, agree: 'yes', state: { logs: 5 }, agents: null }));
-    assert.deepEqual(r.kind === 'ok' && r.report, { project: '/p', dart: '', lock: null, versions: { twk_core: '1' }, agree: false, state: {}, agents: null });
+    assert.deepEqual(r.kind === 'ok' && r.report, { project: '/p', dart: '', lock: null, versions: { twk_core: '1' }, sources: {}, agree: false, state: {}, agents: null });
   });
 
   it('is failed, saying why, for output that is no report', () => {
@@ -124,12 +126,22 @@ describe('the report page', () => {
     const html = page(ok);
     assert.match(html, /<h1>The twk terminal<\/h1>/);
     assert.match(html, /<code>CSI \? 2026 \$ p<\/code>/);
-    assert.match(html, /<th>twk_core<\/th><td>0\.3\.0<\/td>/);
-    assert.match(html, /<th>twk_test<\/th><td><span class="muted">not in the lock/);
+    assert.match(html, /<th>twk_core<\/th><td>0\.3\.0 <span class="muted">\(locked\)<\/span><\/td>/);
+    assert.match(html, /<th>twk_dev<\/th><td>0\.3\.0 <span class="muted">\(path\)/);
+    assert.match(html, /<th>twk_test<\/th><td><span class="muted">not found/);
     assert.match(html, /left behind/);
     assert.match(html, /older than this twk_dev: a/);
     assert.match(html, /script-src 'nonce-N0NCE'/);
     assert.equal((html.match(/<script/g) ?? []).length, 1);
+  });
+
+  it('says the agreement whatever the lock, and shows a version without a source', () => {
+    const noLock = { ...ok.report, lock: null, agree: false, sources: {} };
+    const html = page({ kind: 'ok', report: noLock });
+    assert.match(html, /DISAGREE/);
+    assert.doesNotMatch(html, /no lock to compare|not in the lock/);
+    assert.match(html, /<th>twk_core<\/th><td>0\.3\.0<\/td>/);
+    assert.match(page({ kind: 'ok', report: { ...noLock, agree: true } }), /class="ok">agree/);
   });
 
   it('says a disagreement, no project and a failure', () => {
