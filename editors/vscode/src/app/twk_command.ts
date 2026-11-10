@@ -2,8 +2,12 @@
 // tape's Run and Check, and the doctor of the terminal report. One place
 // starts it, collects what it says, and ends it: on a deadline or when asked
 // to, the whole group it started (`dart run` starts the VM as a child), by
-// SIGTERM and, if that is not heeded, SIGKILL; both only while the leader is
-// known alive (its pid, or group id, may be someone else's once it is gone).
+// SIGTERM and, if that is not heeded, SIGKILL. The SIGKILL is sent after the
+// grace even where the leader exited on the SIGTERM, to the group on POSIX
+// (a group id is not reused while any member lives, so it reaches only our
+// group or none); on Windows only while the leader lives, as taskkill takes
+// the pid alone, which may be someone else's once it is gone, so a child of a
+// leader that exited there stays.
 import { Exit, ProcessStarter } from '../core/process';
 import { Log } from './ports';
 
@@ -69,10 +73,12 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
     }
     process.signal('SIGTERM');
     escalation = setTimeout(() => {
-      if (!process.hasExited) {
+      if (!process.hasExited || globalThis.process.platform !== 'win32') {
         process.signal('SIGKILL');
       }
     }, options.graceMs ?? 3000);
+    // the timer outlives the run (it ends the group after the leader), and holds nothing up
+    escalation.unref();
   };
   const timer = options.timeoutMs === undefined ? undefined : setTimeout(() => ((timedOut = true), end()), options.timeoutMs);
   const onAbort = () => ((cancelled = true), end());
@@ -86,7 +92,6 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
     exit = await process.exited;
   } finally {
     clearTimeout(timer);
-    clearTimeout(escalation);
     options.cancel?.removeEventListener('abort', onAbort);
   }
   if (options.echo && output !== '' && !output.endsWith('\n')) {

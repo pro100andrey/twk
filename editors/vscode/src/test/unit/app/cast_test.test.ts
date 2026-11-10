@@ -98,6 +98,19 @@ describe('CastTests', () => {
     assert.ok(proc.signals.includes('SIGTERM'));
   });
 
+  it('one run per file at a time: a second ask while one runs is refused and starts nothing', async () => {
+    const before = started.length;
+    const first = tests.create(file);
+    assert.ok(tests.isRunning(file));
+    const second = await tests.create(file);
+    assert.equal(second.error, 'already writing a test of this recording');
+    assert.equal(started.length, before + 1);
+    proc.say('wrote test/counter_test.dart and test/counter.cast\n');
+    proc.end({ code: 0, signal: null });
+    assert.equal((await first).test, '/p/app/test/counter_test.dart');
+    assert.ok(!tests.isRunning(file));
+  });
+
   it('splits the files it wrote at the test and the recording, not at an " and " in a name', async () => {
     const done = tests.create('/p/app/rec/rock and roll.cast');
     proc.say('wrote test/rock and roll_test.dart and rec/rock and roll.cast\n');

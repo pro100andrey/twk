@@ -82,6 +82,10 @@ export const startNodeProcess: ProcessStarter = (command, args, options) => {
       child.stdin.write(text);
     },
     signal(signal) {
+      if (options.group === true && process.platform === 'win32' && this.hasExited) {
+        // the pid may be someone else's now
+        return;
+      }
       if (options.group !== true || child.pid === undefined) {
         child.kill(signal);
       } else if (process.platform === 'win32') {

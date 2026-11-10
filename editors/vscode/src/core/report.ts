@@ -103,7 +103,8 @@ export interface ProjectReport {
   readonly versions: Readonly<Record<string, string>>;
   /** Where each version came from (`locked`, `path`, `workspace`); empty for an older twk_dev. */
   readonly sources: Readonly<Record<string, string>>;
-  readonly agree: boolean;
+  /** Whether the versions agree; null where this twk_dev does not say (an older one). */
+  readonly agree: boolean | null;
   readonly state: Readonly<Record<string, ServiceState>>;
   readonly agents: { readonly stale: readonly string[]; readonly edited: readonly string[]; readonly missing: boolean } | null;
 }
@@ -169,7 +170,7 @@ export function parseDoctor(stdout: string): ProjectResult {
       lock: typeof json.lock === 'string' ? json.lock : null,
       versions,
       sources,
-      agree: json.agree === true,
+      agree: typeof json.agree === 'boolean' ? json.agree : null,
       state,
       agents: isRecord(a) ? { stale: strings(a.stale), edited: strings(a.edited), missing: a.missing === true } : null,
     },
@@ -179,6 +180,18 @@ export function parseDoctor(stdout: string): ProjectResult {
 
 /** The packages `twk doctor` compares, in its order. */
 export const doctorPackages = ['twk', 'twk_core', 'twk_dev', 'twk_test'] as const;
+
+function agreementRow(r: ProjectReport): string {
+  const [cls, text] =
+    r.agree === false
+      ? ['bad', 'DISAGREE: pub upgrade them together']
+      : Object.keys(r.versions).length < 2
+        ? ['muted', 'fewer than two twk packages found: nothing to compare']
+        : r.agree === null
+          ? ['muted', 'this twk_dev does not say']
+          : ['ok', 'agree'];
+  return `<tr><th>versions</th><td class="${cls}">${text}</td></tr>`;
+}
 
 function projectHtml(result: ProjectResult): string {
   if (result.kind === 'none') {
@@ -193,7 +206,7 @@ function projectHtml(result: ProjectResult): string {
     `<tr><th>Dart</th><td>${escapeHtml(r.dart)}</td></tr>`,
     `<tr><th>pubspec.lock</th><td>${r.lock === null ? 'none found' : escapeHtml(r.lock)}</td></tr>`,
     ...doctorPackages.map((p) => `<tr><th>${p}</th><td>${r.versions[p] === undefined ? '<span class="muted">not found</span>' : escapeHtml(r.versions[p]) + (r.sources[p] === undefined ? '' : ` <span class="muted">(${escapeHtml(r.sources[p])})</span>`)}</td></tr>`),
-    `<tr><th>versions</th><td class="${r.agree ? 'ok' : 'bad'}">${r.agree ? 'agree' : 'DISAGREE: pub upgrade them together'}</td></tr>`,
+    agreementRow(r),
   ];
   const services = Object.entries(r.state);
   rows.push(

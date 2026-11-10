@@ -444,6 +444,10 @@ export function activate(context: vscode.ExtensionContext): Api {
       return undefined;
     }
     const name = path.basename(file.fsPath);
+    if (castTests.isRunning(file.fsPath)) {
+      void vscode.window.showInformationMessage(`twk: ${name}: already writing its test`);
+      return undefined;
+    }
     const result = await cancellable(`twk test-from-cast ${name}`, (cancel) => castTests.create(file.fsPath, cancel));
     if (result.cancelled) {
       void vscode.window.showInformationMessage(`twk: ${name}: test cancelled`);

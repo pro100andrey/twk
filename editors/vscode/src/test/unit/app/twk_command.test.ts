@@ -60,7 +60,38 @@ describe('runTwk over real processes', function () {
     }
   });
 
-  it('signals only while the leader is alive: nothing after it exited on SIGTERM', async () => {
+  (process.platform === 'win32' ? it.skip : it)('a child that ignores SIGTERM does not outlive a leader that exited on it: SIGKILL to the group after the grace', async () => {
+    const leader = parent.replace("process.on('SIGTERM', () => {});\n  const child", "process.on('SIGTERM', () => process.exit(0));\n  const child");
+    assert.notEqual(leader, parent);
+    const abort = new AbortController();
+    let seen = '';
+    const start: typeof startNodeProcess = (c, a, o) => {
+      const p = startNodeProcess(c, a, o);
+      p.onOutput((t) => (seen += t));
+      return p;
+    };
+    const run = runTwk({ start, command: () => [process.execPath, '-e', leader, '--'], env: process.env, log: new FakeLog() }, [], { cwd: process.cwd(), label: 'x', cancel: abort.signal, graceMs: 200 });
+    while (!/child \d+/.test(seen)) {
+      await sleep(20);
+    }
+    const pid = Number(/child (\d+)/.exec(seen)![1]);
+    abort.abort();
+    const r = await run;
+    assert.equal(r.exit.code, 0);
+    // the leader is gone; the child ignored SIGTERM and lives until the grace is over
+    assert.ok(alive(pid));
+    // bounded: a child that stays would otherwise keep this loop, and mocha, running after the failure
+    for (let i = 0; i < 150 && alive(pid); i++) {
+      await sleep(20);
+    }
+    const stays = alive(pid);
+    if (stays) {
+      process.kill(pid, 'SIGKILL');
+    }
+    assert.ok(!stays, 'the child outlived the group kill');
+  });
+
+  it('after the leader exited on SIGTERM, SIGKILL still goes to the group after the grace, on POSIX only', async () => {
     const sent: string[] = [];
     let exited = false;
     let finish!: (e: Exit) => void;
@@ -87,6 +118,6 @@ describe('runTwk over real processes', function () {
     abort.abort();
     await run;
     await sleep(50);
-    assert.deepEqual(sent, ['SIGTERM']);
+    assert.deepEqual(sent, process.platform === 'win32' ? ['SIGTERM'] : ['SIGTERM', 'SIGKILL']);
   });
 });

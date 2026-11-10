@@ -31,12 +31,29 @@ export interface CastTestResult {
 const WROTE = /^wrote (.+?_test\.dart) and (.+\.cast)$/;
 
 export class CastTests {
+  private readonly running = new Set<string>();
+
   constructor(private readonly deps: CastTestsDeps) {}
+
+  /** Whether a test of [file] is being written (one run per file at a time: they write the same files). */
+  isRunning(file: string): boolean {
+    return this.running.has(path.resolve(file));
+  }
 
   /** Makes a test of [file]; [cancel] ends the command and what it started. */
   async create(file: string, cancel?: AbortSignal): Promise<CastTestResult> {
+    if (this.isRunning(file)) {
+      return { said: '', error: 'already writing a test of this recording', cancelled: false };
+    }
     const cwd = this.deps.projectOf(file) ?? path.dirname(file);
-    const run = await runTwk(this.deps, ['test-from-cast', file], { cwd, label: 'test-from-cast', echo: true, cancel, graceMs: this.deps.graceMs, timeoutMs: 120_000 });
+    const key = path.resolve(file);
+    this.running.add(key);
+    let run;
+    try {
+      run = await runTwk(this.deps, ['test-from-cast', file], { cwd, label: 'test-from-cast', echo: true, cancel, graceMs: this.deps.graceMs, timeoutMs: 120_000 });
+    } finally {
+      this.running.delete(key);
+    }
     const lines = run.output.split(/\r?\n/).filter((l) => l.trim() !== '');
     // `wrote <test> and <cast>`, both relative to the project
     const wrote = lines.map((l) => WROTE.exec(l)).find((m) => m !== null);

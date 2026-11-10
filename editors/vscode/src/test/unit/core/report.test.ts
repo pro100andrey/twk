@@ -104,7 +104,7 @@ describe('twk doctor --json, read', () => {
 
   it('with no lock, no agents and fields of the wrong type left out', () => {
     const r = parseDoctor(JSON.stringify({ project: '/p', dart: 7, lock: null, versions: { twk: 1, twk_core: '1' }, agree: 'yes', state: { logs: 5 }, agents: null }));
-    assert.deepEqual(r.kind === 'ok' && r.report, { project: '/p', dart: '', lock: null, versions: { twk_core: '1' }, sources: {}, agree: false, state: {}, agents: null });
+    assert.deepEqual(r.kind === 'ok' && r.report, { project: '/p', dart: '', lock: null, versions: { twk_core: '1' }, sources: {}, agree: null, state: {}, agents: null });
   });
 
   it('is failed, saying why, for output that is no report', () => {
@@ -142,6 +142,17 @@ describe('the report page', () => {
     assert.doesNotMatch(html, /no lock to compare|not in the lock/);
     assert.match(html, /<th>twk_core<\/th><td>0\.3\.0<\/td>/);
     assert.match(page({ kind: 'ok', report: { ...noLock, agree: true } }), /class="ok">agree/);
+  });
+
+  it('an older twk_dev that does not say: no verdict; fewer than two versions: nothing to compare', () => {
+    const old = parseDoctor(JSON.stringify({ project: '/p', versions: { twk: '1', twk_core: '1' } }));
+    assert.equal(old.kind === 'ok' && old.report.agree, null);
+    const html = page(old);
+    assert.match(html, /this twk_dev does not say/);
+    assert.doesNotMatch(html, /DISAGREE|>agree</);
+    const one = page({ kind: 'ok', report: { ...ok.report, agree: true, versions: { twk: '1' } } });
+    assert.match(one, /fewer than two twk packages found/);
+    assert.doesNotMatch(one, />agree</);
   });
 
   it('says a disagreement, no project and a failure', () => {

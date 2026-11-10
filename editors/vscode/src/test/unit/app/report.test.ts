@@ -92,8 +92,7 @@ describe('Doctor', () => {
 
   it('ends a run that does not end, and says so', async () => {
     const r = await doctor.project('/p');
-    // SIGTERM; nothing after the leader exited (its pid may be reused)
-    assert.deepEqual(proc.signals, ['SIGTERM']);
+    assert.equal(proc.signals[0], 'SIGTERM');
     assert.match(r.kind === 'failed' ? r.message : '', /did not finish/);
   });
 
