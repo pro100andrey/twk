@@ -293,6 +293,8 @@ export function activate(context: vscode.ExtensionContext): Api {
   );
   command('twk.inspector.refresh', () => inspector.refresh());
   // the pick mode's button, pressed (stopPicking) while it is on
+  command('twk.inspector.showRenderTree', () => inspector.showTree('render'));
+  command('twk.inspector.showWidgetTree', () => inspector.showTree('element'));
   command('twk.inspector.pick', () => inspector.pick());
   command('twk.inspector.stopPicking', () => inspector.stopPicking());
   nodeCommand('twk.inspector.goToSource', (node) => inspector.goToSource(node.id));

@@ -14,7 +14,7 @@ in a terminal of the extension's own, beside the editor.
 - **What the terminal is**: presets and switches (colours, sixel and iTerm2
   images, kitty's keyboard protocol, synchronized output, notifications,
   links, the clipboard), a screen reader, and twk's debug aids.
-- **The twk Inspector** in Run and Debug: the widget tree, a twk Node view of
+- **The twk Inspector** in Run and Debug: the widget tree (or the render tree, switched in its title), a twk Node view of
   the selected widget's properties and layout, a pick mode that opens where a
   clicked widget was made, the frame overlay, the repaint rainbow.
 - **The app's log** (levels, filter, pause; stack frames open the code), as

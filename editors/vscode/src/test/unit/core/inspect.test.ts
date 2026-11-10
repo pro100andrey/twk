@@ -9,6 +9,7 @@ import {
   flagParams,
   nodeOf,
   constraintsText,
+  counterpartOf,
   detailSections,
   parseFlags,
   parseLayout,
@@ -21,7 +22,7 @@ import {
   toggleItems,
   togglesPicked,
 } from '../../../core/inspect';
-import { treeAnswer } from '../fakes';
+import { renderAnswer, treeAnswer } from '../fakes';
 
 describe("twk's inspector answers", () => {
   it('reads the element tree, each node with what twk tells of it', () => {
@@ -43,12 +44,25 @@ describe("twk's inspector answers", () => {
     assert.equal(pathTo(tree.root, 99), undefined);
     assert.equal(shownRoot(tree)!.name, 'Padding');
     assert.equal(shownRoot({ ...tree, app: null })!.name, 'RootWidget');
-    assert.deepEqual(parseTree({ version: 1, tree: 'element', root: null, app: null }), { root: null, app: null });
+    assert.deepEqual(parseTree({ version: 1, tree: 'element', root: null, app: null }), { kind: 'element', root: null, app: null });
+  });
+
+  it('reads the render tree: no app, each render object with the element it is of; the counterpart in either tree', () => {
+    const tree = parseTree(renderAnswer);
+    assert.equal(tree.kind, 'render');
+    assert.equal(tree.app, null);
+    assert.equal(shownRoot(tree)!.name, 'RenderRoot');
+    const text = nodeOf(tree, 11)!;
+    assert.equal(text.element, 4);
+    assert.equal(counterpartOf(text), 4);
+    assert.equal(counterpartOf(nodeOf(parseTree(treeAnswer), 4)!), 11);
+    assert.equal(counterpartOf(nodeOf(tree, 9)!), undefined, 'the root has no element');
+    assert.equal(parseTree(treeAnswer).kind, 'element');
   });
 
   it('refuses an answer of another version, of the render tree, or one it does not read', () => {
     assert.throws(() => parseTree({ ...treeAnswer, version: 2 }), /version 2; this extension reads 1/);
-    assert.throws(() => parseTree({ ...treeAnswer, tree: 'render' }), /not the element tree/);
+    assert.throws(() => parseTree({ ...treeAnswer, tree: 'layers' }), /not the element tree or the render tree: layers/);
     assert.throws(() => parseTree({ ...treeAnswer, root: { id: 'x', name: 'A', children: [] } }), /does not read/);
     assert.throws(() => parseTree({ ...treeAnswer, root: { id: 1, name: 'A', children: [{ id: 0, name: 'B', children: [] }] } }), /does not read/);
     assert.throws(() => parseTree([]), /no JSON object/);

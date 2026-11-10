@@ -22,6 +22,7 @@ import {
   FakeSettings,
   FakeView,
   realShell,
+  renderAnswer,
   treeAnswer,
   until,
 } from '../fakes';
@@ -36,7 +37,7 @@ function flagsAnswer(...on: string[]) {
 function app(): FakeAppService {
   const service = new FakeAppService();
   const on = new Set<string>();
-  service.answers.set('ext.twk.tree', () => treeAnswer);
+  service.answers.set('ext.twk.tree', (p) => (p.tree === 'render' ? renderAnswer : treeAnswer));
   service.answers.set('ext.twk.flags', (p) => {
     for (const [k, v] of Object.entries(p)) {
       if (v === 'true') {
@@ -413,6 +414,67 @@ describe('Inspector', () => {
     const asked = service.asked.length;
     await inspector.stopPicking();
     assert.equal(service.asked.length, asked);
+  });
+
+  it('the render tree: the switch selects the counterpart of the node selected, in either direction; following, outlining and the node view work in it; a render object leads to no code', async () => {
+    const service = app();
+    withCode(service);
+    await connect(service);
+    assert.equal(inspector.treeKind, 'element');
+    // the Text selected: its render object is selected on the switch
+    view.select(4);
+    await until('its details', () => details.lines.length > 0);
+    await inspector.showTree('render');
+    assert.equal(inspector.treeKind, 'render');
+    assert.equal(inspector.tree!.kind, 'render');
+    assert.equal(view.tree!.kind, 'render');
+    assert.deepEqual(view.kinds, ['element', 'render']);
+    assert.ok(service.asked.includes('ext.twk.tree tree=render'), service.asked.join('\n'));
+    assert.equal(view.selected, 11);
+    assert.ok(service.asked.includes('ext.twk.highlight id=11'));
+    await until('its details', () => callsOf(service, 'ext.twk.properties').includes('ext.twk.properties id=11'));
+    // the same tree again: nothing asked
+    const asked = service.asked.length;
+    await inspector.showTree('render');
+    assert.equal(service.asked.length, asked);
+    // followed: a change of the app asks for the render tree
+    service.post('twk.treeChanged', { version: 1 });
+    clock.elapse(refreshGap);
+    await until('asked again', () => service.asked.filter((c) => c === 'ext.twk.tree tree=render').length === 2);
+    // a render object has no widget
+    await assert.rejects(inspector.goToSource(11), /no widget/);
+    await assert.rejects(inspector.goToBuild(11), /no widget/);
+    assert.deepEqual(opener.opened, []);
+    // selected by hand: outlined
+    view.select(10);
+    await until('outlined', () => service.asked.includes('ext.twk.highlight id=10'));
+    // and back: the element of the render object
+    await inspector.toggleTree();
+    assert.equal(inspector.treeKind, 'element');
+    assert.equal(view.selected, 3, 'the Padding is the element of RenderPadding');
+    assert.equal(view.tree!.kind, 'element');
+    // a node with no counterpart (the render root): none selected
+    await inspector.showTree('render');
+    view.select(9);
+    await inspector.showTree('element');
+    assert.equal(view.selected, undefined);
+    assert.equal(details.message, noNode);
+  });
+
+  it('a pick in the render tree selects the render object and opens the code of its widget all the same', async () => {
+    const service = app();
+    withCode(service);
+    await connect(service);
+    await inspector.showTree('render');
+    await inspector.pick();
+    // ext.twk.select answers the element; its properties tell the render object
+    service.post('twk.select', { version: 1, x: 3, y: 2 });
+    await until('opened', () => opener.opened.length === 1);
+    assert.deepEqual(view.revealed, [11]);
+    assert.ok(service.asked.includes('ext.twk.highlight id=11'));
+    assert.equal(opener.opened[0].method, '_CountState.build');
+    assert.equal(inspector.treeKind, 'render');
+    assert.equal(inspector.tree!.kind, 'render');
   });
 
   it('Escape in the terminal turns the pick mode off, as the app tells it', async () => {

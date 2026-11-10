@@ -8,6 +8,10 @@
 // node selected is outlined on the app (`ext.twk.highlight`), and only
 // that, so the tree can be browsed; a node leads to where its widget was
 // made, or to the build method that makes its child ([SourceLocator]).
+// The view shows the widgets' tree (elements) or the render tree
+// (`ext.twk.tree` `tree=render`), as `twk inspect`'s `t`: the switch selects
+// the node selected's counterpart; a pick selects the render object in the
+// render tree, and opens the widget's code all the same.
 // The pick mode, a toggle as Flutter's Select Widget Mode: while it is on,
 // each click on the app's terminal (the app's own pick, `select` with
 // `selectMany`, or the webview's where the app can't: the inline mode)
@@ -25,6 +29,8 @@ import {
   InspectTree,
   NodeDetails,
   Toggle,
+  TreeKind,
+  counterpartOf,
   flagParams,
   detailSections,
   nodeOf,
@@ -85,6 +91,8 @@ export class Inspector {
   private current: Target | undefined;
   /** The tree the view shows, of [current]. */
   tree: InspectTree | undefined;
+  /** Which tree the view shows: the widgets' (elements), or the render objects'. */
+  private kind: TreeKind = 'element';
   /** The debug aids switched here, by terminal: given again to the next app in it. */
   private readonly wanted = new Map<TwkTerminal, Partial<Record<Toggle, boolean>>>();
   /** The terminal the pick mode is on in: its app's, and the next app's of a restart. */
@@ -117,9 +125,15 @@ export class Inspector {
         void this.showDetails(id);
       }),
     ];
+    deps.view.showKind(this.kind);
     deps.view.show(undefined, noApp);
     deps.details.show([], noNode);
     deps.picking.show(false);
+  }
+
+  /** Which tree the view shows. */
+  get treeKind(): TreeKind {
+    return this.kind;
   }
 
   /** Whether the pick mode is on, its button pressed: for an app there to pick in. */
@@ -289,9 +303,13 @@ export class Inspector {
       return undefined;
     }
     try {
-      const tree = parseTree(await target.service.extension('ext.twk.tree'));
+      const kind = this.kind;
+      const tree = parseTree(await target.service.extension('ext.twk.tree', kind === 'render' ? { tree: 'render' } : {}));
+      if (tree.kind !== kind) {
+        throw new Error(`asked for the ${kind} tree, got the ${tree.kind} tree`);
+      }
       // an asking that came after it, or another app, wins
-      if (asked === this.asking && target === this.current) {
+      if (asked === this.asking && target === this.current && kind === this.kind) {
         this.tree = tree;
         this.deps.view.show(tree, tree.root ? '' : 'The app has drawn no frame yet.');
         // its size and place may have moved with the tree
@@ -311,6 +329,43 @@ export class Inspector {
       }
       return undefined;
     }
+  }
+
+  /**
+   * Shows the tree of [kind] from now on: the node selected is followed to
+   * its counterpart (an element's render object, a render object's
+   * element), which is selected, outlined and shown in the node view.
+   */
+  async showTree(kind: TreeKind): Promise<void> {
+    if (kind === this.kind) {
+      return;
+    }
+    const was = this.tree && this.detailed !== undefined ? nodeOf(this.tree, this.detailed) : undefined;
+    const counterpart = was && counterpartOf(was);
+    this.kind = kind;
+    this.tree = undefined;
+    this.deps.view.showKind(kind);
+    // the node of the other tree is none of this one: refresh() would show it
+    this.detailed = undefined;
+    const tree = await this.refresh();
+    if (kind !== this.kind) {
+      return;
+    }
+    const node = tree && counterpart !== undefined ? nodeOf(tree, counterpart) : undefined;
+    if (!tree || !node) {
+      this.deps.view.clearSelection();
+      void this.showDetails(undefined);
+      await this.highlight(undefined);
+      return;
+    }
+    this.deps.view.reveal(node.id);
+    void this.showDetails(node.id);
+    await this.highlight(node.id);
+  }
+
+  /** The other tree. */
+  toggleTree(): Promise<void> {
+    return this.showTree(this.kind === 'element' ? 'render' : 'element');
   }
 
   /**
@@ -463,14 +518,20 @@ export class Inspector {
       if (id === null) {
         return undefined;
       }
-      const tree = this.tree && nodeOf(this.tree, id) ? this.tree : await this.refresh();
-      const node = tree && nodeOf(tree, id);
-      if (tree && node && target === this.current) {
-        this.deps.view.reveal(id);
-        void this.showDetails(id);
-        await this.highlight(id);
-        await this.openPicked(target, tree, node);
-        return id;
+      // the widget picked is an element; in the render tree its render object is selected, and the widget's code opened all the same
+      const shownId = this.kind === 'element' ? id : parseProperties(await target.service.extension('ext.twk.properties', { id: String(id) })).render;
+      const tree = this.tree && shownId !== undefined && nodeOf(this.tree, shownId) ? this.tree : await this.refresh();
+      const shown = tree && shownId !== undefined ? nodeOf(tree, shownId) : undefined;
+      if (tree && shown && target === this.current) {
+        const elements = tree.kind === 'element' ? tree : parseTree(await target.service.extension('ext.twk.tree'));
+        const node = nodeOf(elements, id);
+        this.deps.view.reveal(shown.id);
+        void this.showDetails(shown.id);
+        await this.highlight(shown.id);
+        if (node) {
+          await this.openPicked(target, elements, node);
+        }
+        return shown.id;
       }
     } catch (e) {
       this.deps.log.appendLine(`twk inspector: the pick at ${cell.x}, ${cell.y}: ${String(e)}`);
@@ -566,6 +627,9 @@ export class Inspector {
   private nodeShown(id: number) {
     const target = this.current;
     const tree = this.tree;
+    if (tree?.kind === 'render') {
+      throw new Error('a render object has no widget: show the widget tree');
+    }
     const node = tree && nodeOf(tree, id);
     if (!target || !tree || !node) {
       throw new Error('that node is in the tree no more: refresh it');

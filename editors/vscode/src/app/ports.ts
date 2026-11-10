@@ -5,7 +5,7 @@ import { Answers, Choice } from '../core/capabilities';
 import { TerminalRequest } from '../core/emulation';
 import { Clock, Event } from '../core/events';
 import { HotStatus } from '../core/hot';
-import { DetailSection, InspectTree } from '../core/inspect';
+import { DetailSection, InspectTree, TreeKind } from '../core/inspect';
 import { SourceSpot } from '../core/locator';
 import { HotRunOptions } from '../core/runner';
 import { Switches } from '../core/switches';
@@ -188,6 +188,8 @@ export type HotContext = (running: boolean) => void;
 export interface InspectorView {
   /** Shows [tree], or none with [message] saying why. */
   show(tree: InspectTree | undefined, message: string): void;
+  /** Says which tree it shows from now on (the title's toggle, the view's description). */
+  showKind(kind: TreeKind): void;
   /** Selects the node [id] and shows it, those above it expanded. */
   reveal(id: number): void;
   /** Whether it is on the screen now. */

@@ -2,11 +2,12 @@
 // [InspectorView] of app/inspector.ts, the [SourceOpener] that opens a
 // place of the code in an editor, and the pick mode's button
 // ([PickingIndicator]: the context key `twk.inspector.picking`, which
-// shows the pressed one in the view's title).
+// shows the pressed one in the view's title); its Widgets / Render switch is
+// the context key `twk.inspector.render`.
 import * as vscode from 'vscode';
 
 import { Emitter } from '../core/events';
-import { DetailRow, DetailSection, InspectNode, InspectTree, describeNode, detailsOf, shownRoot } from '../core/inspect';
+import { DetailRow, DetailSection, InspectNode, InspectTree, TreeKind, describeNode, detailsOf, shownRoot } from '../core/inspect';
 import { SourceSpot } from '../core/locator';
 import { InspectorView, NodeDetailsView, PickingIndicator, SourceOpener } from '../app/ports';
 
@@ -15,6 +16,7 @@ const expandedLevels = 3;
 
 export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvider<InspectNode>, vscode.Disposable {
   private root: InspectNode | null = null;
+  private kind: TreeKind = 'element';
   private readonly parents = new Map<number, InspectNode>();
   private readonly nodes = new Map<number, InspectNode>();
   private readonly depths = new Map<number, number>();
@@ -53,6 +55,12 @@ export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvid
   /** The node [id] names in the tree shown. */
   node(id: number): InspectNode | undefined {
     return this.nodes.get(id);
+  }
+
+  showKind(kind: TreeKind): void {
+    this.kind = kind;
+    this.treeView.description = kind === 'render' ? 'render tree' : undefined;
+    void vscode.commands.executeCommand('setContext', 'twk.inspector.render', kind === 'render');
   }
 
   show(tree: InspectTree | undefined, message: string): void {
@@ -104,7 +112,8 @@ export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvid
     item.id = `${this.generation}:${n.id}`;
     item.description = describeNode(n);
     item.tooltip = detailsOf(n).join('\n');
-    item.contextValue = n.build ? 'twkBuilds' : 'twkNode';
+    // a render object has no widget: no menu to go to the code
+    item.contextValue = this.kind === 'render' ? 'twkRenderNode' : n.build ? 'twkBuilds' : 'twkNode';
     return item;
   }
 

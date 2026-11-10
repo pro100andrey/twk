@@ -35,8 +35,8 @@ says it was not.
   cell size, notifications, progress, pointer shapes, REP, links, the
   clipboard), for the apps that connect next; the screen reader and twk's
   debug aids switched on in them.
-- **The twk Inspector** (Run and Debug): the widget tree, followed as the
-  app changes; the pick mode, as Flutter's Select Widget Mode: while its
+- **The twk Inspector** (Run and Debug): the widget tree (or the render
+  tree, switched in its title), followed as the app changes; the pick mode, as Flutter's Select Widget Mode: while its
   button is pressed, each click on the terminal picks the widget under it
   and opens where it was made; where a widget was made, from the tree;
   the frame overlay, the repaint rainbow, the relayout highlight.
@@ -474,7 +474,8 @@ The code is in layers (part 2b); what each part does:
     Pick Widgets in the twk Terminal (Pick Mode On)** (pressed: **twk:
     Stop Picking Widgets (Pick Mode Off)**), **twk: Inspector Debug Aids
     (Frame Overlay, Repaint Rainbow, Relayout, Console)** and **twk:
-    Refresh the Widget Tree** in its title, **Go to Where the Widget Was
+    Refresh the Widget Tree** and **twk: Show the Render Tree** / **Show
+    the Widget Tree** (the switch) in its title, **Go to Where the Widget Was
     Made** on each node (inline and in its menu) and **Go to the Build
     Method** on a node that builds.
 
@@ -707,7 +708,7 @@ The ports (`src/app/ports.ts`), what the editor gives the use cases:
   switches changed), `HotContext` (the `twk.hotApp` key),
   `Clock` (`core/events.ts`: the save's debounce, the bounds of the waits
   for a VM service, the inspector's gap between askings of the tree).
-- `InspectorView` (`show` a tree or a message, `reveal` a node,
+- `InspectorView` (`show` a tree or a message, `showKind` the tree kind, `reveal` a node,
   `clearSelection`, `visible`, `onVisible`, `onSelect`), `SourceOpener`
   (`open` a place, the focus kept or not), `PickingIndicator` (the pick
   mode's button, `show` on or off) and `Notice` (`say` a line in the
@@ -1027,6 +1028,22 @@ made in.
   keyboard and the menu already. The tree's tooltip stays. Its port is
   `NodeDetailsView`, the lines made by `core/inspect.ts`'s
   `detailSections`.
+- **The render tree** (the title's switch, `twk.inspector.showRenderTree` /
+  `showWidgetTree`, the context key `twk.inspector.render`): the tree
+  view shows the widgets' elements (`ext.twk.tree`) or the app's render
+  objects (`tree=render`, whose nodes carry the `element` they are of,
+  where the elements' carry the `render` object), as `twk inspect`'s `t`.
+  The switch selects the counterpart of the node selected (`counterpartOf`:
+  an element's render object, the nearest below it where it has none of
+  its own; a render object's element), outlined and shown in the node view;
+  where there is none (the render root) nothing is selected. Following
+  (`twk.treeChanged`), selecting by hand, the outline and the node view
+  work as in the other tree. A pick selects the render object of the
+  widget picked (`ext.twk.properties` of the element `ext.twk.select`
+  gave) and opens the widget's code all the same, from the element tree
+  asked for it. A render object has no widget: **Go to** is not in its
+  menu, and the commands refuse, saying so. The tree shown is kept for
+  the next app (a restart); the view's description says `render tree`.
 - **Debug aids** (the view's title): the frame overlay, the repaint
   rainbow, the relayout highlight, the overflow marker and the log console, a pick of several
   as the app has them; kept for the terminal, and given again to the
@@ -1048,7 +1065,8 @@ twk_core's frames, which the inspector does not change.
 
 Tests (unit, under node):
 
-- `core/inspect.test.ts` (5): the tree read, a node's fields, a version
+- `core/inspect.test.ts` (6): the tree read, the render tree and the
+  counterparts, a node's fields, a version
   or a shape it doesn't read refused, the select, flags and pick answers,
   what a tree item says, the toggles' items; and the node view's
   answers (properties, layout: read, refused, constraints as text, the
@@ -1075,7 +1093,10 @@ Tests (unit, under node):
   ended with its app, armed again for a restart's once bound, forgotten
   with its terminal closed; a widget made in no build found: the build
   above opened and why said, none found said; a pick in another app's
-  terminal; the aids given again after a restart; an answer it can't
+  terminal; the aids given again after a restart; the render tree: the
+  switch selecting the counterpart each way (none for the render root),
+  followed, outlined, no code for a render object, a pick selecting the
+  render object and opening the widget's code; an answer it can't
   read said in the view; the node view: a node selected or picked shown
   with its layout, replaced, asked again on a tree, cleared with none
   selected, with the pick mode off and with the app; an element with no
@@ -1128,8 +1149,9 @@ Not done: a person using it; a real click in the webview (the tests
 type the SGR press the click would send; the webview's own pick, for
 the inline mode, is tested in its parts: the cell's and the cursor's
 arithmetic, the messages, the view's port, and against twk over a
-headless xterm.js, not clicked in a real webview); the render
-tree (`ext.twk.tree` `tree=render`) in the view; the node view in a real
+headless xterm.js, not clicked in a real webview); the render tree
+in a real VS Code (its unit tests run over fakes, not against twk's
+answer); the node view in a real
 VS Code (`npm test`: `extension.test.ts` does not open it).
 
 ## 2e. The sequence log, recording and replay

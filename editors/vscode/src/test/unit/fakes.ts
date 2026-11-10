@@ -8,7 +8,7 @@ import { Answers, Choice, choiceOf } from '../../core/capabilities';
 import { TerminalRequest } from '../../core/emulation';
 import { Clock, Disposable, Emitter } from '../../core/events';
 import { HotStatus } from '../../core/hot';
-import { AppEvent, AppService, DetailSection, InspectTree } from '../../core/inspect';
+import { AppEvent, AppService, DetailSection, InspectTree, TreeKind } from '../../core/inspect';
 import { LogConnection, LogEndpoints } from '../../core/log_follow';
 import { SourceSpot } from '../../core/locator';
 import { Switches, noSwitches } from '../../core/switches';
@@ -537,6 +537,8 @@ export class FakeInspectorView implements InspectorView {
   message = '';
   readonly shown: (InspectTree | undefined)[] = [];
   readonly revealed: number[] = [];
+  /** The tree kind it was told to show, each time. */
+  readonly kinds: TreeKind[] = [];
   private readonly visibility = new Emitter<boolean>();
   private readonly selections = new Emitter<number | undefined>();
   readonly onVisible = this.visibility.event;
@@ -546,6 +548,10 @@ export class FakeInspectorView implements InspectorView {
     this.tree = tree;
     this.message = message;
     this.shown.push(tree);
+  }
+
+  showKind(kind: TreeKind): void {
+    this.kinds.push(kind);
   }
 
   reveal(id: number): void {
@@ -704,3 +710,25 @@ export class FakeLogEndpoints implements LogEndpoints {
     return connection;
   }
 }
+
+/** An answer of `ext.twk.tree` `tree=render` for the app of [treeAnswer]: each render object with the id of its element. */
+export const renderAnswer = {
+  version: 1,
+  tree: 'render',
+  root: {
+    id: 9,
+    name: 'RenderRoot',
+    properties: [],
+    flags: [],
+    children: [
+      {
+        id: 10,
+        name: 'RenderPadding',
+        properties: [{ name: 'padding', value: 'left 2' }],
+        flags: [],
+        element: 3,
+        children: [{ id: 11, name: 'RenderText', properties: [{ value: '"n 0"' }], size: { width: 3, height: 1 }, flags: [], element: 4, children: [] }],
+      },
+    ],
+  },
+};

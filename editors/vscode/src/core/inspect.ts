@@ -25,15 +25,21 @@ export interface InspectNode {
   readonly properties: readonly InspectProperty[];
   readonly size?: { readonly width: number; readonly height: number };
   readonly flags: readonly string[];
-  /** The id of its render object, or of the nearest below it. */
+  /** The id of its render object, or of the nearest below it (an element's). */
   readonly render?: number;
+  /** The id of the element whose render object it is (a render object's, in the render tree). */
+  readonly element?: number;
   /** The type whose `build` makes its child: a stateless widget's, a state's. */
   readonly build?: string;
   readonly children: readonly InspectNode[];
 }
 
-/** The element tree: its root, and the id of the app's own element, below the binding's. */
+/** Which tree `ext.twk.tree` gives: the widgets' elements, or the render objects. */
+export type TreeKind = 'element' | 'render';
+
+/** A tree of the app: its root, and in the element tree the id of the app's own element, below the binding's (null in the render tree). */
 export interface InspectTree {
+  readonly kind: TreeKind;
   readonly root: InspectNode | null;
   readonly app: number | null;
 }
@@ -120,22 +126,23 @@ export function parseNode(v: unknown): InspectNode | undefined {
     ...(size ? { size } : {}),
     flags: Array.isArray(v.flags) ? v.flags.filter((f): f is string => typeof f === 'string') : [],
     ...(isId(v.render) ? { render: v.render } : {}),
+    ...(isId(v.element) ? { element: v.element } : {}),
     ...(typeof v.build === 'string' ? { build: v.build } : {}),
     children,
   };
 }
 
-/** `ext.twk.tree`'s answer (the element tree); throws on one this doesn't read. */
+/** `ext.twk.tree`'s answer (the element tree, or the render tree); throws on one this doesn't read. */
 export function parseTree(answer: unknown): InspectTree {
   const a = versioned(answer);
-  if (a.tree !== 'element') {
-    throw new Error(`not the element tree: ${String(a.tree)}`);
+  if (a.tree !== 'element' && a.tree !== 'render') {
+    throw new Error(`not the element tree or the render tree: ${String(a.tree)}`);
   }
   const root = a.root === null ? null : parseNode(a.root);
   if (root === undefined) {
     throw new Error('the app answered a tree this does not read');
   }
-  return { root, app: isId(a.app) ? a.app : null };
+  return { kind: a.tree, root, app: isId(a.app) ? a.app : null };
 }
 
 /** `ext.twk.select`'s answer: the element at the cell, null for none, and the ids from the root down to it. */
@@ -201,6 +208,11 @@ export function pathTo(root: InspectNode | null, id: number): InspectNode[] | un
 /** The node [id] names in [tree]. */
 export function nodeOf(tree: InspectTree, id: number): InspectNode | undefined {
   return pathTo(tree.root, id)?.at(-1);
+}
+
+/** The id of [node]'s counterpart in the other tree: an element's render object (the nearest below it where it has none of its own), a render object's element. */
+export function counterpartOf(node: InspectNode): number | undefined {
+  return node.render ?? node.element;
 }
 
 /** The node the tree is shown from: the app's own, or the root. */

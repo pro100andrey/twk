@@ -93,6 +93,18 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "twk.inspector.showRenderTree",
+        "title": "Show the Render Tree (the Render Objects of the App)",
+        "category": "twk",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "twk.inspector.showWidgetTree",
+        "title": "Show the Widget Tree (the Elements of the App)",
+        "category": "twk",
+        "icon": "$(list-tree)"
+      },
+      {
         "command": "twk.inspector.pick",
         "title": "Pick Widgets in the twk Terminal (Pick Mode On)",
         "category": "twk",
@@ -409,6 +421,16 @@
           "group": "navigation@1"
         },
         {
+          "command": "twk.inspector.showRenderTree",
+          "when": "view == twk.inspector && !twk.inspector.render",
+          "group": "navigation@0"
+        },
+        {
+          "command": "twk.inspector.showWidgetTree",
+          "when": "view == twk.inspector && twk.inspector.render",
+          "group": "navigation@0"
+        },
+        {
           "command": "twk.inspector.toggles",
           "when": "view == twk.inspector",
           "group": "navigation@2"
@@ -422,12 +444,12 @@
       "view/item/context": [
         {
           "command": "twk.inspector.goToSource",
-          "when": "view == twk.inspector",
+          "when": "view == twk.inspector && viewItem != twkRenderNode",
           "group": "inline@1"
         },
         {
           "command": "twk.inspector.goToSource",
-          "when": "view == twk.inspector",
+          "when": "view == twk.inspector && viewItem != twkRenderNode",
           "group": "navigation@1"
         },
         {

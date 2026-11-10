@@ -9,7 +9,8 @@ The first packaged version (a preview, `.vsix` built from this repository).
   the terminal can do.
 - Run, Debug and F5 on a `"type": "twk"` launch configuration; hot reload on
   save, hot reload and hot restart commands.
-- The twk Inspector (widget tree, twk Node, pick mode) and the app's log
+- The twk Inspector (widget tree or render tree, switched in its title with the
+  selected node's counterpart selected; twk Node, pick mode) and the app's log
   panel.
 - The sequence log, recording and replay as asciicast, copy of the screen
   as text.
