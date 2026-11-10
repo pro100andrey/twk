@@ -118,18 +118,22 @@ enum PlayKey {
 
 /// The keys in [typed], and what of it is not a whole key yet (the start
 /// of an escape sequence, to be put in front of the next piece, which is
-/// then read with [continued]). The terminal's answers to the queries of
-/// the recording are whole escape sequences, and give no key.
+/// then read with [escaped] when it is a lone Escape). The terminal's
+/// answers to the queries of the recording are whole escape sequences, and
+/// give no key.
 ///
 /// Ctrl+C is a key wherever it is, in a string too (it is no part of one).
-/// An Escape at the end is a key of its own (dropped), not the start of
-/// something waited for. A string (DCS, OSC, APC, PM, SOS) is kept for the
-/// next piece when it has not ended, once: [continued] and still not ended,
-/// it was Alt and a letter, not an answer, and its introducer is dropped
-/// so that the keys after it count.
+/// An Escape at the end is kept for the next piece too: an answer can be cut
+/// right after its Escape. [typed] then starts with it, and [escaped] says
+/// so: if the piece that followed does not start with a byte that continues
+/// a sequence (`[`, `]`, `P`, `O`, `X`, `^`, `_`), it was a lone Escape, and
+/// what follows is read as keys (Escape and `q` quits). A string (DCS, OSC,
+/// APC, PM, SOS) is kept across pieces while it has not ended, up to
+/// [_playStringBound] characters; longer, it was not an answer, and its
+/// introducer is dropped so that the keys after it count.
 (List<PlayKey>, String) readPlayKeys(
   String typed, {
-  bool continued = false,
+  bool escaped = false,
 }) {
   final keys = <PlayKey>[];
   var i = 0;
@@ -148,8 +152,13 @@ enum PlayKey {
       continue;
     }
     if (i + 1 == typed.length) {
-      // a lone Escape
-      break;
+      // a lone Escape: the next piece says what it was
+      return (keys, '\x1b');
+    }
+    if (escaped && i == 0 && !'[]POX^_'.contains(typed[1])) {
+      // it was an Escape of its own
+      i = 1;
+      continue;
     }
     switch (typed[i + 1]) {
       case '[':
@@ -198,7 +207,7 @@ enum PlayKey {
           continue;
         }
         if (end == -1) {
-          if (continued && i == 0 || typed.length - i > 4096) {
+          if (typed.length - i > _playStringBound) {
             i += 2;
             continue;
           }
@@ -212,6 +221,9 @@ enum PlayKey {
   }
   return (keys, '');
 }
+
+/// The most of an unended string that [readPlayKeys] holds for the next piece.
+const _playStringBound = 1024;
 
 /// The key a CSI sequence with [params] and [final_], or an SS3 with
 /// [final_], is: the arrows and Home as a terminal sends them, and, where
@@ -395,7 +407,7 @@ final class Player {
     void onKeys(List<int> bytes) {
       final (keys, rest) = readPlayKeys(
         '$typed${latin1.decode(bytes)}',
-        continued: typed.isNotEmpty,
+        escaped: typed == '\x1b',
       );
       typed = rest;
       for (final key in keys) {

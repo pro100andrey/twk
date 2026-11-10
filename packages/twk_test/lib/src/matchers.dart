@@ -717,8 +717,7 @@ final class _MatchesScreenFile extends _ScreenMatcher {
       return true;
     }
     if (held == null) {
-      actual.parent.createSync(recursive: true);
-      actual.writeAsStringSync(shown.write());
+      matchState[#actual] = (actual, shown);
       matchState[#error] =
           'does not exist; $updateScreenFilesVariable=1 writes the screen '
           'to it';
@@ -730,8 +729,24 @@ final class _MatchesScreenFile extends _ScreenMatcher {
       _forget(actual);
       return true;
     }
-    actual.writeAsStringSync(shown.write());
+    matchState[#actual] = (actual, shown);
     return false;
+  }
+
+  /// Writes the screen the failure is about beside the file, as the file
+  /// would hold it; says so in the message where it cannot. Only a failure
+  /// that is reported gets here: a mismatch that `isNot` or a poll expects
+  /// leaves no file.
+  static String _leave(Map<dynamic, dynamic> matchState) {
+    if (matchState[#actual] case (final File actual, final ScreenFile shown)) {
+      try {
+        actual.parent.createSync(recursive: true);
+        actual.writeAsStringSync(shown.write());
+      } on FileSystemException catch (e) {
+        return '\n(${actual.path} not written: ${e.message})';
+      }
+    }
+    return '';
   }
 
   /// Removes [actual], the screen left by an earlier failure, if it is there.
@@ -747,8 +762,9 @@ final class _MatchesScreenFile extends _ScreenMatcher {
 
   @override
   void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+    final note = _leave(matchState);
     if (matchState[#error] case final String error) {
-      d.add('$_path $error');
+      d.add('$_path $error$note');
       return;
     }
     final held = matchState[#held] as ScreenFile;
@@ -756,7 +772,7 @@ final class _MatchesScreenFile extends _ScreenMatcher {
     d.add(
       'differs from $_path (- the file, + the screen; '
       '$updateScreenFilesVariable=1 writes the screen to it):\n'
-      '${_differences(held, shown, _styles).join('\n')}',
+      '${_differences(held, shown, _styles).join('\n')}$note',
     );
   }
 

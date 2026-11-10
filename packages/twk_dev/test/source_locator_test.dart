@@ -123,7 +123,58 @@ final class VmApp implements AppClient, VmQueries {
   Future<void> close() async {}
 }
 
+/// [VmApp] whose `getClassList` can be made to fail, or to wait.
+final class FlakyApp extends VmApp {
+  var failing = false;
+
+  /// Answers the next `getClassList` when it completes, with its error.
+  Completer<void>? gate;
+
+  @override
+  Future<Json> vm(String method, [Map<String, Object?> args = const {}]) async {
+    if (method == 'getClassList') {
+      final wait = gate;
+      gate = null;
+      if (wait != null) {
+        asked.add(method);
+        await wait.future;
+        throw const AppError('reloading');
+      }
+      if (failing) {
+        asked.add(method);
+        throw const AppError('reloading');
+      }
+    }
+    return super.vm(method, args);
+  }
+}
+
 void main() {
+  test('a failed question is asked again, not kept as no build', () async {
+    final app = FlakyApp()..failing = true;
+    final locator = SourceLocator(app);
+    expect(await locator.buildMethod('_PageState'), isNull);
+    app.failing = false;
+    final build = await locator.buildMethod('_PageState');
+    expect((build!.line, build.column), (3, 10));
+  });
+
+  test('a failure that comes after forget does not undo the new class '
+      'list', () async {
+    final app = FlakyApp();
+    final locator = SourceLocator(app);
+    final gate = app.gate = Completer<void>();
+    final old = locator.buildMethod('_PageState');
+    await pumpEventQueue();
+    locator.forget();
+    expect(await locator.buildMethod('_PageState'), isNotNull);
+    gate.complete();
+    expect(await old, isNull);
+    final asked = app.asked.where((m) => m == 'getClassList').length;
+    expect(await locator.buildMethod('Other'), isNull);
+    expect(app.asked.where((m) => m == 'getClassList').length, asked);
+  });
+
   test('finds the call that made a widget, by its place among its '
       "build's, in the file the package resolves to", () async {
     final app = VmApp();

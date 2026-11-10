@@ -199,18 +199,7 @@ String codeOnly(String source) {
       blank(i, k);
       i = k;
     } else if (c == "'" || c == '"') {
-      final raw = i > 0 && source[i - 1] == 'r';
-      final triple = source.startsWith(c * 3, i);
-      final quote = triple ? c * 3 : c;
-      var k = i + quote.length;
-      while (k < source.length &&
-          !source.startsWith(quote, k) &&
-          (triple || source[k] != '\n')) {
-        k += !raw && source[k] == r'\' ? 2 : 1;
-      }
-      final to = k + quote.length > source.length
-          ? source.length
-          : k + quote.length;
+      final to = _stringEnd(source, i);
       blank(i, to);
       i = to;
     } else {
@@ -220,12 +209,68 @@ String codeOnly(String source) {
   return String.fromCharCodes(out);
 }
 
+/// Where the string literal that begins at [start] ends (after its closing
+/// quote; where the line ends, for one that is not closed). A `${...}` in it
+/// is code: its braces are counted, and a string in it is a string of its
+/// own, so that a quote inside does not end the one around.
+int _stringEnd(String source, int start) {
+  final c = source[start];
+  final raw = start > 0 && source[start - 1] == 'r';
+  final triple = source.startsWith(c * 3, start);
+  final quote = triple ? c * 3 : c;
+  var k = start + quote.length;
+  while (k < source.length) {
+    if (source.startsWith(quote, k)) {
+      return k + quote.length;
+    }
+    if (!triple && source[k] == '\n') {
+      return k;
+    }
+    if (!raw && source[k] == r'\') {
+      k += 2;
+    } else if (!raw && source.startsWith(r'${', k)) {
+      k = _interpolationEnd(source, k + 2);
+    } else {
+      k++;
+    }
+  }
+  return source.length;
+}
+
+/// Where the `${` whose code begins at [from] closes (after the `}`).
+int _interpolationEnd(String source, int from) {
+  var depth = 1;
+  var k = from;
+  while (k < source.length && depth > 0) {
+    final c = source[k];
+    if (c == "'" || c == '"') {
+      k = _stringEnd(source, k);
+    } else {
+      if (c == '{') {
+        depth++;
+      } else if (c == '}') {
+        depth--;
+      }
+      k++;
+    }
+  }
+  return k;
+}
+
 /// The offsets in [source] between [from] and [to] where a constructor of
 /// [type] is called: `Text(`, `const Text(`, `Text.rich(`, `Foo<int>(`,
 /// `w.Text(` with an import prefix; in code only, not in a comment or a
 /// string.
-List<int> constructorCalls(String source, int from, int to, String type) {
-  final code = codeOnly(source);
+///
+/// [code] is [codeOnly] of [source] where the caller has it already.
+List<int> constructorCalls(
+  String source,
+  int from,
+  int to,
+  String type, {
+  String? code,
+}) {
+  code ??= codeOnly(source);
   final call = RegExp(
     r'(?<![\w$])(?:[a-z_][\w$]*\.)?('
     '${RegExp.escape(type)}'

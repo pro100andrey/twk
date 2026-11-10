@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Fixed:
+
+- `matchesScreenFile` writes `<file>.actual` only where a failure is
+  reported, not for `isNot` or a poll that expects a mismatch; a write that
+  fails is said in the message, which keeps the difference.
+
 Added:
 
 - `matchesScreenFile` leaves the screen it did not match beside the file as

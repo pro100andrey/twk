@@ -303,9 +303,9 @@ void main() {
       String typed,
       List<PlayKey> keys, [
       String rest = '',
-      bool continued = false,
+      bool escaped = false,
     ]) {
-      final (read, left) = readPlayKeys(typed, continued: continued);
+      final (read, left) = readPlayKeys(typed, escaped: escaped);
       expect(read, keys);
       expect(left, rest);
     }
@@ -337,14 +337,44 @@ void main() {
       reads('\x1b[1\x03', [PlayKey.interrupt]);
     });
 
-    test('a lone Escape is dropped, not held for the next piece', () {
-      reads('\x1b', []);
-      reads('q\x1b', [PlayKey.quit]);
+    test('a lone Escape is kept for the next piece', () {
+      reads('\x1b', [], '\x1b');
+      reads('q\x1b', [PlayKey.quit], '\x1b');
     });
 
-    test('a string not ended by the next piece is given up', () {
-      reads('\x1bPq', [], '\x1bPq');
-      reads('\x1bPq q', [PlayKey.quit, PlayKey.toggle, PlayKey.quit], '', true);
+    test('an Escape cut from its sequence is put together', () {
+      reads('\x1bP>|qterminal\x1b\\ ', [PlayKey.toggle], '', true);
+      reads('\x1b[C', [PlayKey.next], '', true);
+      reads('\x1bOD', [PlayKey.previous], '', true);
+      reads('\x1b]11;rgb:0/0/0\x07q', [PlayKey.quit], '', true);
+    });
+
+    test('an Escape not followed by a sequence is a key of its own', () {
+      reads('\x1bq', [PlayKey.quit], '', true);
+      reads('\x1b ', [PlayKey.toggle], '', true);
+      reads('\x1b\x03', [PlayKey.interrupt], '', true);
+      reads('\x1b\x1b', [], '\x1b', true);
+    });
+
+    test('a string over three pieces gives no key', () {
+      var (keys, held) = readPlayKeys('\x1bP>|qter');
+      expect(keys, isEmpty);
+      expect(held, '\x1bP>|qter');
+      (keys, held) = readPlayKeys('${held}minal q');
+      expect(keys, isEmpty);
+      expect(held, '\x1bP>|qterminal q');
+      (keys, held) = readPlayKeys('$held \x1b\\q');
+      expect(keys, [PlayKey.quit]);
+      expect(held, '');
+    });
+
+    test('a string past the bound is given up', () {
+      reads('\x1bP${'x' * 1100}q', [PlayKey.quit]);
+      reads('\x1bP${'x' * 100}', [], '\x1bP${'x' * 100}');
+    });
+
+    test('Ctrl+C quits in a string held over pieces', () {
+      reads('\x1bP>|qter\x03', [PlayKey.interrupt]);
     });
 
     test('a sequence cut between two pieces is put together', () {

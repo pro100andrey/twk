@@ -51,6 +51,7 @@ final class _BuildSource {
   const _BuildSource({
     required this.uri,
     required this.source,
+    required this.code,
     required this.start,
     required this.end,
     required this.line,
@@ -60,6 +61,9 @@ final class _BuildSource {
 
   final String uri;
   final String source;
+
+  /// [source] as `codeOnly` leaves it, made once for the script.
+  final String code;
   final int start;
   final int end;
   final int line;
@@ -91,6 +95,7 @@ final class SourceLocator {
   final _builds = <String, Future<List<_BuildSource>>>{};
   final _files = <String, Future<String?>>{};
   final _scripts = <String, Future<Json>>{};
+  final _codes = <String, String>{};
 
   /// Forgets what it read: the app's code changed (a hot reload).
   void forget() {
@@ -98,6 +103,7 @@ final class SourceLocator {
     _builds.clear();
     _files.clear();
     _scripts.clear();
+    _codes.clear();
   }
 
   /// Where the widget of the element [id] in the tree [root] was made, a
@@ -116,15 +122,20 @@ final class SourceLocator {
           making[b] =
               sources.isEmpty ||
               sources.any(
-                (s) =>
-                    constructorCalls(s.source, s.start, s.end, name).isNotEmpty,
+                (s) => constructorCalls(
+                  s.source,
+                  s.start,
+                  s.end,
+                  name,
+                  code: s.code,
+                ).isNotEmpty,
               );
         }(),
     ]);
     for (final owner in creationOwners(root, id, (b) => making[b] ?? true)) {
       for (final b in await _buildsOf(owner.build)) {
         final picked = pickCall(
-          constructorCalls(b.source, b.start, b.end, name),
+          constructorCalls(b.source, b.start, b.end, name, code: b.code),
           owner.index,
           owner.count,
         );
@@ -164,9 +175,23 @@ final class SourceLocator {
   /// first, `dart:` ones never).
   Future<List<_BuildSource>> _buildsOf(String type) {
     final name = className(type);
-    return _builds[name] ??= _findBuilds(name).catchError(
-      (Object _) => <_BuildSource>[],
-    );
+    final cached = _builds[name];
+    if (cached != null) {
+      return cached;
+    }
+    // a failure (the VM busy with a reload) answers none, and is not kept
+    // unless the cache has moved on to another answer by then
+    late final Future<List<_BuildSource>> asked;
+    Future<List<_BuildSource>> safely() async {
+      try {
+        return await _findBuilds(name);
+      } on Object {
+        _builds.removeWhere((_, found) => identical(found, asked));
+        return <_BuildSource>[];
+      }
+    }
+
+    return _builds[name] = asked = safely();
   }
 
   Future<List<_BuildSource>> _findBuilds(String name) async {
@@ -209,8 +234,18 @@ final class SourceLocator {
             ),
       ];
     }();
-    // one that failed is asked again next time
-    unawaited(asked.then<void>((_) {}, onError: (Object _) => _classes = null));
+    // one that failed is asked again next time, unless [forget] has put
+    // another in its place
+    unawaited(
+      asked.then<void>(
+        (_) {},
+        onError: (Object _) {
+          if (identical(_classes, asked)) {
+            _classes = null;
+          }
+        },
+      ),
+    );
     return asked;
   }
 
@@ -276,7 +311,8 @@ final class SourceLocator {
         ? source.length
         : offsetOf(source, finish.line, finish.column) + 1;
     // the method's name, after its metadata (@override), where it begins
-    final name = RegExp(r'\bbuild\s*\(').allMatches(codeOnly(source), start);
+    final code = _codes[scriptId] ??= codeOnly(source);
+    final name = RegExp(r'\bbuild\s*\(').allMatches(code, start);
     final first = name.isEmpty ? null : name.first;
     final shown = first != null && first.start < end
         ? lineColumnOf(source, first.start)
@@ -284,6 +320,7 @@ final class SourceLocator {
     return _BuildSource(
       uri: uri,
       source: source,
+      code: code,
       start: start,
       end: end,
       line: shown.line,

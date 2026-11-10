@@ -16,27 +16,37 @@ import 'project.dart';
 final class CastTestCommand extends Command<int> {
   /// The command; `--out` names the test file.
   CastTestCommand() {
-    argParser.addOption(
-      'out',
-      abbr: 'o',
-      valueHelp: 'file',
-      help:
-          'The test file to write; by default test/<name>_test.dart of the '
-          "current directory's project, <name> the recording's.",
-    );
+    argParser
+      ..addOption(
+        'out',
+        abbr: 'o',
+        valueHelp: 'file',
+        help:
+            'The test file to write; by default test/<name>_test.dart of the '
+            "current directory's project, <name> the recording's.",
+      )
+      ..addFlag(
+        'force',
+        negatable: false,
+        help:
+            'Overwrite a different recording of the same name beside the '
+            'test.',
+      );
   }
 
   @override
   String get name => 'test-from-cast';
 
   @override
-  String get invocation => 'twk test-from-cast <file.cast> [--out=<file>]';
+  String get invocation =>
+      'twk test-from-cast <file.cast> [--out=<file>] [--force]';
 
   @override
   String get description =>
       'Write a test from a recording.\n\n'
       'Copies the recording next to the test (test/<name>.cast; it stays '
-      'where it is when it is already there) and writes a test of it that '
+      'where it is when it is already there; another recording of that name '
+      'there is refused with 1 unless --force) and writes a test of it that '
       "plays its output through twk_test's screenFrames: for each marker "
       'of the recording a check of a line of the screen it showed, or, '
       'where it has none, of its last screen, and that the emulator took '
@@ -72,6 +82,16 @@ final class CastTestCommand extends Command<int> {
     try {
       Directory(p.dirname(out)).createSync(recursive: true);
       if (!p.equals(p.absolute(source), copy)) {
+        final held = File(copy);
+        if (!(argResults!['force'] as bool) &&
+            held.existsSync() &&
+            !_sameBytes(held, File(source))) {
+          stderr.writeln(
+            'twk test-from-cast: ${p.relative(copy)} is another recording; '
+            '--force overwrites it, or name this one differently',
+          );
+          return 1;
+        }
         File(source).copySync(copy);
       }
       File(out).writeAsStringSync(
@@ -93,6 +113,20 @@ final class CastTestCommand extends Command<int> {
     stdout.writeln('wrote ${p.relative(out)} and ${p.relative(copy)}');
     return 0;
   }
+}
+
+bool _sameBytes(File a, File b) {
+  final x = a.readAsBytesSync();
+  final y = b.readAsBytesSync();
+  if (x.length != y.length) {
+    return false;
+  }
+  for (var i = 0; i < x.length; i++) {
+    if (x[i] != y[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /// The nearest directory above [file] with a `pubspec.yaml`, null if none.

@@ -87,6 +87,21 @@ void main() {
     expect(code.split('\n').length, source.split('\n').length);
   });
 
+  test('a quote in an interpolation does not end its string', () {
+    const source =
+        "a '\${m['k']} Text(' b \"x\${xs.map((e) => 'y').join()}Text(\" c "
+        // both kinds of quote are in it, and a raw string cannot hold them
+        // ignore: use_raw_strings
+        "'\${f({'a': 1})}Text(' d '''\${g('''Text(''')}Text(''' e";
+    final code = codeOnly(source);
+    expect(code.length, source.length);
+    expect(code, isNot(contains('Text')));
+    expect(
+      RegExp(r'\b[a-e]\b').allMatches(code).map((m) => m[0]),
+      ['a', 'b', 'c', 'd', 'e'],
+    );
+  });
+
   test('finds the calls of a constructor in code, whatever their form, '
       'between two offsets', () {
     final source = [

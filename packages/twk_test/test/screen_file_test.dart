@@ -215,6 +215,32 @@ void main() {
     expect(actual.existsSync(), isFalse);
   });
 
+  testTwk('a mismatch that is expected, or polled, leaves no .actual', (
+    t,
+  ) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    final actual = File(actualScreenFilePath(path));
+    File(path).writeAsStringSync(formFile);
+    expect(t, isNot(matchesScreenFile(path)));
+    expect(actual.existsSync(), isFalse);
+    expect(t, isNot(matchesScreenFile('${dir.path}/none.txt')));
+    expect(File('${dir.path}/none.txt.actual').existsSync(), isFalse);
+  });
+
+  testTwk('a directory that cannot be written to does not hide the '
+      'difference', (t) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    File(path).writeAsStringSync(formFile);
+    // the .actual's place is taken by a directory: the write fails
+    Directory('$path.actual').createSync();
+    final lines = failure(t, matchesScreenFile(path));
+    expect(lines[2], '   Which: differs from $path $_legend');
+    expect(lines.join('\n'), contains('$path.actual not written'));
+    Directory('$path.actual').deleteSync();
+  });
+
   testTwk('a missing file gets an .actual to accept, and updating removes '
       'it', (t) async {
     await t.pumpWidget(form(), size: (14, 3));

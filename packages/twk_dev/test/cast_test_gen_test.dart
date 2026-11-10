@@ -122,6 +122,47 @@ void main() {
       );
     });
 
+    test(
+      'refuses to overwrite another recording of the name, unless forced',
+      () async {
+        final first = p.join(temp, 'rec', 'demo.cast');
+        Directory(p.dirname(first)).createSync();
+        File(first).writeAsStringSync(_text(plan));
+        final out = p.join(temp, 'test', 'x_test.dart');
+        expect(
+          (await twkHere(['test-from-cast', first, '--out=$out'])).exitCode,
+          0,
+        );
+
+        final other = p.join(temp, 'other', 'demo.cast');
+        Directory(p.dirname(other)).createSync();
+        final changed = _cast([(0.1, 'o', 'else')]);
+        File(other).writeAsStringSync(_text(changed));
+        final kept = File(p.join(temp, 'test', 'demo.cast'));
+
+        final refused = await twkHere(['test-from-cast', other, '--out=$out']);
+        expect(refused.exitCode, 1);
+        expect(refused.stderr, contains('demo.cast'));
+        expect(refused.stderr, contains('--force'));
+        expect(kept.readAsStringSync(), _text(plan));
+
+        // the same recording again is no overwrite
+        expect(
+          (await twkHere(['test-from-cast', first, '--out=$out'])).exitCode,
+          0,
+        );
+
+        final forced = await twkHere([
+          'test-from-cast',
+          other,
+          '--out=$out',
+          '--force',
+        ]);
+        expect(forced.exitCode, 0, reason: '${forced.stderr}');
+        expect(kept.readAsStringSync(), _text(changed));
+      },
+    );
+
     test('says what it cannot read, and a missing recording', () async {
       final bad = p.join(temp, 'bad.cast');
       File(bad).writeAsStringSync('not json\n');

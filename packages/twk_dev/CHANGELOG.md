@@ -4,6 +4,14 @@
 
 Fixed:
 
+- `twk play`: an answer of the terminal cut right after its Escape, or over
+  three reads, is no longer read as keys (a `q` in it quit); Escape then `q`
+  still quits.
+- `twk test-from-cast` refuses (exit 1) to overwrite a different recording
+  of the same name beside the test; `--force` does.
+- The inspector's source locator no longer keeps a failed question as "no
+  build" and finds a widget's place when a string with a quote in `${}`
+  precedes it.
 - `twk play`: Ctrl+C always quits (a lone Escape or an Alt+key that opens a
   string no longer swallows it); a key release is no second press of an arrow
   or Home; played to its end with keys read, it stays paused there (Space
