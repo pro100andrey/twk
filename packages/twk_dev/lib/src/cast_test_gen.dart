@@ -9,11 +9,12 @@ import 'package:path/path.dart' as p;
 import 'package:twk_term/twk_term.dart';
 
 import 'cast.dart';
+import 'completion.dart';
 import 'project.dart';
 
 /// `twk test-from-cast`: copies a recording into a project's `test/` and
 /// writes a test of it beside it ([castTestSource]).
-final class CastTestCommand extends Command<int> {
+final class CastTestCommand extends Command<int> with Completes {
   /// The command; `--out` names the test file.
   CastTestCommand() {
     argParser
@@ -33,6 +34,14 @@ final class CastTestCommand extends Command<int> {
             'test.',
       );
   }
+
+  @override
+  Positionals get positionals => const Positionals.files(glob: '*.cast');
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'out': OptionPath.file,
+  };
 
   @override
   String get name => 'test-from-cast';

@@ -25,7 +25,7 @@ void main() {
 
   setUp(() async {
     dir = await Directory.systemTemp.createTemp('twk_completion');
-    for (final f in ['a.cast', 'b.txt', 'c.tape', 'd.dart']) {
+    for (final f in ['a.cast', 'b.txt', 'c.tape', 'd.dart', 'my demo.cast']) {
       File(p.join(dir.path, f)).writeAsStringSync('');
     }
     Directory(p.join(dir.path, 'sub')).createSync();
@@ -90,7 +90,8 @@ void main() {
       return (result.stdout as String)
           .split('\n')
           .where((l) => l.isNotEmpty)
-          .toList();
+          .toList()
+        ..sort();
     }
 
     setUp(() async {
@@ -116,7 +117,12 @@ void main() {
 
     test('the recordings for play, the tapes for tape, the programs for '
         'run', () async {
-      expect(await complete(['twk', 'play', '']), ['a.cast', 'sub']);
+      expect(await complete(['twk', 'play', '']), [
+        'a.cast',
+        'my demo.cast',
+        'sub',
+      ]);
+      expect(await complete(['twk', 'play', 'my']), ['my demo.cast']);
       expect(await complete(['twk', 'tape', '']), ['c.tape', 'sub']);
       expect(await complete(['twk', 'run', '']), ['d.dart', 'sub']);
     });

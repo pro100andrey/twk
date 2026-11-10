@@ -67,4 +67,50 @@ void main() {
     expect(result.exitCode, 64);
     expect(result.stderr, contains('Unknown shell "powershell"'));
   });
+
+  test('fish: a backslash in a help text is escaped before the quotes', () {
+    final odd = CommandRunner<int>('twk', 'x')..addCommand(_Odd());
+    final script = completionScript(odd, CompletionShell.fish);
+    // help `ends\` and `it\'s`: every backslash doubled, then the quote
+    expect(script, contains(r"-d 'ends\\'"));
+    expect(script, contains(r"-d 'it\\\'s'"));
+  });
+
+  test('every command of twk says what its arguments are completed with', () {
+    for (final c in runner.commands.values) {
+      if (c.name == 'help') {
+        continue; // the runner's own
+      }
+      expect(c, isA<Completes>(), reason: '${c.name} has no completion kind');
+      for (final o in c.argParser.options.values) {
+        if (const {'path', 'dir', 'file'}.contains(o.valueHelp)) {
+          expect(
+            (c as Completes).optionPaths,
+            contains(o.name),
+            reason: '--${o.name} of ${c.name} takes a path',
+          );
+        }
+      }
+      for (final name in (c as Completes).optionPaths.keys) {
+        expect(c.argParser.options, contains(name), reason: c.name);
+      }
+    }
+  });
+}
+
+final class _Odd extends Command<int> with Completes {
+  _Odd() {
+    argParser
+      ..addFlag('one', help: r'ends\')
+      ..addFlag('two', help: r"it\'s");
+  }
+
+  @override
+  Positionals get positionals => const Positionals.none();
+
+  @override
+  String get name => 'odd';
+
+  @override
+  String get description => 'Odd.';
 }

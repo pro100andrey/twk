@@ -443,6 +443,28 @@ void main() {
       expect(await r.result, 0);
     });
 
+    test('a lone Esc held past the limit is the Esc key: a later [ is the '
+        'previous marker', () async {
+      final r = await started(
+        [
+          '{"version": 2, "width": 40, "height": 6}',
+          '[0.0, "o", "A"]',
+          '[1.0, "m", "one"]',
+          '[2.0, "o", "B"]',
+          '[3.0, "m", "two"]',
+          '[4.0, "o", "C"]',
+        ].join('\n'),
+      );
+      await r.type(' ');
+      await r.type(']');
+      await r.type(']');
+      expect(r.status, contains('marker 2/2'));
+      await r.type('\x1b');
+      await r.clock.elapse(60);
+      await r.type('[');
+      expect(r.status, contains('marker 1/2'), reason: '[ went back');
+    });
+
     test('Ctrl+C quits in a held string, late or not', () async {
       final r = await started();
       await r.type('\x1bP');

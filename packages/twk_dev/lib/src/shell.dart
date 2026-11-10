@@ -7,12 +7,13 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:twk_core/twk_core.dart';
 
+import 'completion.dart';
 import 'project.dart';
 
 /// `twk shell`: serves this terminal to the apps of the project, started
 /// elsewhere ([TerminalShell]), until Ctrl+C while no app has it, SIGTERM
 /// or the terminal being closed.
-final class ShellCommand extends Command<int> {
+final class ShellCommand extends Command<int> with Completes {
   /// Sets up `twk shell`'s option: `--directory`.
   ShellCommand() {
     argParser.addOption(
@@ -24,6 +25,14 @@ final class ShellCommand extends Command<int> {
           'current one).',
     );
   }
+
+  @override
+  Positionals get positionals => const Positionals.none();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'directory': OptionPath.directory,
+  };
 
   @override
   String get name => 'shell';

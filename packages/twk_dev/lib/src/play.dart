@@ -11,10 +11,11 @@ import 'package:twk_core/twk_core.dart' show stringWidth;
 import 'package:twk_term/twk_term.dart' show RawTty;
 
 import 'cast.dart';
+import 'completion.dart';
 import 'modes.dart';
 
 /// `twk play`: plays a recording back in this terminal ([Player]).
-final class PlayCommand extends Command<int> {
+final class PlayCommand extends Command<int> with Completes {
   /// Sets up `twk play`'s options: `--speed` and `--idle-limit`.
   PlayCommand() {
     argParser
@@ -33,6 +34,9 @@ final class PlayCommand extends Command<int> {
             "recording's idle_time_limit).",
       );
   }
+
+  @override
+  Positionals get positionals => const Positionals.files(glob: '*.cast');
 
   @override
   String get name => 'play';
@@ -465,16 +469,17 @@ final class Player {
     var wake = Completer<void>();
     var typed = '';
     var heldSince = Duration.zero;
-    // no answer takes this long: Alt and a key, what follows is keys
+    // no answer takes this long: Alt and a key, what follows is keys; a lone
+    // Escape held this long was the Esc key
     void expireHeld() {
-      if (typed.length > 1 && _clock.elapsed - heldSince > _heldLimit) {
+      if (typed.isNotEmpty && _clock.elapsed - heldSince > _heldLimit) {
         typed = '';
       }
     }
 
     // how long until what is held is dropped, null where none is
     Duration? heldFor() {
-      if (typed.length <= 1) {
+      if (typed.isEmpty) {
         return null;
       }
       final left = heldSince + _heldLimit - _clock.elapsed;

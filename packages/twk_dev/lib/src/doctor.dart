@@ -12,6 +12,7 @@ import 'package:twk_core/twk_core.dart';
 import 'package:yaml/yaml.dart';
 
 import 'agents.dart';
+import 'completion.dart';
 import 'create.dart' show askTerminal;
 import 'project.dart';
 import 'run.dart' show serviceFileOf;
@@ -25,7 +26,7 @@ const doctorConnectTimeout = Duration(seconds: 1);
 
 /// `twk doctor`: what this terminal does, and whether the project's twk
 /// packages agree.
-final class DoctorCommand extends Command<int> {
+final class DoctorCommand extends Command<int> with Completes {
   /// Sets up `twk doctor`'s options: `--directory` and `--json`. [terminal]
   /// gives the terminal to probe, null where there is none; [environment]
   /// the environment to report, the process's by default.
@@ -55,6 +56,14 @@ final class DoctorCommand extends Command<int> {
   final CliTerminal? Function() _terminal;
   final Map<String, String>? _environment;
   final StringSink? _out;
+
+  @override
+  Positionals get positionals => const Positionals.none();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'directory': OptionPath.directory,
+  };
 
   @override
   String get name => 'doctor';

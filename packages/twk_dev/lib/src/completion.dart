@@ -18,19 +18,61 @@ enum CompletionShell {
   fish,
 }
 
-/// What a positional argument of a command is completed with.
-enum _Positional { files, directories }
+/// What a command's positional arguments are completed with.
+enum PositionalKind {
+  /// None: the command takes no positional argument.
+  none,
 
-/// The files a command's positional arguments take, by its name: a glob, or
-/// null for any file; a command not listed takes none.
-const _positionalGlobs = <String, (_Positional, String?)>{
-  'create': (_Positional.directories, null),
-  'play': (_Positional.files, '*.cast'),
-  'tape': (_Positional.files, '*.tape'),
-  'run': (_Positional.files, '*.dart'),
-  'test-from-cast': (_Positional.files, '*.cast'),
-  'record': (_Positional.files, null),
-};
+  /// Files, those matching [Positionals.glob] when it is set.
+  files,
+
+  /// Directories.
+  directories,
+}
+
+/// The positional arguments a command takes, for its completion.
+final class Positionals {
+  /// No positional argument.
+  const Positionals.none() : kind = PositionalKind.none, glob = null;
+
+  /// Files, any or only those matching [glob] (`*.cast`).
+  const Positionals.files({this.glob}) : kind = PositionalKind.files;
+
+  /// Directories.
+  const Positionals.directories()
+    : kind = PositionalKind.directories,
+      glob = null;
+
+  /// What the arguments are.
+  final PositionalKind kind;
+
+  /// The pattern of the files taken, null for any file.
+  final String? glob;
+}
+
+/// What the value of an option is completed with, when it is not free text
+/// or one of its `allowed` values.
+enum OptionPath {
+  /// A directory.
+  directory,
+
+  /// A file.
+  file,
+}
+
+/// A command that says what its arguments are completed with: every command
+/// of `twk` has it, so a new one cannot be completed wrongly unnoticed.
+mixin Completes on Command<int> {
+  /// What the positional arguments of the command are.
+  Positionals get positionals;
+
+  /// The options whose value is a path, by name; the others are free text or
+  /// have `allowed` values.
+  Map<String, OptionPath> get optionPaths => const {};
+}
+
+Positionals _positionalsOf(Command<Object?> c) =>
+    c is Completes ? c.positionals : const Positionals.none();
 
 /// The script of [shell] that completes `twk`'s subcommands, the options of
 /// each (`--no-` forms of the negatable flags, the allowed values of an
@@ -55,14 +97,15 @@ String completionScript(CommandRunner<Object?> runner, CompletionShell shell) {
 /// What an option's value is: a directory, a file, a fixed set, or free.
 enum _Value { free, directory, file, allowed }
 
-_Value _valueOf(Option o) {
+_Value _valueOf(Command<Object?> c, Option o) {
   if (o.allowed != null && o.allowed!.isNotEmpty) {
     return _Value.allowed;
   }
-  return switch (o.valueHelp) {
-    'path' || 'dir' => _Value.directory,
-    'file' => _Value.file,
-    _ => _Value.free,
+  final path = c is Completes ? c.optionPaths[o.name] : null;
+  return switch (path) {
+    OptionPath.directory => _Value.directory,
+    OptionPath.file => _Value.file,
+    null => _Value.free,
   };
 }
 
@@ -97,6 +140,11 @@ String _bash(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
     _fill(
       r'''
 # bash completion for twk: source <(twk completion bash)
+_twk_lines() {
+  local line
+  COMPREPLY=()
+  while IFS= read -r line; do COMPREPLY+=("$line"); done
+}
 _twk() {
   local cur prev opt cmd i
   cur=${COMP_WORDS[COMP_CWORD]}
@@ -112,7 +160,7 @@ _twk() {
     esac
   done
   if [[ -z $cmd ]]; then
-    COMPREPLY=($(compgen -W "@top@" -- "$cur"))
+    _twk_lines < <(compgen -W "@top@" -- "$cur")
     return
   fi
   case $cmd in
@@ -139,16 +187,16 @@ _twk() {
         final names = _spellings(o).join('|');
         b.writeln(
           _fill(
-            switch (_valueOf(o)) {
+            switch (_valueOf(c, o)) {
               _Value.allowed =>
-                r'        @n@) COMPREPLY=($(compgen -W "@w@" -- "$cur")); '
+                r'        @n@) _twk_lines < <(compgen -W "@w@" -- "$cur"); '
                     'return ;;',
               _Value.directory =>
                 '        @n@) compopt -o filenames 2>/dev/null; '
-                    r'COMPREPLY=($(compgen -d -- "$cur")); return ;;',
+                    r'_twk_lines < <(compgen -d -- "$cur"); return ;;',
               _Value.file =>
                 '        @n@) compopt -o filenames 2>/dev/null; '
-                    r'COMPREPLY=($(compgen -f -- "$cur")); return ;;',
+                    r'_twk_lines < <(compgen -f -- "$cur"); return ;;',
               _Value.free => '        @n@) return ;;',
             },
             {'n': names, 'w': (o.allowed ?? const []).join(' ')},
@@ -159,26 +207,26 @@ _twk() {
     }
     b.writeln(
       _fill(
-        r'      if [[ $cur == -* ]]; then COMPREPLY=($(compgen -W "@w@" '
-        r'-- "$cur")); return; fi',
+        r'      if [[ $cur == -* ]]; then _twk_lines < <(compgen -W "@w@" '
+        r'-- "$cur"); return; fi',
         {
           'w': [for (final o in opts) ..._spellings(o)].join(' '),
         },
       ),
     );
-    final pos = _positionalGlobs[c.name];
-    if (pos != null) {
+    final pos = _positionalsOf(c);
+    if (pos.kind != PositionalKind.none) {
       b.writeln('      compopt -o filenames 2>/dev/null');
-      if (pos.$1 == _Positional.directories) {
-        b.writeln(r'      COMPREPLY=($(compgen -d -- "$cur"))');
-      } else if (pos.$2 == null) {
-        b.writeln(r'      COMPREPLY=($(compgen -f -- "$cur"))');
+      if (pos.kind == PositionalKind.directories) {
+        b.writeln(r'      _twk_lines < <(compgen -d -- "$cur")');
+      } else if (pos.glob == null) {
+        b.writeln(r'      _twk_lines < <(compgen -f -- "$cur")');
       } else {
         b.writeln(
           _fill(
-            r'      COMPREPLY=($(compgen -f -X @x@ -- "$cur") '
-            r'$(compgen -d -- "$cur"))',
-            {'x': _sq('!${pos.$2}')},
+            r'      _twk_lines < <(compgen -f -X @x@ -- "$cur"; '
+            r'compgen -d -- "$cur")',
+            {'x': _sq('!${pos.glob}')},
           ),
         );
       }
@@ -228,17 +276,17 @@ String _zsh(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
       ..writeln('        ${c.name})')
       ..writeln(r'          _arguments \');
     for (final o in _options(c.argParser)) {
-      b.writeln('            ${_zshOption(o)} \\');
+      b.writeln('            ${_zshOption(c, o)} \\');
     }
-    final pos = _positionalGlobs[c.name];
-    if (pos == null) {
+    final pos = _positionalsOf(c);
+    if (pos.kind == PositionalKind.none) {
       b.writeln("            '*: :'");
-    } else if (pos.$1 == _Positional.directories) {
+    } else if (pos.kind == PositionalKind.directories) {
       b.writeln("            '*:directory:_files -/'");
-    } else if (pos.$2 == null) {
+    } else if (pos.glob == null) {
       b.writeln("            '*:argument:_files'");
     } else {
-      b.writeln("            '*:file:_files -g \"${pos.$2}\"'");
+      b.writeln("            '*:file:_files -g \"${pos.glob}\"'");
     }
     b.writeln('          ;;');
   }
@@ -251,7 +299,7 @@ String _zsh(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
   return b.toString();
 }
 
-String _zshOption(Option o) {
+String _zshOption(Command<Object?> c, Option o) {
   final help = _zshText(_firstLine(o.help));
   if (o.isFlag) {
     final names = [
@@ -264,7 +312,7 @@ String _zshOption(Option o) {
         : "{${names.join(',')}}'[$help]'";
   }
   final value = _zshText(o.valueHelp ?? 'value').replaceAll(':', r'\:');
-  final action = switch (_valueOf(o)) {
+  final action = switch (_valueOf(c, o)) {
     _Value.allowed => '(${o.allowed!.join(' ')})',
     _Value.directory => '_files -/',
     _Value.file => '_files',
@@ -279,7 +327,7 @@ String _zshOption(Option o) {
 // --- fish ---
 
 String _fishText(String s) =>
-    "'${s.replaceAll(r'\\', r'\\\\').replaceAll("'", r"\'")}'";
+    "'${s.replaceAll(r'\', r'\\').replaceAll("'", r"\'")}'";
 
 String _fish(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
   final b = StringBuffer()
@@ -304,7 +352,7 @@ String _fish(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
       }
       sb.write(' -l ${o.name}');
       if (!o.isFlag) {
-        switch (_valueOf(o)) {
+        switch (_valueOf(c, o)) {
           case _Value.allowed:
             sb.write(" -x -a '${o.allowed!.join(' ')}'");
           case _Value.directory:
@@ -324,16 +372,16 @@ String _fish(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
         );
       }
     }
-    final pos = _positionalGlobs[c.name];
-    if (pos != null) {
-      if (pos.$1 == _Positional.directories) {
+    final pos = _positionalsOf(c);
+    if (pos.kind != PositionalKind.none) {
+      if (pos.kind == PositionalKind.directories) {
         b.writeln(
           "complete -c twk $cond -a '(__fish_complete_directories)'",
         );
-      } else if (pos.$2 == null) {
+      } else if (pos.glob == null) {
         b.writeln('complete -c twk $cond -F');
       } else {
-        final suffix = pos.$2!.substring(1);
+        final suffix = pos.glob!.substring(1);
         b.writeln(
           "complete -c twk $cond -a '(__fish_complete_suffix $suffix)'",
         );
@@ -344,7 +392,10 @@ String _fish(CommandRunner<Object?> runner, List<Command<Object?>> commands) {
 }
 
 /// `twk completion <shell>`: writes the completion script of a shell.
-final class CompletionCommand extends Command<int> {
+final class CompletionCommand extends Command<int> with Completes {
+  @override
+  Positionals get positionals => const Positionals.none();
+
   @override
   String get name => 'completion';
 

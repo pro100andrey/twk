@@ -12,6 +12,13 @@ Added:
 
 Fixed:
 
+- `twk completion`: the fish script no longer breaks on sourcing when an
+  option's help ends in a backslash or has one before a quote; bash completes
+  file names with spaces (or glob characters) as one candidate each; each
+  command declares what its arguments and path options are completed with
+  (`Completes`), instead of a table kept apart.
+- `twk play`: a lone Esc left unanswered for 500 ms is the Esc key, so a `[`
+  typed later is the previous marker again.
 - `twk test-from-cast`: a marker's label is shown escaped (one line, controls
   as `\u{..}`) in the unchecked-marker comment of the test and on stderr; a
   newline in it no longer writes live code into the test.

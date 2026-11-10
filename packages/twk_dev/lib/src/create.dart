@@ -16,12 +16,13 @@ import 'package:twk/cli.dart';
 import 'package:twk_core/twk_core.dart' show stdioIsTerminal;
 
 import 'agents.dart';
+import 'completion.dart';
 import 'templates/templates.dart';
 
 /// `twk create`: unpacks a template ([templates]), a package packed with
 /// mold, into a directory under a new package's name: a package that
 /// runs, analyzes and passes its tests as it is.
-final class CreateCommand extends Command<int> {
+final class CreateCommand extends Command<int> with Completes {
   /// Sets up `twk create`'s options: `--template`, `--agents`, `--name`,
   /// `--path-to-twk`, `--force`, `--dry-run` and `--list`.
   ///
@@ -86,6 +87,14 @@ final class CreateCommand extends Command<int> {
   }
 
   final CliTerminal? Function() _terminal;
+
+  @override
+  Positionals get positionals => const Positionals.directories();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'path-to-twk': OptionPath.directory,
+  };
 
   @override
   String get name => 'create';

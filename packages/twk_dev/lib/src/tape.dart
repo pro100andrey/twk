@@ -14,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
 import 'package:twk_term/twk_term.dart';
 
 import 'cast.dart';
+import 'completion.dart';
 import 'tape/script.dart';
 import 'tape/svg.dart';
 
@@ -23,7 +24,7 @@ export 'tape/theme.dart';
 
 /// `twk tape`: runs a tape, a script of what to type into a program, and
 /// writes the session as asciicast v2 and SVG ([TapeRunner]).
-final class TapeCommand extends Command<int> {
+final class TapeCommand extends Command<int> with Completes {
   /// Adds `--check`.
   TapeCommand() {
     argParser.addFlag(
@@ -35,6 +36,9 @@ final class TapeCommand extends Command<int> {
           'Wait that times out.',
     );
   }
+
+  @override
+  Positionals get positionals => const Positionals.files(glob: '*.tape');
 
   @override
   String get name => 'tape';

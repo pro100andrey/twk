@@ -15,11 +15,12 @@ import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'app_client.dart';
+import 'completion.dart';
 import 'project.dart';
 
 /// `twk run`: runs an app with hot reload ([HotRunner]) in this terminal,
 /// which the app has to itself.
-final class RunCommand extends Command<int> {
+final class RunCommand extends Command<int> with Completes {
   /// `twk run`; [started] is given the runner of each run of the command
   /// before it starts the app.
   RunCommand({this.started});
@@ -68,6 +69,9 @@ final class RunCommand extends Command<int> {
           'Run the app writing plain text, with no escape sequences '
           '(TWK_PLAIN=1).',
     );
+
+  @override
+  Positionals get positionals => const Positionals.files(glob: '*.dart');
 
   @override
   String get name => 'run';

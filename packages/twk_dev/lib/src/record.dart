@@ -11,12 +11,13 @@ import 'package:args/command_runner.dart';
 import 'package:twk_term/twk_term.dart';
 
 import 'cast.dart';
+import 'completion.dart';
 import 'modes.dart';
 import 'replay.dart';
 
 /// `twk record`: runs a command in a pseudo-terminal and records the
 /// session as asciicast v2 ([Recorder]).
-final class RecordCommand extends Command<int> {
+final class RecordCommand extends Command<int> with Completes {
   /// Sets up `twk record`'s options: `--out`, `--idle-limit`, `--title`
   /// and `--keys`.
   RecordCommand() {
@@ -81,6 +82,15 @@ final class RecordCommand extends Command<int> {
   // what follows the command is the command's
   @override
   final argParser = ArgParser(allowTrailingOptions: false);
+
+  @override
+  Positionals get positionals => const Positionals.files();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'out': OptionPath.file,
+    'replay': OptionPath.file,
+  };
 
   @override
   String get name => 'record';
