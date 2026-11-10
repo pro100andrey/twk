@@ -193,6 +193,11 @@
         "icon": "$(play)"
       },
       {
+        "command": "twk.testFromCast",
+        "title": "Create a Test from a Recording (twk test-from-cast)",
+        "category": "twk"
+      },
+      {
         "command": "twk.keyToApp",
         "title": "Pass the Key to the twk Terminal's App",
         "category": "twk"
@@ -640,6 +645,11 @@
       "explorer/context": [
         {
           "command": "twk.play",
+          "when": "resourceExtname == .cast",
+          "group": "navigation"
+        },
+        {
+          "command": "twk.testFromCast",
           "when": "resourceExtname == .cast",
           "group": "navigation"
         },

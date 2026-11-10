@@ -36,10 +36,10 @@ export interface PlayerState {
   readonly duration: number;
 }
 
-/** What a player's bar (or a key in its terminal) asks: play or pause, a frame on, a frame back, from the start. */
-export type PlayerControl = 'toggle' | 'step' | 'back' | 'restart';
+/** What a player's bar (or a key in its terminal) asks: play or pause, a frame on, a frame back, from the start, a test made of the recording. */
+export type PlayerControl = 'toggle' | 'step' | 'back' | 'restart' | 'test';
 
-const playerControls: readonly PlayerControl[] = ['toggle', 'step', 'back', 'restart'];
+const playerControls: readonly PlayerControl[] = ['toggle', 'step', 'back', 'restart', 'test'];
 
 /** What the webview tells the extension. */
 export type FromWebview =

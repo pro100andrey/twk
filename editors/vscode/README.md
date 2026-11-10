@@ -21,7 +21,8 @@ in a terminal of the extension's own, beside the editor.
   `twk logs` shows it.
 - **The sequence log** of what the app and its terminal send each other,
   **recording and replay** as asciicast (the format of `twk record` and
-  `twk play`), and **copy the screen** as text.
+  `twk play`), **create a test** from a recording (`twk test-from-cast`), and
+  **copy the screen** as text.
 - **Golden screens**: a file of twk_test's `matchesScreenFile` opened with
   twk: Open Screen File as a twk Screen (or "Open With..." twk Screen) is drawn
   cell by cell in its colours, with Text and Styles toggles. When a test

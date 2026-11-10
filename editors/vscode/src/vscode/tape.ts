@@ -22,7 +22,7 @@ export const tapeLanguage = 'tape';
 export const twkCommand = (): string[] => vscode.workspace.getConfiguration('twk').get<string[]>('command', ['dart', 'run', 'twk_dev:twk']);
 
 /** [work] under a notification with a Cancel that aborts what it runs. */
-function cancellable<T>(title: string, work: (cancel: AbortSignal) => Promise<T>): Thenable<T> {
+export function cancellable<T>(title: string, work: (cancel: AbortSignal) => Promise<T>): Thenable<T> {
   return vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title, cancellable: true }, (_progress, token) => {
     const abort = new AbortController();
     const listener = token.onCancellationRequested(() => abort.abort());

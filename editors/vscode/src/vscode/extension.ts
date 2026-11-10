@@ -17,6 +17,7 @@ import { AppLogs, AppLogsView } from '../app/app_logs';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
+import { CastTests } from '../app/cast_test';
 import { Tapes } from '../app/tape';
 import { Recording, Recordings } from '../app/recording';
 import { activeScreen, screenText } from '../app/screens';
@@ -32,6 +33,7 @@ import { editorCommandOf } from '../core/editor';
 import { realClock } from '../core/events';
 import { HotStatus } from '../core/hot';
 import { startNodeProcess } from '../core/process';
+import { projectOf } from '../core/project';
 import { describeSwitches, switchItems, switchesPicked } from '../core/switches';
 import { HotRun } from '../core/runner';
 import { TerminalShell } from '../core/shell';
@@ -47,7 +49,7 @@ import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
 import { registerReport } from './report';
-import { registerTape } from './tape';
+import { cancellable, registerTape, twkCommand } from './tape';
 import { StatusBar } from './status_bar';
 
 /** What the extension gives its tests (`activate`'s result). */
@@ -415,10 +417,43 @@ export function activate(context: vscode.ExtensionContext): Api {
     const name = path.basename(file.fsPath);
     const player = new Player(name, cast, openWebviewTerminal(`${name} · twk replay`, context.extensionUri), realClock);
     players.add(player);
+    // the bar's Test button: the same command as the explorer's
+    player.onDidAskTest(() => void vscode.commands.executeCommand('twk.testFromCast', file));
     logs.follow(player);
     player.onDidDispose(() => players.delete(player));
     await player.start();
     return player;
+  });
+
+  // A test of a recording: `twk test-from-cast`, run in the recording's
+  // project; the test it wrote is opened
+  const castTests = new CastTests({ start: startNodeProcess, command: twkCommand, projectOf, env: process.env, log });
+  command('twk.testFromCast', async (uri) => {
+    const file =
+      uri ??
+      (
+        await vscode.window.showOpenDialog({
+          title: 'Create a test from an asciicast recording',
+          canSelectMany: false,
+          filters: { asciicast: ['cast'], 'all files': ['*'] },
+        })
+      )?.[0];
+    if (!file) {
+      return undefined;
+    }
+    const name = path.basename(file.fsPath);
+    const result = await cancellable(`twk test-from-cast ${name}`, (cancel) => castTests.create(file.fsPath, cancel));
+    if (result.cancelled) {
+      void vscode.window.showInformationMessage(`twk: ${name}: test cancelled`);
+    } else if (result.test === undefined) {
+      void vscode.window.showErrorMessage(`twk: ${name}: ${(result.error ?? '').split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
+    } else {
+      await vscode.window.showTextDocument(vscode.Uri.file(result.test), { preview: false });
+      if (result.said !== '') {
+        void vscode.window.showWarningMessage(`twk: ${name}: ${result.said.split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
+      }
+    }
+    return result;
   });
 
   context.subscriptions.push(

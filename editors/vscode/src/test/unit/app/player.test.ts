@@ -122,4 +122,14 @@ describe('a recording played back', () => {
     assert.ok(ended);
     assert.equal(clock.pending, 0);
   });
+
+  it('tells that the bar asked for a test, and plays on as it was', async () => {
+    await player.start(false);
+    let asked = 0;
+    player.onDidAskTest(() => asked++);
+    player.control('test');
+    assert.equal(asked, 1);
+    assert.equal(player.state.playing, false);
+    assert.equal(player.state.frame, 0);
+  });
 });

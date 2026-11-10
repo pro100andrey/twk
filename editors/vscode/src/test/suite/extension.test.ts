@@ -1215,6 +1215,61 @@ describe('a .tape file', () => {
   });
 });
 
+describe('a test made of a recording', () => {
+  const twkDev = path.resolve(project, '..', 'twk_dev');
+  // a project of its own (a pubspec.yaml), so the test goes to its test/ and
+  // not to twk_dev's
+  const dir = path.join(twkDev, '.dart_tool', 'twk_vscode_test', 'cast_test');
+  const castFile = path.join(dir, 'rec', 'hello.cast');
+  const config = vscode.workspace.getConfiguration('twk');
+
+  before(async () => {
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(path.dirname(castFile), { recursive: true });
+    fs.writeFileSync(path.join(dir, 'pubspec.yaml'), 'name: cast_scratch\nenvironment:\n  sdk: ^3.0.0\n');
+    fs.writeFileSync(
+      castFile,
+      [
+        '{"version": 2, "width": 20, "height": 3}',
+        '[0.1, "o", "\\u001b[?2026h\\u001b[1;1Hhello\\u001b[?2026l"]',
+        '[0.2, "m", "greeted"]',
+        '',
+      ].join('\n'),
+    );
+    // twk_dev's own script, with the workspace's package configuration, run in the scratch project
+    await config.update(
+      'command',
+      ['dart', 'run', `--packages=${path.resolve(twkDev, '..', '..', '.dart_tool', 'package_config.json')}`, path.join(twkDev, 'bin', 'twk.dart')],
+      vscode.ConfigurationTarget.Global,
+    );
+  });
+
+  after(async () => {
+    await config.update('command', undefined, vscode.ConfigurationTarget.Global);
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  it('twk.testFromCast runs twk test-from-cast in the recording\'s project and opens the test it wrote', async () => {
+    const result = await vscode.commands.executeCommand<{ test?: string; error?: string }>('twk.testFromCast', vscode.Uri.file(castFile));
+    assert.equal(result.error, undefined);
+    assert.equal(result.test, path.join(dir, 'test', 'hello_test.dart'));
+    assert.ok(fs.existsSync(path.join(dir, 'test', 'hello.cast')), 'the recording copied beside the test');
+    assert.match(fs.readFileSync(result.test!, 'utf8'), /screenFrames/);
+    assert.equal(vscode.window.activeTextEditor?.document.uri.fsPath, result.test);
+  });
+
+  it("the replay's bar asks for the same through its Test button", async () => {
+    const api = await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+    fs.rmSync(path.join(dir, 'test'), { recursive: true, force: true });
+    const player = await vscode.commands.executeCommand<Player>('twk.play', vscode.Uri.file(castFile));
+    assert.ok(player);
+    assert.deepEqual(api.players(), [player]);
+    player.control('test');
+    await until('the test written', async () => (fs.existsSync(path.join(dir, 'test', 'hello_test.dart')) ? true : undefined), 60000);
+    player.dispose();
+  });
+});
+
 describe('the terminal report', () => {
   const twkDev = path.resolve(project, '..', 'twk_dev');
 
