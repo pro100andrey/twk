@@ -645,6 +645,8 @@ tasks:
     desc: the VS Code extension's unit tests (mocha), over that compile
     gate: [handover, ci]
     needs: [vscode-compile]
+    # vscode-package cleans and compiles out/ again under it
+    exclusive: [vscode-out]
     do: vscode
     args: [unit]
 
@@ -659,6 +661,8 @@ tasks:
     desc: package the VS Code extension (.vsix), its file list checked
     gate: [handover, ci]
     needs: [vscode-compile]
+    # its prepublish cleans and compiles out/, which vscode-unit reads
+    exclusive: [vscode-out]
     do: vscode
     args: [package]
 
