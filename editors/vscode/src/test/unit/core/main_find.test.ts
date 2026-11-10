@@ -58,4 +58,19 @@ describe('the main of a twk app', () => {
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('is not found in a loose file under a test directory when no package is above it', () => {
+    const src = `${head}void main() {\n  runApp(x);\n}\n`;
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'twk_main_find_'));
+    try {
+      fs.mkdirSync(path.join(dir, 'test', 'sub'), { recursive: true });
+      fs.mkdirSync(path.join(dir, 'lib'));
+      assert.equal(findTwkMain(src, path.join(dir, 'test', 'foo_app.dart')), null);
+      assert.equal(findTwkMain(src, path.join(dir, 'test', 'sub', 'foo_app.dart')), null);
+      assert.equal(findTwkMain(src, path.join(dir, 'lib', 'foo_test.dart')), null);
+      assert.deepEqual(findTwkMain(src, path.join(dir, 'lib', 'foo_app.dart')), { line: 2, column: 0 });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

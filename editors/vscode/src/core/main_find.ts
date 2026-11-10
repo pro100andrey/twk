@@ -24,10 +24,16 @@ const startsApp = /(?<![\w$.])runApp[ \t]*\(|(?<![\w$])TwkApp\b/;
 const testFile = /(?:_test\.dart|^test[\\/][^]*)$/;
 
 // [filePath] judged from its package root (the nearest pubspec.yaml above it),
-// so that a directory named test further up does not make it a test file
+// so that a directory named test further up does not make it a test file.
+// With no package there is no root to judge from: a directory named test
+// anywhere above the file counts (a loose test/foo_app.dart is no app; the
+// commands Run and Debug in twk Terminal remain for a real one).
 function isTestFile(filePath: string): boolean {
   const root = projectOf(filePath);
-  return testFile.test(root === undefined ? path.basename(filePath) : path.relative(root, filePath));
+  if (root !== undefined) {
+    return testFile.test(path.relative(root, filePath));
+  }
+  return testFile.test(path.basename(filePath)) || path.dirname(filePath).split(/[\\/]/).includes('test');
 }
 
 /**
@@ -36,15 +42,16 @@ function isTestFile(filePath: string): boolean {
  * they import twk packages and call `runApp`, but are run by `dart test`.
  */
 export function findTwkMain(source: string, filePath?: string): TwkMain | null {
-  if (filePath !== undefined && isTestFile(filePath)) {
-    return null;
-  }
+  // the cheap checks on the text first: the test-file check walks the file system
   if (!twkImport.test(source)) {
     return null;
   }
   const code = codeOnly(source);
   const main = mainDeclaration.exec(code);
   if (!main || !startsApp.test(code)) {
+    return null;
+  }
+  if (filePath !== undefined && isTestFile(filePath)) {
     return null;
   }
   const before = code.substring(0, main.index);
