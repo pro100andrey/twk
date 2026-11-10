@@ -21,6 +21,7 @@ Future<ValueNotifier<Color>> start(
   Widget Function(Color value) build,
 ) async {
   final value = ValueNotifier(first);
+  addTearDown(value.dispose);
   await t.pumpWidget(
     ValueListenableBuilder<Color>(
       valueListenable: value,

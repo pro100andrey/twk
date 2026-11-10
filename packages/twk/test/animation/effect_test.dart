@@ -8,6 +8,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+
 const ms = Duration(milliseconds: 1);
 
 const black = Color.rgb(0, 0, 0);
@@ -356,6 +357,7 @@ void main() {
     testTwk('the same glitch again glitches the same cells; another seed '
         'others', (t) async {
       final seed = ValueNotifier(0);
+      addTearDown(seed.dispose);
       await start(
         t,
         ValueListenableBuilder(
@@ -568,6 +570,7 @@ void main() {
       0,
       const CellEffect.dissolve(duration: Duration(milliseconds: 40)),
     ));
+    addTearDown(effect.dispose);
     await start(
       t,
       ValueListenableBuilder(

@@ -84,6 +84,7 @@ void main() {
       final log = <String>[];
       final counter = Counter();
       final show = ValueNotifier(false);
+      addTearDown(show.dispose);
       await t.pumpWidget(
         ChangeNotifierProvider.value(
           value: counter,
@@ -113,6 +114,7 @@ void main() {
         'notifications, and hands it to dispose', (t) async {
       final disposed = <ValueNotifier<int>>[];
       final notifier = ValueNotifier(1);
+      addTearDown(notifier.dispose);
       await t.pumpWidget(
         ListenableProvider(
           create: (_) => notifier,
@@ -136,6 +138,7 @@ void main() {
         'rebuilt when it changes, as updateShouldNotify says', (t) async {
       final log = <String>[];
       final notifier = ValueNotifier(1);
+      addTearDown(notifier.dispose);
       await t.pumpWidget(
         ValueListenableProvider.value(
           value: notifier,

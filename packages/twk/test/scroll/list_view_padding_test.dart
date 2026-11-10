@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// `item <from>` to `item <to - 1>`.
 List<String> items(int from, int to) => [
   for (var i = from; i < to; i++) 'item $i',
@@ -23,6 +25,7 @@ void main() {
       t,
     ) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           padding: pad,
@@ -51,6 +54,7 @@ void main() {
     testTwk('the keys end at the padding: End shows the trailing rows, Home '
         'the leading ones', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           autofocus: true,
@@ -130,6 +134,7 @@ void main() {
     testTwk('with an itemExtent, items taller than a row and the padding '
         'add up', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           padding: pad,
@@ -151,6 +156,7 @@ void main() {
     testTwk('with measured heights, the extent is the padding and the '
         'items measured', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           padding: pad,
@@ -224,6 +230,7 @@ void main() {
   group('columns', () {
     testTwk('inset every item and do not scroll', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           padding: const EdgeInsets.only(left: 2, right: 3),
@@ -250,6 +257,7 @@ void main() {
     testTwk('jumpToIndex puts the item at the top, at its offset and the '
         'leading rows', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           padding: pad,
@@ -272,7 +280,7 @@ void main() {
     });
 
     testTwk('jumpToIndex before the first layout is as one after', (t) async {
-      final controller = ListController()..jumpToIndex(40);
+      final controller = disposing(ListController())..jumpToIndex(40);
       await t.pumpWidget(
         ListView.builder(
           padding: pad,
@@ -289,6 +297,7 @@ void main() {
 
     testTwk('ensureIndexVisible moves the least', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           padding: pad,
@@ -330,6 +339,7 @@ void main() {
     testTwk('starts at the bottom, the bottom padding below item 0, and '
         'ends at the top padding', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(chat(controller: controller), size: (20, 5));
       expect(t.lines, ['item 3', 'item 2', 'item 1', 'item 0', '']);
       expect(controller.offset, 0);
@@ -353,6 +363,7 @@ void main() {
     testTwk('jumpToIndex puts the item at the bottom, below it the '
         'rows after it', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,

@@ -105,6 +105,7 @@ void main() {
       final log = <String>[];
       final counter = Counter();
       final coarse = ValueNotifier(false);
+      addTearDown(coarse.dispose);
       await t.pumpWidget(
         ChangeNotifierProvider.value(
           value: counter,
@@ -135,6 +136,7 @@ void main() {
       final log = <String>[];
       final counter = Counter();
       final names = ValueNotifier('ab');
+      addTearDown(names.dispose);
       await t.pumpWidget(
         ChangeNotifierProvider.value(
           value: counter,

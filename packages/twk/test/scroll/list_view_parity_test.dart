@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// `item <from>` down to `item <to + 1>`, as a reverse list shows them.
 List<String> down(int from, int to) => [
   for (var i = from; i > to; i--) 'item $i',
@@ -47,6 +49,7 @@ void main() {
         'up to the items after it, Down back, Home to the last item and End '
         'to item 0', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -78,6 +81,7 @@ void main() {
 
     testTwk('the wheel up scrolls it up three rows, and down back', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -101,6 +105,7 @@ void main() {
         'window; keeps the bottom as items come at index 0 while it shows '
         'it, and the items it shows once scrolled up, until End', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       // the messages, the oldest first: item 0, the newest, at the bottom
       Widget chat(int count) => ListView.builder(
         reverse: true,
@@ -137,6 +142,7 @@ void main() {
     testTwk('starts at the initial offset of its controller, from the '
         'bottom', (t) async {
       final controller = ScrollController(initialScrollOffset: 4);
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -154,6 +160,7 @@ void main() {
         'at its top at the end; a press above the thumb scrolls a window '
         'up', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: ListView.builder(
@@ -182,6 +189,7 @@ void main() {
 
     testTwk('a drag of the thumb up scrolls it up', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: ListView.builder(
@@ -204,6 +212,7 @@ void main() {
     testTwk('ensureVisible scrolls the least that shows an item above the '
         'window', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       final six = GlobalKey();
       await t.pumpWidget(
         ListView.builder(
@@ -223,6 +232,7 @@ void main() {
     testTwk('jumpToIndex puts the item at the bottom of the window, the edge '
         'the list reads from; one near the top end shows the end', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -249,7 +259,7 @@ void main() {
     testTwk('a jumpToIndex asked before the list has the controller puts the '
         'item at the bottom as the list is first laid out, in place of the '
         'initial offset', (t) async {
-      final controller = ListController(initialScrollOffset: 4)
+      final controller = disposing(ListController(initialScrollOffset: 4))
         ..jumpToIndex(10);
       await t.pumpWidget(
         ListView.builder(
@@ -267,6 +277,7 @@ void main() {
     testTwk('separated: jumpToIndex puts the item at the bottom, its '
         'separators above it', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.separated(
           reverse: true,
@@ -285,6 +296,7 @@ void main() {
     testTwk('an item taller than the window shows its bottom, to '
         'jumpToIndex and to ensureIndexVisible', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -320,6 +332,7 @@ void main() {
     testTwk('ensureIndexVisible scrolls the least that shows an item that '
         'fits', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.builder(
           reverse: true,
@@ -356,6 +369,7 @@ void main() {
         'view', (t) async {
       final built = <String>[];
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.separated(
           itemCount: 1000,
@@ -400,6 +414,7 @@ void main() {
       t,
     ) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         ListView.separated(
           itemCount: 100,
@@ -453,6 +468,7 @@ void main() {
     testTwk('keeps a SingleChildScrollView at the end as its content grows, '
         'starting there; scrolled up, it stays until End', (t) async {
       final controller = ScrollController(stickToEnd: true);
+      addTearDown(controller.dispose);
       Widget view(int count) => SingleChildScrollView(
         controller: controller,
         autofocus: true,
@@ -477,6 +493,7 @@ void main() {
     testTwk('keeps a ListView at the end as items come; the wheel up leaves '
         'it, the wheel back down to the end sticks again', (t) async {
       final controller = ScrollController(stickToEnd: true);
+      addTearDown(controller.dispose);
       Widget view(int count) => ListView.builder(
         controller: controller,
         itemCount: count,
@@ -505,6 +522,7 @@ void main() {
         'as items come at index 0, starting there; scrolled up, it stays on '
         'the items it shows until End', (t) async {
       final controller = ScrollController(stickToEnd: true);
+      addTearDown(controller.dispose);
       // the messages, the oldest first: item 0, the newest, at the bottom
       Widget chat(int count) => ListView.builder(
         reverse: true,
@@ -536,6 +554,7 @@ void main() {
         'item, which it then stays on', (t) async {
       for (final reverse in [false, true]) {
         final controller = ListController(stickToEnd: true);
+        addTearDown(controller.dispose);
         Widget view(int count) => ListView.builder(
           key: ValueKey(reverse),
           reverse: reverse,
@@ -559,6 +578,7 @@ void main() {
 
     testTwk('one that does not stays where it is', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       Widget view(int count) =>
           SingleChildScrollView(controller: controller, child: column(count));
       await t.pumpWidget(view(10), size: (20, 5));

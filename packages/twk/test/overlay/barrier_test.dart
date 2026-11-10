@@ -133,6 +133,7 @@ void main() {
       'at any point', (t) async {
     const theme = ThemeData.dark;
     final fade = ValueNotifier<double>(0);
+    addTearDown(fade.dispose);
     var dismissed = 0;
     Widget app({Curve curve = Curves.linear, double? opacity}) => over(
       theme,
@@ -171,7 +172,9 @@ void main() {
       'one; a barrier built with another colour shades in it', (t) async {
     const theme = ThemeData.dark;
     final first = ValueNotifier<double>(1);
+    addTearDown(first.dispose);
     final second = ValueNotifier<double>(0);
+    addTearDown(second.dispose);
     await t.pumpWidget(
       over(theme, AnimatedModalBarrier(animation: first)),
       size: (4, 2),

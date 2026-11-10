@@ -132,6 +132,7 @@ void main() {
         'by a new value', (t) async {
       final log = <String>[];
       final watch = ValueNotifier(true);
+      addTearDown(watch.dispose);
       final child = ValueListenableBuilder(
         valueListenable: watch,
         builder: (context, watching, _) => Built(
@@ -262,6 +263,7 @@ void main() {
       t,
     ) async {
       final show = ValueNotifier(1);
+      addTearDown(show.dispose);
       await t.pumpWidget(
         Provider<int>(
           create: (_) => throw const FormatException('boom'),
