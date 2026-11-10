@@ -2,47 +2,63 @@
 // project (its nearest pubspec.yaml), the working directory the command
 // finds it from. Exit 1 is a report too (the versions disagree); what it
 // says is read by core/report.ts, judged by twk doctor only.
-import { ProcessStarter } from '../core/process';
 import { ProjectResult, parseDoctor } from '../core/report';
-import { Log } from './ports';
+import { TwkCommandDeps, runTwk } from './twk_command';
 
-export interface DoctorDeps {
-  readonly start: ProcessStarter;
-  /** The command that is `twk`, as the person configured it (`dart run twk_dev:twk`). */
-  command(): readonly string[];
-  readonly env: Readonly<Record<string, string | undefined>>;
-  readonly log: Log;
+export interface DoctorDeps extends TwkCommandDeps {
   /** How long `twk doctor` may take before it is ended. */
   readonly timeoutMs: number;
+  /** How long after SIGTERM before SIGKILL; see [TwkRunOptions.graceMs]. */
+  readonly graceMs?: number;
 }
 
 /** Asks `twk doctor` about a project. */
 export class Doctor {
+  private running: AbortController | undefined;
+
   constructor(private readonly deps: DoctorDeps) {}
 
+  /**
+   * The project part of the report for the project in [project], as the
+   * latest ask: one that is still running is ended, and its answer is
+   * undefined, so a slower older ask never takes the place of a newer one.
+   * No project (undefined) is `none`, and ends the one running too.
+   */
+  async latest(project: string | undefined): Promise<ProjectResult | undefined> {
+    this.running?.abort();
+    const mine = new AbortController();
+    if (project === undefined) {
+      this.running = undefined;
+      return { kind: 'none' };
+    }
+    this.running = mine;
+    try {
+      const result = await this.project(project, mine.signal);
+      return mine.signal.aborted ? undefined : result;
+    } finally {
+      if (this.running === mine) {
+        this.running = undefined;
+      }
+    }
+  }
+
   /** The project part of the report for the project in [project]; failed, saying why, where `twk doctor` could not be run or read. */
-  async project(project: string): Promise<ProjectResult> {
-    const command = this.deps.command();
-    const log = this.deps.log;
-    if (command.length === 0) {
-      return { kind: 'failed', message: 'twk.tape.command is empty' };
+  async project(project: string, cancel?: AbortSignal): Promise<ProjectResult> {
+    let run;
+    try {
+      run = await runTwk(this.deps, ['doctor', '--json', '-C', project], { cwd: project, label: 'doctor', timeoutMs: this.deps.timeoutMs, graceMs: this.deps.graceMs, cancel });
+    } catch (e) {
+      return { kind: 'failed', message: e instanceof Error ? e.message : String(e) };
     }
-    const args = [...command.slice(1), 'doctor', '--json', '-C', project];
-    log.appendLine(`$ ${[...command, 'doctor', '--json', '-C', project].join(' ')}   (in ${project})`);
-    let output = '';
-    const problems: Error[] = [];
-    const process = this.deps.start(command[0], args, { cwd: project, env: this.deps.env });
-    process.onOutput((t) => (output += t));
-    process.onError((e) => problems.push(e));
-    const timer = setTimeout(() => process.signal('SIGTERM'), this.deps.timeoutMs);
-    const exit = await process.exited.finally(() => clearTimeout(timer));
-    if (problems.length > 0) {
-      return { kind: 'failed', message: `cannot start ${command[0]}: ${problems[0].message}` };
+    if (run.problems.length > 0) {
+      return { kind: 'failed', message: `cannot start ${this.deps.command()[0]}: ${run.problems[0].message}` };
     }
-    log.appendLine(`twk doctor: ${exit.signal ?? `exit ${exit.code}`}`);
-    const parsed = parseDoctor(output);
-    if (parsed.kind === 'failed' && exit.signal !== null) {
-      return { kind: 'failed', message: `twk doctor did not finish in ${this.deps.timeoutMs / 1000} s (${exit.signal})` };
+    if (run.cancelled) {
+      return { kind: 'failed', message: 'twk doctor was cancelled' };
+    }
+    const parsed = parseDoctor(run.output);
+    if (parsed.kind === 'failed' && run.timedOut) {
+      return { kind: 'failed', message: `twk doctor did not finish in ${this.deps.timeoutMs / 1000} s (${run.exit.signal ?? `exit ${run.exit.code}`})` };
     }
     return parsed;
   }

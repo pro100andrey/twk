@@ -31,8 +31,12 @@ class FakeTapeProcess implements AppProcess {
   fail(e: Error): void {
     this.err(e);
   }
+  signals: string[] = [];
   write(): void {}
-  signal(): void {}
+  signal(s: 'SIGTERM' | 'SIGKILL'): void {
+    this.signals.push(s);
+    this.end({ code: null, signal: s });
+  }
 }
 
 describe('Tapes', () => {
@@ -42,12 +46,14 @@ describe('Tapes', () => {
   let started: { command: string; args: readonly string[]; cwd: string }[];
   let proc: FakeTapeProcess;
   let tapes: Tapes;
+  let version: number | undefined;
 
   beforeEach(() => {
     log = new FakeLog();
     shown = new Map();
     started = [];
     proc = new FakeTapeProcess();
+    version = 1;
     tapes = new Tapes({
       start: (command, args, o) => {
         started.push({ command, args, cwd: o.cwd });
@@ -57,6 +63,7 @@ describe('Tapes', () => {
       projectOf: () => '/p',
       env: {},
       diagnostics: { set: (f, d) => shown.set(f, d), clear: (f) => shown.delete(f) },
+      version: () => version,
       log,
     });
   });
@@ -103,6 +110,62 @@ describe('Tapes', () => {
     assert.deepEqual(shown.get(file)?.map((d) => d.line), [0]);
   });
 
+  it('a text edited during the run gets no diagnostics: they describe the text before', async () => {
+    const done = tapes.check(file);
+    version = 2;
+    proc.say(`twk tape: ${file}:4: unknown statement "Foo"\n`);
+    proc.end({ code: 1, signal: null });
+    const r = await done;
+    assert.equal(r.error?.line, 3);
+    assert.equal(shown.has(file), false);
+  });
+
+  it('an error with no line, after statements that passed, is on the first line and replaces the old ones', async () => {
+    shown.set(file, [{ line: 5, message: 'old' }]);
+    const done = tapes.check(file);
+    proc.say(`${file}:2: ok Run sh\n${file}:3: ok Type "x"\ntwk tape: cannot write /p/out.cast: permission denied\n`);
+    proc.end({ code: 1, signal: null });
+    await done;
+    assert.deepEqual(shown.get(file), [{ line: 0, message: 'cannot write /p/out.cast: permission denied' }]);
+  });
+
+  it('a passed run whose stderr said something has no diagnostic', async () => {
+    const done = tapes.run(file);
+    proc.say('Building package executable...\n');
+    proc.end({ code: 0, signal: null });
+    await done;
+    assert.deepEqual(shown.get(file), []);
+  });
+
+  it('cancel ends the run, group and all, reports it, and sets no diagnostics', async () => {
+    shown.set(file, [{ line: 1, message: 'old' }]);
+    const abort = new AbortController();
+    const done = tapes.check(file, abort.signal);
+    abort.abort();
+    const r = await done;
+    assert.ok(r.cancelled);
+    assert.equal(proc.signals[0], 'SIGTERM');
+    assert.equal(shown.has(file), false);
+    assert.ok(!tapes.busy(file));
+  });
+
+  it('is started as a group of its own, so that what it starts can be ended with it', async () => {
+    let group: boolean | undefined;
+    const t = new Tapes({
+      start: (_c, _a, o) => ((group = o.group), proc),
+      command: () => ['twk'],
+      projectOf: () => '/p',
+      env: {},
+      diagnostics: { set: () => {}, clear: () => {} },
+      version: () => undefined,
+      log,
+    });
+    const done = t.run(file);
+    proc.end({ code: 0, signal: null });
+    await done;
+    assert.equal(group, true);
+  });
+
   it('one run of a file at a time; another file may run', async () => {
     const first = tapes.check(file);
     await assert.rejects(tapes.run(file), /is being run already/);
@@ -134,6 +197,7 @@ describe('Tapes over a real process', function () {
       projectOf: () => os.tmpdir(),
       env: process.env,
       diagnostics: { set: () => {}, clear: () => {} },
+      version: () => undefined,
       log,
     });
     const r = await tapes.check(file);

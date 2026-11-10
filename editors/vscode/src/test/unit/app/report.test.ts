@@ -55,6 +55,7 @@ describe('Doctor', () => {
       env: {},
       log: new FakeLog(),
       timeoutMs: 20,
+      graceMs: 10,
     });
   });
 
@@ -91,8 +92,31 @@ describe('Doctor', () => {
 
   it('ends a run that does not end, and says so', async () => {
     const r = await doctor.project('/p');
-    assert.deepEqual(proc.signals, ['SIGTERM']);
+    // SIGTERM, then a SIGKILL for what the leader left behind
+    assert.deepEqual(proc.signals, ['SIGTERM', 'SIGKILL']);
     assert.match(r.kind === 'failed' ? r.message : '', /did not finish/);
+  });
+
+  it('a new ask ends the one running; only the latest answers', async () => {
+    const first = doctor.latest('/old');
+    const older = proc;
+    older.say('{"project":"/old","agree":true}');
+    proc = new FakeProcess();
+    const second = doctor.latest('/new');
+    assert.deepEqual(older.signals[0], 'SIGTERM');
+    proc.say('{"project":"/new","agree":true}');
+    proc.end({ code: 0, signal: null });
+    assert.equal(await first, undefined);
+    const r = await second;
+    assert.equal(r?.kind === 'ok' && r.report.project, '/new');
+  });
+
+  it('asking with no project is none, and ends the one running', async () => {
+    doctor = new Doctor({ start: () => proc, command: () => ['twk'], env: {}, log: new FakeLog(), timeoutMs: 60_000, graceMs: 10 });
+    const running = doctor.latest('/p');
+    assert.deepEqual(await doctor.latest(undefined), { kind: 'none' });
+    assert.equal(await running, undefined);
+    assert.equal(proc.signals[0], 'SIGTERM');
   });
 
   it('reads the real thing: a process that writes a report', async () => {

@@ -407,7 +407,7 @@
           "default": true,
           "description": "Whether saving a Dart file hot reloads the apps the extension runs or debugs in the twk terminal (their sources reloaded, every widget rebuilt, each State kept). Leave Dart-Code's dart.hotReloadOnSave at \"never\": it reloads without the rebuild."
         },
-        "twk.tape.command": {
+        "twk.command": {
           "type": "array",
           "items": {
             "type": "string"
@@ -418,7 +418,7 @@
             "run",
             "twk_dev:twk"
           ],
-          "description": "The command that is twk, for Run, Check and Preview of a .tape and for the project part of the terminal report (twk doctor --json): it runs in the tape's Dart project (the nearest pubspec.yaml), with `tape [--check] <file>` after it. A twk activated globally: [\"twk\"]."
+          "description": "The command that is twk, for Run and Check of a .tape (`tape [--check] <file>` after it) and for the project part of the terminal report (`doctor --json`): it runs in the Dart project (the nearest pubspec.yaml). A twk activated globally: [\"twk\"]."
         }
       }
     },

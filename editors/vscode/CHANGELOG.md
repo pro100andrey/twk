@@ -2,12 +2,12 @@
 
 ## 0.1.0
 
-- twk: Show the Terminal Report: what the twk terminal tells an app and answers (environment, declared features, the probe's queries) for the current profile and switches, and the project part of `twk doctor --json` (twk package versions and whether they agree, Dart, running app files, the agents skill). `twk.tape.command` says what `twk` is for it too.
+- twk: Show the Terminal Report: what the twk terminal tells an app and answers (environment, declared features, the probe's queries) for the current profile and switches, and the project part of `twk doctor --json` (twk package versions and whether they agree, Dart, running app files, the agents skill). `twk.command` says what `twk` is for it too.
 - `.tape` files: the language (highlighting, a hover on each statement), and
   the lenses Run (`twk tape`), Check (`twk tape --check`; a failed Wait or a
   tape that cannot be read is an error on its line) and Preview (the stills of
   its Screenshots and its SVG Output, a click going to the statement);
-  `twk.tape.command` says what `twk` is.
+  `twk.command` says what `twk` is.
 The first packaged version (a preview, `.vsix` built from this repository).
 
 - Selection and clipboard in the twk terminal: drag selects (with Shift held

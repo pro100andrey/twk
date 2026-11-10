@@ -2,6 +2,8 @@
 // animated SVG of an Output), a strip of frames in order, each going to the
 // statement that made it on a click. Pure: the HTML for a webview.
 
+import { escapeHtml } from './html';
+
 /** One frame of the strip. */
 export interface PreviewFrame {
   /** What it is called: the file's name. */
@@ -14,7 +16,6 @@ export interface PreviewFrame {
   readonly note?: string;
 }
 
-const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** The message a click posts. */
 export interface PreviewClick {
@@ -30,13 +31,13 @@ export function previewHtml(name: string, frames: readonly PreviewFrame[], cspSo
           .map(
             (f) =>
               `<figure data-line="${f.line}" tabindex="0" title="Go to line ${f.line + 1}">` +
-              (f.src === undefined ? `<div class="missing">${f.note === undefined ? 'not written yet: Run the tape' : escape(f.note)}</div>` : `<img src="${escape(f.src)}" alt="${escape(f.title)}">`) +
-              `<figcaption>${escape(f.title)} (line ${f.line + 1})</figcaption></figure>`,
+              (f.src === undefined ? `<div class="missing">${f.note === undefined ? 'not written yet: Run the tape' : escapeHtml(f.note)}</div>` : `<img src="${escapeHtml(f.src)}" alt="${escapeHtml(f.title)}">`) +
+              `<figcaption>${escapeHtml(f.title)} (line ${f.line + 1})</figcaption></figure>`,
           )
           .join('');
   return `<!doctype html><html><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource}; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
-<title>${escape(name)}</title>
+<title>${escapeHtml(name)}</title>
 <style>body{font-family:var(--vscode-font-family);color:var(--vscode-foreground);padding:8px}
 .strip{display:flex;flex-wrap:nowrap;gap:12px;overflow-x:auto;align-items:flex-start}
 figure{margin:0;flex:none;cursor:pointer;border:1px solid var(--vscode-panel-border);padding:6px}

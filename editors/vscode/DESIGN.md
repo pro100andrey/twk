@@ -303,19 +303,28 @@ The language `tape` (`.tape`; `syntaxes/tape.tmLanguage.json`,
 - the lenses Run, Check and Preview over the first statement
   (`vscode/tape.ts`), commands `twk.tape.run`, `twk.tape.check`,
   `twk.tape.preview`;
-- `app/tape.ts`'s `Tapes` runs `<twk.tape.command> tape [--check] <file>`
+- `app/tape.ts`'s `Tapes` runs `<twk.command> tape [--check] <file>`
   (default `dart run twk_dev:twk`) in the tape's project (the nearest
   `pubspec.yaml`: the tape's paths are the current directory's), everything it
   writes to the `twk` output, and reads the report with
   `core/tape.ts`'s `parseCheck`: stdout's `<tape>:<line>: ok|FAIL <statement>`
   and summary, the rest being stderr (`twk tape: <tape>:<line>: <message>` for
   a tape that is wrong, `<tape>:<line>: Wait timed out ...` and the screen for
-  a failed check). The file is saved first, as what runs is the file;
+  a failed check). The file is saved first, as what runs is the file. Both
+  this and the doctor start `twk` through `app/twk_command.ts`'s `runTwk`:
+  the process is a group of its own (`group`: a process group on POSIX,
+  `taskkill /T` on Windows), as `dart run` starts the VM as a child, and a
+  deadline (the doctor's 60 s) or a Cancel (the notification's, for Run and
+  Check) ends the group by SIGTERM, SIGKILL after 3 s. A comment is told as
+  twk tape tells it (`commentStart`, a `#` or a quote only at the start of a
+  word);
 - diagnostics: a failed statement and the line stderr names, an error on that
   line, from `twk tape` and from no parser of this extension. They come only
   of a Run or a Check, as twk tape has no mode that only reads a tape (it
   would run its program), and an edit of the file takes them away, as they
-  describe the text before it;
+  describe the text before it (a run that ends after an edit sets none: the
+  version of the text is compared); an error with no line puts its message on
+  line 1 of a run that failed;
 - Preview (`core/tape_preview.ts`): a webview with the stills of the
   Screenshots, in the tape's order, then the SVG Outputs (the animated end), each
   figure going to the line of its statement; a file not written yet says to Run.
@@ -343,8 +352,9 @@ part and the project's.
   changes.
 - The project's part is `twk doctor --json -C <project>` (`app/report.ts`'s
   `Doctor`), run as the tape commands are, in the project of the active file
-  (else the first folder with a `pubspec.yaml`), with `twk.tape.command` as
-  what `twk` is (a second setting would only repeat it). Exit 1 (the versions
+  (else the first folder with a `pubspec.yaml`), with `twk.command` as
+  what `twk` is (a second setting would only repeat it); one ask at a time:
+  a new one ends the one running, and only the latest answer is shown. Exit 1 (the versions
   disagree) is a report; output that is no report, a command that cannot
   start and one that outlasts 60 s are `failed` in the page, with why.
   `core/report.ts`'s `parseDoctor` checks each field and reads past a line
@@ -806,7 +816,7 @@ What the tests cover:
    kitty_keyboard.ts  switches.ts  vm.ts  hot.ts  runner.ts
    process.ts  events.ts  project.ts  inspect.ts  source_find.ts
    locator.ts  sequences.ts  seqlog.ts  cast.ts  cast_file.ts
-   tape.ts  tape_preview.ts
+   tape.ts  tape_preview.ts  html.ts
 ```
 
 `webview/` is `main.ts` (xterm.js and its addons, the page's; a replay's

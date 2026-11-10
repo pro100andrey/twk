@@ -6,6 +6,7 @@
 // takes an app with, so the report cannot say otherwise; the HTML for the
 // webview is pure too.
 import { Choice, Declaration, answersOf, declarationOf, environmentOf, describeChoice } from './capabilities';
+import { escapeHtml } from './html';
 import { Switches, switchEnvironment, describeSwitches } from './switches';
 
 /** How a query of twk's probe ends. */
@@ -164,7 +165,6 @@ export function parseDoctor(stdout: string): ProjectResult {
   };
 }
 
-const escape = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** The packages `twk doctor` compares, in its order. */
 export const doctorPackages = ['twk', 'twk_core', 'twk_dev', 'twk_test'] as const;
@@ -174,27 +174,27 @@ function projectHtml(result: ProjectResult): string {
     return '<p class="muted">No Dart project: open a file of one, or a folder, for the project part.</p>';
   }
   if (result.kind === 'failed') {
-    return `<p class="bad">${escape(result.message)}</p>`;
+    return `<p class="bad">${escapeHtml(result.message)}</p>`;
   }
   const r = result.report;
   const rows: string[] = [
-    `<tr><th>project</th><td>${escape(r.project)}</td></tr>`,
-    `<tr><th>Dart</th><td>${escape(r.dart)}</td></tr>`,
-    `<tr><th>pubspec.lock</th><td>${r.lock === null ? 'none found' : escape(r.lock)}</td></tr>`,
-    ...doctorPackages.map((p) => `<tr><th>${p}</th><td>${r.versions[p] === undefined ? '<span class="muted">not in the lock</span>' : escape(r.versions[p])}</td></tr>`),
+    `<tr><th>project</th><td>${escapeHtml(r.project)}</td></tr>`,
+    `<tr><th>Dart</th><td>${escapeHtml(r.dart)}</td></tr>`,
+    `<tr><th>pubspec.lock</th><td>${r.lock === null ? 'none found' : escapeHtml(r.lock)}</td></tr>`,
+    ...doctorPackages.map((p) => `<tr><th>${p}</th><td>${r.versions[p] === undefined ? '<span class="muted">not in the lock</span>' : escapeHtml(r.versions[p])}</td></tr>`),
     `<tr><th>versions</th><td class="${r.agree ? 'ok' : 'bad'}">${r.lock === null ? 'no lock to compare' : r.agree ? 'agree' : 'DISAGREE: pub upgrade them together'}</td></tr>`,
   ];
   const services = Object.entries(r.state);
   rows.push(
     services.length === 0
       ? '<tr><th>.dart_tool/twk</th><td class="muted">nothing: no app running</td></tr>'
-      : services.map(([name, s]) => `<tr><th>${escape(name)}</th><td>${escape(s.address)} <span class="${s.listens ? 'ok' : 'bad'}">${s.listens ? 'listening' : 'left behind'}</span></td></tr>`).join(''),
+      : services.map(([name, s]) => `<tr><th>${escapeHtml(name)}</th><td>${escapeHtml(s.address)} <span class="${s.listens ? 'ok' : 'bad'}">${s.listens ? 'listening' : 'left behind'}</span></td></tr>`).join(''),
   );
   if (r.agents !== null) {
     const parts = [
       ...(r.agents.missing ? ['missing: twk agents writes it'] : []),
-      ...(r.agents.stale.length > 0 ? [`older than this twk_dev: ${r.agents.stale.map(escape).join(', ')} (twk agents rewrites them)`] : []),
-      ...(r.agents.edited.length > 0 ? [`changed by the project, kept: ${r.agents.edited.map(escape).join(', ')}`] : []),
+      ...(r.agents.stale.length > 0 ? [`older than this twk_dev: ${r.agents.stale.map(escapeHtml).join(', ')} (twk agents rewrites them)`] : []),
+      ...(r.agents.edited.length > 0 ? [`changed by the project, kept: ${r.agents.edited.map(escapeHtml).join(', ')}`] : []),
     ];
     rows.push(`<tr><th>skill for agents</th><td class="${parts.length === 0 ? 'ok' : 'bad'}">${parts.length === 0 ? 'current' : parts.join('; ')}</td></tr>`);
   }
@@ -204,16 +204,16 @@ function projectHtml(result: ProjectResult): string {
 /** The page: the terminal's part and the project's, under a CSP allowing the one script, [nonce]'s (the Refresh button). */
 export function reportHtml(terminal: TerminalReport, project: ProjectResult, nonce: string): string {
   const env = Object.entries(terminal.environment)
-    .map(([k, v]) => `<tr><th>${escape(k)}</th><td>${escape(v)}</td></tr>`)
+    .map(([k, v]) => `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(v)}</td></tr>`)
     .join('');
   const declares = Object.entries(terminal.declares)
-    .map(([k, v]) => `<tr><th>${escape(k)}</th><td>${escape(String(v))}</td></tr>`)
+    .map(([k, v]) => `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(String(v))}</td></tr>`)
     .join('');
   const queries = terminal.queries
-    .map((q) => `<tr><td>${escape(q.query)}</td><td><code>${escape(q.sequence)}</code></td><td class="${q.outcome === 'answered' ? 'ok' : 'bad'}">${q.outcome}</td><td>${escape(q.detail)}</td></tr>`)
+    .map((q) => `<tr><td>${escapeHtml(q.query)}</td><td><code>${escapeHtml(q.sequence)}</code></td><td class="${q.outcome === 'answered' ? 'ok' : 'bad'}">${q.outcome}</td><td>${escapeHtml(q.detail)}</td></tr>`)
     .join('');
   const handled = terminal.handled
-    .map((h) => `<tr><td>${escape(h.name)}</td><td class="${h.on ? 'ok' : 'muted'}">${h.on ? 'on' : 'off'}</td><td>${escape(h.detail)}</td></tr>`)
+    .map((h) => `<tr><td>${escapeHtml(h.name)}</td><td class="${h.on ? 'ok' : 'muted'}">${h.on ? 'on' : 'off'}</td><td>${escapeHtml(h.detail)}</td></tr>`)
     .join('');
   return `<!doctype html><html><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'nonce-${nonce}'">
@@ -223,7 +223,7 @@ table{border-collapse:collapse;margin:4px 0 16px}th{text-align:left;padding:2px 
 td{padding:2px 16px 2px 0}.ok{color:var(--vscode-testing-iconPassed)}.bad{color:var(--vscode-errorForeground)}.muted{color:var(--vscode-descriptionForeground)}
 code{font-family:var(--vscode-editor-font-family)}h2{font-size:1.1em;margin:16px 0 4px}</style></head>
 <body><h1>The twk terminal</h1>
-<p>Profile <b>${escape(terminal.profile)}</b>${terminal.switches === '' ? '' : `, switches on: ${escape(terminal.switches)}`}. <button id="refresh">Refresh</button></p>
+<p>Profile <b>${escapeHtml(terminal.profile)}</b>${terminal.switches === '' ? '' : `, switches on: ${escapeHtml(terminal.switches)}`}. <button id="refresh">Refresh</button></p>
 <h2>An app is started with</h2><table>${env}</table>
 <h2>The welcome declares</h2><table>${declares}</table>
 <h2>The probe's queries</h2><table>${queries}</table>

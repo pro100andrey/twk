@@ -14,6 +14,7 @@ import { startNodeProcess } from '../core/process';
 import { projectOf } from '../core/project';
 import { ProjectResult, isRefresh, reportHtml, terminalReportOf } from '../core/report';
 import { Configuration } from './settings';
+import { twkCommand } from './tape';
 
 /** How long `twk doctor` may take; its connects to the project's services time out at a few seconds each. */
 const doctorTimeoutMs = 60_000;
@@ -37,7 +38,7 @@ function projectToReport(): string | undefined {
 export function registerReport(context: vscode.ExtensionContext, settings: Configuration, log: Log): void {
   const doctor = new Doctor({
     start: startNodeProcess,
-    command: () => vscode.workspace.getConfiguration('twk').get<string[]>('tape.command', ['dart', 'run', 'twk_dev:twk']),
+    command: twkCommand,
     env: process.env,
     log,
     timeoutMs: doctorTimeoutMs,
@@ -52,8 +53,12 @@ export function registerReport(context: vscode.ExtensionContext, settings: Confi
   };
   const ask = async () => {
     const dir = projectToReport();
-    project = dir === undefined ? { kind: 'none' } : await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'twk doctor' }, () => doctor.project(dir));
-    render();
+    // a new ask ends the one running, and only the latest answer is shown
+    const answer = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'twk doctor' }, () => doctor.latest(dir));
+    if (answer !== undefined) {
+      project = answer;
+      render();
+    }
   };
 
   context.subscriptions.push(

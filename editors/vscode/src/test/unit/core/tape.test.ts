@@ -34,6 +34,25 @@ describe('tapeStatements', () => {
     assert.equal(commentStart('Wait "x#" #y'), 10);
     assert.equal(commentStart('# all'), 0);
   });
+
+  it("as twk tape tells it: a # or a quote counts only at the start of a word", () => {
+    assert.equal(commentStart('Run echo a#b'), undefined);
+    assert.equal(commentStart('Output out#1.svg'), undefined);
+    assert.equal(commentStart('Run echo it\'s # c'), 14);
+    assert.equal(commentStart("Run echo it's #c"), 14);
+    assert.equal(commentStart('Run echo a"b # c'), 13);
+    assert.equal(commentStart('Type "a" #b'), 9);
+    // an unclosed quote runs to the end of the line
+    assert.equal(commentStart('Type "a # b'), undefined);
+    // a Wait's slash starts a pattern only at the start of a word; elsewhere a slash is a letter
+    assert.equal(commentStart('Wait@2s /a # b/ # c'), 16);
+    assert.equal(commentStart('Run echo /a # c'), 12);
+  });
+
+  it('the statements: a # inside a word is no comment, so the Output keeps its file', () => {
+    assert.deepEqual(tapeOutputs('Output out#1.svg # the end\nRun echo it\'s\n').map((o) => o.file), ['out#1.svg']);
+    assert.equal(tapeStatements("Run echo it's # c")[0].source, "Run echo it's");
+  });
 });
 
 describe('tapeOutputs', () => {
@@ -90,6 +109,13 @@ describe('tapeHover', () => {
     assert.match(tapeHover('Set', 'Set TypingSpeed 10ms') ?? '', /^`Set TypingSpeed/);
     assert.equal(tapeHover('Foo', 'Foo'), undefined);
   });
+
+  it('a word of the person is never a key of Object.prototype', () => {
+    for (const k of ['constructor', 'toString', 'hasOwnProperty', '__proto__', 'valueOf']) {
+      assert.equal(tapeHover(k, k), undefined, k);
+      assert.match(tapeHover('Set', `Set ${k} 1`) ?? '', /^`Set <setting> <value>`/, k);
+    }
+  });
 });
 
 describe('previewHtml', () => {
@@ -134,7 +160,7 @@ describe('the .tape language of the package', () => {
     for (const c of ['twk.tape.run', 'twk.tape.check', 'twk.tape.preview']) {
       assert.ok(commands.includes(c), c);
     }
-    assert.deepEqual(pkg.contributes.configuration.properties['twk.tape.command'].default, ['dart', 'run', 'twk_dev:twk']);
+    assert.deepEqual(pkg.contributes.configuration.properties['twk.command'].default, ['dart', 'run', 'twk_dev:twk']);
   });
 
   /** The first scope name each rule of the grammar gives a line, by a JS regex (the grammar's are written to work as one). */

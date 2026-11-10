@@ -31,6 +31,13 @@ export interface StartOptions {
   readonly cwd: string;
   /** The whole environment of the process. */
   readonly env: Readonly<Record<string, string | undefined>>;
+  /**
+   * Whether the process and what it starts are one group: [AppProcess.signal]
+   * then reaches them all (a process group on POSIX, `taskkill /T` on
+   * Windows). `dart run` starts the VM as a child, which a signal to `dart`
+   * alone leaves running.
+   */
+  readonly group?: boolean;
 }
 
 /** Starts [command] with [args]: node's `spawn`, or a fake in a test. */
@@ -38,7 +45,9 @@ export type ProcessStarter = (command: string, args: readonly string[], options:
 
 /** A [ProcessStarter] over node's child_process. */
 export const startNodeProcess: ProcessStarter = (command, args, options) => {
-  const child = spawn(command, [...args], { cwd: options.cwd, stdio: ['pipe', 'pipe', 'pipe'], env: { ...options.env } });
+  // its own process group on POSIX, so that a signal can reach its children too
+  const posixGroup = options.group === true && process.platform !== 'win32';
+  const child = spawn(command, [...args], { cwd: options.cwd, stdio: ['pipe', 'pipe', 'pipe'], env: { ...options.env }, detached: posixGroup });
   let failed = false;
   const exited = new Promise<Exit>((resolve) => {
     child.on('exit', (code, signal) => resolve({ code, signal }));
@@ -73,7 +82,18 @@ export const startNodeProcess: ProcessStarter = (command, args, options) => {
       child.stdin.write(text);
     },
     signal(signal) {
-      child.kill(signal);
+      if (options.group !== true || child.pid === undefined) {
+        child.kill(signal);
+      } else if (process.platform === 'win32') {
+        // the whole tree; taskkill ends them hard whatever the signal
+        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' }).on('error', () => child.kill(signal));
+      } else {
+        try {
+          process.kill(-child.pid, signal);
+        } catch {
+          child.kill(signal);
+        }
+      }
     },
   };
 };

@@ -22,27 +22,35 @@ const keys = new Set([
 ]);
 const words = new Set(['Output', 'Set', 'Env', 'Run', 'Type', 'Sleep', 'Wait', 'Hide', 'Show', 'Screenshot']);
 
-/** The column where a comment begins in [line], or undefined: a `#` outside a quoted word and a Wait's `/pattern/` begins it. */
+/**
+ * The column where a comment begins in [line], or undefined: as twk tape
+ * reads it (`_uncommented`, packages/twk_dev/lib/src/tape/script.dart), a
+ * `#` that starts a word. A quote that starts a word (`"`, `'`, `` ` ``), and
+ * in a Wait a `/` that starts one, runs to its closing one (a regular
+ * expression's slash escaped by `\`, or to the end of the line), so a `#` in
+ * them is none; one inside a word (`echo a#b`, `out#1.svg`, `it's`) is
+ * neither a comment nor a quote.
+ */
 export function commentStart(line: string): number | undefined {
-  const wait = /^\s*Wait\b[^/"'`#]*(?=\/)/.exec(line);
-  let i = 0;
-  if (wait) {
-    // the pattern runs to the next slash that is not escaped
-    for (i = wait[0].length + 1; i < line.length && line[i] !== '/'; i += line[i] === '\\' ? 2 : 1);
-    i++;
-  }
-  let quote: string | undefined;
-  for (; i < line.length; i++) {
+  const waits = line.trimStart().startsWith('Wait');
+  let start = true;
+  for (let i = 0; i < line.length; i++) {
     const c = line[i];
-    if (quote) {
-      if (c === quote) {
-        quote = undefined;
-      }
-    } else if (c === '"' || c === "'" || c === '`') {
-      quote = c;
-    } else if (c === '#') {
+    if (/\s/.test(c)) {
+      start = true;
+      continue;
+    }
+    if (start && c === '#') {
       return i;
     }
+    if (start && (c === '"' || c === "'" || c === '`' || (waits && c === '/'))) {
+      let end = i + 1;
+      while (end < line.length && line[end] !== c) {
+        end += c === '/' && line[end] === '\\' ? 2 : 1;
+      }
+      i = end;
+    }
+    start = false;
   }
   return undefined;
 }
@@ -140,7 +148,7 @@ export function parseCheck(tape: string, output: string, exit: number | null): C
 }
 
 /** The keyword-and-text of what a statement means, as the hover and the docs say: the tape.md of twk_dev. */
-const docs: Readonly<Record<string, string>> = {
+const docs: ReadonlyMap<string, string> = new Map(Object.entries({
   Output: '`Output <file>`: writes the session, once the tape has run, to a `.cast` file (asciicast v2) or an `.svg` file (an animated SVG); as many as wanted.',
   Set: '`Set <setting> <value>`: `Width` and `Height` (cells, 80 by 24), `Theme` (`dark`, `light`, `xterm` or a JSON object of colours), `FontSize`, `FontFamily`, `Padding`, `Framerate`, `TypingSpeed` (the pause after each character, 50 ms) and `WaitTimeout` (15 s). A Set comes before the first statement that does something, but TypingSpeed and WaitTimeout, which may come anywhere.',
   Env: '`Env <name> <value>`: in the program\'s environment.',
@@ -152,9 +160,9 @@ const docs: Readonly<Record<string, string>> = {
   Hide: '`Hide`: the time between it and the next `Show` is cut from the recording.',
   Show: '`Show`: ends a `Hide`; the screen is drawn as it is then.',
   Screenshot: '`Screenshot <file.svg>`: writes the screen as it is to a still SVG.',
-};
+}));
 
-const settings: Readonly<Record<string, string>> = {
+const settings: ReadonlyMap<string, string> = new Map(Object.entries({
   Width: '`Set Width <cells>`: the terminal\'s width: 80.',
   Height: '`Set Height <cells>`: the terminal\'s height: 24.',
   Theme: '`Set Theme <name>`: the terminal\'s colours: `dark` (the default), `light`, `xterm`, or a JSON object of `#rrggbb` colours (`background`, `foreground`, `cursor`, `black` to `white`, `brightBlack` to `brightWhite`), dark\'s for those left out.',
@@ -164,16 +172,16 @@ const settings: Readonly<Record<string, string>> = {
   Framerate: '`Set Framerate <n>`: the most frames a second the animated SVG takes: 50.',
   TypingSpeed: '`Set TypingSpeed <time>`: the pause after each character typed and each key: 50 ms; anywhere in the tape.',
   WaitTimeout: '`Set WaitTimeout <time>`: how long a Wait waits: 15 s; anywhere.',
-};
+}));
 
 /** The documentation (Markdown) of the statement at [source], or undefined for a word that is none. */
 export function tapeHover(keyword: string, source: string): string | undefined {
   if (keyword === 'Set') {
     const setting = /^Set\s+(\w+)/.exec(source)?.[1];
-    return (setting && settings[setting]) || docs.Set;
+    return (setting && settings.get(setting)) || docs.get('Set');
   }
-  return docs[keyword];
+  return docs.get(keyword);
 }
 
 /** The keywords of [tapeHover], for the grammar's tests and the completion of none. */
-export const tapeKeywords: readonly string[] = Object.keys(docs).filter((k) => k !== 'Key');
+export const tapeKeywords: readonly string[] = [...docs.keys()].filter((k) => k !== 'Key');

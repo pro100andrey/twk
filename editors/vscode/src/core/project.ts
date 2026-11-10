@@ -13,3 +13,9 @@ export function projectOf(file: string): string | undefined {
     }
   }
 }
+
+/** Whether [file] is [root] or below it (a name that merely starts with `..` is below). */
+export function isInside(root: string, file: string): boolean {
+  const rel = path.relative(root, file);
+  return !(rel === '..' || rel.startsWith('..' + path.sep) || path.isAbsolute(rel));
+}

@@ -12,11 +12,23 @@ import * as vscode from 'vscode';
 import { DiagnosticsSink, TapeDiagnostic, Tapes } from '../app/tape';
 import { tapeHover, tapeOutputs, tapeStatements } from '../core/tape';
 import { PreviewFrame, previewClick, previewHtml } from '../core/tape_preview';
-import { projectOf } from '../core/project';
+import { isInside, projectOf } from '../core/project';
 import { startNodeProcess } from '../core/process';
 import { Log } from '../app/ports';
 
 export const tapeLanguage = 'tape';
+
+/** What `twk` is, from the setting `twk.command`. */
+export const twkCommand = (): string[] => vscode.workspace.getConfiguration('twk').get<string[]>('command', ['dart', 'run', 'twk_dev:twk']);
+
+/** [work] under a notification with a Cancel that aborts what it runs. */
+function cancellable<T>(title: string, work: (cancel: AbortSignal) => Promise<T>): Thenable<T> {
+  return vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title, cancellable: true }, (_progress, token) => {
+    const abort = new AbortController();
+    const listener = token.onCancellationRequested(() => abort.abort());
+    return work(abort.signal).finally(() => listener.dispose());
+  });
+}
 
 /** [DiagnosticsSink] over a VS Code collection; a change of the file's text takes its diagnostics away, as they say what the earlier text did. */
 export class TapeDiagnostics implements DiagnosticsSink, vscode.Disposable {
@@ -83,10 +95,11 @@ export function registerTape(context: vscode.ExtensionContext, log: Log & { show
   const diagnostics = new TapeDiagnostics();
   const tapes = new Tapes({
     start: startNodeProcess,
-    command: () => vscode.workspace.getConfiguration('twk').get<string[]>('tape.command', ['dart', 'run', 'twk_dev:twk']),
+    command: twkCommand,
     projectOf,
     env: process.env,
     diagnostics,
+    version: (file) => vscode.workspace.textDocuments.find((d) => d.uri.fsPath === file)?.version,
     log,
   });
   const lenses = new TapeLenses();
@@ -122,8 +135,10 @@ export function registerTape(context: vscode.ExtensionContext, log: Log & { show
     );
 
   command('twk.tape.check', async (file) => {
-    const report = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: `twk tape --check ${path.basename(file)}` }, () => tapes.check(file));
-    if (report.exit === 0) {
+    const report = await cancellable(`twk tape --check ${path.basename(file)}`, (cancel) => tapes.check(file, cancel));
+    if (report.cancelled) {
+      void vscode.window.showInformationMessage(`twk: ${path.basename(file)}: check cancelled`);
+    } else if (report.exit === 0) {
       void vscode.window.showInformationMessage(`twk: ${path.basename(file)}: ${report.summary ?? 'passed'}`);
     } else {
       const shown = report.summary ?? report.error?.message.split('\n')[0] ?? `exit ${report.exit}`;
@@ -132,8 +147,10 @@ export function registerTape(context: vscode.ExtensionContext, log: Log & { show
     return report;
   });
   command('twk.tape.run', async (file) => {
-    const report = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: `twk tape ${path.basename(file)}` }, () => tapes.run(file));
-    if (report.exit === 0) {
+    const report = await cancellable(`twk tape ${path.basename(file)}`, (cancel) => tapes.run(file, cancel));
+    if (report.cancelled) {
+      void vscode.window.showInformationMessage(`twk: ${path.basename(file)}: run cancelled`);
+    } else if (report.exit === 0) {
       const outputs = tapeOutputs(fs.readFileSync(file, 'utf8')).filter((o) => o.kind === 'Output');
       const cast = outputs.find((o) => o.file.endsWith('.cast'));
       const buttons = ['Preview', ...(cast ? ['Play'] : [])];
@@ -183,10 +200,10 @@ async function preview(previews: Map<string, vscode.WebviewPanel>, file: string)
     });
   }
   const shown = panel;
+  shown.reveal(undefined, true);
   const frames: PreviewFrame[] = ordered.map((o) => {
     const abs = path.resolve(cwd, o.file);
-    const inside = !path.relative(cwd, abs).startsWith('..') && !path.isAbsolute(path.relative(cwd, abs));
-    if (!inside) {
+    if (!isInside(cwd, abs)) {
       return { title: o.file, line: o.line, src: undefined, note: 'outside the project: the preview shows files of the tape\'s project only' };
     }
     return { title: o.file, line: o.line, src: fs.existsSync(abs) ? `${shown.webview.asWebviewUri(vscode.Uri.file(abs))}?v=${fs.statSync(abs).mtimeMs}` : undefined };
