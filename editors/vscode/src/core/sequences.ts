@@ -21,7 +21,7 @@ export type Token =
   /** ESC, intermediates (0x20-0x2F), a final byte; or ESC alone at the end of input (the Escape key). */
   | { readonly kind: 'esc'; readonly raw: string; readonly intermediates: string; readonly final: string }
   /** ESC O and one byte. */
-  | { readonly kind: 'ss3'; readonly raw: string; readonly final: string }
+  | { readonly kind: 'ss3'; readonly raw: string; readonly final: string; readonly alt?: boolean }
   /** CSI: a private prefix (`?`, `<`, `=`, `>`, or none), parameters, intermediates, the final byte. */
   | {
       readonly kind: 'csi';
@@ -30,6 +30,8 @@ export type Token =
       readonly params: string;
       readonly intermediates: string;
       readonly final: string;
+      /** Sent after an ESC, the legacy way to say Alt (`ESC ESC [ A`): [raw] has that ESC too. Of input only. */
+      readonly alt?: boolean;
     }
   /** OSC, DCS, APC, PM or SOS: what is between its introducer and its end (BEL for OSC, or ST). */
   | { readonly kind: 'osc' | 'dcs' | 'apc' | 'pm' | 'sos'; readonly raw: string; readonly body: string }
@@ -47,6 +49,11 @@ const latin1 = (bytes: Uint8Array, from: number, to: number): string => {
   return s;
 };
 
+/** How many bytes the UTF-8 character whose first byte is [b] has: 1 for ASCII and for a byte that starts none. */
+function utf8Length(b: number): number {
+  return b >= 0xf0 && b <= 0xf4 ? 4 : b >= 0xe0 && b < 0xf0 ? 3 : b >= 0xc2 && b < 0xe0 ? 2 : 1;
+}
+
 /** How many bytes at the end of `d[from..to]` are the start of a UTF-8 character that its next bytes complete (0 when it ends whole). */
 function incompleteTail(d: Uint8Array, from: number, to: number): number {
   for (let k = 1; k <= 3 && to - k >= from; k++) {
@@ -54,16 +61,14 @@ function incompleteTail(d: Uint8Array, from: number, to: number): number {
     if ((b & 0xc0) === 0x80) {
       continue;
     }
-    const need = b >= 0xf0 && b <= 0xf4 ? 4 : b >= 0xe0 && b < 0xf0 ? 3 : b >= 0xc2 && b < 0xe0 ? 2 : 1;
-    return need > k ? k : 0;
+    return utf8Length(b) > k ? k : 0;
   }
   return 0;
 }
 
 /** How many bytes the UTF-8 character that starts at `d[i]` has, as far as [d] shows it: 1 for ASCII and for a byte that starts none, fewer than it needs where [d] ends in it or a byte that is no continuation comes. */
 function characterLength(d: Uint8Array, i: number): number {
-  const b = d[i];
-  const need = b >= 0xf0 && b <= 0xf4 ? 4 : b >= 0xe0 && b < 0xf0 ? 3 : b >= 0xc2 && b < 0xe0 ? 2 : 1;
+  const need = utf8Length(d[i]);
   let n = 1;
   while (n < need && i + n < d.length && (d[i + n] & 0xc0) === 0x80) {
     n++;
@@ -86,6 +91,8 @@ export class SequenceReader {
   private scanned = 0;
   /** The bytes of a character cut off at the end of the last read's text: the start of the next read's text, if that begins with text. */
   private carry: Uint8Array = new Uint8Array(0);
+  /** The controls a CSI just read had inside it (executed where they are, before the CSI ends): put before its token. */
+  private lead: Token[] = [];
 
   constructor(private readonly input = false) {}
 
@@ -103,6 +110,12 @@ export class SequenceReader {
     const carried = this.carry;
     this.carry = new Uint8Array(0);
     const tokens: Token[] = [];
+    if (carried.length > 0 && data.length === 0) {
+      this.carry = carried;
+    } else if (carried.length > 0 && (data[0] < 0x20 || data[0] === 0x7f)) {
+      // the next read does not go on with the character: it is cut for good
+      tokens.push({ kind: 'text', raw: latin1(carried, 0, carried.length), text: new TextDecoder('utf-8').decode(carried) });
+    }
     let i = 0;
     let textFrom = -1;
     const flushText = (to: number) => {
@@ -134,10 +147,12 @@ export class SequenceReader {
         flushText(i);
         const t = this.escape(data, i, i === 0 ? resumeAt : 0);
         if (t === undefined) {
+          this.lead = [];
           this.pending = data.slice(i);
           return tokens;
         }
-        tokens.push(t.token);
+        tokens.push(...this.lead, t.token);
+        this.lead = [];
         i = t.end;
       } else if (b < 0x20 || b === 0x7f) {
         flushText(i);
@@ -165,6 +180,17 @@ export class SequenceReader {
       return this.input ? { token: { kind: 'esc', raw: '\x1b', intermediates: '', final: '' }, end: i + 1 } : undefined;
     }
     const b1 = d[i + 1];
+    if (this.input && b1 === ESC) {
+      // the legacy way to say Alt: ESC before a sequence (or before an Escape, at the end of the read)
+      if (i + 2 >= d.length) {
+        return { token: { kind: 'esc', raw: '\x1b\x1b', intermediates: '', final: '\x1b' }, end: i + 2 };
+      }
+      const inner = this.escape(d, i + 1, 0);
+      if (inner !== undefined && (inner.token.kind === 'csi' || inner.token.kind === 'ss3')) {
+        return { token: { ...inner.token, raw: `\x1b${inner.token.raw}`, alt: true }, end: inner.end };
+      }
+      this.lead = [];
+    }
     const kind = strings[b1];
     if (kind !== undefined) {
       return this.string(d, i, kind, scanned);
@@ -202,38 +228,45 @@ export class SequenceReader {
   }
 
   private csi(d: Uint8Array, i: number): { token: Token; end: number } | undefined {
+    // a C0 control inside a CSI is executed where it is and the CSI goes on; ESC, CAN and SUB are not (ESC begins a sequence, CAN and SUB cancel)
+    let paramText = '';
+    let intermediates = '';
     let j = i + 2;
-    const paramFrom = j;
-    while (j < d.length && d[j] >= 0x30 && d[j] <= 0x3f) {
-      j++;
+    for (; j < d.length; j++) {
+      const b = d[j];
+      if (b < 0x20 && b !== ESC && b !== 0x18 && b !== 0x1a) {
+        this.lead.push({ kind: 'control', raw: String.fromCharCode(b), code: b });
+      } else if (b >= 0x30 && b <= 0x3f && intermediates === '') {
+        paramText += String.fromCharCode(b);
+      } else if (b >= 0x20 && b <= 0x2f) {
+        intermediates += String.fromCharCode(b);
+      } else {
+        break;
+      }
     }
-    const paramTo = j;
-    while (j < d.length && d[j] >= 0x20 && d[j] <= 0x2f) {
-      j++;
-    }
+    const seen = `\x1b[${paramText}${intermediates}`;
     if (j >= d.length) {
-      return this.input ? { token: { kind: 'esc', raw: latin1(d, i, j), intermediates: '', final: '[' }, end: j } : undefined;
+      return this.input ? { token: { kind: 'esc', raw: seen, intermediates: '', final: '[' }, end: j } : undefined;
     }
     if (d[j] < 0x40 || d[j] > 0x7e) {
       // no final: the CSI is invalid, and what follows is read afresh
-      return { token: { kind: 'esc', raw: latin1(d, i, j), intermediates: '', final: '[' }, end: j };
+      return { token: { kind: 'esc', raw: seen, intermediates: '', final: '[' }, end: j };
     }
-    let params = latin1(d, paramFrom, paramTo);
+    let params = paramText;
     let prefix = '';
     if (params !== '' && '<=>?'.includes(params[0])) {
       prefix = params[0];
       params = params.slice(1);
     }
     const final = String.fromCharCode(d[j]);
-    const intermediates = latin1(d, paramTo, j);
     if (this.input && final === 'M' && prefix === '' && params === '' && intermediates === '') {
       // X10: CSI M Cb Cx Cy
       const end = j + 4;
       if (end <= d.length) {
-        return { token: { kind: 'mouse', raw: latin1(d, i, end), button: d[j + 1] - 32, x: d[j + 2] - 32, y: d[j + 3] - 32 }, end };
+        return { token: { kind: 'mouse', raw: seen + latin1(d, j, end), button: d[j + 1] - 32, x: d[j + 2] - 32, y: d[j + 3] - 32 }, end };
       }
     }
-    return { token: { kind: 'csi', raw: latin1(d, i, j + 1), prefix, params, intermediates, final }, end: j + 1 };
+    return { token: { kind: 'csi', raw: seen + String.fromCharCode(d[j]), prefix, params, intermediates, final }, end: j + 1 };
   }
 
   /** A string of [kind]: OSC up to BEL or ST, the others up to ST, an ESC doubled inside tmux's passthrough. */
@@ -501,7 +534,7 @@ function describeCsiOut(t: Extract<Token, { kind: 'csi' }>): string {
     case 'n':
       return n[0] === 6 ? 'DSR query: the cursor position' : n[0] === 5 ? 'DSR query: status' : `DSR ${params}`;
     case '?n':
-      return n[0] === 996 ? 'query: the colour scheme' : `DSR ? ${params}`;
+      return n[0] === 996 ? 'query: the colour scheme' : n[0] === 6 ? 'DECXCPR query: the cursor position' : `DSR ? ${params}`;
     case 't':
       return describeWindowOps(params);
     case 'h':
@@ -795,6 +828,9 @@ function describeCsiIn(t: Extract<Token, { kind: 'csi' }>, positionAsked: boolea
       return 'key Shift+Tab';
     }
   }
+  if (prefix === '?' && final === 'R' && params.includes(';')) {
+    return `DECXCPR answer: the cursor at row ${n[0]}, column ${n[1]}`;
+  }
   if (prefix === '?' && final === 'c') {
     return `DA1 answer: ${params}`;
   }
@@ -831,6 +867,8 @@ function altKey(final: string): string {
     case 0x7f:
     case 0x08:
       return 'Backspace';
+    case 0x1b:
+      return 'Escape';
     case 0x00:
       return 'Ctrl+Space';
     default:
@@ -844,6 +882,11 @@ function altKey(final: string): string {
  * known, which the name says.
  */
 export function describeInput(t: Token, positionAsked?: boolean): string {
+  if ((t.kind === 'csi' || t.kind === 'ss3') && t.alt) {
+    // the key with Alt; a CPR answer is never sent after an ESC
+    const inner = describeInput({ ...t, raw: t.raw.slice(1), alt: false }, false);
+    return inner.startsWith('key ') ? `key Alt+${inner.slice(4)}` : `Alt+ ${inner}`;
+  }
   switch (t.kind) {
     case 'text':
       return t.text === ' ' ? 'key Space' : [...t.text].length === 1 ? `key ${t.text}` : `typed "${t.text}"`;

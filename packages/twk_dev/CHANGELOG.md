@@ -37,6 +37,13 @@ Fixed:
   `ESC [ 1 ESC [ 2 J` is an invalid CSI and then an ED; a text token is
   decoded from its own bytes and a long unterminated string is scanned once.
   The extension's sequence log follows (one golden).
+- `twk decode`, input: `CSI ? r;c R` is the answer to `CSI ? 6 n` (named
+  DECXCPR) and uses the query up, so a later Ctrl+F3 is not read as a position;
+  `ESC` before a sequence is that key with Alt (`ESC ESC [ A` is Alt+Up, `ESC
+  ESC` Alt+Escape). Output: a C0 control inside a CSI is shown and the CSI
+  goes on (ESC begins a new sequence, CAN and SUB cancel it); the bytes of a
+  character cut at the end of a read are shown when an ESC or a control
+  character comes next, not dropped.
 - `twk completion`: the fish script no longer breaks on sourcing when an
   option's help ends in a backslash or has one before a quote; bash completes
   file names with spaces (or glob characters) as one candidate each; each

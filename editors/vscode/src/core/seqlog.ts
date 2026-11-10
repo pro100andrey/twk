@@ -113,8 +113,9 @@ export class SequenceLog {
       // a CSI 1 ; n R is the answer to a position query asked and not yet answered (as twk_dev's replay InputSplitter tells), else the F3 key;
       // a key typed gives the queries up
       const entry = this.entry(time, 'in', t.kind, describeInput(t, this.positionAsked > 0), t.raw);
-      if (t.kind === 'csi' && t.final === 'R' && t.prefix === '') {
-        if (this.positionAsked > 0 && t.params.includes(';')) {
+      if (t.kind === 'csi' && t.final === 'R' && (t.prefix === '' || t.prefix === '?')) {
+        // CSI r;c R answers CSI 6 n, CSI ? r;c R answers CSI ? 6 n; not sent after an ESC
+        if (!t.alt && this.positionAsked > 0 && t.params.includes(';')) {
           this.positionAsked--;
         }
       } else if (t.kind === 'text' || t.kind === 'control' || t.kind === 'esc' || t.kind === 'ss3' || t.kind === 'mouse') {

@@ -2118,11 +2118,71 @@
       ]
     },
     {
-      "name": "esc esc key",
+      "name": "alt escape",
       "direction": "in",
-      "description": "a doubled ESC is two Escape keys",
+      "description": "a doubled ESC from the terminal is Escape with Alt",
       "chunks": [
         "1b1b"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b1b",
+          "name": "key Alt+Escape"
+        }
+      ]
+    },
+    {
+      "name": "alt cursor keys",
+      "direction": "in",
+      "description": "ESC before a CSI or an SS3 from the terminal is that key with Alt",
+      "chunks": [
+        "1b1b5b411b1b4f421b1b5b313b3543"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b1b5b41",
+          "name": "key Alt+Up"
+        },
+        {
+          "kind": "ss3",
+          "raw": "1b1b4f42",
+          "name": "key Alt+Down"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b1b5b313b3543",
+          "name": "key Alt+Ctrl+Right"
+        }
+      ]
+    },
+    {
+      "name": "alt tilde key with a control inside",
+      "direction": "in",
+      "description": "a control inside the CSI is a key press of its own",
+      "chunks": [
+        "1b1b5b350d7e"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "0d",
+          "name": "key Enter"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b1b5b357e",
+          "name": "key Alt+PageUp"
+        }
+      ]
+    },
+    {
+      "name": "esc esc text",
+      "direction": "in",
+      "description": "ESC ESC and a letter: Escape, then Alt+letter",
+      "chunks": [
+        "1b1b61"
       ],
       "tokens": [
         {
@@ -2132,8 +2192,38 @@
         },
         {
           "kind": "esc",
-          "raw": "1b",
-          "name": "key Escape"
+          "raw": "1b61",
+          "name": "key Alt+a"
+        }
+      ]
+    },
+    {
+      "name": "alt f3 is no position",
+      "direction": "in",
+      "description": "CSI 1;5 R after an ESC is a key whatever was asked",
+      "chunks": [
+        "1b1b5b313b3552"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b1b5b313b3552",
+          "name": "key Alt+Ctrl+F3"
+        }
+      ]
+    },
+    {
+      "name": "decxcpr answer",
+      "direction": "in",
+      "description": "CSI ? row ; column R answers CSI ? 6 n",
+      "chunks": [
+        "1b5b3f353b3752"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b3f353b3752",
+          "name": "DECXCPR answer: the cursor at row 5, column 7"
         }
       ]
     },
@@ -2193,11 +2283,92 @@
       ]
     },
     {
-      "name": "csi cut by a control",
+      "name": "csi with a control inside",
       "direction": "out",
-      "description": "a control character inside the parameters is read afresh as well",
+      "description": "a C0 control inside a CSI is executed where it is and the CSI goes on",
       "chunks": [
         "1b5b310a41"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3141",
+          "name": "CUU cursor up 1"
+        }
+      ]
+    },
+    {
+      "name": "csi with a control among its parameters",
+      "direction": "out",
+      "description": "LF between parameters is executed, the CSI keeps all of them",
+      "chunks": [
+        "1b5b313b0a33316d"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b313b33316d",
+          "name": "SGR bold, fg red"
+        }
+      ]
+    },
+    {
+      "name": "csi with a backspace inside",
+      "direction": "out",
+      "description": "BS before the final",
+      "chunks": [
+        "1b5b31086d"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "08",
+          "name": "BS backspace"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b316d",
+          "name": "SGR bold"
+        }
+      ]
+    },
+    {
+      "name": "csi with a control split",
+      "direction": "out",
+      "description": "the control is shown once although the CSI waits for the next read",
+      "chunks": [
+        "1b5b310a",
+        "6d"
+      ],
+      "tokens": [
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b316d",
+          "name": "SGR bold"
+        }
+      ]
+    },
+    {
+      "name": "csi cancelled by can",
+      "direction": "out",
+      "description": "CAN ends a CSI as invalid",
+      "chunks": [
+        "1b5b3118"
       ],
       "tokens": [
         {
@@ -2207,13 +2378,75 @@
         },
         {
           "kind": "control",
-          "raw": "0a",
-          "name": "LF line feed"
+          "raw": "18",
+          "name": "^X"
+        }
+      ]
+    },
+    {
+      "name": "csi cancelled by sub",
+      "direction": "out",
+      "description": "SUB ends a CSI as invalid",
+      "chunks": [
+        "1b5b311a"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b5b31",
+          "name": "ESC ["
+        },
+        {
+          "kind": "control",
+          "raw": "1a",
+          "name": "^Z"
+        }
+      ]
+    },
+    {
+      "name": "character cut before an escape",
+      "direction": "out",
+      "description": "the lead bytes of a cut character are text of their own when an escape follows, not lost",
+      "chunks": [
+        "41e2",
+        "1b5b41"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "41e2",
+          "name": "text \"A\""
         },
         {
           "kind": "text",
-          "raw": "41",
-          "name": "text \"A\""
+          "raw": "e2",
+          "name": "text \"�\""
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b41",
+          "name": "CUU cursor up 1"
+        }
+      ]
+    },
+    {
+      "name": "character cut before a control",
+      "direction": "out",
+      "description": "and when a control character follows",
+      "chunks": [
+        "e282",
+        "0a"
+      ],
+      "tokens": [
+        {
+          "kind": "text",
+          "raw": "e282",
+          "name": "text \"�\""
+        },
+        {
+          "kind": "control",
+          "raw": "0a",
+          "name": "LF line feed"
         }
       ]
     },
@@ -3163,6 +3396,56 @@
           "name": "key x",
           "raw": "x",
           "bytes": 1
+        },
+        {
+          "id": 2,
+          "time": 3,
+          "direction": "in",
+          "kind": "csi",
+          "name": "key Ctrl+F3",
+          "raw": "ESC [1;5R",
+          "bytes": 6
+        }
+      ]
+    },
+    {
+      "name": "a decxcpr asked",
+      "description": "CSI ? 6 n is answered by CSI ? r;c R, once; then CSI 1;5 R is F3",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b3f366e"
+        },
+        {
+          "time": 2,
+          "direction": "in",
+          "bytes": "1b5b3f353b3752"
+        },
+        {
+          "time": 3,
+          "direction": "in",
+          "bytes": "1b5b313b3552"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DECXCPR query: the cursor position",
+          "raw": "ESC [?6n",
+          "bytes": 5
+        },
+        {
+          "id": 1,
+          "time": 2,
+          "direction": "in",
+          "kind": "csi",
+          "name": "DECXCPR answer: the cursor at row 5, column 7",
+          "raw": "ESC [?5;7R",
+          "bytes": 7
         },
         {
           "id": 2,

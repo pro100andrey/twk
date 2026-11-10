@@ -40,6 +40,7 @@ final class SeqToken {
     this.params = '',
     this.intermediates = '',
     this.final_ = '',
+    this.alt = false,
     this.body = '',
     this.button = 0,
     this.x = 0,
@@ -71,6 +72,10 @@ final class SeqToken {
   /// The final byte of an ESC, SS3 or CSI (empty for ESC alone).
   final String final_;
 
+  /// Whether the terminal sent it after an ESC, the legacy way to say Alt
+  /// (`ESC ESC [ A`): [raw] has that ESC too. Of input only.
+  final bool alt;
+
   /// A string's content between its introducer and its end.
   final String body;
 
@@ -87,6 +92,16 @@ final class SeqToken {
 String _latin1(Uint8List b, int from, int to) =>
     String.fromCharCodes(b, from, to);
 
+/// How many bytes the UTF-8 character whose first byte is [b] has: 1 for
+/// ASCII and for a byte that starts none.
+int _utf8Length(int b) => b >= 0xf0 && b <= 0xf4
+    ? 4
+    : b >= 0xe0 && b < 0xf0
+    ? 3
+    : b >= 0xc2 && b < 0xe0
+    ? 2
+    : 1;
+
 /// How many bytes at the end of `d[from..to]` are the start of a UTF-8
 /// character that its next bytes complete (0 when it ends whole).
 int _incompleteTail(Uint8List d, int from, int to) {
@@ -95,14 +110,7 @@ int _incompleteTail(Uint8List d, int from, int to) {
     if (b & 0xc0 == 0x80) {
       continue;
     }
-    final need = b >= 0xf0 && b <= 0xf4
-        ? 4
-        : b >= 0xe0 && b < 0xf0
-        ? 3
-        : b >= 0xc2 && b < 0xe0
-        ? 2
-        : 1;
-    return need > k ? k : 0;
+    return _utf8Length(b) > k ? k : 0;
   }
   return 0;
 }
@@ -111,14 +119,7 @@ int _incompleteTail(Uint8List d, int from, int to) {
 /// [d] shows it: 1 for ASCII and for a byte that starts none, fewer than it
 /// needs where [d] ends in it or a byte that is no continuation comes.
 int _characterLength(Uint8List d, int i) {
-  final b = d[i];
-  final need = b >= 0xf0 && b <= 0xf4
-      ? 4
-      : b >= 0xe0 && b < 0xf0
-      ? 3
-      : b >= 0xc2 && b < 0xe0
-      ? 2
-      : 1;
+  final need = _utf8Length(d[i]);
   var n = 1;
   while (n < need && i + n < d.length && d[i + n] & 0xc0 == 0x80) {
     n++;
@@ -157,6 +158,10 @@ final class SequenceReader {
   /// start of the next read's text if that begins with text.
   var _carry = Uint8List(0);
 
+  /// The controls a CSI just read had inside it (executed where they are,
+  /// before the CSI ends): put before its token.
+  final _lead = <SeqToken>[];
+
   /// The tokens of [bytes], with what waited from the read before.
   List<SeqToken> read(List<int> bytes) {
     final resumeAt = _scanned;
@@ -171,6 +176,18 @@ final class SequenceReader {
     final carried = _carry;
     _carry = Uint8List(0);
     final tokens = <SeqToken>[];
+    if (carried.isNotEmpty && data.isEmpty) {
+      _carry = carried;
+    } else if (carried.isNotEmpty && (data[0] < 0x20 || data[0] == 0x7f)) {
+      // the next read does not go on with the character: it is cut for good
+      tokens.add(
+        SeqToken(
+          'text',
+          _latin1(carried, 0, carried.length),
+          text: utf8.decode(carried, allowMalformed: true),
+        ),
+      );
+    }
     var i = 0;
     var textFrom = -1;
     void flushText(int to) {
@@ -204,10 +221,14 @@ final class SequenceReader {
         flushText(i);
         final t = _escape(data, i, i == 0 ? resumeAt : 0);
         if (t == null) {
+          _lead.clear();
           _pending = Uint8List.fromList(data.sublist(i));
           return tokens;
         }
-        tokens.add(t.$1);
+        tokens
+          ..addAll(_lead)
+          ..add(t.$1);
+        _lead.clear();
         i = t.$2;
       } else if (b < 0x20 || b == 0x7f) {
         flushText(i);
@@ -233,6 +254,30 @@ final class SequenceReader {
       return input ? (const SeqToken('esc', '\x1b'), i + 1) : null;
     }
     final b1 = d[i + 1];
+    if (input && b1 == _esc) {
+      // the legacy way to say Alt: ESC before a sequence (or before an
+      // Escape, at the end of the read)
+      if (i + 2 >= d.length) {
+        return (const SeqToken('esc', '\x1b\x1b', final_: '\x1b'), i + 2);
+      }
+      final inner = _escape(d, i + 1, 0);
+      if (inner != null && (inner.$1.kind == 'csi' || inner.$1.kind == 'ss3')) {
+        final t = inner.$1;
+        return (
+          SeqToken(
+            t.kind,
+            '\x1b${t.raw}',
+            prefix: t.prefix,
+            params: t.params,
+            intermediates: t.intermediates,
+            final_: t.final_,
+            alt: true,
+          ),
+          inner.$2,
+        );
+      }
+      _lead.clear();
+    }
     final kind = _strings[b1];
     if (kind != null) {
       return _string(d, i, kind, scanned);
@@ -304,30 +349,46 @@ final class SequenceReader {
   }
 
   (SeqToken, int)? _csi(Uint8List d, int i) {
+    // a C0 control inside a CSI is executed where it is and the CSI goes on;
+    // ESC, CAN and SUB are not (ESC begins a sequence, CAN and SUB cancel)
+    final paramBytes = <int>[];
+    final intermediateBytes = <int>[];
     var j = i + 2;
-    final paramFrom = j;
-    while (j < d.length && d[j] >= 0x30 && d[j] <= 0x3f) {
-      j++;
+    for (; j < d.length; j++) {
+      final b = d[j];
+      if (b < 0x20 && b != _esc && b != 0x18 && b != 0x1a) {
+        _lead.add(SeqToken('control', String.fromCharCode(b), code: b));
+      } else if (b >= 0x30 && b <= 0x3f && intermediateBytes.isEmpty) {
+        paramBytes.add(b);
+      } else if (b >= 0x20 && b <= 0x2f) {
+        intermediateBytes.add(b);
+      } else {
+        break;
+      }
     }
-    final paramTo = j;
-    while (j < d.length && d[j] >= 0x20 && d[j] <= 0x2f) {
-      j++;
-    }
+    final seen = [
+      0x1b,
+      0x5b,
+      ...paramBytes,
+      ...intermediateBytes,
+    ];
     if (j >= d.length) {
-      return input ? (SeqToken('esc', _latin1(d, i, j), final_: '['), j) : null;
+      return input
+          ? (SeqToken('esc', String.fromCharCodes(seen), final_: '['), j)
+          : null;
     }
     if (d[j] < 0x40 || d[j] > 0x7e) {
       // no final: the CSI is invalid, and what follows is read afresh
-      return (SeqToken('esc', _latin1(d, i, j), final_: '['), j);
+      return (SeqToken('esc', String.fromCharCodes(seen), final_: '['), j);
     }
-    var params = _latin1(d, paramFrom, paramTo);
+    var params = String.fromCharCodes(paramBytes);
     var prefix = '';
     if (params.isNotEmpty && '<=>?'.contains(params[0])) {
       prefix = params[0];
       params = params.substring(1);
     }
     final final_ = String.fromCharCode(d[j]);
-    final intermediates = _latin1(d, paramTo, j);
+    final intermediates = String.fromCharCodes(intermediateBytes);
     if (input &&
         final_ == 'M' &&
         prefix.isEmpty &&
@@ -339,7 +400,7 @@ final class SequenceReader {
         return (
           SeqToken(
             'mouse',
-            _latin1(d, i, end),
+            String.fromCharCodes([...seen, ..._latin1(d, j, end).codeUnits]),
             button: d[j + 1] - 32,
             x: d[j + 2] - 32,
             y: d[j + 3] - 32,
@@ -351,7 +412,7 @@ final class SequenceReader {
     return (
       SeqToken(
         'csi',
-        _latin1(d, i, j + 1),
+        String.fromCharCodes([...seen, d[j]]),
         prefix: prefix,
         params: params,
         intermediates: intermediates,
@@ -787,7 +848,11 @@ String _csiOut(SeqToken t) {
           ? 'DSR query: status'
           : 'DSR $params';
     case '?n':
-      return _get(n, 0) == 996 ? 'query: the colour scheme' : 'DSR ? $params';
+      return _get(n, 0) == 996
+          ? 'query: the colour scheme'
+          : _get(n, 0) == 6
+          ? 'DECXCPR query: the cursor position'
+          : 'DSR ? $params';
     case 't':
       return _windowOps(params);
     case 'h':
@@ -1204,6 +1269,10 @@ String _csiIn(SeqToken t, bool? positionAsked) {
       return 'key Shift+Tab';
     }
   }
+  if (prefix == '?' && final_ == 'R' && params.contains(';')) {
+    return 'DECXCPR answer: the cursor at row ${_at(n, 0)}, '
+        'column ${_at(n, 1)}';
+  }
   if (prefix == '?' && final_ == 'c') {
     return 'DA1 answer: $params';
   }
@@ -1252,6 +1321,7 @@ String _altKey(String final_) {
     0x0d => 'Enter',
     0x09 => 'Tab',
     0x7f || 0x08 => 'Backspace',
+    0x1b => 'Escape',
     0x00 => 'Ctrl+Space',
     final c when c < 0x20 => 'Ctrl+${String.fromCharCode(c + 0x40)}',
     _ => final_,
@@ -1263,6 +1333,23 @@ String _altKey(String final_) {
 /// the app has asked for the cursor position and is not answered yet; null
 /// where that is not known, which the name says.
 String describeInput(SeqToken t, {bool? positionAsked}) {
+  if (t.alt) {
+    // the key with Alt; a CPR answer is never sent after an ESC
+    final inner = describeInput(
+      SeqToken(
+        t.kind,
+        t.raw.substring(1),
+        prefix: t.prefix,
+        params: t.params,
+        intermediates: t.intermediates,
+        final_: t.final_,
+      ),
+      positionAsked: false,
+    );
+    return inner.startsWith('key ')
+        ? 'key Alt+${inner.substring(4)}'
+        : 'Alt+ $inner';
+  }
   switch (t.kind) {
     case 'text':
       return t.text == ' '
@@ -1448,8 +1535,12 @@ final class SequenceLog {
         describeInput(t, positionAsked: asked),
         t.raw,
       );
-      if (t.kind == 'csi' && t.final_ == 'R' && t.prefix.isEmpty) {
-        if (_positionAsked > 0 && t.params.contains(';')) {
+      if (t.kind == 'csi' &&
+          t.final_ == 'R' &&
+          (t.prefix.isEmpty || t.prefix == '?')) {
+        // CSI r;c R answers CSI 6 n, CSI ? r;c R answers CSI ? 6 n; not
+        // sent after an ESC
+        if (!t.alt && _positionAsked > 0 && t.params.contains(';')) {
           _positionAsked--;
         }
       } else if (const {
