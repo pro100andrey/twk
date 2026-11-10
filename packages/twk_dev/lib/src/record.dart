@@ -50,7 +50,8 @@ final class RecordCommand extends Command<int> {
         help:
             'A key that leaves a marker ("m" event) in the recording, for '
             '`twk play` to go to, instead of reaching the command: ctrl+] '
-            'for one. Off by default.',
+            r'for one. Any ctrl+<letter> or [ \ ] ^ _ but ctrl+c, h, i, j, '
+            'm, d, s, q, z and ctrl+[. Off by default.',
       )
       ..addOption(
         'replay',
@@ -118,7 +119,9 @@ final class RecordCommand extends Command<int> {
         usageException(
           r'--marker-key takes ctrl+ and a letter, or one of [ \ ] ^ _ '
           '(not ctrl+c, ctrl+i, ctrl+j, ctrl+m or ctrl+[, which are keys '
-          'of the terminal).',
+          'of the terminal; nor ctrl+h, Backspace on many terminals, ctrl+d, '
+          'end of input, ctrl+s and ctrl+q, flow control, or ctrl+z, '
+          'suspend).',
         );
       }
     }
@@ -165,7 +168,8 @@ final class RecordCommand extends Command<int> {
 
 /// The byte of the key [name] (`ctrl+]`, `ctrl+a`) that `twk record
 /// --marker-key` takes, or null for a name that is none or a key the
-/// terminal needs (Ctrl+C, Tab, Enter, Escape).
+/// terminal needs (Ctrl+C, Tab, Enter, Escape, Backspace as Ctrl+H, EOF,
+/// flow control, suspend).
 int? markerKeyByte(String name) {
   final m = RegExp(
     r'^ctrl\+([a-z\[\\\]^_])$',
@@ -175,7 +179,9 @@ int? markerKeyByte(String name) {
     return null;
   }
   final byte = m[1]!.toLowerCase().codeUnitAt(0) & 0x1f;
-  return const {3, 9, 10, 13, 27}.contains(byte) ? null : byte;
+  return const {3, 4, 8, 9, 10, 13, 17, 19, 26, 27}.contains(byte)
+      ? null
+      : byte;
 }
 
 /// Runs [command] in a pseudo-terminal of this terminal's size (twk_term's

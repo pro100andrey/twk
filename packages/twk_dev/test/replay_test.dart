@@ -143,4 +143,20 @@ void main() {
       [('+', true), ('a', false), ('b', true), ('q', false)],
     );
   });
+
+  test('reacts goes by the order of events when times are equal', () {
+    final cast = Cast(const CastHeader(width: 80, height: 24), const [
+      CastEvent(0.5, 'i', 'a'),
+      CastEvent(0.5, 'o', 'echo of a'),
+      CastEvent(0.9, 'o', 'before b'),
+      CastEvent(0.9, 'i', 'b'),
+      CastEvent(0.9, 'o', 'echo of b'),
+      CastEvent(1, 'i', 'c'),
+      CastEvent(1.2, 'i', 'q'),
+    ]);
+    expect(
+      [for (final s in replaySteps(cast)) (s.keys, s.reacts)],
+      [('a', true), ('b', true), ('c', false), ('q', false)],
+    );
+  });
 }

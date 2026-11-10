@@ -12,8 +12,20 @@ Added:
 
 Fixed:
 
+- `twk test-from-cast`: a marker's label is shown escaped (one line, controls
+  as `\u{..}`) in the unchecked-marker comment of the test and on stderr; a
+  newline in it no longer writes live code into the test.
+- `twk play`: the paused status line is cut to the terminal's width; markers
+  are stops one by one (several on one step, and one at the start); the hold
+  of the start of a terminal answer is 500 ms (it was 100 ms, which dropped
+  the head of a slow answer and read its tail as keys), also checked on the
+  clock.
+- `twk record --marker-key` refuses ctrl+h, ctrl+d, ctrl+s, ctrl+q and ctrl+z
+  (exit 64).
+- `twk record --replay`: output logged after a key and before the next is the
+  key's reaction by the order of events, also at the same time.
 - `twk play`: Alt+P (or Alt+] and the like) no longer swallows `q` and Space
-  until Ctrl+C: the start of a terminal answer is held for 100 ms only, not
+  until Ctrl+C: the start of a terminal answer is held for a limited time only, not
   up to 1024 characters.
 - `twk test-from-cast` writes its test in the project's `test/` also when run
   from a subdirectory (it wrote `lib/test/`); a recording already beside the

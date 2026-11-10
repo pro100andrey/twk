@@ -75,6 +75,25 @@ void main() {
       expect(source, isNot(contains("test('the marker early'")));
     });
 
+    test('a label with a newline or ESC stays one escaped comment line', () {
+      final notes = <String>[];
+      final source = castTestSource(
+        _cast([
+          (0.0, 'm', 'x\nvoid evil() {}\x1b[31m'),
+          (0.1, 'o', 'one'),
+        ]),
+        castPath: 'a.cast',
+        note: notes.add,
+      );
+
+      expect(source, isNot(contains('\nvoid evil')));
+      expect(source, isNot(contains('\x1b')));
+      expect(source, contains(r'x\nvoid evil() {}\u{1b}[31m'));
+      expect(notes.single, isNot(contains('\x1b')));
+      expect(notes.single, isNot(contains('\n')));
+      expect(notes.single, contains(r'\u{1b}'));
+    });
+
     test("the test goes in the project's test/, not the working one", () {
       expect(
         castTestPath('/work/packages/foo', 'demo'),

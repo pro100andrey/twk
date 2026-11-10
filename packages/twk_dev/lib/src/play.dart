@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:args/command_runner.dart';
+import 'package:twk_core/twk_core.dart' show stringWidth;
 import 'package:twk_term/twk_term.dart' show RawTty;
 
 import 'cast.dart';
@@ -232,8 +233,12 @@ enum PlayKey {
 
 /// How long [Player] holds the start of an escape sequence for the rest of
 /// it: a terminal's answer arrives within milliseconds, so what is older is
-/// no answer (Alt+P is an Escape and `P`), and is dropped.
-const _heldLimit = Duration(milliseconds: 100);
+/// no answer (Alt+P is an Escape and `P`), and is dropped. The trade-off,
+/// which doc/record-play.md states: a terminal's answer and Alt+key cannot
+/// be told apart by their bytes, so time decides; a slow link that delays
+/// the rest of an answer past this has its tail read as keys, and Alt+key
+/// followed by another key within it is not read.
+const _heldLimit = Duration(milliseconds: 500);
 
 /// The key a CSI sequence with [params] and [final_], or an SS3 with
 /// [final_], is: the arrows and Home as a terminal sends them, and, where
@@ -332,6 +337,7 @@ final class Player {
     this._output,
     this._keys,
     this._rows,
+    this._columns,
     PlayClock? clock,
   }) : _clock = clock ?? PlayClock();
 
@@ -350,6 +356,7 @@ final class Player {
   final Future<void> Function(String text)? _output;
   final Stream<List<int>>? _keys;
   final int? _rows;
+  final int? _columns;
   final PlayClock _clock;
 
   /// Resets the terminal: what the recording left on, the screen and its
@@ -423,6 +430,25 @@ final class Player {
         : '${String.fromCharCodes(runes.take(39))}…';
   }
 
+  // [text] cut to [columns] cells (wide glyphs counted), so that the status
+  // line neither wraps nor scrolls the screen on the last row
+  static String _clip(String text, int? columns) {
+    if (columns == null) {
+      return text;
+    }
+    final out = StringBuffer();
+    var used = 0;
+    for (final rune in text.runes) {
+      final w = stringWidth(String.fromCharCode(rune));
+      if (used + w > columns) {
+        break;
+      }
+      used += w;
+      out.writeCharCode(rune);
+    }
+    return '$out';
+  }
+
   /// Plays [cast]; returns 0, or 130 when Ctrl+C stopped it, 128 and the
   /// signal's number when a signal did, 0 when `q` did.
   Future<int> run() async {
@@ -439,12 +465,25 @@ final class Player {
     var wake = Completer<void>();
     var typed = '';
     var heldSince = Duration.zero;
-    void onKeys(List<int> bytes) {
-      final now = _clock.elapsed;
-      if (typed.length > 1 && now - heldSince > _heldLimit) {
-        // no answer takes this long: Alt and a key, what follows is keys
+    // no answer takes this long: Alt and a key, what follows is keys
+    void expireHeld() {
+      if (typed.length > 1 && _clock.elapsed - heldSince > _heldLimit) {
         typed = '';
       }
+    }
+
+    // how long until what is held is dropped, null where none is
+    Duration? heldFor() {
+      if (typed.length <= 1) {
+        return null;
+      }
+      final left = heldSince + _heldLimit - _clock.elapsed;
+      return left > Duration.zero ? left : const Duration(milliseconds: 1);
+    }
+
+    void onKeys(List<int> bytes) {
+      expireHeld();
+      final now = _clock.elapsed;
       final (keys, rest) = readPlayKeys(
         '$typed${latin1.decode(bytes)}',
         escaped: typed == '\x1b',
@@ -489,6 +528,8 @@ final class Player {
           await stdout.flush();
         };
     final rows = _rows ?? (stdout.hasTerminal ? stdout.terminalLines : null);
+    final columns =
+        _columns ?? (stdout.hasTerminal ? stdout.terminalColumns : null);
     final room = rows != null && rows > cast.header.height;
     final steps = _steps();
     // the frames among the first n steps, once, not at each key
@@ -511,6 +552,10 @@ final class Player {
     var shown = 0;
     var playing = true;
     var statusUp = false;
+    // the marker count a marker key last went to, while the screen is
+    // still the one it showed: markers on one step have a stop each, and a
+    // marker at step 0 is one too
+    int? pin;
     var anchor = Duration.zero;
 
     Duration play(double at) =>
@@ -521,6 +566,14 @@ final class Player {
 
     String line(String text) =>
         '\x1b7\x1b[${cast.header.height + 1};1H\x1b[2K$text\x1b8';
+    // the markers reached by the screen shown: those at or before it
+    int markersReached() {
+      if (pin case final k? when k > 0 && markers[k - 1].at == shown) {
+        return k;
+      }
+      return shown == 0 ? 0 : markers.where((m) => m.at <= shown).length;
+    }
+
     Future<void> wipeStatus() async {
       if (statusUp) {
         statusUp = false;
@@ -534,20 +587,18 @@ final class Player {
       }
       final n = framesIn[shown];
       final time = shown == 0 ? 0.0 : steps[shown - 1].time;
-      final passed = markers.where((m) => m.at <= shown).length;
+      final passed = markersReached();
       final marker = markers.isEmpty
           ? ''
           : passed == 0
           ? ' marker 0/${markers.length} '
           : ' marker $passed/${markers.length} ${markers[passed - 1].label} ';
       statusUp = true;
-      await output(
-        line(
-          '\x1b[7m paused  frame $n/$frames  '
+      final text =
+          ' paused  frame $n/$frames  '
           '${time.toStringAsFixed(3)} s / ${duration.toStringAsFixed(3)} s '
-          '$marker\x1b[0m',
-        ),
-      );
+          '$marker';
+      await output(line('\x1b[7m${_clip(text, columns)}\x1b[0m'));
     }
 
     Future<void> seek(int n) async {
@@ -571,6 +622,7 @@ final class Player {
     try {
       anchorHere();
       while (!stopped.isCompleted) {
+        expireHeld();
         if (queue.isNotEmpty) {
           final key = queue.removeAt(0);
           if (queue.isEmpty) {
@@ -578,6 +630,7 @@ final class Player {
           }
           switch (key) {
             case PlayKey.toggle:
+              pin = null;
               if (playing) {
                 playing = false;
                 await drawStatus();
@@ -590,6 +643,7 @@ final class Player {
                 anchorHere();
               }
             case PlayKey.next:
+              pin = null;
               playing = false;
               await wipeStatus();
               if (shown < steps.length) {
@@ -597,6 +651,7 @@ final class Player {
               }
               await drawStatus();
             case PlayKey.previous:
+              pin = null;
               playing = false;
               await wipeStatus();
               if (shown > 0) {
@@ -604,6 +659,7 @@ final class Player {
               }
               await drawStatus();
             case PlayKey.start:
+              pin = null;
               await wipeStatus();
               await seek(0);
               playing = true;
@@ -611,12 +667,18 @@ final class Player {
             case PlayKey.previousMarker || PlayKey.nextMarker:
               playing = false;
               await wipeStatus();
-              final ahead = key == PlayKey.nextMarker;
-              final target = ahead
-                  ? markers.where((m) => m.at > shown).firstOrNull
-                  : markers.where((m) => m.at < shown).lastOrNull;
-              if (target != null) {
-                await seek(target.at);
+              final reachedNow = markersReached();
+              // the stop to go to, as a count of markers: the next, or the
+              // one before the screen (the one shown is not "before" it
+              // when the screen is exactly its place)
+              final goTo = key == PlayKey.nextMarker
+                  ? (reachedNow < markers.length ? reachedNow + 1 : 0)
+                  : (reachedNow > 0 && markers[reachedNow - 1].at == shown
+                        ? reachedNow - 1
+                        : reachedNow);
+              if (goTo > 0) {
+                pin = goTo;
+                await seek(markers[goTo - 1].at);
               }
               await drawStatus();
             case PlayKey.quit || PlayKey.interrupt:
@@ -626,7 +688,12 @@ final class Player {
         }
         final woken = Future.any([wake.future, stopped.future]);
         if (!playing) {
-          await woken;
+          // a string held and never ended is dropped on the clock too
+          if (heldFor() case final left?) {
+            await _clock.pause(left, woken);
+          } else {
+            await woken;
+          }
           continue;
         }
         if (shown >= steps.length) {
@@ -638,8 +705,11 @@ final class Player {
           await drawStatus();
           continue;
         }
-        final wait = play(steps[shown].at) - (_clock.elapsed - anchor);
+        var wait = play(steps[shown].at) - (_clock.elapsed - anchor);
         if (wait > Duration.zero) {
+          if (heldFor() case final left? when left < wait) {
+            wait = left;
+          }
           await _clock.pause(wait, woken);
           continue;
         }

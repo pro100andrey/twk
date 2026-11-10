@@ -190,6 +190,9 @@ void main() {
     expect(markerKeyByte('Ctrl+A'), 1);
     expect(markerKeyByte('ctrl+m'), isNull);
     expect(markerKeyByte('f5'), isNull);
+    for (final name in ['h', 'd', 's', 'q', 'z']) {
+      expect(markerKeyByte('ctrl+$name'), isNull, reason: 'ctrl+$name');
+    }
   });
 
   test('turns off what the command left turned on, which the recording '

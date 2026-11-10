@@ -234,7 +234,7 @@ String castTestSource(
           targets.add((m.data, frames[at]));
         } else {
           unchecked.add(
-            'the marker ${m.data.isEmpty ? '' : '${m.data} '}at '
+            'the marker ${m.data.isEmpty ? '' : '${_shown(m.data)} '}at '
             '${m.time.toStringAsFixed(3)} s: no frame at or before it',
           );
         }
@@ -313,6 +313,27 @@ String castTestSource(
   out
     ..writeln()
     ..writeln('}');
+  return out.toString();
+}
+
+/// [text] with its control characters written out, for one line of a
+/// comment or of the terminal.
+String _shown(String text) {
+  final out = StringBuffer();
+  for (final rune in text.runes) {
+    switch (rune) {
+      case 0x0a:
+        out.write(r'\n');
+      case 0x0d:
+        out.write(r'\r');
+      case 0x09:
+        out.write(r'\t');
+      case < 0x20 || 0x7f || (>= 0x80 && <= 0x9f) || 0x2028 || 0x2029:
+        out.write('\\u{${rune.toRadixString(16)}}');
+      default:
+        out.writeCharCode(rune);
+    }
+  }
   return out.toString();
 }
 

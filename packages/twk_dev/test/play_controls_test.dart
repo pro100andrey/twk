@@ -64,7 +64,13 @@ Future<void> _settle() async {
 }
 
 final class _Run {
-  _Run(String text, {int rows = 10, double speed = 1, double? idleLimit}) {
+  _Run(
+    String text, {
+    int rows = 10,
+    int? columns,
+    double speed = 1,
+    double? idleLimit,
+  }) {
     final cast = Cast.parse(text);
     player = Player(
       cast,
@@ -73,6 +79,7 @@ final class _Run {
       output: (s) async => writes.add(s),
       keys: keys.stream,
       rows: rows,
+      columns: columns,
       clock: clock,
     );
     result = player.run().then((code) => exit = code);
@@ -104,8 +111,8 @@ final class _Run {
 }
 
 void main() {
-  Future<_Run> started([String? text, int rows = 10]) async {
-    final r = _Run(text ?? _text, rows: rows);
+  Future<_Run> started([String? text, int rows = 10, int? columns]) async {
+    final r = _Run(text ?? _text, rows: rows, columns: columns);
     await _settle();
     addTearDown(() async {
       if (r.exit == null) {
@@ -334,6 +341,52 @@ void main() {
       expect(r.status, contains('marker 2/2'), reason: 'kitty ]');
     });
 
+    test('markers on one step and one at the start are a stop each', () async {
+      final shared = [
+        '{"version": 2, "width": 40, "height": 6}',
+        '[0.0, "m", "zero"]',
+        '[0.0, "o", "A"]',
+        '[1.0, "o", "B"]',
+        '[1.0, "m", "one"]',
+        '[1.0, "m", "two"]',
+        '[2.0, "o", "C"]',
+      ].join('\n');
+      final r = await started(shared);
+      await r.type(' ');
+      // A is shown already: the marker at the start is the one before it
+      await r.type('[');
+      expect(r.status, contains('marker 1/3 zero'));
+      expect(r.status, contains('frame 0/3'));
+      await r.type(']');
+      expect(r.status, contains('marker 2/3 one'));
+      await r.type(']');
+      expect(r.status, contains('marker 3/3 two'));
+      expect(r.status, contains('frame 2/3'));
+      await r.type('[');
+      expect(r.status, contains('marker 2/3 one'));
+      await r.type('[');
+      expect(r.status, contains('marker 1/3 zero'));
+      await r.type('[');
+      expect(r.status, contains('marker 1/3 zero'), reason: 'none before');
+    });
+
+    test('the status line is cut to the width, wide glyphs counted', () async {
+      final long = text.replaceFirst('second', '\u4e2d' * 30);
+      final r = await started(long, 10, 70);
+      await r.type(' ');
+      await r.type(']');
+      final shown = r.status!.substring(
+        '\x1b7\x1b[7;1H\x1b[2K\x1b[7m'.length,
+        r.status!.length - '\x1b[0m\x1b8'.length,
+      );
+      var width = 0;
+      for (final rune in shown.runes) {
+        width += rune == 0x4e2d ? 2 : 1;
+      }
+      expect(width, lessThanOrEqualTo(70));
+      expect(shown, contains('\u4e2d'));
+    });
+
     test('a recording without markers shows none and ] does nothing', () async {
       final r = await started();
       await r.type(' ');
@@ -347,11 +400,11 @@ void main() {
     test('Alt+P is dropped after the limit: q and Space are keys', () async {
       final r = await started();
       await r.type('\x1bP');
-      await r.clock.elapse(0.2);
+      await r.clock.elapse(0.6);
       await r.type(' ');
       expect(r.status, contains('paused'), reason: 'Space paused');
       await r.type('\x1bP');
-      await r.clock.elapse(0.2);
+      await r.clock.elapse(0.6);
       await r.type('q');
       expect(await r.result, 0);
     });
@@ -365,6 +418,27 @@ void main() {
       await r.type(' \x1b\\');
       expect(r.exit, isNull);
       expect(r.status, isNot(contains('paused')));
+      await r.type('q');
+      expect(await r.result, 0);
+    });
+
+    test('an answer cut for 300 ms gives no key from its tail', () async {
+      final r = await started();
+      await r.type('\x1b]11;rgb:00');
+      await r.clock.elapse(0.3);
+      await r.type('/00 q [ ]\x07');
+      expect(r.exit, isNull);
+      expect(r.status, isNot(contains('paused')));
+      await r.type('q');
+      expect(await r.result, 0);
+    });
+
+    test('a string never ended is dropped on the clock, paused too', () async {
+      final r = await started();
+      await r.type(' ');
+      await r.type('\x1bP');
+      await r.clock.elapse(0.6);
+      // dropped by the timer: this read is not held to the old string
       await r.type('q');
       expect(await r.result, 0);
     });

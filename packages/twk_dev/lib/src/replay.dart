@@ -220,7 +220,8 @@ final class InputSplitter {
 /// A time at which the keys of a recording were typed.
 ///
 /// `reacts` is whether the recorded program wrote something after the keys
-/// and before the next ones.
+/// and before the next ones in the order of the recording's events (not by
+/// their times alone, which can be equal).
 typedef ReplayStep = ({double time, String keys, bool reacts});
 
 /// The keys of [cast], the input events with the terminal's answers taken
@@ -245,7 +246,10 @@ List<ReplayStep> replaySteps(Cast cast) {
     switch (event.code) {
       case CastEvent.output:
         splitter.sawOutput(event.data);
-        if (steps.isNotEmpty && event.time > steps.last.time) {
+        // by the order of the events, not their times (they are rounded: a
+        // reaction can carry its key's time): output after a key and before
+        // the next is the first one's
+        if (steps.isNotEmpty) {
           reacts = true;
         }
       case CastEvent.input:
