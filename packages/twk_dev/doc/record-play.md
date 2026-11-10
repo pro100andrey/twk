@@ -61,6 +61,23 @@ SIGTERM, SIGHUP), turning off what the recording left on. At the end it waits
 is not asciicast v2, exits with 1; no file, or a `--speed` not above 0, with
 64.
 
+While it plays: Space pauses and plays on (from the start once it ended),
+Right goes a frame on, Left a frame back, Home plays from the start, `q`
+quits (exit 0, with what the recording left on turned off as Ctrl+C does). A
+frame is what `screenFrames` takes for one: the output up to where no
+synchronized update (DEC 2026) is open, written in one piece, so an update is
+never shown half; output after the last frame, inside an update never ended,
+is a step of its own that counts for no frame. Back is the terminal reset
+(RIS) and the frames before written at once. Paused, a status line
+(`paused  frame 3/12  1.250 s / 4.000 s`) shows on the row under the
+recording, where the terminal has one (a recording as tall as the terminal
+has no room: nothing is drawn); it is not part of what is played, and is
+wiped when playing goes on or it stops. It is drawn with `ESC 7` and
+`ESC 8`, the terminal's one saved cursor, so a recording that saved its own
+cursor before a pause and restores it after finds the status line's. Keys are
+read also as application-cursor and kitty-keyboard sequences; the terminal's
+answers are not keys. Where stdin is no terminal there are no keys.
+
 A recording is a regression test of the app: its `Cast.writes`, the output
 events and each resize, are what twk_test's `screenFrames` plays through its
 emulator (`Vt`) of the recording's size, a resize keeping what the screen

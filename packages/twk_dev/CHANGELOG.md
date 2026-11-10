@@ -4,6 +4,13 @@
 
 Added:
 
+- `twk play` controls, as the VS Code player's: Space pauses and plays on,
+  Right a frame on, Left a frame back (the terminal reset and the frames
+  before written at once), Home from the start, `q` quits (exit 0). A frame
+  is what twk_test's `screenFrames` takes for one, so a synchronized update
+  is written whole; paused, a status line (frame n/m, the time) shows under
+  the recording where the terminal has a row for it, never written into what
+  is played.
 - `twk doctor [-C <dir>] [--json]`: the terminal as twk probes it (TERM, name
   and version, colours, DEC 2026, kitty keyboard, graphics, links, cell size,
   how long the answers took), the project's twk, twk_core, twk_dev and

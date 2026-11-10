@@ -1,7 +1,7 @@
 // `twk play` in a terminal of the test's (see terminal.dart): what the
 // program wrote, at its times divided by --speed with the pauses cut;
 // what is typed meanwhile dropped; Ctrl+C stopping, with what the
-// recording left on turned off; the terminal put back.
+// recording left on turned off; q and Space; the terminal put back.
 @Tags(['process'])
 @TestOn('linux || mac-os')
 @Timeout(Duration(minutes: 4))
@@ -82,6 +82,25 @@ void main() {
       endsWith('playing\x1b[0m\x1b[?1000l\x1b[?25h\x1b[?1049l'),
     );
     expect(t.screen.alternateScreen, isFalse);
+    expect(t.modes.same(before), isTrue, reason: '${t.modes}');
+  });
+
+  test('q stops with 0 after turning off what the recording left on; '
+      'Space pauses, nothing more is played until it goes on', () async {
+    final path = cast(_header, [
+      r'[0.0, "o", "\u001b[?1049h\u001b[?25lplaying"]',
+      '[60.0, "o", "never"]',
+    ]);
+    final t = await Terminal.twk(['play', path]);
+    final before = t.modes;
+    await t.until(() => t.text.contains('playing') && t.modes.raw, 'playing');
+    t.type(' ');
+    await t.until(() => t.text.contains('paused'), 'the status line');
+    t.type('q');
+
+    expect(await t.ended(), exits(0));
+    expect(t.screen.alternateScreen, isFalse);
+    expect(t.text, isNot(contains('never')));
     expect(t.modes.same(before), isTrue, reason: '${t.modes}');
   });
 
