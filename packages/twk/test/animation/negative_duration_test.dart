@@ -57,4 +57,20 @@ void main() {
     c.animateTo(0, duration: Duration.zero);
     expect(c.value, 0);
   });
+
+  testTwk('a refused animateTo leaves the direction as it was', (t) async {
+    final key = GlobalKey<State<_Host>>();
+    await t.pumpWidget(_Host(key: key), size: (4, 1));
+    final c = AnimationController(
+      vsync: key.currentState! as TickerProvider,
+      duration: Duration.zero,
+      value: 1,
+    );
+    addTearDown(c.dispose);
+    c.reverse();
+    expect(c.status, AnimationStatus.dismissed);
+    expect(() => c.animateTo(0.5, duration: negative), _negativeAssert);
+    c.value = 0.5;
+    expect(c.status, AnimationStatus.reverse);
+  });
 }

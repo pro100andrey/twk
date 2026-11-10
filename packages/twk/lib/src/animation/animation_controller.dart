@@ -238,11 +238,11 @@ final class AnimationController extends ChangeNotifier
     Duration? duration,
     Curve curve = Curves.linear,
   }) {
-    _forward = true;
     assert(
       _notNegative(duration),
       'animateTo with a negative duration $duration; Duration.zero jumps',
     );
+    _forward = true;
     final to = _clamp(target);
     return duration != null
         ? _start(to, duration.inMicroseconds, curve)

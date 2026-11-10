@@ -621,4 +621,14 @@ void main() {
     expect(controller.back, throwsA(isA<AssertionError>()));
     expect(() => controller.goTo(1), throwsA(isA<AssertionError>()));
   });
+
+  test('next and goTo after dispose throw at the call, not in the future', () {
+    final controller = StepperController()..dispose();
+    expect(() {
+      unawaited(controller.next());
+    }, throwsA(isA<AssertionError>()));
+    expect(() {
+      unawaited(controller.goTo(1));
+    }, throwsA(isA<AssertionError>()));
+  });
 }

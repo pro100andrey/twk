@@ -28,4 +28,9 @@ void main() {
     final scope = FocusScopeNode()..dispose();
     expect(scope.requestFocus, throwsA(isA<AssertionError>()));
   });
+
+  test('giveBack skips a fallback disposed meanwhile, silently', () {
+    final fallback = FocusScopeNode(debugLabel: 'gone')..dispose();
+    expect(FocusNode.giveBack(null, fallback), isFalse);
+  });
 }

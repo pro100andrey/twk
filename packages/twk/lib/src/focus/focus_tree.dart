@@ -440,7 +440,9 @@ class FocusNode with ChangeNotifier {
         return true;
       }
     }
-    fallback?.requestFocus();
+    if (fallback != null && !fallback._disposed) {
+      fallback.requestFocus();
+    }
     return false;
   }
 
@@ -782,7 +784,10 @@ final class FocusManager {
       _autofocus.clear();
       for (final node in nodes) {
         final scope = node.enclosingScope;
-        if (node._active && scope != null && scope.focusedChild == null) {
+        if (!node._disposed &&
+            node._active &&
+            scope != null &&
+            scope.focusedChild == null) {
           node.requestFocus();
         }
       }
@@ -1079,7 +1084,9 @@ final class FocusManager {
         return;
       }
     }
-    node.requestFocus();
+    if (!node._disposed) {
+      node.requestFocus();
+    }
   }
 }
 
