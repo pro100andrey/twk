@@ -322,6 +322,29 @@ final class RenderFlex extends RenderObject
     return shared;
   }
 
+  // the hint for a flexible child in an unbounded main axis was logged
+  // (debug only, an Expando: no field in a release build)
+  static final _hinted = Expando<bool>('flex unbounded hint');
+
+  /// Logs once per flex that a child with a flex factor is laid out by its
+  /// content because the main axis has no bound to share (asserts only).
+  bool _hintUnbounded(bool horizontal) {
+    if (_hinted[this] ?? false) {
+      return true;
+    }
+    _hinted[this] = true;
+    final name = horizontal ? 'Row' : 'Column';
+    final axis = horizontal ? 'width' : 'height';
+    _warn(
+      'A flexible child (Expanded or Flexible) of a RenderFlex got no '
+      '$axis to share, as its parent sets no maximum $axis, so it is as '
+      '${horizontal ? 'wide' : 'tall'} as its content and does not '
+      'expand. Put the $name in a parent that bounds its $axis (a '
+      'SizedBox, or an Expanded of its own), or drop the Expanded.',
+    );
+    return true;
+  }
+
   @override
   void performLayout(BoxConstraints c) {
     _childrenListed = false;
@@ -342,6 +365,13 @@ final class RenderFlex extends RenderObject
       if (extent == null && at.flex > 0 && bounded) {
         total += at.flex;
       } else {
+        assert(
+          bounded ||
+              extent != null ||
+              at.flex == 0 ||
+              _hintUnbounded(horizontal),
+          'logs the hint',
+        );
         final lo = extent ?? 0;
         final hi = extent ?? maxMain;
         if (horizontal) {

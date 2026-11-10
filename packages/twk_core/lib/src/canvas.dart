@@ -549,6 +549,7 @@ final class Canvas {
           final w = codePointWidth(cu, seg.ambiguousWidth);
           i++;
           if (w == 0) {
+            assert(_debugDropped(cu), 'logs a dropped control');
             continue;
           }
           _place(ax, w, codePointUncertain(cu) ? cu | kUncertain : cu);
@@ -563,6 +564,7 @@ final class Canvas {
       int glyph;
       if (w == 0) {
         if (scan.first != 0x09) {
+          assert(_debugDropped(scan.first), 'logs a dropped control');
           continue;
         }
         w = 1;
@@ -582,6 +584,36 @@ final class Canvas {
     }
     _end();
     return ax - startX;
+  }
+
+  /// Told, in debug mode (asserts only), the first time [text] drops each
+  /// control character: a message to log as a warning. The app sets it to
+  /// its log; null, the default, says nothing.
+  void Function(String message)? onDroppedControl;
+
+  // the control characters [text] dropped and logged (debug only): one
+  // record per distinct character, so a stream of escape sequences logs the
+  // few it has and not one a frame; bounded by the 65 controls there are
+  final _droppedLogged = <int>{};
+
+  /// Logs, the first time for each [cp], that [text] dropped the control
+  /// character [cp] (asserts only; a zero-width mark that is no control is
+  /// not reported). Reached only where one is dropped, so the fast path
+  /// pays nothing.
+  bool _debugDropped(int cp) {
+    if ((cp >= 0x20 && cp < 0x7F) || cp > 0x9F || !_droppedLogged.add(cp)) {
+      return true;
+    }
+    final name = cp == 0x1B
+        ? 'ESC (U+001B)'
+        : 'U+${cp.toRadixString(16).toUpperCase().padLeft(4, '0')}';
+    onDroppedControl?.call(
+      'Canvas.text dropped the control character $name: it is not drawn '
+      'and the characters after it stay as letters (an ANSI sequence '
+      'prints as "[31m"). Draw styled text with Text and spans, or parse '
+      'ANSI text into spans first.',
+    );
+    return true;
   }
 
   /// Segments [s] once (for retained text layout); see [run].

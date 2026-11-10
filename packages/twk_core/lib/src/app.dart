@@ -280,6 +280,8 @@ final class TwkApp {
       viewport: viewport,
       atLineStart: info.cursorColumn == 0,
     );
+    screen.canvas.onDroppedControl = (message) =>
+        this.logs.add(LogRecord(DateTime.now(), LogLevel.warning, message));
     screen.presenter.screenWidth = terminal.width;
     screen.styles.defaultForegroundRgb = info.foregroundRgb;
     if (info.backgroundRgb != null) {

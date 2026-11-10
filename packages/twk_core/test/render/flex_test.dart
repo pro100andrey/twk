@@ -572,9 +572,11 @@ void main() {
       final row = RenderFlex(spacing: 1, children: [Label('ab'), label, sized]);
       flexible(label, 1);
       flexible(sized, 2, FlexFit.loose);
-      row.layout(
-        const BoxConstraints(maxHeight: 1),
-        parentUsesSize: true,
+      printed(
+        () => row.layout(
+          const BoxConstraints(maxHeight: 1),
+          parentUsesSize: true,
+        ),
       );
       expect([row.width, row.height], [11, 1]);
       expect(boxes(row), ['0,0 2x1', '3,0 3x1', '7,0 4x1']);
