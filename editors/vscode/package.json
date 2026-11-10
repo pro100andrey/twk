@@ -196,6 +196,21 @@
         "command": "twk.keyToApp",
         "title": "Pass the Key to the twk Terminal's App",
         "category": "twk"
+      },
+      {
+        "command": "twk.tape.run",
+        "title": "Run the Tape (twk tape: the .cast and SVGs it names)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.tape.check",
+        "title": "Check the Tape (twk tape --check: it as a test, nothing written)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.tape.preview",
+        "title": "Preview the Tape (the Screenshots and the SVG Output, a strip of frames)",
+        "category": "twk"
       }
     ],
     "keybindings": [
@@ -386,6 +401,19 @@
           "type": "boolean",
           "default": true,
           "description": "Whether saving a Dart file hot reloads the apps the extension runs or debugs in the twk terminal (their sources reloaded, every widget rebuilt, each State kept). Leave Dart-Code's dart.hotReloadOnSave at \"never\": it reloads without the rebuild."
+        },
+        "twk.tape.command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "default": [
+            "dart",
+            "run",
+            "twk_dev:twk"
+          ],
+          "description": "The command that is twk, for Run, Check and Preview of a .tape: it runs in the tape's Dart project (the nearest pubspec.yaml), with `tape [--check] <file>` after it. A twk activated globally: [\"twk\"]."
         }
       }
     },
@@ -563,6 +591,18 @@
         {
           "command": "twk.stopRecordings",
           "when": "twk.recording"
+        },
+        {
+          "command": "twk.tape.run",
+          "when": "editorLangId == tape"
+        },
+        {
+          "command": "twk.tape.check",
+          "when": "editorLangId == tape"
+        },
+        {
+          "command": "twk.tape.preview",
+          "when": "editorLangId == tape"
         }
       ],
       "editor/title": [
@@ -580,6 +620,16 @@
           "command": "twk.record",
           "when": "activeWebviewPanelId == 'twk.terminal'",
           "group": "navigation@3"
+        },
+        {
+          "command": "twk.tape.check",
+          "when": "editorLangId == tape",
+          "group": "navigation@4"
+        },
+        {
+          "command": "twk.tape.run",
+          "when": "editorLangId == tape",
+          "group": "navigation@5"
         }
       ],
       "explorer/context": [
@@ -594,7 +644,27 @@
           "group": "navigation"
         }
       ]
-    }
+    },
+    "languages": [
+      {
+        "id": "tape",
+        "aliases": [
+          "Tape",
+          "twk tape"
+        ],
+        "extensions": [
+          ".tape"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tape",
+        "scopeName": "source.tape",
+        "path": "./syntaxes/tape.tmLanguage.json"
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p . && tsc -p tsconfig.webview.json",

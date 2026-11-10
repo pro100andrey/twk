@@ -2,6 +2,11 @@
 
 ## 0.1.0
 
+- `.tape` files: the language (highlighting, a hover on each statement), and
+  the lenses Run (`twk tape`), Check (`twk tape --check`; a failed Wait or a
+  tape that cannot be read is an error on its line) and Preview (the stills of
+  its Screenshots and its SVG Output, a click going to the statement);
+  `twk.tape.command` says what `twk` is.
 The first packaged version (a preview, `.vsix` built from this repository).
 
 - Selection and clipboard in the twk terminal: drag selects (with Shift held

@@ -292,6 +292,41 @@ to (they are read, and played over); keys of the window's own menu
 (below); the keys and the drag of the selection, and the paste, in a real
 person's hands (the tests drive what the page sends, not its keys).
 
+### `.tape` files
+
+The language `tape` (`.tape`; `syntaxes/tape.tmLanguage.json`,
+`language-configuration.json`, `#` the comment) with, over it:
+
+- hovers: the statement's documentation (`core/tape.ts`, the text of
+  `packages/twk_dev/doc/tape.md`; a `Set` tells its setting);
+- the lenses Run, Check and Preview over the first statement
+  (`vscode/tape.ts`), commands `twk.tape.run`, `twk.tape.check`,
+  `twk.tape.preview`;
+- `app/tape.ts`'s `Tapes` runs `<twk.tape.command> tape [--check] <file>`
+  (default `dart run twk_dev:twk`) in the tape's project (the nearest
+  `pubspec.yaml`: the tape's paths are the current directory's), everything it
+  writes to the `twk` output, and reads the report with
+  `core/tape.ts`'s `parseCheck`: stdout's `<tape>:<line>: ok|FAIL <statement>`
+  and summary, the rest being stderr (`twk tape: <tape>:<line>: <message>` for
+  a tape that is wrong, `<tape>:<line>: Wait timed out ...` and the screen for
+  a failed check). The file is saved first, as what runs is the file;
+- diagnostics: a failed statement and the line stderr names, an error on that
+  line, from `twk tape` and from no parser of this extension. They come only
+  of a Run or a Check, as twk tape has no mode that only reads a tape (it
+  would run its program), and an edit of the file takes them away, as they
+  describe the text before it;
+- Preview (`core/tape_preview.ts`): a webview with the stills of the
+  Screenshots, in the tape's order, then the SVG Outputs (the animated end), each
+  figure going to the line of its statement; a file not written yet says to Run.
+  It shows what Run wrote, and runs nothing itself. Its images are read from the
+  tape's project only (`localResourceRoots`).
+
+A tape's own tests are core's (`test/unit/core/tape.test.ts`: the statements,
+the report, the grammar's patterns compiled and tried) and app's (`Tapes`
+over a fake and over a real process); the language registered, the lenses, the
+diagnostics on a broken tape and the Check's result are in the real VS Code
+suite.
+
 ## 1. Debugging a twk app
 
 Dart-Code runs the SDK's own debug adapter, `dart debug_adapter`
@@ -743,6 +778,7 @@ What the tests cover:
    kitty_keyboard.ts  switches.ts  vm.ts  hot.ts  runner.ts
    process.ts  events.ts  project.ts  inspect.ts  source_find.ts
    locator.ts  sequences.ts  seqlog.ts  cast.ts  cast_file.ts
+   tape.ts  tape_preview.ts
 ```
 
 `webview/` is `main.ts` (xterm.js and its addons, the page's; a replay's

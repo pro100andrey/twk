@@ -4,6 +4,8 @@
 # src/vscode/panel.ts): of node_modules the three files below go in.
 **
 !package.json
+!language-configuration.json
+!syntaxes/*.json
 !README.md
 !CHANGELOG.md
 !LICENSE

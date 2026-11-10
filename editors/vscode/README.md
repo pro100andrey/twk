@@ -29,6 +29,14 @@ in a terminal of the extension's own, beside the editor.
   `<file>.actual`; the editor then shows both with the cells that differ marked,
   and **Accept Actual** makes that screen the golden (the file
   `TWK_UPDATE_GOLDENS=1` would write). Add `*.txt.actual` to `.gitignore`.
+- **`.tape` files** (`twk tape`, VHS's language): highlighting, a hover on each
+  statement from its documentation, and the lenses **Run** (`twk tape`: the
+  `.cast` and SVGs it names, with Preview and Play offered after), **Check**
+  (`twk tape --check`: the tape as a test; a Wait that timed out, or a tape twk
+  cannot read, is an error on its line, taken away by the next edit) and
+  **Preview** (the stills of its Screenshots and its SVG Output in a strip; a
+  click goes to the statement). The problems are twk tape's own: there is no
+  second parser here.
 
 Open a Dart file of a twk app, press Ctrl+Shift+P and type "twk".
 
@@ -48,7 +56,7 @@ Open a Dart file of a twk app, press Ctrl+Shift+P and type "twk".
 
 `twk.terminal.profile` and `twk.terminal.capabilities` (what the terminal is),
 `twk.terminal.screenReader`, `twk.terminal.debugAids`, `twk.terminal.columns`
-and `twk.terminal.lines` (a fixed size), `twk.codeLens` (the lenses over a twk app's `main`), and `twk.hotReloadOnSave`. Keep the
+and `twk.terminal.lines` (a fixed size), `twk.codeLens` (the lenses over a twk app's `main`), `twk.tape.command` (what `twk` is for a tape: `dart run twk_dev:twk` in the tape's project, or `["twk"]` when activated globally), and `twk.hotReloadOnSave`. Keep the
 Dart extension's `dart.hotReloadOnSave` at `never`, or both reload.
 
 ## From source

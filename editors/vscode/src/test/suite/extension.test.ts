@@ -1132,3 +1132,85 @@ describe('twk terminal under Dart-Code', () => {
     await shows(terminal, 'the app went away', 'normal');
   });
 });
+
+describe('a .tape file', () => {
+  let api: Api;
+  const twkDev = path.resolve(project, '..', 'twk_dev');
+  const dir = path.join(twkDev, '.dart_tool', 'twk_vscode_test', 'tapes');
+
+  before(async () => {
+    const ext = vscode.extensions.getExtension<Api>('twk.twk-vscode');
+    assert.ok(ext, 'the extension is there');
+    api = await ext.activate();
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.mkdirSync(dir, { recursive: true });
+  });
+
+  after(async () => {
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  /** A tape of [lines] in the scratch directory, opened. */
+  async function tape(name: string, ...lines: string[]): Promise<vscode.TextDocument> {
+    const file = path.join(dir, `${name}.tape`);
+    fs.writeFileSync(file, `${lines.join('\n')}\n`);
+    const doc = await vscode.workspace.openTextDocument(file);
+    await vscode.window.showTextDocument(doc);
+    return doc;
+  }
+
+  it('is the tape language, with Run, Check and Preview over its first statement and a hover on a statement', async () => {
+    const doc = await tape('lang', '# a tape', 'Set Width 40', 'Run sh', 'Wait /\\$/');
+    assert.equal(doc.languageId, 'tape');
+    assert.ok((await vscode.languages.getLanguages()).includes('tape'));
+    const lenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', doc.uri);
+    assert.deepEqual(lenses.map((l) => l.command?.title), ['Run', 'Check', 'Preview']);
+    assert.ok(lenses.every((l) => l.range.start.line === 1));
+    const hovers = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', doc.uri, new vscode.Position(1, 2));
+    const text = hovers.flatMap((h) => h.contents).map((c) => (typeof c === 'string' ? c : c.value)).join('\n');
+    assert.match(text, /Set Width <cells>/);
+  });
+
+  it('Check passes a tape that holds: the summary, no diagnostics', async () => {
+    const doc = await tape('pass', 'Set TypingSpeed 5ms', 'Run sh', 'Type "echo tape-ok"', 'Enter', 'Wait /tape-ok\\n/');
+    const report = await vscode.commands.executeCommand<Awaited<ReturnType<Api['tapes']['check']>>>('twk.tape.check', doc.uri);
+    assert.equal(report.exit, 0, JSON.stringify(report));
+    assert.match(report.summary ?? '', /^passed, \d+ statements$/);
+    assert.deepEqual(api.tapeDiagnostics.get(doc.uri) ?? [], []);
+  });
+
+  it('Check fails a Wait that times out: an error on its line, which an edit takes away', async () => {
+    const doc = await tape('fail', 'Set WaitTimeout 300ms', 'Run sh', 'Wait /never-shown/');
+    const report = await vscode.commands.executeCommand<Awaited<ReturnType<Api['tapes']['check']>>>('twk.tape.check', doc.uri);
+    assert.equal(report.exit, 1);
+    const shown = api.tapeDiagnostics.get(doc.uri) ?? [];
+    assert.equal(shown.length, 1);
+    assert.equal(shown[0].range.start.line, 2);
+    assert.equal(shown[0].severity, vscode.DiagnosticSeverity.Error);
+    assert.match(shown[0].message, /Wait timed out/);
+    const change = new vscode.WorkspaceEdit();
+    change.insert(doc.uri, new vscode.Position(0, 0), '# edited\n');
+    await vscode.workspace.applyEdit(change);
+    assert.deepEqual(api.tapeDiagnostics.get(doc.uri) ?? [], []);
+  });
+
+  it('a tape twk tape cannot read is an error on the line it says', async () => {
+    const doc = await tape('wrong', 'Set Width 40', 'Frobnicate now');
+    const report = await vscode.commands.executeCommand<Awaited<ReturnType<Api['tapes']['check']>>>('twk.tape.check', doc.uri);
+    assert.equal(report.exit, 1);
+    assert.equal(report.error?.line, 1);
+    assert.equal((api.tapeDiagnostics.get(doc.uri) ?? [])[0]?.range.start.line, 1);
+  });
+
+  it('Run writes what the tape names, and Preview shows the still of its Screenshot', async () => {
+    const doc = await tape('shot', 'Output tapes-out.cast', 'Set TypingSpeed 5ms', 'Run sh', 'Type "echo shot"', 'Enter', 'Wait /shot\\n/', `Screenshot ${path.join(dir, 'tapes-shot.svg')}`);
+    const report = await vscode.commands.executeCommand<Awaited<ReturnType<Api['tapes']['run']>>>('twk.tape.run', doc.uri);
+    assert.equal(report.exit, 0, JSON.stringify(report));
+    assert.ok(fs.existsSync(path.join(dir, 'tapes-shot.svg')));
+    assert.ok(fs.existsSync(path.join(twkDev, 'tapes-out.cast')), 'relative to the project');
+    fs.rmSync(path.join(twkDev, 'tapes-out.cast'), { force: true });
+    const panel = await vscode.commands.executeCommand<vscode.WebviewPanel>('twk.tape.preview', doc.uri);
+    assert.match(panel.webview.html, /<figure data-line="6"[^>]*><img src="[^"]*tapes-shot\.svg/);
+    panel.dispose();
+  });
+});

@@ -17,6 +17,7 @@ import { AppLogs, AppLogsView } from '../app/app_logs';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
+import { Tapes } from '../app/tape';
 import { Recording, Recordings } from '../app/recording';
 import { activeScreen, screenText } from '../app/screens';
 import { Terminals } from '../app/terminals';
@@ -45,6 +46,7 @@ import { openAppLogsPanel, openLogPanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
+import { registerTape } from './tape';
 import { StatusBar } from './status_bar';
 
 /** What the extension gives its tests (`activate`'s result). */
@@ -72,6 +74,9 @@ export interface Api {
   /** The apps' logs, and their panel. */
   readonly appLogs: AppLogs;
   readonly appLogsView: AppLogsView;
+  /** The .tape commands' use case, and the diagnostics it sets. */
+  readonly tapes: Tapes;
+  readonly tapeDiagnostics: vscode.DiagnosticCollection;
   /** The sequence log open of [screen], where one is. */
   logOf(screen: TwkTerminal | Player): LogPanel | undefined;
 }
@@ -231,6 +236,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   const lenses = new TwkMainLenses();
   context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
   context.subscriptions.push(vscode.window.registerCustomEditorProvider(screenFileViewType, new ScreenFileEditors(context.extensionUri)));
+  const tape = registerTape(context, log);
   command('twk.openScreenFile', async (uri) => {
     const file = uri ?? vscode.window.activeTextEditor?.document.uri;
     if (!file) {
@@ -238,8 +244,9 @@ export function activate(context: vscode.ExtensionContext): Api {
     }
     await vscode.commands.executeCommand('vscode.openWith', file, screenFileViewType);
   });
-  // A key VS Code would take while a twk terminal is focused (Ctrl+P, Ctrl+K...):
-  // package.json binds it to this, which does nothing, in place of VS Code's
+  // A key VS Code would take while a twk terminal is focused (Ctrl+W, G, N,
+  // F, R, T, O and Ctrl+Shift+C, the ones package.json binds; Ctrl+P and the
+  // Ctrl+K chords stay VS Code's): package.json binds it to this, which does nothing, in place of VS Code's
   // command. The terminal's xterm.js has the key already, and sends it to the app.
   command('twk.keyToApp', () => Promise.resolve());
   command('twk.hotReload', () => hot.reloadAll());
@@ -438,6 +445,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     recordings,
     appLogs,
     appLogsView,
+    tapes: tape.tapes,
+    tapeDiagnostics: tape.diagnostics.collection,
     logOf: (screen) => logs.of(screen),
   };
 }
