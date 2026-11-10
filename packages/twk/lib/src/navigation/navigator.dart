@@ -1219,13 +1219,16 @@ final class _RouteHostState extends State<_RouteHost>
   @override
   void initState() {
     super.initState();
-    final route = widget.route.._host = this;
+    final route = widget.route;
     _guard = FocusNode(
       canRequestFocus: false,
       skipTraversal: true,
       debugLabel: 'route guard',
     )..descendantsAreFocusable = route._guardFocusable;
     _scope = FocusScopeNode(debugLabel: route.settings.name ?? 'route');
+    // the nodes first: the route reads them through the host, and dispose
+    // finds them whatever initState goes on to throw
+    route._host = this;
     final push = route.transitionDuration;
     final pop = route.reverseTransitionDuration;
     if (push > Duration.zero || pop > Duration.zero) {

@@ -107,7 +107,8 @@ final class LogRecord {
   }
 
   /// `09:05:07.042 warning message: error` ([formatTime]), then the stack
-  /// on lines of its own.
+  /// on lines of its own. An error that is [LogData] is left out, as in
+  /// [toJson].
   @override
   String toString() {
     final sb = StringBuffer()
@@ -116,7 +117,7 @@ final class LogRecord {
       ..write(level.name)
       ..write(' ')
       ..write(message);
-    if (error != null) {
+    if (error != null && error is! LogData) {
       sb.write(': $error');
     }
     if (stack != null) {

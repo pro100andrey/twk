@@ -79,8 +79,10 @@ final class ControllerHost<H extends Object> {
   /// tree, for the check that no two are at once; by default a `State`
   /// asks its own `mounted`, and any other host is taken as gone.
   /// [timerOf] says which clock the grace of a host that stays mounted
-  /// runs on, null where there is none (no app above that host); by
-  /// default a `State` gives the app's, any other host none.
+  /// runs on, null where there is none (no app above that host: the check
+  /// throws, in debug mode); where it is given its answer stands, null
+  /// included. Where it is not, a `State` gives the app's, any other host
+  /// none.
   ControllerHost({
     bool Function(H host)? mounted,
     StartTimer? Function(H host)? timerOf,
@@ -125,8 +127,13 @@ final class ControllerHost<H extends Object> {
   bool _isMounted(H host) =>
       _mounted?.call(host) ?? (host is State && host.mounted);
 
-  StartTimer? _timerOfHost(H host) =>
-      _timerOf?.call(host) ?? (host is State ? host.appTimer : null);
+  StartTimer? _timerOfHost(H host) {
+    final timerOf = _timerOf;
+    if (timerOf != null) {
+      return timerOf(host);
+    }
+    return host is State ? host.appTimer : null;
+  }
 
   void _checkOneHost(H old, {bool grace = true}) {
     final current = _host;

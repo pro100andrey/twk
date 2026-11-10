@@ -71,6 +71,28 @@ void main() {
     expect(log, ['open n25']);
   });
 
+  testTwk('a selected row kept built out of view is never the row under the '
+      'mouse', (t) async {
+    await t.pumpWidget(table(), size: (30, 8));
+    await t.press('down');
+    await t.pumpUntilIdle();
+    for (var i = 0; i < 3; i++) {
+      await t.mouse(MouseKind.wheelDown, 1, 3);
+    }
+    await t.pumpUntilIdle();
+    expect(lineOf(t, 'n0'), -1);
+    for (var y = 0; y < 8; y++) {
+      final name = t.lines[y].trim().split(' ').first;
+      if (!name.startsWith('n')) {
+        continue;
+      }
+      await rightClick(t, 1, y);
+      expect(controller.selectedKey, int.parse(name.substring(1)));
+      await t.press('escape');
+      await t.pumpUntilIdle();
+    }
+  });
+
   testTwk('Shift+F10 on a row scrolled out of view scrolls to it first', (
     t,
   ) async {

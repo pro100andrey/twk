@@ -384,6 +384,35 @@ void main() {
     expect(changes, [45]);
   });
 
+  testTwk('a rebuild for another reason leaves a hand-over the parent has '
+      'not taken: Escape reverts it, the focus leaving gives it up', (
+    t,
+  ) async {
+    for (final escape in [true, false]) {
+      final shown = ValueNotifier<double>(30);
+      final rebuild = ValueNotifier<int>(0);
+      addTearDown(shown.dispose);
+      addTearDown(rebuild.dispose);
+      final changes = <double>[];
+      await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+      await press(t, 'backspace backspace');
+      await type(t, '45');
+      await press(t, 'f1');
+      expect(changes, [45]);
+      rebuild.value++;
+      await t.pump();
+      if (escape) {
+        await press(t, 'escape');
+        expect(changes, [45, 30]);
+      } else {
+        t.binding.focusManager.primaryFocus!.unfocus();
+        await t.pump();
+        expect(changes, [45]);
+      }
+      expect(t.lines[1], startsWith('30'));
+    }
+  });
+
   testTwk('a parent that gives another value after one was handed over '
       'replaces the text typed', (t) async {
     final shown = ValueNotifier<double>(30);

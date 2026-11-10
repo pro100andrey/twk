@@ -340,10 +340,11 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       // takes is given up with Escape or the focus leaving
       _value = given;
       _show();
-    } else if (!_typed || _untyped != null) {
+    } else if (!_typed || (_untyped != null && given == _value)) {
       // as the widget shows it now; where it is the value handed over
       // ([_handOver]) the parent has taken it, and Escape reverts it no
-      // more
+      // more. A parent that rebuilt without taking it leaves the hand-over
+      // as it is
       _show();
     }
   }

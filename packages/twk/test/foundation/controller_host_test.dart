@@ -193,6 +193,22 @@ void main() {
       expect('${error.error}', contains('two hosts'));
     });
 
+    testTwk('a timerOf that answers null stands: no fallback to the app '
+        'clock, the mistake throws', (t) async {
+      final hosts = ControllerHost<State>(timerOf: (_) => null);
+      addTearDown(hosts.dispose);
+      await expectLater(
+        t.pumpWidget(_views(hosts, ['a', 'b']), size: (10, 2)),
+        throwsA(
+          isA<StateError>().having(
+            (e) => '$e',
+            'message',
+            contains('two hosts'),
+          ),
+        ),
+      );
+    });
+
     testTwk('a host that is no State needs the mounted callback to be '
         'checked', (t) async {
       await t.pumpWidget(const Text('x'), size: (10, 1));
