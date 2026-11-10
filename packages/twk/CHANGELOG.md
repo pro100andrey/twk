@@ -144,7 +144,10 @@ Fixed:
   and at most the first 1000 when it is rebuilt.
 - A controller with two hosts in the tree and no app above them fails in
   a debug run again, where it was only logged; the grace runs on the
-  app's clock, which `AppBinding.startTimerOf` gives (`StartTimer`).
+  app's clock. A `State` host finds that clock above it by itself, so
+  `ControllerHost(timerOf:)` is only for a host that is no `State`, and a
+  `MenuController` handed to a new menu while the old one fades out no
+  longer fails.
 - A widget leaving ends only the two-hosts graces it is in, not those of
   other hosts still in the tree.
 - `LogController` tells its listeners after a refilter is whole, outside
@@ -155,6 +158,18 @@ Fixed:
   over all of it in a debug run.
 - `Cli.show` writes no overflow marker over its output; the warning still
   goes to the console's log.
+- `NumberInput` and `DatePicker` forget a value handed over once the
+  parent took it: Escape after that keeps the parent's value. A key of the
+  field's own at an edge of the text (a caret key, a deletion, a
+  character) hands nothing over to the bindings above.
+- `Table` binds Shift+F10 only while a row is selected, so with none it
+  goes on to the bindings above; one `Listener` over the rows instead of
+  one per row.
+- A route's focus nodes are made and disposed by the navigator's state,
+  once, however the route is removed; a click on a `LogView` finds its
+  line without making a list.
+- The debug console shows an overflow report's text once, not again as
+  its error.
 
 ## 0.3.0
 
