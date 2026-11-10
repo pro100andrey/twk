@@ -39,7 +39,9 @@ Fixed:
   the mouse's drags.
 - `DiffView` asserts, in a debug run, that each hunk's `oldCount` and
   `newCount` are the lines it has, naming the hunk: the line numbers after
-  a hunk built by hand with the wrong counts drifted without a word.
+  a hunk built by hand with the wrong counts drifted without a word. A
+  hunk `Diff.parse` reads from a patch cut short (or a header that counts
+  too many) has the counts of the lines it got.
 
 ## 0.3.0
 

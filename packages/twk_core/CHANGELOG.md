@@ -11,8 +11,9 @@ Changed:
 - In a debug run a `RenderFlex` logs a warning, once, when a flexible
   child (`Expanded`, `Flexible`) is laid out by its content because the
   main axis is unbounded, and the app logs one, once per character, when
-  `Canvas.text` drops a control character (an ESC leaves `[31m` as
-  letters), pointing at `Text` with spans.
+  `Canvas.text` drops a control character: for an ESC (which leaves
+  `[31m` as letters) it points at `Text` with spans, for a newline or a
+  carriage return at text split into lines.
 
 Added:
 

@@ -60,8 +60,10 @@ Changed:
   checked after the build; two choices with one value in `Select`,
   `MultiSelect` and `SegmentedButton`, two items with one key in
   `SelectionList`, two rows with one `rowKey` in `Table`; `requestFocus`
-  on a disposed `FocusNode`; `StepperController.next`, `back` or `goTo`
-  after its dispose (a validator that resolves after it stays silent); a
+  on a disposed `FocusNode` (the focus handed back by a route or a dialog
+  skips a node disposed meanwhile); `StepperController.next`, `back` or
+  `goTo` after its dispose, at the call (a validator that resolves after
+  it stays silent); a
   negative `duration`, `reverseDuration`, `animateTo` duration or
   `repeat` period of an `AnimationController` (`Duration.zero` jumps).
 - Tree warnings (a flex, wrap or grid overflow, a viewport or list given
