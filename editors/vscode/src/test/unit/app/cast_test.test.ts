@@ -97,4 +97,14 @@ describe('CastTests', () => {
     assert.equal(result.test, undefined);
     assert.ok(proc.signals.includes('SIGTERM'));
   });
+
+  it('splits the files it wrote at the test and the recording, not at an " and " in a name', async () => {
+    const done = tests.create('/p/app/rec/rock and roll.cast');
+    proc.say('wrote test/rock and roll_test.dart and rec/rock and roll.cast\n');
+    proc.end({ code: 0, signal: null });
+    const result = await done;
+    assert.equal(result.test, '/p/app/test/rock and roll_test.dart');
+    assert.equal(result.cast, '/p/app/rec/rock and roll.cast');
+    assert.equal(result.said, '');
+  });
 });

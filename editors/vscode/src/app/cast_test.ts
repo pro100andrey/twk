@@ -27,6 +27,9 @@ export interface CastTestResult {
   readonly cancelled: boolean;
 }
 
+// twk writes `wrote <test> and <cast>` (paths relative to the project, as p.relative prints them); the test ends in _test.dart, the recording in .cast, so a ' and ' in a name does not split it
+const WROTE = /^wrote (.+?_test\.dart) and (.+\.cast)$/;
+
 export class CastTests {
   constructor(private readonly deps: CastTestsDeps) {}
 
@@ -36,8 +39,8 @@ export class CastTests {
     const run = await runTwk(this.deps, ['test-from-cast', file], { cwd, label: 'test-from-cast', echo: true, cancel, graceMs: this.deps.graceMs, timeoutMs: 120_000 });
     const lines = run.output.split(/\r?\n/).filter((l) => l.trim() !== '');
     // `wrote <test> and <cast>`, both relative to the project
-    const wrote = lines.map((l) => /^wrote (.+?) and (.+)$/.exec(l)).find((m) => m !== null);
-    const said = lines.filter((l) => !/^wrote .+ and .+$/.test(l)).join('\n');
+    const wrote = lines.map((l) => WROTE.exec(l)).find((m) => m !== null);
+    const said = lines.filter((l) => !WROTE.test(l)).join('\n');
     if (run.exit.code === 0 && wrote) {
       return { test: path.resolve(cwd, wrote[1]), cast: path.resolve(cwd, wrote[2]), said, cancelled: false };
     }
