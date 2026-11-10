@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Added:
+
+- `twk completion <bash|zsh|fish>` prints the shell's completion script for
+  `twk`: subcommands, options (with the `--no-` forms and the allowed
+  values), directories for `-C`, and the files of each command (`.cast` for
+  `play`, `.tape` for `tape`, `.dart` for `run`). It is written from the
+  command's own parsers, with no dependency added.
+
 Fixed:
 
 - `twk play`: Alt+P (or Alt+] and the like) no longer swallows `q` and Space

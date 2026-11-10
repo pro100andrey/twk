@@ -95,6 +95,23 @@ runs a tape, a script of what to type into a program and when, in a
 pseudo-terminal, and writes the session as asciicast v2, as an animated SVG
 and as still SVGs of the screens it names
 
+### `twk completion <bash|zsh|fish>`
+
+prints the shell's completion script for `twk`: its subcommands, the options of
+each (the `--no-` form of a flag that has one, the values an option allows,
+directories for `-C`/`--directory`, files for `--out` and `--replay`) and the
+files each command takes (`.cast` for `play` and `test-from-cast`, `.tape` for
+`tape`, `.dart` for `run`, directories for `create`). The script is written
+from the command's own parsers, so an option added to a command is completed
+without a change here, and a test holds every subcommand and option to be in
+it. Load it:
+
+```bash
+source <(twk completion bash)                      # in ~/.bashrc
+twk completion zsh > ~/.zfunc/_twk                 # a directory in fpath, before compinit
+twk completion fish > ~/.config/fish/completions/twk.fish
+```
+
 ## Projects
 
 `shell`, `logs` and `inspect` work for the project of the current directory,

@@ -7,6 +7,7 @@ import 'package:args/command_runner.dart';
 
 import 'agents.dart';
 import 'cast_test_gen.dart';
+import 'completion.dart';
 import 'create.dart';
 import 'doctor.dart';
 import 'inspect.dart';
@@ -37,19 +38,7 @@ const usageExitCode = 64;
 /// }
 /// ```
 Future<int> runTwk(List<String> arguments) async {
-  final runner =
-      CommandRunner<int>('twk', 'Developer tools for apps built on twk.')
-        ..addCommand(CreateCommand())
-        ..addCommand(AgentsCommand())
-        ..addCommand(DoctorCommand())
-        ..addCommand(RunCommand())
-        ..addCommand(InspectCommand())
-        ..addCommand(LogsCommand())
-        ..addCommand(ShellCommand())
-        ..addCommand(RecordCommand())
-        ..addCommand(PlayCommand())
-        ..addCommand(CastTestCommand())
-        ..addCommand(TapeCommand());
+  final runner = twkRunner();
   try {
     return await runner.run(arguments) ?? 0;
   } on UsageException catch (error) {
@@ -57,3 +46,19 @@ Future<int> runTwk(List<String> arguments) async {
     return usageExitCode;
   }
 }
+
+/// The `twk` command with its subcommands, not yet run.
+CommandRunner<int> twkRunner() =>
+    CommandRunner<int>('twk', 'Developer tools for apps built on twk.')
+      ..addCommand(CreateCommand())
+      ..addCommand(AgentsCommand())
+      ..addCommand(DoctorCommand())
+      ..addCommand(RunCommand())
+      ..addCommand(InspectCommand())
+      ..addCommand(LogsCommand())
+      ..addCommand(ShellCommand())
+      ..addCommand(RecordCommand())
+      ..addCommand(PlayCommand())
+      ..addCommand(CastTestCommand())
+      ..addCommand(TapeCommand())
+      ..addCommand(CompletionCommand());
