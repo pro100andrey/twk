@@ -120,7 +120,11 @@ final class AnimationController extends ChangeNotifier
     this.reverseDuration,
     this.lowerBound = 0,
     this.upperBound = 1,
-  }) : assert(upperBound > lowerBound, 'the bounds are the wrong way') {
+  }) : assert(upperBound > lowerBound, 'the bounds are the wrong way'),
+       assert(
+         _notNegative(duration) && _notNegative(reverseDuration),
+         'a negative duration; use Duration.zero to jump',
+       ) {
     _ticker = vsync.createTicker(_tick);
     _value = _clamp(value ?? lowerBound);
     _status = _statusAt(_value);
@@ -235,6 +239,10 @@ final class AnimationController extends ChangeNotifier
     Curve curve = Curves.linear,
   }) {
     _forward = true;
+    assert(
+      _notNegative(duration),
+      'animateTo with a negative duration $duration; Duration.zero jumps',
+    );
     final to = _clamp(target);
     return duration != null
         ? _start(to, duration.inMicroseconds, curve)
@@ -247,6 +255,10 @@ final class AnimationController extends ChangeNotifier
   /// completes when something stops it.
   @awaitNotRequired
   Future<void> repeat({bool reverse = false, Duration? period}) {
+    assert(
+      _notNegative(period),
+      'repeat with a negative period $period',
+    );
     final each = (period ?? duration ?? (throw _noDuration())).inMicroseconds;
     stop();
     final run = _run = Completer<void>();
@@ -291,6 +303,10 @@ final class AnimationController extends ChangeNotifier
 
   /// Runs to [target] in the share of [full] the way is of the bounds'.
   Future<void> _runTo(double target, Duration? full, Curve curve) {
+    assert(
+      _notNegative(full),
+      '$this runs with a negative duration $full; Duration.zero jumps',
+    );
     final micros = (full ?? (throw _noDuration())).inMicroseconds;
     final share = (target - _value).abs() / (upperBound - lowerBound);
     return _start(target, (micros * share).round(), curve);
@@ -391,6 +407,8 @@ final class AnimationController extends ChangeNotifier
       }
     }
   }
+
+  static bool _notNegative(Duration? d) => d == null || !d.isNegative;
 
   StateError _noDuration() => StateError('$this runs with no duration');
 

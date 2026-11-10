@@ -236,8 +236,15 @@ class FocusNode with ChangeNotifier {
 
   /// Gives this node the primary focus, when it is attached to an app's
   /// focus tree and [canRequestFocus]. Each scope above it remembers the
-  /// way to it ([FocusScopeNode.focusedChild]).
+  /// way to it ([FocusScopeNode.focusedChild]). Asserts that the node is
+  /// not disposed: a request on a disposed node would do nothing, so the
+  /// widget that keeps it past its dispose is the bug.
   void requestFocus() {
+    assert(
+      !_disposed,
+      '$this: requestFocus after dispose(); a disposed node takes no focus, '
+      'drop the reference when the owner disposes it',
+    );
     final manager = _manager;
     if (manager != null && _active && canRequestFocus) {
       manager._setPrimary(this);

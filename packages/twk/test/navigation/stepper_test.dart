@@ -613,4 +613,12 @@ void main() {
       },
     );
   });
+
+  test('next, back and goTo after dispose assert; a validator resolving '
+      'after dispose stays silent', () {
+    final controller = StepperController()..dispose();
+    expect(controller.next, throwsA(isA<AssertionError>()));
+    expect(controller.back, throwsA(isA<AssertionError>()));
+    expect(() => controller.goTo(1), throwsA(isA<AssertionError>()));
+  });
 }
