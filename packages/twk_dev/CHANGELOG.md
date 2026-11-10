@@ -20,6 +20,12 @@ Added:
 
 Fixed:
 
+- `twk doctor` in a pub workspace (or on a package of one) reported `twk`,
+  `twk_core`, `twk_dev` and `twk_test` as "not in the lock" and the versions
+  as agreeing: a workspace's lock does not list its members. The versions
+  now come from the lock, and for what it lacks from
+  `.dart_tool/package_config.json` and the package's `pubspec.yaml`, each
+  with its source (`locked`, `path`, `workspace`; `sources` in `--json`).
 - `twk decode`: every name and byte string it prints is escaped (a title, a
   notification or a C1 character in a recording no longer clears the screen,
   sets a title or writes the clipboard of the terminal it is shown in); all

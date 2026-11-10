@@ -117,8 +117,8 @@ void main() {
     );
     final (code, out) = await doctor([]);
     expect(code, 0);
-    expect(out, contains('twk_dev         0.3.0'));
-    expect(out, contains('twk_test        not in the lock'));
+    expect(out, contains('twk_dev         0.3.0 (locked)'));
+    expect(out, contains('twk_test        not found'));
     expect(out, contains('the versions agree'));
   });
 
@@ -132,6 +132,80 @@ void main() {
     expect(out, contains('DISAGREE'));
     final (_, json) = await doctor(['--json']);
     expect((jsonDecode(json) as Map<String, Object?>)['agree'], isFalse);
+  });
+
+  /// A workspace in [root]: the lock lists no member, the package config
+  /// names them, [versions] being those of the members by name.
+  void workspace(Map<String, String> versions) {
+    for (final MapEntry(:key, :value) in versions.entries) {
+      final dir = Directory(p.join(project, 'packages', key))
+        ..createSync(recursive: true);
+      File(p.join(dir.path, 'pubspec.yaml')).writeAsStringSync(
+        'name: $key\nversion: $value\nresolution: workspace\n',
+      );
+    }
+    Directory(p.join(project, '.dart_tool')).createSync();
+    File(p.join(project, '.dart_tool', 'package_config.json'))
+        .writeAsStringSync(
+          jsonEncode({
+            'configVersion': 2,
+            'packages': [
+              for (final name in versions.keys)
+                {'name': name, 'rootUri': '../packages/$name'},
+            ],
+          }),
+        );
+    File(p.join(project, 'pubspec.lock')).writeAsStringSync(
+      'packages:\n  args:\n    source: hosted\n    version: "2.0.0"\n',
+    );
+  }
+
+  test('the members of a workspace are read from the package config', () async {
+    workspace({'twk': '0.3.0', 'twk_core': '0.3.0'});
+    final (code, out) = await doctor([]);
+    expect(code, 0);
+    expect(out, contains('twk             0.3.0 (workspace)'));
+    expect(out, contains('twk_core        0.3.0 (workspace)'));
+    expect(out, contains('twk_dev         not found'));
+    expect(out, contains('the versions agree'));
+    final (_, json) = await doctor(['--json']);
+    final report = jsonDecode(json) as Map<String, Object?>;
+    expect(report['versions'], {'twk': '0.3.0', 'twk_core': '0.3.0'});
+    expect(report['sources'], {'twk': 'workspace', 'twk_core': 'workspace'});
+  });
+
+  test('members of a workspace that differ fail with 1', () async {
+    workspace({'twk': '0.3.0', 'twk_core': '0.2.0'});
+    final (code, out) = await doctor([]);
+    expect(code, 1);
+    expect(out, contains('DISAGREE'));
+  });
+
+  test(
+    'a workspace read from a member, and a lock and members mixed',
+    () async {
+      workspace({'twk': '0.3.0', 'twk_core': '0.3.0'});
+      File(p.join(project, 'pubspec.lock')).writeAsStringSync(
+        _lock({'twk_test': '0.3.0'}),
+      );
+      project = p.join(project, 'packages', 'twk');
+      final (_, json) = await doctor(['--json']);
+      final report = jsonDecode(json) as Map<String, Object?>;
+      expect(report['sources'], {
+        'twk_test': 'locked',
+        'twk': 'workspace',
+        'twk_core': 'workspace',
+      });
+      expect(report['agree'], isTrue);
+    },
+  );
+
+  test('says when no twk package is found', () async {
+    File(p.join(project, 'pubspec.lock')).writeAsStringSync(_lock({}));
+    final (code, out) = await doctor([]);
+    expect(code, 0);
+    expect(out, contains('none found to compare'));
+    expect(out, isNot(contains('the versions agree')));
   });
 
   test('says there is no lock', () async {

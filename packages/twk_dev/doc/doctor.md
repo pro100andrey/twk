@@ -19,9 +19,14 @@ agent) the section says so and nothing is probed.
 
 ## The project
 
-* the versions of `twk`, `twk_core`, `twk_dev` and `twk_test` in the nearest
-  `pubspec.lock` (a workspace's is in its root). Those the lock has must be
-  one version; else the report says so and the exit code is 1.
+* the versions of `twk`, `twk_core`, `twk_dev` and `twk_test` as the project
+  resolves them, each with its source: `locked` (hosted or git, from the
+  nearest `pubspec.lock`; a workspace's is in its root), `path` (a path
+  dependency), or, for what the lock lacks, `workspace` (a member of the pub
+  workspace) or `path`, read from the `pubspec.yaml` that
+  `.dart_tool/package_config.json` names (a workspace's members and a
+  package itself are not locked). Those found must be one version; else the
+  report says so and the exit code is 1. Where none is found it says so.
 * the Dart SDK that runs `twk`.
 * the files `run`, `shell` and `logs` of `.dart_tool/twk` there are, each
   with what it names and whether a connection to it is taken (`listening`)
@@ -34,5 +39,6 @@ agent) the section says so and nothing is probed.
 ## `--json`
 
 One object: `project`, `dart`, `environment`, `terminal` (null without one),
-`lock`, `versions`, `agree`, `state` and `agents` (null where the project
+`lock`, `versions`, `sources` (the same keys: `locked`, `path` or
+`workspace`), `agree`, `state` and `agents` (null where the project
 does not depend on twk).

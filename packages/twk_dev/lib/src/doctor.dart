@@ -17,7 +17,7 @@ import 'create.dart' show askTerminal;
 import 'project.dart';
 import 'run.dart' show serviceFileOf;
 
-/// The packages whose versions in the lock have to agree.
+/// The packages whose versions have to agree.
 const doctorPackages = ['twk', 'twk_core', 'twk_dev', 'twk_test'];
 
 /// How long `twk doctor` waits for a socket of `.dart_tool/twk` to take a
@@ -109,6 +109,7 @@ final class Doctor {
     required this.dart,
     required this.environment,
     required this.versions,
+    this.sources = const {},
     required this.state,
     this.terminal,
     this.agents,
@@ -122,6 +123,7 @@ final class Doctor {
     required Map<String, String> environment,
   }) async {
     final lockFile = _lockOf(project);
+    final found = _resolve(lockFile, project);
     return Doctor(
       project: project,
       dart: Platform.version.split(' ').first,
@@ -131,7 +133,8 @@ final class Doctor {
       },
       terminal: terminal == null ? null : await _probe(terminal),
       lock: lockFile?.path,
-      versions: lockFile == null ? const {} : _versions(lockFile),
+      versions: {for (final e in found.entries) e.key: e.value.$1},
+      sources: {for (final e in found.entries) e.key: e.value.$2},
       state: await _state(project),
       agents: _agents(project),
     );
@@ -152,8 +155,16 @@ final class Doctor {
   /// The `pubspec.lock` the versions are from; null where there is none.
   final String? lock;
 
-  /// The locked version of each of [doctorPackages] the lock has.
+  /// The version of each of [doctorPackages] the project resolves, from the
+  /// lock or, for what the lock lacks (the members of a pub workspace, the
+  /// package itself), from `.dart_tool/package_config.json` and the
+  /// `pubspec.yaml` it points to.
   final Map<String, String> versions;
+
+  /// Where each version of [versions] is from: `locked` (a hosted or git
+  /// package of the lock), `path` (a path dependency) or `workspace` (a
+  /// member of the pub workspace).
+  final Map<String, String> sources;
 
   /// The files of the project's `.dart_tool/twk`, by service: `run`,
   /// `shell` and `logs`; those there are.
@@ -162,7 +173,7 @@ final class Doctor {
   /// The skill for agents; null where the project does not depend on twk.
   final AgentsReport? agents;
 
-  /// Whether the locked versions are one ([versions] being one or none).
+  /// Whether the versions found are one ([versions] being one or none).
   bool get agree => versions.values.toSet().length <= 1;
 
   /// The report as JSON, for tools.
@@ -173,6 +184,7 @@ final class Doctor {
     'terminal': terminal?.toJson(),
     'lock': lock,
     'versions': versions,
+    'sources': sources,
     'agree': agree,
     'state': {for (final e in state.entries) e.key: e.value.toJson()},
     'agents': agents?.toJson(),
@@ -215,16 +227,20 @@ final class Doctor {
     line();
     line('Project  $project');
     line('  Dart            $dart');
-    if (lock == null) {
+    if (lock == null && versions.isEmpty) {
       line('  pubspec.lock    none found');
     } else {
       for (final name in doctorPackages) {
+        final version = versions[name];
         line(
-          '  $name'.padRight(18) + (versions[name] ?? 'not in the lock'),
+          '  $name'.padRight(18) +
+              (version == null ? 'not found' : '$version (${sources[name]})'),
         );
       }
       line(
-        agree
+        versions.isEmpty
+            ? '  no twk package found: none found to compare'
+            : agree
             ? '  the versions agree'
             : '  the versions DISAGREE: pub upgrade them together',
       );
@@ -365,21 +381,90 @@ File? _lockOf(String project) {
   }
 }
 
-Map<String, String> _versions(File lock) {
-  try {
-    final yaml = loadYaml(lock.readAsStringSync());
-    final packages = yaml is YamlMap ? yaml['packages'] : null;
-    if (packages is! YamlMap) {
-      return const {};
+/// The version of each of [doctorPackages] and where it is from: the lock's
+/// hosted, git and path packages first, then, for those it lacks,
+/// `.dart_tool/package_config.json` and the `pubspec.yaml` of the directory
+/// it names (a workspace's members are not locked, nor is a package itself).
+Map<String, (String, String)> _resolve(File? lock, String project) {
+  final found = <String, (String, String)>{};
+  if (lock != null) {
+    try {
+      final yaml = loadYaml(lock.readAsStringSync());
+      final packages = yaml is YamlMap ? yaml['packages'] : null;
+      if (packages is YamlMap) {
+        for (final name in doctorPackages) {
+          if (packages[name] case final YamlMap entry
+              when entry['version'] is String) {
+            found[name] = (
+              entry['version'] as String,
+              entry['source'] == 'path' ? 'path' : 'locked',
+            );
+          }
+        }
+      }
+    } on YamlException {
+      // An unreadable lock tells nothing; the package config may.
     }
-    return {
-      for (final name in doctorPackages)
-        if (packages[name] case final YamlMap entry
-            when entry['version'] is String)
-          name: entry['version'] as String,
-    };
+  }
+  if (found.length == doctorPackages.length) {
+    return found;
+  }
+  final config = _packageConfigOf(project);
+  if (config == null) {
+    return found;
+  }
+  try {
+    final json = jsonDecode(config.readAsStringSync());
+    final packages = json is Map<String, Object?> ? json['packages'] : null;
+    if (packages is! List<Object?>) {
+      return found;
+    }
+    for (final entry in packages) {
+      if (entry is! Map<String, Object?>) {
+        continue;
+      }
+      final name = entry['name'];
+      final rootUri = entry['rootUri'];
+      if (name is! String ||
+          rootUri is! String ||
+          !doctorPackages.contains(name) ||
+          found.containsKey(name)) {
+        continue;
+      }
+      final dir = config.uri.resolve(
+        rootUri.endsWith('/') ? rootUri : '$rootUri/',
+      );
+      final pubspec = File.fromUri(dir.resolve('pubspec.yaml'));
+      if (!pubspec.existsSync()) {
+        continue;
+      }
+      final spec = loadYaml(pubspec.readAsStringSync());
+      if (spec is YamlMap && spec['version'] is String) {
+        found[name] = (
+          spec['version'] as String,
+          spec['resolution'] == 'workspace' ? 'workspace' : 'path',
+        );
+      }
+    }
+  } on FormatException {
+    // Left as the lock had it.
   } on YamlException {
-    return const {};
+    // Left as the lock had it.
+  } on FileSystemException {
+    // Left as the lock had it.
+  }
+  return found;
+}
+
+File? _packageConfigOf(String project) {
+  for (var dir = project; ; dir = p.dirname(dir)) {
+    final file = File(p.join(dir, '.dart_tool', 'package_config.json'));
+    if (file.existsSync()) {
+      return file;
+    }
+    if (p.dirname(dir) == dir) {
+      return null;
+    }
   }
 }
 
