@@ -186,7 +186,7 @@ final class TerminalSession with ChangeNotifier {
       _start = null;
       emulator.resize(width, height);
       try {
-        _run(start(width, height));
+        _run(start(emulator.width, emulator.height));
       } on Object catch (error, stack) {
         _error = error;
         log(
@@ -200,11 +200,15 @@ final class TerminalSession with ChangeNotifier {
       }
       return;
     }
-    if (width == emulator.width && height == emulator.height) {
+    // the emulator keeps at least one column and row, and so does the
+    // program's terminal: Pty.resize takes no less
+    final w = width < 1 ? 1 : width;
+    final h = height < 1 ? 1 : height;
+    if (w == emulator.width && h == emulator.height) {
       return;
     }
-    emulator.resize(width, height);
-    _onResize?.call(width, height);
+    emulator.resize(w, h);
+    _onResize?.call(w, h);
   }
 
   void _fed(List<int> bytes) {

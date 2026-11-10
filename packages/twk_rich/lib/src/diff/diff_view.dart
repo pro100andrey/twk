@@ -173,6 +173,7 @@ final class _DiffViewState extends State<DiffView> {
       var nextNew = 1;
       for (final hunk in file.hunks) {
         final lines = hunk.lines;
+        assert(_countsMatch(hunk), _countsMessage(file, hunk));
         if (lines.isEmpty) {
           continue;
         }
@@ -553,4 +554,31 @@ final class _PairRow extends _Row {
       half == null
       ? const SizedBox()
       : paint.line(half, [paint.number(number(half.line))], pair);
+}
+
+// the old and new lines a hunk's lines make: the old side has the context
+// and removed lines, the new side the context and added
+(int, int) _linesOf(DiffHunk hunk) {
+  var old = 0;
+  var now = 0;
+  for (final line in hunk.lines) {
+    if (line.kind != DiffLineKind.added) {
+      old++;
+    }
+    if (line.kind != DiffLineKind.removed) {
+      now++;
+    }
+  }
+  return (old, now);
+}
+
+bool _countsMatch(DiffHunk hunk) =>
+    _linesOf(hunk) == (hunk.oldCount, hunk.newCount);
+
+String _countsMessage(FileDiff file, DiffHunk hunk) {
+  final (old, now) = _linesOf(hunk);
+  return 'The hunk @@ -${hunk.oldStart},${hunk.oldCount} '
+      '+${hunk.newStart},${hunk.newCount} @@ of ${file.path ?? 'a diff'} '
+      'has $old old and $now new lines, not ${hunk.oldCount} and '
+      '${hunk.newCount}; the line numbers after it would drift.';
 }

@@ -110,7 +110,7 @@ final class BlocProvider<B extends StateStreamableSource<Object?>>
             child: inner,
           )
         : InheritedProvider<B>(
-            create: _create,
+            create: _created,
             dispose: (_, bloc) {
               if (bloc.close() case final Future<void> closing) {
                 unawaited(closing);
@@ -120,6 +120,19 @@ final class BlocProvider<B extends StateStreamableSource<Object?>>
             lazy: lazy,
             child: inner,
           );
+  }
+
+  // in a debug run, a bloc `create` returns closed is refused: it would
+  // be provided dead, its first event or emit failing far from here
+  B _created(BuildContext context) {
+    final bloc = _create!(context);
+    assert(
+      !bloc.isClosed,
+      'The create of $runtimeType returned a $B that is already closed. '
+      'create must make a new bloc each time; to provide one that lives '
+      'on, use BlocProvider.value.',
+    );
+    return bloc;
   }
 
   // the dependents are told of each state the bloc emits
