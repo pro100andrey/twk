@@ -17,15 +17,31 @@ function alive(pid: number): boolean {
   }
 }
 
-/** A parent that starts a child ignoring SIGTERM, tells its pid, and waits; the parent ignores SIGTERM too. */
+/**
+ * A parent that starts a child ignoring SIGTERM, tells its pid once the child
+ * has said its handler is installed (a node that has not got that far dies of
+ * SIGTERM), and waits; the parent ignores SIGTERM too.
+ */
 const parent = `
   const { spawn } = require('node:child_process');
   process.on('SIGTERM', () => {});
-  const child = spawn(process.execPath, ['-e', "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000)"], { stdio: 'ignore' });
-  console.log('child ' + child.pid);
+  const child = spawn(process.execPath, ['-e', "process.on('SIGTERM', () => {}); console.log('up'); setInterval(() => {}, 1000)"], { stdio: ['ignore', 'pipe', 'ignore'] });
+  child.stdout.on('data', () => console.log('child ' + child.pid));
   setInterval(() => {}, 1000);`;
 
+/** The grace of the real-process tests: long against the stalls of a loaded machine. */
+const GRACE_MS = 2000;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Polls [done] every 20 ms until it holds; fails after [limitMs], an upper bound only. */
+async function until(done: () => boolean, what: string, limitMs = 20000): Promise<void> {
+  const end = Date.now() + limitMs;
+  while (!done()) {
+    assert.ok(Date.now() < end, `timed out waiting for ${what}`);
+    await sleep(20);
+  }
+}
 
 describe('runTwk over real processes', function () {
   this.timeout(30000);
@@ -45,9 +61,7 @@ describe('runTwk over real processes', function () {
       graceMs: 200,
     });
     // what is awaited is a real process's start
-    while (!/child \d+/.test(seen)) {
-      await sleep(20);
-    }
+    await until(() => /child \d+/.test(seen), 'the child');
     const pid = Number(/child (\d+)/.exec(seen)![1]);
     assert.ok(alive(pid));
     abort.abort();
@@ -55,9 +69,7 @@ describe('runTwk over real processes', function () {
     assert.ok(r.cancelled);
     assert.ok(!r.timedOut);
     assert.equal(r.exit.signal, 'SIGKILL');
-    while (alive(pid)) {
-      await sleep(20);
-    }
+    await until(() => !alive(pid), 'the child to end');
   });
 
   (process.platform === 'win32' ? it.skip : it)('a child that ignores SIGTERM does not outlive a leader that exited on it: SIGKILL to the group after the grace', async () => {
@@ -70,20 +82,17 @@ describe('runTwk over real processes', function () {
       p.onOutput((t) => (seen += t));
       return p;
     };
-    const run = runTwk({ start, command: () => [process.execPath, '-e', leader, '--'], env: process.env, log: new FakeLog() }, [], { cwd: process.cwd(), label: 'x', cancel: abort.signal, graceMs: 200 });
-    while (!/child \d+/.test(seen)) {
-      await sleep(20);
-    }
+    const run = runTwk({ start, command: () => [process.execPath, '-e', leader, '--'], env: process.env, log: new FakeLog() }, [], { cwd: process.cwd(), label: 'x', cancel: abort.signal, graceMs: GRACE_MS });
+    await until(() => /child \d+/.test(seen), 'the child');
     const pid = Number(/child (\d+)/.exec(seen)![1]);
     abort.abort();
     const r = await run;
     assert.equal(r.exit.code, 0);
     // the leader is gone; the child ignored SIGTERM and lives until the grace is over
+    // (the grace is long against a loaded machine's stalls, so it is not over yet)
     assert.ok(alive(pid));
     // bounded: a child that stays would otherwise keep this loop, and mocha, running after the failure
-    for (let i = 0; i < 150 && alive(pid); i++) {
-      await sleep(20);
-    }
+    await until(() => !alive(pid), 'the group kill', GRACE_MS + 10000).catch(() => {});
     const stays = alive(pid);
     if (stays) {
       process.kill(pid, 'SIGKILL');
