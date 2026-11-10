@@ -81,7 +81,13 @@ function stringEnd(source: string, start: number): number {
   const triple = source.startsWith(c.repeat(3), start);
   const quote = triple ? c.repeat(3) : c;
   let k = start + quote.length;
-  while (k < source.length && !source.startsWith(quote, k) && (triple || source[k] !== '\n')) {
+  while (k < source.length) {
+    if (source.startsWith(quote, k)) {
+      return k + quote.length;
+    }
+    if (!triple && source[k] === '\n') {
+      return k;
+    }
     if (!raw && source[k] === '\\') {
       k += 2;
     } else if (!raw && source[k] === '$' && source[k + 1] === '{') {
@@ -90,7 +96,7 @@ function stringEnd(source: string, start: number): number {
       k++;
     }
   }
-  return Math.min(source.length, k + quote.length);
+  return source.length;
 }
 
 /** The offset past the `}` closing an interpolation whose body begins at [from]. */

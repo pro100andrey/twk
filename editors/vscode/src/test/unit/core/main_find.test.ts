@@ -1,5 +1,8 @@
 // The main of a twk app, found in the text of a Dart file.
 import * as assert from 'node:assert/strict';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 import { findTwkMain } from '../../../core/main_find';
 
@@ -36,12 +39,23 @@ describe('the main of a twk app', () => {
     assert.equal(findTwkMain("// import 'package:twk/twk.dart';\nvoid main() { runApp(x); }\n"), null);
   });
 
-  it('is not found in a test file or under test/, whatever the separator', () => {
+  it('is not found in a test file or under the package test/, wherever the package is', () => {
     const src = `${head}void main() {\n  runApp(x);\n}\n`;
-    assert.deepEqual(findTwkMain(src, '/p/example/a.dart'), { line: 2, column: 0 });
-    assert.equal(findTwkMain(src, '/p/example/a_test.dart'), null);
-    assert.equal(findTwkMain(src, '/p/test/a.dart'), null);
-    assert.equal(findTwkMain(src, 'C:\\p\\test\\sub\\a.dart'), null);
-    assert.deepEqual(findTwkMain(src, '/p/latest/a.dart'), { line: 2, column: 0 });
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'twk_main_find_'));
+    try {
+      // the package itself sits under a directory named test
+      const pkg = path.join(dir, 'test', 'app');
+      fs.mkdirSync(path.join(pkg, 'test', 'sub'), { recursive: true });
+      fs.mkdirSync(path.join(pkg, 'bin'));
+      fs.mkdirSync(path.join(pkg, 'latest'));
+      fs.writeFileSync(path.join(pkg, 'pubspec.yaml'), 'name: app\n');
+      assert.deepEqual(findTwkMain(src, path.join(pkg, 'bin', 'main.dart')), { line: 2, column: 0 });
+      assert.deepEqual(findTwkMain(src, path.join(pkg, 'latest', 'a.dart')), { line: 2, column: 0 });
+      assert.equal(findTwkMain(src, path.join(pkg, 'bin', 'a_test.dart')), null);
+      assert.equal(findTwkMain(src, path.join(pkg, 'test', 'a.dart')), null);
+      assert.equal(findTwkMain(src, path.join(pkg, 'test', 'sub', 'a.dart')), null);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

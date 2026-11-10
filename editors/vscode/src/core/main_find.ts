@@ -5,6 +5,9 @@
 // `runApp(` or names `TwkApp`. A `main` that hands over to another file's
 // function is not found; the commands Run and Debug in twk Terminal are
 // there for it.
+import * as path from 'node:path';
+
+import { projectOf } from './project';
 import { codeOnly } from './source_find';
 
 /** Where the `main` declaration begins. */
@@ -17,16 +20,23 @@ const twkImport = /^[ \t]*(?:import|export)[ \t]+(['"])package:twk(?:_[a-z0-9_]+
 const mainDeclaration = /^(?:(?:void|Future<void>|FutureOr<void>)[ \t]+)?main[ \t]*\(/m;
 const startsApp = /(?<![\w$.])runApp[ \t]*\(|(?<![\w$])TwkApp\b/;
 
-// a test file or a file under test/ (either separator) is no app to run
-const testFile = /(?:_test\.dart|(?:^|[\\/])test[\\/][^]*)$/;
+// a test file or a file under the package's test/ (either separator) is no app to run
+const testFile = /(?:_test\.dart|^test[\\/][^]*)$/;
+
+// [filePath] judged from its package root (the nearest pubspec.yaml above it),
+// so that a directory named test further up does not make it a test file
+function isTestFile(filePath: string): boolean {
+  const root = projectOf(filePath);
+  return testFile.test(root === undefined ? path.basename(filePath) : path.relative(root, filePath));
+}
 
 /**
  * The `main` of a twk app in [source], or null when it is none. [filePath],
- * where given, leaves out the test files (`*_test.dart`, under `test/`):
+ * where given, leaves out the test files (`*_test.dart`, under the package's `test/`):
  * they import twk packages and call `runApp`, but are run by `dart test`.
  */
 export function findTwkMain(source: string, filePath?: string): TwkMain | null {
-  if (filePath !== undefined && testFile.test(filePath)) {
+  if (filePath !== undefined && isTestFile(filePath)) {
     return null;
   }
   if (!twkImport.test(source)) {

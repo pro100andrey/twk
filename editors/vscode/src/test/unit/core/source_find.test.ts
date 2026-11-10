@@ -84,6 +84,11 @@ describe('where a widget was made', () => {
     assert.equal(code.split('\n').length, source.split('\n').length);
   });
 
+  it('ends an unclosed one-line string at its newline, which stays code', () => {
+    const code = codeOnly("a 'Text(\nvoid main() {}\n");
+    assert.equal(code, 'a       \nvoid main() {}\n');
+  });
+
   it('does not end a string at a quote inside its interpolation', () => {
     const source = [
       "a '${m['k']} Text(' b",

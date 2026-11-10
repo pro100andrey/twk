@@ -4,6 +4,7 @@
 
 The first packaged version (a preview, `.vsix` built from this repository).
 
+- The code lenses leave out a test file by its place in its package (`test/` under the nearest `pubspec.yaml`), not by any `test` directory in its absolute path.
 - A twk terminal of the extension's own for each app run or debugged from
   VS Code, found by the app through `TWK_SHELL`; presets and switches for what
   the terminal can do.
