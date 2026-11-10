@@ -24,6 +24,13 @@ describe('the keys of a recording', () => {
     );
   });
 
+  it('a control inside a CSI is typed as it was, and the answers of the same event are still left out', () => {
+    // the control is put before its CSI by the reader, so the pieces are not the bytes read in order
+    assert.deepEqual(keysOf([[0.1, 'i', '\x1b[1;\x075C\x1b[?62;4c\x1b[0nb']]), [[0.1, '\x1b[1;\x075Cb']]);
+    // and a paste after it is still kept whole
+    assert.deepEqual(keysOf([[0.1, 'i', '\x1b[1;\x075C\x1b[200~\x1b[?62;4c\x1b[201~']]), [[0.1, '\x1b[1;\x075C\x1b[200~\x1b[?62;4c\x1b[201~']]);
+  });
+
   it('keeps every key: cursor, tilde, kitty, SS3, focus, the mouse, Alt', () => {
     const keys = ['\x1b[A', '\x1b[1;5C', '\x1b[3~', '\x1b[97;5u', '\x1bOP', '\x1b[I', '\x1b[O', '\x1b[<0;5;5M', '\x1b[<0;5;5m', '\x1bb', '\x1b\x1b[A', 'é', '\r', '\x7f', '\x1b'];
     assert.deepEqual(keysOf(keys.map((k, i): [number, string, string] => [i, 'i', k + (i === keys.length - 1 ? 'x' : '')])).map(([, k]) => k), [...keys.slice(0, -1), '\x1bx']);

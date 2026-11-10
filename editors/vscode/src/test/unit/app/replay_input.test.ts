@@ -41,7 +41,7 @@ describe('a recording\'s keys typed into an app', () => {
     target = new FakeTarget();
   });
 
-  const replay = (mode: 'timed' | 'steps', speed?: number) => new InputReplay('counter.cast', parseCast(recording), target, mode, clock, speed);
+  const replay = (mode: 'timed' | 'steps') => new InputReplay('counter.cast', parseCast(recording), target, mode, clock);
 
   it('types the keys, not the answers, at their times counted from the recording\'s first output', () => {
     const r = replay('timed');
@@ -62,11 +62,27 @@ describe('a recording\'s keys typed into an app', () => {
     assert.equal(clock.pending, 0);
   });
 
-  it('goes faster by the factor', () => {
-    replay('timed', 2).start();
-    clock.elapse(250);
+  it('counts each time from the start: a late timer does not move the keys after it', () => {
+    const r = replay('timed');
+    r.start();
+    // the first keys are due at 500 ms, the second at 2500 ms; the machine stalls past the first
+    clock.elapse(700);
     assert.deepEqual(target.typed, ['\x1b[A']);
-    clock.elapse(1000);
+    clock.elapse(1799);
+    assert.deepEqual(target.typed, ['\x1b[A']);
+    clock.elapse(1);
+    assert.deepEqual(target.typed, ['\x1b[A', 'q']);
+  });
+
+  it('a step typed ahead of its time does not move the keys after it', () => {
+    const r = replay('timed');
+    r.start();
+    clock.elapse(100);
+    r.step();
+    assert.deepEqual(target.typed, ['\x1b[A']);
+    clock.elapse(2399);
+    assert.deepEqual(target.typed, ['\x1b[A']);
+    clock.elapse(1);
     assert.deepEqual(target.typed, ['\x1b[A', 'q']);
   });
 
@@ -87,12 +103,12 @@ describe('a recording\'s keys typed into an app', () => {
     assert.deepEqual(target.typed, ['\x1b[A', 'q']);
   });
 
-  it('types the next keys at once when asked while it waits for their time', () => {
+  it('types the next keys at once when asked while it waits for their time; the ones after keep theirs', () => {
     const r = replay('timed');
     r.start();
     r.step();
     assert.deepEqual(target.typed, ['\x1b[A']);
-    clock.elapse(2000);
+    clock.elapse(2500);
     assert.deepEqual(target.typed, ['\x1b[A', 'q']);
   });
 

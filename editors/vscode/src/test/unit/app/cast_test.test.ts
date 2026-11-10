@@ -10,6 +10,7 @@ import { FakeLog } from '../fakes';
 class FakeProcess implements AppProcess {
   readonly pid = 1;
   hasExited = false;
+  groupAlive = () => false;
   readonly exited: Promise<Exit>;
   end!: (e: Exit) => void;
   private out: (t: string) => void = () => {};
@@ -104,6 +105,7 @@ describe('CastTests', () => {
     assert.ok(tests.isRunning(file));
     const second = await tests.create(file);
     assert.equal(second.error, 'already writing a test of this recording');
+    assert.equal(second.busy, true);
     assert.equal(started.length, before + 1);
     proc.say('wrote test/counter_test.dart and test/counter.cast\n');
     proc.end({ code: 0, signal: null });

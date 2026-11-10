@@ -2,12 +2,11 @@
 // tape's Run and Check, and the doctor of the terminal report. One place
 // starts it, collects what it says, and ends it: on a deadline or when asked
 // to, the whole group it started (`dart run` starts the VM as a child), by
-// SIGTERM and, if that is not heeded, SIGKILL. The SIGKILL is sent after the
-// grace even where the leader exited on the SIGTERM, to the group on POSIX
-// (a group id is not reused while any member lives, so it reaches only our
-// group or none); on Windows only while the leader lives, as taskkill takes
-// the pid alone, which may be someone else's once it is gone, so a child of a
-// leader that exited there stays.
+// SIGTERM and, if that is not heeded, SIGKILL. Once the leader has exited the
+// group is polled; the moment it is empty the SIGKILL is dropped (an emptied
+// group's id can be a new group's), and it is sent when the grace is over to
+// a group the last poll found alive. What a signal may do after the leader's
+// exit on Windows is decided in core/process.ts, not here.
 import { Exit, ProcessStarter } from '../core/process';
 import { Log } from './ports';
 
@@ -32,6 +31,8 @@ export interface TwkRunOptions {
   readonly echo?: boolean;
   /** How long after SIGTERM before SIGKILL; 3 s by default. */
   readonly graceMs?: number;
+  /** How often the group of a leader that exited is looked at; 50 ms by default. */
+  readonly pollMs?: number;
 }
 
 /** What a run of twk came to. */
@@ -73,13 +74,39 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
     }
     process.signal('SIGTERM');
     escalation = setTimeout(() => {
-      if (!process.hasExited || globalThis.process.platform !== 'win32') {
+      stopWatching();
+      if (!process.hasExited || groupLives) {
         process.signal('SIGKILL');
       }
     }, options.graceMs ?? 3000);
-    // the timer outlives the run (it ends the group after the leader), and holds nothing up
+    // the timers outlive the run (they end the group after the leader), and hold nothing up
     escalation.unref();
   };
+  // after the leader's exit: whether the last look found its group alive
+  let groupLives = false;
+  let watch: NodeJS.Timeout | undefined;
+  const stopWatching = () => {
+    clearInterval(watch);
+    watch = undefined;
+  };
+  const look = () => {
+    groupLives = process.groupAlive();
+    if (!groupLives) {
+      // nothing left to end, and its id may be someone else's from now on
+      stopWatching();
+      clearTimeout(escalation);
+    }
+  };
+  void process.exited.then(() => {
+    if (escalation === undefined) {
+      return;
+    }
+    look();
+    if (groupLives) {
+      watch = setInterval(look, options.pollMs ?? 50);
+      watch.unref();
+    }
+  });
   const timer = options.timeoutMs === undefined ? undefined : setTimeout(() => ((timedOut = true), end()), options.timeoutMs);
   const onAbort = () => ((cancelled = true), end());
   if (options.cancel?.aborted) {

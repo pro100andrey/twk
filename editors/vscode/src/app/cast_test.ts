@@ -25,6 +25,8 @@ export interface CastTestResult {
   /** Why no test was written. */
   readonly error?: string;
   readonly cancelled: boolean;
+  /** Whether it ran none, as one was running on this recording already. */
+  readonly busy?: boolean;
 }
 
 // twk writes `wrote <test> and <cast>` (paths relative to the project, as p.relative prints them); the test ends in _test.dart, the recording in .cast, so a ' and ' in a name does not split it
@@ -43,7 +45,7 @@ export class CastTests {
   /** Makes a test of [file]; [cancel] ends the command and what it started. */
   async create(file: string, cancel?: AbortSignal): Promise<CastTestResult> {
     if (this.isRunning(file)) {
-      return { said: '', error: 'already writing a test of this recording', cancelled: false };
+      return { said: '', error: 'already writing a test of this recording', cancelled: false, busy: true };
     }
     const cwd = this.deps.projectOf(file) ?? path.dirname(file);
     const key = path.resolve(file);

@@ -23,6 +23,12 @@ export interface AppProcess {
   onError(f: (e: Error) => void): void;
   /** Writes [text] to its stdin. */
   write(text: string): void;
+  /**
+   * Whether its group still has a member, once the process itself has ended
+   * (POSIX: `kill(-pid, 0)`). False where there is no group to ask about: not
+   * started as one, or Windows, where nothing is signalled after the exit.
+   */
+  groupAlive(): boolean;
   /** Sends it [signal]. */
   signal(signal: 'SIGTERM' | 'SIGKILL'): void;
 }
@@ -81,6 +87,18 @@ export const startNodeProcess: ProcessStarter = (command, args, options) => {
     write(text) {
       child.stdin.write(text);
     },
+    groupAlive() {
+      if (!posixGroup || child.pid === undefined) {
+        return false;
+      }
+      try {
+        process.kill(-child.pid, 0);
+        return true;
+      } catch {
+        // ESRCH: no member left; EPERM: a group of someone else's, not ours
+        return false;
+      }
+    },
     signal(signal) {
       if (options.group === true && process.platform === 'win32' && this.hasExited) {
         // the pid may be someone else's now
@@ -95,7 +113,7 @@ export const startNodeProcess: ProcessStarter = (command, args, options) => {
         try {
           process.kill(-child.pid, signal);
         } catch {
-          child.kill(signal);
+          // ESRCH: the group is gone already; nothing else to signal
         }
       }
     },

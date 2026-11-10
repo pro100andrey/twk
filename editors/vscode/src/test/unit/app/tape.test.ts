@@ -12,6 +12,7 @@ import { FakeLog } from '../fakes';
 class FakeTapeProcess implements AppProcess {
   readonly pid = 1;
   hasExited = false;
+  groupAlive = () => false;
   readonly exited: Promise<Exit>;
   end!: (e: Exit) => void;
   private out: (t: string) => void = () => {};

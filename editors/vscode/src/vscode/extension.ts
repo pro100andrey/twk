@@ -31,7 +31,7 @@ import { nodeLogEndpoints } from '../core/log_socket';
 import { describeChoice, environmentOf } from '../core/capabilities';
 import { InspectNode, toggleItems, togglesPicked } from '../core/inspect';
 import { editorCommandOf } from '../core/editor';
-import { realClock } from '../core/events';
+import { Disposable, realClock } from '../core/events';
 import { HotStatus } from '../core/hot';
 import { startNodeProcess } from '../core/process';
 import { projectOf } from '../core/project';
@@ -217,6 +217,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     inspector.dispose();
     logs.dispose();
     players.forEach((p) => p.dispose());
+    // no word of it to a window that is closing
+    replayListener?.dispose();
     inputReplay?.stop();
     await recordings.dispose();
     await hot.dispose();
@@ -445,8 +447,14 @@ export function activate(context: vscode.ExtensionContext): Api {
   // times, or a step each time asked (the status bar's item and
   // twk.replayInputStep); one replay at a time
   let inputReplay: InputReplay | undefined;
+  let replayListener: Disposable | undefined;
   const replayItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
   context.subscriptions.push(replayItem);
+  /** The start of [keys] as the tooltip shows it: a step can hold a whole paste. */
+  const previewKeys = (keys: string | undefined) => {
+    const shown = JSON.stringify((keys ?? '').slice(0, 40));
+    return (keys ?? '').length > 40 ? `${shown}...` : shown;
+  };
   const showReplay = (r: InputReplay) => {
     const { typed, total, ended } = r.state;
     void vscode.commands.executeCommand('setContext', 'twk.replayingInput', ended === undefined);
@@ -456,7 +464,7 @@ export function activate(context: vscode.ExtensionContext): Api {
       return;
     }
     replayItem.text = `$(keyboard) ${r.name} ${typed}/${total}`;
-    replayItem.tooltip = r.mode === 'steps' ? `Type the next keys (${JSON.stringify(r.next)}); twk: Stop Typing a Recording's Keys ends it` : 'Click to stop typing the recording\'s keys';
+    replayItem.tooltip = r.mode === 'steps' ? `Type the next keys (${previewKeys(r.next)}); twk: Stop Typing a Recording's Keys ends it` : 'Click to stop typing the recording\'s keys';
     replayItem.command = r.mode === 'steps' ? 'twk.replayInputStep' : 'twk.replayInputStop';
     replayItem.show();
   };
@@ -494,6 +502,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     }
     const name = path.basename(file.fsPath);
     const cast = parseCast(fs.readFileSync(file.fsPath, 'utf8'));
+    // the old one's ending is not shown: the new one's item replaces it
+    replayListener?.dispose();
     inputReplay?.stop();
     const replay = new InputReplay(
       name,
@@ -510,7 +520,13 @@ export function activate(context: vscode.ExtensionContext): Api {
       realClock,
     );
     inputReplay = replay;
-    replay.onDidChange(() => showReplay(replay));
+    const listener = replay.onDidChange(() => {
+      showReplay(replay);
+      if (replay.isEnded) {
+        listener.dispose();
+      }
+    });
+    replayListener = listener;
     replay.start();
     if (!replay.isEnded) {
       showReplay(replay);
@@ -537,12 +553,10 @@ export function activate(context: vscode.ExtensionContext): Api {
       return undefined;
     }
     const name = path.basename(file.fsPath);
-    if (castTests.isRunning(file.fsPath)) {
-      void vscode.window.showInformationMessage(`twk: ${name}: already writing its test`);
-      return undefined;
-    }
     const result = await cancellable(`twk test-from-cast ${name}`, (cancel) => castTests.create(file.fsPath, cancel));
-    if (result.cancelled) {
+    if (result.busy) {
+      void vscode.window.showInformationMessage(`twk: ${name}: already writing its test`);
+    } else if (result.cancelled) {
       void vscode.window.showInformationMessage(`twk: ${name}: test cancelled`);
     } else if (result.test === undefined) {
       void vscode.window.showErrorMessage(`twk: ${name}: ${(result.error ?? '').split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));

@@ -337,8 +337,16 @@ How twk_dev is run, where the workspace has none: `dart run twk_dev:twk` (the
 default of `twk.command`) needs a `pubspec.yaml` in the working directory that
 depends on twk_dev (it says "Could not find package `twk_dev`" or "Found no
 `pubspec.yaml`" otherwise). A new project is made where there is none, so, when
-`twk.command` is that default and fails so, the command runs again as
-`dart pub global run twk_dev:twk` (twk_dev activated on the machine). Where
+`twk.command` is that default and the folder's own files say it has no twk_dev
+(`core/twk_dev.ts`: no `pubspec.yaml` above it, or neither its
+`.dart_tool/package_config.json`, nor the workspace's, holds twk_dev nor its
+`pubspec.yaml` names it), the command runs as
+`dart pub global run twk_dev:twk` (twk_dev activated on the machine) without
+a failing run first; dart's English words are read only as a last hint, for a
+folder whose files said nothing. The folder's name must be a package name as
+`twk create` derives and refuses it (lower case, other characters as `_`; a
+letter first; no reserved word, no package the app depends on), which the
+input box says before the third pick. Where
 that is not there either ("No active package twk_dev") the editor says so and
 offers **Activate twk_dev**, which opens a terminal with
 `dart pub global activate twk_dev` typed and not run: installing a package on the
@@ -381,7 +389,16 @@ The language `tape` (`.tape`; `syntaxes/tape.tmLanguage.json`,
   the process is a group of its own (`group`: a process group on POSIX,
   `taskkill /T` on Windows), as `dart run` starts the VM as a child, and a
   deadline (the doctor's 60 s) or a Cancel (the notification's, for Run and
-  Check) ends the group by SIGTERM, SIGKILL after 3 s. A comment is told as
+  Check) ends the group by SIGTERM, SIGKILL after 3 s. Once the leader has exited,
+`runTwk` polls the group (`AppProcess.groupAlive`: `kill(-pid, 0)`, every 50 ms);
+the moment it is empty the SIGKILL is dropped (an emptied group's id can be a
+new group's within the grace), and when the grace is over the group is
+SIGKILLed only if the last poll found it alive. The residual window, between
+that poll and the kill, is documented, not closed: it needs a group to empty
+and its id to be taken within one poll interval. On Windows nothing is
+signalled after the leader's exit (taskkill takes the pid alone, which may be
+someone else's), decided in one place, `core/process.ts`; and a failed group
+signal is not turned into a signal to the leader alone. A comment is told as
   twk tape tells it (`commentStart`, a `#` or a quote only at the start of a
   word);
 - diagnostics: a failed statement and the line stderr names, an error on that
@@ -1437,12 +1454,17 @@ parsed it; back is RIS and the steps before at once.
 `vscode/extension.ts`'s `twk.replayInput`): `replaySteps` makes of a recording's
 `i` events the keys to type, each at its time (`ReplayStep`, as twk_dev's), the
 answers told from keys by `InputSplitter`'s shapes over core's
-`SequenceReader`, the app's `CSI 6 n` queries counted from the `o` events.
+`SequenceReader`, the app's `CSI 6 n` queries counted from the `o` events. A
+control inside a CSI, which the reader puts before it, is typed with its CSI
+as the bytes were; the other tokens of the event are told as usual. The
+replay's listener is disposed at its end, at a new replay and at deactivate
+(no word to a closing window).
 `InputReplay` (app) types a step into an `InputTarget` (`TwkTerminal.type`: the
 sequence log and a recording of that terminal see the keys as typed ones, the
-app gets them through its shell) on the `Clock`, either each at its time since
-the previous (the first since the recording's first output), `speed` dividing
-the waits, or one on `step()`; it ends `done`, `stopped`, `the terminal was
+app gets them through its shell) on the `Clock`, either each at its recorded
+time counted from the recording's first output and from the moment it began
+(so a late timer, or a `step()` taken ahead, moves no other step), or one on
+`step()`; it ends `done`, `stopped`, `the terminal was
 closed` or `the app went away`. The command takes the file and the mode as
 arguments (a test and the bar's button pass them), asks for them otherwise;
 the status bar item and the context `twk.replayingInput` follow its state.
@@ -1511,15 +1533,15 @@ Tests (unit):
   the log names the frames, the keys and the alternate screen left. The
   counter writes each frame in one event, so the golden is what holds that
   the steps follow synchronized updates.
-- `core/replay_input.test.ts` (8): the answers left out of an event that holds
+- `core/replay_input.test.ts` (9): a control inside a CSI with the answers of its event; the answers left out of an event that holds
   both (DA1/DA2, DECRPM, kitty flags, DSR, size, OSC, DCS, APC); every key kept
   (cursor, tilde, kitty, SS3, focus, the mouse, Alt); a cursor position told
   from the modified F3 (asked or not, one answer for one query, a query cut
   between writes, `CSI ? r;c R`, a key giving the queries up); a sequence cut
   between events; what waits at the end is keys; a paste whole; which keys the
   app reacted to; a recording without keys.
-- `app/replay_input.test.ts` (7, on a fake clock): the keys at their times
-  from the first output, faster by a factor, a step each time asked and none by
+- `app/replay_input.test.ts` (8, on a fake clock): the keys at their times
+  from the first output, no drift after a late timer or a step taken ahead, a step each time asked and none by
   itself, a step taken early in a timed replay, stopped, ended by the terminal
   closing and by the app going away, a recording without keys.
 - `protocol.test.ts` and `webview_view.test.ts`: the player's and the

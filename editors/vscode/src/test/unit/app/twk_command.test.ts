@@ -100,12 +100,12 @@ describe('runTwk over real processes', function () {
     assert.ok(!stays, 'the child outlived the group kill');
   });
 
-  it('after the leader exited on SIGTERM, SIGKILL still goes to the group after the grace, on POSIX only', async () => {
-    const sent: string[] = [];
+  /** A fake whose leader exits on SIGTERM; [alive] says whether its group has a member. */
+  function leaderExitingOnTerm(alive: { value: boolean }, sent: string[]): AppProcess {
     let exited = false;
     let finish!: (e: Exit) => void;
     const done = new Promise<Exit>((r) => (finish = r));
-    const fake: AppProcess = {
+    return {
       pid: 1,
       get hasExited() {
         return exited;
@@ -114,6 +114,7 @@ describe('runTwk over real processes', function () {
       onOutput: () => {},
       onError: () => {},
       write: () => {},
+      groupAlive: () => alive.value,
       signal(sig) {
         sent.push(sig);
         if (sig === 'SIGTERM') {
@@ -122,11 +123,36 @@ describe('runTwk over real processes', function () {
         }
       },
     };
+  }
+
+  async function cancelled(fake: AppProcess, graceMs: number): Promise<void> {
     const abort = new AbortController();
-    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog() }, [], { cwd: '.', label: 'x', cancel: abort.signal, graceMs: 10 });
+    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog() }, [], { cwd: '.', label: 'x', cancel: abort.signal, graceMs, pollMs: 5 });
     abort.abort();
     await run;
-    await sleep(50);
-    assert.deepEqual(sent, process.platform === 'win32' ? ['SIGTERM'] : ['SIGTERM', 'SIGKILL']);
+  }
+
+  it('the leader exited on SIGTERM and its group is empty: no SIGKILL, the id may be another group\'s', async () => {
+    const sent: string[] = [];
+    await cancelled(leaderExitingOnTerm({ value: false }, sent), 40);
+    // a negative: the grace has to pass for it to show
+    await sleep(120);
+    assert.deepEqual(sent, ['SIGTERM']);
+  });
+
+  it('the group empties after the leader exited, before the grace is over: no SIGKILL', async () => {
+    const sent: string[] = [];
+    const alive = { value: true };
+    await cancelled(leaderExitingOnTerm(alive, sent), 150);
+    alive.value = false;
+    await sleep(300);
+    assert.deepEqual(sent, ['SIGTERM']);
+  });
+
+  it('the group still has a member when the grace is over: SIGKILL to it', async () => {
+    const sent: string[] = [];
+    await cancelled(leaderExitingOnTerm({ value: true }, sent), 30);
+    await until(() => sent.length === 2, 'the SIGKILL');
+    assert.deepEqual(sent, ['SIGTERM', 'SIGKILL']);
   });
 });

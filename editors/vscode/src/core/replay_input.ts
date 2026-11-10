@@ -79,11 +79,6 @@ class InputSplitter {
   private split(data: Buffer, flush: boolean): string {
     this.carry = Buffer.alloc(0);
     const tokens = new SequenceReader(true).read(data);
-    // the pieces cut and put together again are the bytes read; where they are not (a control inside a CSI is put before it), all are keys
-    if (tokens.map((t) => t.raw).join('') !== data.toString('latin1')) {
-      this.positionAsked = 0;
-      return data.toString('utf8');
-    }
     const last = tokens.at(-1);
     if (!flush && last && unfinished(last)) {
       const rest = latin1Bytes(last.raw);
@@ -92,9 +87,30 @@ class InputSplitter {
         tokens.pop();
       }
     }
+    const bytes = data.toString('latin1');
     let keys = Buffer.alloc(0);
     let keyed = false;
-    for (const t of tokens) {
+    let at = 0;
+    for (let k = 0; k < tokens.length; k++) {
+      const t = tokens[k];
+      if (!bytes.startsWith(t.raw, at)) {
+        // A control inside a CSI is put before its token, so these pieces are not the bytes read, in this order:
+        // the controls and the CSI are keys as they were typed, the bytes at their place. The tokens after it are told as usual.
+        let end = k;
+        while (tokens[end].kind === 'control' && end + 1 < tokens.length) {
+          end++;
+        }
+        let length = 0;
+        for (let j = k; j <= end; j++) {
+          length += tokens[j].raw.length;
+        }
+        keyed = true;
+        keys = Buffer.concat([keys, latin1Bytes(bytes.slice(at, at + length))]);
+        at += length;
+        k = end;
+        continue;
+      }
+      at += t.raw.length;
       if (!this.isAnswer(t)) {
         keyed = true;
         keys = Buffer.concat([keys, latin1Bytes(t.raw)]);

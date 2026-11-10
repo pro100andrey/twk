@@ -9,6 +9,7 @@ import { FakeLog } from '../fakes';
 class FakeProcess implements AppProcess {
   readonly pid = 1;
   hasExited = false;
+  groupAlive = () => false;
   readonly exited: Promise<Exit>;
   end!: (e: Exit) => void;
   signals: string[] = [];

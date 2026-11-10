@@ -6,13 +6,14 @@ import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { Creator } from '../../../app/create';
+import { CreateDeps, Creator } from '../../../app/create';
 import { AppProcess, Exit } from '../../../core/process';
 import { FakeLog } from '../fakes';
 
 class FakeProcess implements AppProcess {
   readonly pid = 1;
   hasExited = false;
+  groupAlive = () => false;
   readonly exited: Promise<Exit>;
   private end!: (e: Exit) => void;
   private out: (t: string) => void = () => {};
@@ -63,25 +64,27 @@ describe('Creator', () => {
     script = [];
     procs = [];
     command = defaultCommand;
-    creator = new Creator({
-      start: (c, args, o) => {
-        started.push({ command: c, args, cwd: o.cwd, group: o.group });
-        const p = new FakeProcess();
-        procs.push(p);
-        const said = script.shift() ?? { text: '', code: 0 };
-        if (said instanceof Error) {
-          p.break(said);
-        } else {
-          p.finish(said.text, said.code);
-        }
-        return p;
-      },
-      command: () => command,
-      defaultCommand,
-      globalCommand,
-      env: {},
-      log: new FakeLog(),
-    });
+    creator = new Creator(deps());
+  });
+
+  const deps = (): CreateDeps => ({
+    start: (c, args, o) => {
+      started.push({ command: c, args, cwd: o.cwd, group: o.group });
+      const p = new FakeProcess();
+      procs.push(p);
+      const said = script.shift() ?? { text: '', code: 0 };
+      if (said instanceof Error) {
+        p.break(said);
+      } else {
+        p.finish(said.text, said.code);
+      }
+      return p;
+    },
+    command: () => command,
+    defaultCommand,
+    globalCommand,
+    env: {},
+    log: new FakeLog(),
   });
 
   it('lists the templates as `twk create --list` names them, with their descriptions', async () => {
@@ -140,6 +143,34 @@ describe('Creator', () => {
         ['dart', 'pub', 'global', 'run', 'twk_dev:twk'],
       ],
     );
+  });
+
+  it('a folder known to have no twk_dev goes straight to the global one: no failing run first', async () => {
+    const known = new Creator({ ...deps(), hasTwkDev: () => false });
+    script.push({ text: 'twk create: demo, of the template app, in /w/demo:\n', code: 0 });
+    const outcome = await known.create({ dir: '/w/demo', template: 'app', agents: [] }, '/w');
+    assert.equal(outcome.error, undefined);
+    assert.deepEqual(
+      started.map((s) => s.args.slice(0, 4).join(' ')),
+      ['pub global run twk_dev:twk'],
+    );
+  });
+
+  it('a folder known to have it, or not known, runs its own first; dart\'s words only hint when the files said nothing', async () => {
+    const has = new Creator({ ...deps(), hasTwkDev: () => true });
+    script.push({ text: 'twk create: demo\n', code: 0 });
+    await has.create({ dir: '/w/demo', template: 'app', agents: [] }, '/w');
+    assert.equal(started.length, 1);
+    assert.equal(started[0].args[0], 'run');
+  });
+
+  it('a configured command is never replaced by the global one, whatever the folder has', async () => {
+    command = ['fvm', 'dart', 'run', 'twk_dev:twk'];
+    const known = new Creator({ ...deps(), hasTwkDev: () => false });
+    script.push({ text: 'twk create: demo\n', code: 0 });
+    await known.create({ dir: '/w/demo', template: 'app', agents: [] }, '/w');
+    assert.equal(started.length, 1);
+    assert.equal(started[0].command, 'fvm');
   });
 
   it('says twk_dev is missing where it is neither in the folder nor activated, and where a configured command fails so (no second run then)', async () => {

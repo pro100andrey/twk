@@ -12,6 +12,7 @@ import { AgentsOutcome, CreateOutcome, Creator, TwkOutcome, agentsChoices } from
 import { Log } from '../app/ports';
 import { startNodeProcess } from '../core/process';
 import { projectOf } from '../core/project';
+import { dependsOnTwkDev, folderNameError } from '../core/twk_dev';
 import { cancellable, twkCommand } from './tape';
 
 const defaultCommand = ['dart', 'run', 'twk_dev:twk'];
@@ -28,6 +29,7 @@ export function registerCreate(context: vscode.ExtensionContext, log: Log & { sh
     start: startNodeProcess,
     command: twkCommand,
     defaultCommand,
+    hasTwkDev: dependsOnTwkDev,
     globalCommand: ['dart', 'pub', 'global', 'run', 'twk_dev:twk'],
     env: process.env,
     log,
@@ -102,12 +104,20 @@ export function registerCreate(context: vscode.ExtensionContext, log: Log & { sh
             const name = await vscode.window.showInputBox({
               title: `${path.basename(directory)} is not empty: the folder for the project in it`,
               prompt: 'The name of the new folder (the package is named after it)',
-              validateInput: (v) => (v.trim() === '' || /[\\/]/.test(v) ? 'A name, not a path' : fs.existsSync(path.join(directory, v.trim())) ? 'Already there' : undefined),
+              validateInput: (v) =>
+                v.trim() === '' || /[\\/]/.test(v) ? 'A name, not a path' : fs.existsSync(path.join(directory, v.trim())) ? 'Already there' : folderNameError(v.trim()),
             });
             if (!name) {
               return undefined;
             }
             directory = path.join(directory, name.trim());
+          } else {
+            // the empty folder is the project's, and the package is named after it
+            const refused = folderNameError(path.basename(directory));
+            if (refused !== undefined) {
+              void vscode.window.showErrorMessage(`twk: New Project: ${refused}; pick a folder of another name.`);
+              return undefined;
+            }
           }
           const files = await vscode.window.showQuickPick(
             agentsChoices.map((a) => ({ label: a.label, description: a.description, picked: true, flag: a.flag })),

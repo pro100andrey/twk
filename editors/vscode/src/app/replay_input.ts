@@ -1,10 +1,11 @@
 // A recording's keys typed into a live app of a twk terminal, to reproduce
 // what the recording shows (a bug): the `i` events with the terminal's
 // answers taken out (core/replay_input.ts), either at their recorded times
-// or one step each time it is asked. The first keys wait as long as the
-// recording did after its first output (the app is already up), the others
-// as long as between the keys before them; the times already have the
-// recording's pauses cut. The app's own queries are answered by the
+// or one step each time it is asked. Timed, each keys step is typed at the
+// time the recording has them, counted from its first output (the app is
+// already up) and from the moment the replay began, so a late timer or a
+// step typed by hand ahead does not move the others; the times already have
+// the recording's pauses cut. The app's own queries are answered by the
 // terminal as they always are; keys typed by hand meanwhile reach the app
 // as well, in between.
 import { Cast } from '../core/cast';
@@ -35,6 +36,8 @@ export class InputReplay {
   readonly steps: readonly ReplayStep[];
   private readonly origin: number;
   private typed = 0;
+  /** The clock's time when it began. */
+  private began = 0;
   private timer: Disposable | undefined;
   private ended: string | undefined;
   private readonly changes = new Emitter<ReplayState>();
@@ -48,8 +51,6 @@ export class InputReplay {
     private readonly target: InputTarget,
     readonly mode: ReplayMode,
     private readonly clock: Clock,
-    /** How many times faster than recorded (timed only). */
-    private readonly speed = 1,
   ) {
     this.steps = replaySteps(cast);
     this.origin = cast.events.find((e) => e.code === 'o')?.time ?? 0;
@@ -74,6 +75,7 @@ export class InputReplay {
     if (this.steps.length === 0) {
       this.end('done');
     } else if (this.mode === 'timed') {
+      this.began = this.clock.now();
       this.schedule();
     } else {
       this.changes.fire(this.state);
@@ -97,8 +99,8 @@ export class InputReplay {
     if (this.ended !== undefined) {
       return;
     }
-    const previous = this.typed > 0 ? this.steps[this.typed - 1].time : this.origin;
-    const wait = Math.max(0, Math.round(((this.steps[this.typed].time - previous) * 1000) / this.speed));
+    const due = this.began + (this.steps[this.typed].time - this.origin) * 1000;
+    const wait = Math.max(0, due - this.clock.now());
     this.timer = this.clock.setTimeout(() => {
       this.timer = undefined;
       this.typeNext();
