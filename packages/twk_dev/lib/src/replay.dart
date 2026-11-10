@@ -206,7 +206,8 @@ final class InputSplitter {
       'n' || 't' => intermediates.isEmpty,
       _ => false,
     };
-    if (answer && f == 'R' && marker != '?') {
+    if (answer && f == 'R' && _positionAsked > 0 && params.contains(';')) {
+      // `CSI r;c R` answers `CSI 6 n`, `CSI ? r;c R` answers `CSI ? 6 n`
       _positionAsked--;
     }
     return (end: end, answer: answer);

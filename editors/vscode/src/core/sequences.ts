@@ -186,7 +186,7 @@ export class SequenceReader {
         return { token: { kind: 'esc', raw: '\x1b\x1b', intermediates: '', final: '\x1b' }, end: i + 2 };
       }
       const inner = this.escape(d, i + 1, 0);
-      if (inner !== undefined && (inner.token.kind === 'csi' || inner.token.kind === 'ss3')) {
+      if (inner !== undefined && isKeyForm(inner.token)) {
         return { token: { ...inner.token, raw: `\x1b${inner.token.raw}`, alt: true }, end: inner.end };
       }
       this.lead = [];
@@ -231,20 +231,26 @@ export class SequenceReader {
     // a C0 control inside a CSI is executed where it is and the CSI goes on; ESC, CAN and SUB are not (ESC begins a sequence, CAN and SUB cancel)
     let paramText = '';
     let intermediates = '';
+    // DEL is ignored (xterm does), and stays in the raw
+    let rawText = '';
     let j = i + 2;
     for (; j < d.length; j++) {
       const b = d[j];
       if (b < 0x20 && b !== ESC && b !== 0x18 && b !== 0x1a) {
         this.lead.push({ kind: 'control', raw: String.fromCharCode(b), code: b });
+      } else if (b === 0x7f) {
+        rawText += String.fromCharCode(b);
       } else if (b >= 0x30 && b <= 0x3f && intermediates === '') {
         paramText += String.fromCharCode(b);
+        rawText += String.fromCharCode(b);
       } else if (b >= 0x20 && b <= 0x2f) {
         intermediates += String.fromCharCode(b);
+        rawText += String.fromCharCode(b);
       } else {
         break;
       }
     }
-    const seen = `\x1b[${paramText}${intermediates}`;
+    const seen = `\x1b[${rawText}`;
     if (j >= d.length) {
       return this.input ? { token: { kind: 'esc', raw: seen, intermediates: '', final: '[' }, end: j } : undefined;
     }
@@ -874,6 +880,31 @@ function altKey(final: string): string {
     default:
       return c < 0x20 ? `Ctrl+${String.fromCharCode(c + 0x40)}` : final;
   }
+}
+
+/**
+ * Whether [t] is a key (cursor, tilde, kitty, Shift+Tab, SS3): only a key is Alt's with an ESC before it; a mouse report, focus, a paste's
+ * start or an answer is not, and that ESC is an Escape of its own.
+ */
+function isKeyForm(t: Token): t is Token & { readonly kind: 'csi' | 'ss3' } {
+  if (t.kind === 'ss3') {
+    return true;
+  }
+  if (t.kind !== 'csi' || t.prefix !== '' || t.intermediates !== '') {
+    return false;
+  }
+  const first = numbers(t.params, 1)[0];
+  if (t.final === 'R') {
+    // F3 with modifiers; any other row is a cursor-position answer
+    return t.params.includes(';') && first === 1;
+  }
+  if (t.final === 'u' || t.final === 'Z') {
+    return true;
+  }
+  if (t.final === '~') {
+    return first !== 200 && first !== 201;
+  }
+  return cursorKeys[t.final] !== undefined && (t.params === '' || first === 1);
 }
 
 /**

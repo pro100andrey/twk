@@ -37,6 +37,10 @@ Fixed:
   `ESC [ 1 ESC [ 2 J` is an invalid CSI and then an ED; a text token is
   decoded from its own bytes and a long unterminated string is scanned once.
   The extension's sequence log follows (one golden).
+- `twk decode`, input: `ESC` before a mouse report, a focus report, a paste's
+  start or an answer is an Escape of its own, not Alt (only a key's sequence
+  takes it); a DEL inside a CSI is ignored and shown in the raw. Replay: a
+  `CSI ? r;c R` is taken as the answer to a `CSI ? 6 n` the program wrote.
 - `twk decode`, input: `CSI ? r;c R` is the answer to `CSI ? 6 n` (named
   DECXCPR) and uses the query up, so a later Ctrl+F3 is not read as a position;
   `ESC` before a sequence is that key with Alt (`ESC ESC [ A` is Alt+Up, `ESC

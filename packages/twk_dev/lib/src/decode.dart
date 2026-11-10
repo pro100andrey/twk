@@ -261,7 +261,7 @@ final class SequenceReader {
         return (const SeqToken('esc', '\x1b\x1b', final_: '\x1b'), i + 2);
       }
       final inner = _escape(d, i + 1, 0);
-      if (inner != null && (inner.$1.kind == 'csi' || inner.$1.kind == 'ss3')) {
+      if (inner != null && _isKeyForm(inner.$1)) {
         final t = inner.$1;
         return (
           SeqToken(
@@ -351,27 +351,28 @@ final class SequenceReader {
   (SeqToken, int)? _csi(Uint8List d, int i) {
     // a C0 control inside a CSI is executed where it is and the CSI goes on;
     // ESC, CAN and SUB are not (ESC begins a sequence, CAN and SUB cancel)
+    // DEL is ignored (xterm does), and stays in the raw
     final paramBytes = <int>[];
     final intermediateBytes = <int>[];
+    final rawBytes = <int>[];
     var j = i + 2;
     for (; j < d.length; j++) {
       final b = d[j];
       if (b < 0x20 && b != _esc && b != 0x18 && b != 0x1a) {
         _lead.add(SeqToken('control', String.fromCharCode(b), code: b));
+      } else if (b == 0x7f) {
+        rawBytes.add(b);
       } else if (b >= 0x30 && b <= 0x3f && intermediateBytes.isEmpty) {
         paramBytes.add(b);
+        rawBytes.add(b);
       } else if (b >= 0x20 && b <= 0x2f) {
         intermediateBytes.add(b);
+        rawBytes.add(b);
       } else {
         break;
       }
     }
-    final seen = [
-      0x1b,
-      0x5b,
-      ...paramBytes,
-      ...intermediateBytes,
-    ];
+    final seen = [0x1b, 0x5b, ...rawBytes];
     if (j >= d.length) {
       return input
           ? (SeqToken('esc', String.fromCharCodes(seen), final_: '['), j)
@@ -1325,6 +1326,26 @@ String _altKey(String final_) {
     0x00 => 'Ctrl+Space',
     final c when c < 0x20 => 'Ctrl+${String.fromCharCode(c + 0x40)}',
     _ => final_,
+  };
+}
+
+/// Whether [t] is a key (cursor, tilde, kitty, Shift+Tab, SS3): only a key
+/// is Alt's with an ESC before it; a mouse report, focus, a paste's start
+/// or an answer is not, and that ESC is an Escape of its own.
+bool _isKeyForm(SeqToken t) {
+  if (t.kind == 'ss3') {
+    return true;
+  }
+  if (t.kind != 'csi' || t.prefix.isNotEmpty || t.intermediates.isNotEmpty) {
+    return false;
+  }
+  final first = _get(_numbers(t.params, 1), 0);
+  return switch (t.final_) {
+    // F3 with modifiers; any other row is a cursor-position answer
+    'R' => t.params.contains(';') && first == 1,
+    'u' || 'Z' => true,
+    '~' => first != 200 && first != 201,
+    final f => _cursorKeys.containsKey(f) && (t.params.isEmpty || first == 1),
   };
 }
 

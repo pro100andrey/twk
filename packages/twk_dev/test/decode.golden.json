@@ -2178,6 +2178,121 @@
       ]
     },
     {
+      "name": "esc before a mouse report",
+      "direction": "in",
+      "description": "an SGR mouse report after an ESC is not Alt's: Escape, then the report",
+      "chunks": [
+        "1b1b5b3c303b353b354d"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3c303b353b354d",
+          "name": "mouse left press at column 5, row 5"
+        }
+      ]
+    },
+    {
+      "name": "esc before focus",
+      "direction": "in",
+      "description": "a focus report after an ESC: Escape, then the report",
+      "chunks": [
+        "1b1b5b49"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b49",
+          "name": "focus in"
+        }
+      ]
+    },
+    {
+      "name": "esc before a paste start",
+      "direction": "in",
+      "description": "a paste's start after an ESC: Escape, then the start",
+      "chunks": [
+        "1b1b5b3230307e"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3230307e",
+          "name": "paste begins"
+        }
+      ]
+    },
+    {
+      "name": "esc before a position answer",
+      "direction": "in",
+      "description": "a cursor position answer after an ESC: Escape, then the answer",
+      "chunks": [
+        "1b1b5b353b3752"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b353b3752",
+          "name": "CPR answer: the cursor at row 5, column 7"
+        }
+      ]
+    },
+    {
+      "name": "esc before a DECXCPR answer",
+      "direction": "in",
+      "description": "a DECXCPR answer after an ESC: Escape, then the answer",
+      "chunks": [
+        "1b1b5b3f353b3752"
+      ],
+      "tokens": [
+        {
+          "kind": "esc",
+          "raw": "1b",
+          "name": "key Escape"
+        },
+        {
+          "kind": "csi",
+          "raw": "1b5b3f353b3752",
+          "name": "DECXCPR answer: the cursor at row 5, column 7"
+        }
+      ]
+    },
+    {
+      "name": "DEL inside a CSI",
+      "direction": "out",
+      "description": "DEL inside a CSI is ignored (as xterm does) and shown in the raw",
+      "chunks": [
+        "1b5b337f41"
+      ],
+      "tokens": [
+        {
+          "kind": "csi",
+          "raw": "1b5b337f41",
+          "name": "CUU cursor up 3"
+        }
+      ]
+    },
+    {
       "name": "esc esc text",
       "direction": "in",
       "description": "ESC ESC and a letter: Escape, then Alt+letter",

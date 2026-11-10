@@ -68,6 +68,15 @@ void main() {
       expect(_keys('\x1b[12;40R\x1b[12;40R', output: '\x1b[6n'), '\x1b[12;40R');
     });
 
+    test('takes a DECXCPR answer for the answer of a ?6n, once', () {
+      expect(_keys('\x1b[?12;40R', output: '\x1b[?6n'), '');
+      // the ?6n is used up by its answer: a later CSI 1;5 R is the F3 key
+      expect(
+        _keys('\x1b[?12;40R\x1b[1;5R', output: '\x1b[?6n'),
+        '\x1b[1;5R',
+      );
+    });
+
     test('an unanswered query is given up at the next key', () {
       final s = InputSplitter()..sawOutput('\x1b[6n');
       expect([for (final p in s.add('q')) p.text], ['q']);
