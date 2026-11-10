@@ -4,6 +4,14 @@
 
 The first packaged version (a preview, `.vsix` built from this repository).
 
+- Selection and clipboard in the twk terminal: drag selects (with Shift held
+  while the app takes the mouse), Ctrl+Shift+C (Cmd+C on macOS, Ctrl+Insert)
+  copies the selection, Ctrl+Shift+V (Cmd+V, Shift+Insert) pastes, bracketed
+  when the app asked for it. Ctrl+C and Ctrl+V stay the app's.
+- With a twk terminal focused, Ctrl+W, G, N, F, R, T, O and Ctrl+Shift+C reach
+  the app and no longer VS Code (Ctrl+W would close the editor and with it the
+  app). What VS Code's own terminal leaves to VS Code (Ctrl+P, Ctrl+Shift+P,
+  Ctrl+E, Ctrl+K chords, Ctrl+B, Ctrl+J, F1) is still VS Code's here.
 - The code lenses leave out a test file by its place in its package (`test/` under the nearest `pubspec.yaml`), not by any `test` directory in its absolute path.
 - A twk terminal of the extension's own for each app run or debugged from
   VS Code, found by the app through `TWK_SHELL`; presets and switches for what

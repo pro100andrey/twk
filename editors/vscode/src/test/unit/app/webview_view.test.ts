@@ -96,6 +96,18 @@ describe('WebviewTerminalView', () => {
     assert.equal(clock.pending, 0);
   });
 
+  it('the paste key told, the clipboard text posted back to the webview', async () => {
+    panel.send({ type: 'ready', columns: 80, lines: 24 });
+    await view.ready;
+    let pressed = 0;
+    view.onPaste(() => pressed++);
+    panel.send({ type: 'paste' });
+    view.paste('one\ntwo');
+    await new Promise((r) => setImmediate(r));
+    assert.equal(pressed, 1);
+    assert.deepEqual(panel.posted.at(-1), { type: 'paste', text: 'one\ntwo' });
+  });
+
   it("a player's bar: its state posted, its buttons told; active as its panel is", async () => {
     panel.send({ type: 'ready', columns: 80, lines: 24 });
     await view.ready;

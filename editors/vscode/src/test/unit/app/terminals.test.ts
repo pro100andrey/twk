@@ -107,6 +107,36 @@ describe('Terminals', () => {
     await until('the progress taken away', () => desktop.done.at(-1) === 'progress counter.dart: 0 null');
   });
 
+  it('pastes the clipboard into the view when the paste key was pressed there, nothing when it holds nothing', async () => {
+    await terminals.create('counter.dart');
+    const v = views[0];
+    desktop.clipboard = 'line one\nline two';
+    v.pressPaste();
+    await until('the text pasted', () => v.pasted.length === 1);
+    assert.deepEqual(v.pasted, ['line one\nline two']);
+    desktop.clipboard = '';
+    v.pressPaste();
+    desktop.clipboard = 'last';
+    v.pressPaste();
+    await until('the last pasted', () => v.pasted.length === 2);
+    assert.deepEqual(v.pasted, ['line one\nline two', 'last']);
+  });
+
+  it('a paste keeps no begin or end marker of a bracketed paste of the clipboard; an unreadable clipboard is logged, not thrown', async () => {
+    const t = await terminals.create('counter.dart');
+    const notes: string[] = [];
+    t.onDidNote((n) => notes.push(n));
+    const v = views[0];
+    desktop.clipboard = 'a\x1b[201~rm -rf\r\x1b[2\x1b[201~00~b\x1b[200~';
+    v.pressPaste();
+    await until('the text pasted', () => v.pasted.length === 1);
+    assert.deepEqual(v.pasted, ['arm -rf\rb']);
+    desktop.clipboardError = new Error('denied');
+    v.pressPaste();
+    await until('the failure noted', () => notes.includes('the clipboard could not be read'));
+    assert.equal(v.pasted.length, 1);
+  });
+
   it('opens a file: link of a workspace folder at its line, no other', async () => {
     const t = await terminals.create('counter.dart');
     const app = await App.connect(t.variable);

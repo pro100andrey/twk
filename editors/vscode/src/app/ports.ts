@@ -67,6 +67,10 @@ export interface TerminalView {
   readonly onPick: Event<PickedCell | null>;
   /** Shows the bar of a recording played back in it, as [state] says; null takes it away. */
   player(state: PlayerState | null): void;
+  /** The paste key was pressed in it: answered with [paste]. */
+  readonly onPaste: Event<void>;
+  /** Pastes [text] into it as typed: bracketed where the app asked for it. */
+  paste(text: string): void;
   /** A button of its player's bar was pressed. */
   readonly onControl: Event<PlayerControl>;
   /** What the app in it asked of the editor, as its answers allow. */
@@ -108,6 +112,8 @@ export interface Desktop {
   progress(owner: object, source: string, state: number, percent: number | null): void;
   /** Puts [text] on the clipboard. */
   writeClipboard(text: string): void;
+  /** The clipboard's text. */
+  readClipboard(): Promise<string>;
   /** Opens [uri] (http, https, mailto) outside the editor. */
   openLink(uri: string): void;
   /** The folders of the workspace: the only places [openFile] is asked to open. */

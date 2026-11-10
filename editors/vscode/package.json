@@ -48,7 +48,9 @@
         "viewType": "twk.screenFile",
         "displayName": "twk Screen",
         "selector": [
-          { "filenamePattern": "**/goldens/**/*.txt" }
+          {
+            "filenamePattern": "**/goldens/**/*.txt"
+          }
         ],
         "priority": "option"
       }
@@ -189,6 +191,11 @@
         "title": "Play a Recording (asciicast) in a twk Terminal",
         "category": "twk",
         "icon": "$(play)"
+      },
+      {
+        "command": "twk.keyToApp",
+        "title": "Pass the Key to the twk Terminal's App",
+        "category": "twk"
       }
     ],
     "keybindings": [
@@ -203,6 +210,46 @@
         "key": "ctrl+alt+shift+r",
         "mac": "cmd+alt+shift+r",
         "when": "twk.hotApp && (editorLangId == dart || activeWebviewPanelId == 'twk.terminal')"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+w",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+g",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+n",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+f",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+r",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+t",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+o",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+shift+c",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
       }
     ],
     "configuration": {
@@ -489,6 +536,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "twk.keyToApp",
+          "when": "false"
+        },
         {
           "command": "twk.inspector.pick",
           "when": "!twk.inspector.picking"

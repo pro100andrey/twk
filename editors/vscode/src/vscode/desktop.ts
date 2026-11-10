@@ -46,6 +46,10 @@ export class VsCodeDesktop implements Desktop, vscode.Disposable {
     void vscode.env.clipboard.writeText(text);
   }
 
+  readClipboard(): Promise<string> {
+    return Promise.resolve(vscode.env.clipboard.readText());
+  }
+
   openLink(uri: string): void {
     void vscode.env.openExternal(vscode.Uri.parse(uri, true));
   }

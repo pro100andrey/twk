@@ -12,6 +12,7 @@ import type { Terminal as TerminalType } from '@xterm/xterm';
 
 import type { Graphics } from '../core/capabilities.js';
 import { Emulation } from './answers.js';
+import { clipboardAction } from './clipboard_keys.js';
 import { cellAt, cursorRowShown } from './pick.js';
 import { sameTheme, terminalTheme } from './theme.js';
 import { FromWebview, PlayerControl, PlayerState, isToWebview } from './protocol.js';
@@ -114,6 +115,25 @@ const showImages = (graphics: Graphics) => {
 // pushed kitty's keyboard flags, the keys they change are sent as the
 // emulation encodes them, and neither xterm.js nor VS Code gets them.
 term.attachCustomKeyEventHandler((e) => {
+  // Copy the selection and paste: through the extension, which has the
+  // editor's clipboard (the page's needs permissions and a focus the
+  // iframe may not have). The browser's own paste is stopped, or it pastes
+  // a second time.
+  const action = clipboardAction({ code: e.code, ctrl: e.ctrlKey, alt: e.altKey, shift: e.shiftKey, meta: e.metaKey }, /Mac|iPhone|iPad/.test(navigator.platform));
+  if (action) {
+    e.preventDefault();
+    if (e.type === 'keydown') {
+      const text = term.getSelection();
+      if (action === 'copy') {
+        if (text) {
+          post({ type: 'request', request: { type: 'clipboard', text } });
+        }
+      } else {
+        post({ type: 'paste' });
+      }
+    }
+    return false;
+  }
   if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === 'KeyR') {
     return false;
   }
@@ -272,6 +292,10 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
     case 'answers':
       emulation?.configure(m.answers);
       showImages(m.answers.graphics);
+      break;
+    case 'paste':
+      // bracketed when the app asked for it (mode 2004), lines ended by CR
+      term.paste(m.text);
       break;
     case 'pick':
       setPicking(m.on);

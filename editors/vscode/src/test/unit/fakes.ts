@@ -64,6 +64,17 @@ export class FakeView implements TerminalView {
   readonly players: (PlayerState | null)[] = [];
   private readonly controls = new Emitter<PlayerControl>();
   readonly onControl = this.controls.event;
+  private readonly pastes = new Emitter<void>();
+  readonly onPaste = this.pastes.event;
+  /** What was pasted into it, in order. */
+  readonly pasted: string[] = [];
+  paste(text: string): void {
+    this.pasted.push(text);
+  }
+  /** The paste key was pressed in it. */
+  pressPaste(): void {
+    this.pastes.fire();
+  }
   readonly onPick = this.picks.event;
   readonly onInput = this.inputs.event;
   readonly onRequest = this.requests.event;
@@ -266,6 +277,13 @@ export class FakeDesktop implements Desktop {
   }
   writeClipboard(text: string): void {
     this.done.push(`clipboard ${text}`);
+  }
+  /** What the clipboard holds. */
+  clipboard = '';
+  /** Set: reading the clipboard fails with it. */
+  clipboardError: Error | undefined;
+  readClipboard(): Promise<string> {
+    return this.clipboardError ? Promise.reject(this.clipboardError) : Promise.resolve(this.clipboard);
   }
   openLink(uri: string): void {
     this.done.push(`open ${uri}`);

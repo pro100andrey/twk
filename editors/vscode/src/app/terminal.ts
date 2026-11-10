@@ -30,6 +30,19 @@ export interface TerminalDeps {
   readonly desktop: Desktop;
 }
 
+/**
+ * [text] without the sequences that begin and end a bracketed paste: one in
+ * the clipboard would end the app's paste early and hand the rest to it as keys.
+ */
+export function withoutPasteMarkers(text: string): string {
+  let t = text;
+  for (let before = ''; before !== t; ) {
+    before = t;
+    t = t.replace(/\x1b\[20[01]~/g, '');
+  }
+  return t;
+}
+
 export class TwkTerminal implements TerminalPane, Screen {
   shell: TerminalShell | undefined;
   readonly view: TerminalView;
@@ -82,6 +95,7 @@ export class TwkTerminal implements TerminalPane, Screen {
       }),
       this.view.onRequest((r) => this.request(r)),
       this.view.onPick((cell) => this.picks.fire(cell)),
+      this.view.onPaste(() => void this.paste()),
       this.view.onReload(() => {
         // the new view knows neither the size fixed for it nor what it
         // showed, nor what to answer
@@ -181,6 +195,21 @@ export class TwkTerminal implements TerminalPane, Screen {
       environment: { ...environmentOf(capabilities), ...switchEnvironment(this.deps.settings.switches()) },
       declares: declarationOf(capabilities),
     };
+  }
+
+  /** Pastes the clipboard's text into the terminal, for the app to read as typed. */
+  private async paste(): Promise<void> {
+    let text: string;
+    try {
+      text = withoutPasteMarkers(await this.deps.desktop.readClipboard());
+    } catch (e) {
+      this.deps.log.appendLine(`twk terminal ${this.name}: the clipboard could not be read: ${e instanceof Error ? e.message : String(e)}`);
+      this.notes.fire('the clipboard could not be read');
+      return;
+    }
+    if (text && !this.view.isClosed) {
+      this.view.paste(text);
+    }
   }
 
   /** What the app asked of the editor, as its view passed it on; a link only of the kinds that may be opened (the web, mail, a file of a workspace folder), whatever the view says. */

@@ -24,6 +24,7 @@ describe('the webview protocol', () => {
       { type: 'picked', cell: null },
       { type: 'control', control: 'toggle' },
       { type: 'control', control: 'restart' },
+      { type: 'paste' },
     ]) {
       assert.ok(isFromWebview(m), JSON.stringify(m));
     }
@@ -68,6 +69,9 @@ describe('the webview protocol', () => {
     assert.ok(isToWebview({ type: 'size', columns: 80, lines: 24 }));
     assert.ok(isToWebview({ type: 'snapshot', id: 2 }));
     assert.ok(isToWebview({ type: 'focus' }));
+    assert.ok(isToWebview({ type: 'paste', text: 'a\nb' }));
+    assert.equal(isToWebview({ type: 'paste' }), false);
+    assert.equal(isToWebview({ type: 'paste', text: 3 }), false);
     assert.ok(isToWebview({ type: 'pick', on: true }));
     assert.equal(isToWebview({ type: 'pick', on: 'yes' }), false);
     assert.ok(isToWebview({ type: 'player', state: null }));

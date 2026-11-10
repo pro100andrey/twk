@@ -238,6 +238,10 @@ export function activate(context: vscode.ExtensionContext): Api {
     }
     await vscode.commands.executeCommand('vscode.openWith', file, screenFileViewType);
   });
+  // A key VS Code would take while a twk terminal is focused (Ctrl+P, Ctrl+K...):
+  // package.json binds it to this, which does nothing, in place of VS Code's
+  // command. The terminal's xterm.js has the key already, and sends it to the app.
+  command('twk.keyToApp', () => Promise.resolve());
   command('twk.hotReload', () => hot.reloadAll());
   command('twk.hotRestart', () => hot.restartAll());
   command('twk.showOutput', async () => log.show(true));

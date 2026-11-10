@@ -735,6 +735,78 @@ describe('a file: link of an app in the terminal', () => {
   });
 });
 
+describe('the selection and the clipboard of the twk terminal, and the keys VS Code would take', () => {
+  let api: Api;
+
+  before(async () => {
+    api = await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
+  });
+
+  after(async () => {
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  });
+
+  /** What the page sends the extension, handed to the view as its panel hands it (the key itself, and a drag with the mouse, are the page's and not driven here). */
+  const fromPage = (terminal: TwkTerminal, message: unknown) =>
+    (api.view(terminal) as unknown as { onMessage(m: unknown, ready: () => void): void }).onMessage(message, () => {});
+
+  it('the paste key: the clipboard pasted by the real xterm.js, bracketed when the app asked for it, lines ended by CR', async () => {
+    const terminal = await vscode.commands.executeCommand<TwkTerminal>('twk.openTerminal');
+    const view = api.view(terminal);
+    assert.ok(view);
+    const typed: string[] = [];
+    terminal.onDidInput((bytes) => typed.push(Buffer.from(bytes).toString('utf8')));
+    const saved = await vscode.env.clipboard.readText();
+    try {
+      await vscode.env.clipboard.writeText('one\ntwo');
+      fromPage(terminal, { type: 'paste' });
+      await until('the text typed', async () => (typed.join('').includes('one') ? true : undefined), 30000);
+      assert.equal(typed.join(''), 'one\rtwo');
+
+      typed.length = 0;
+      await view.write(Buffer.from('\x1b[?2004h'));
+      fromPage(terminal, { type: 'paste' });
+      await until('the bracketed text typed', async () => (typed.join('').includes('\x1b[201~') ? true : undefined), 30000);
+      assert.equal(typed.join(''), '\x1b[200~one\rtwo\x1b[201~');
+    } finally {
+      await vscode.env.clipboard.writeText(saved);
+      await terminal.dispose();
+    }
+  });
+
+  it('the copy key: the selection the page sends reaches the clipboard', async () => {
+    const terminal = await vscode.commands.executeCommand<TwkTerminal>('twk.openTerminal');
+    const saved = await vscode.env.clipboard.readText();
+    try {
+      await vscode.env.clipboard.writeText('before');
+      fromPage(terminal, { type: 'request', request: { type: 'clipboard', text: 'selected text' } });
+      await until('the clipboard written', async () => ((await vscode.env.clipboard.readText()) === 'selected text' ? true : undefined), 30000);
+    } finally {
+      await vscode.env.clipboard.writeText(saved);
+      await terminal.dispose();
+    }
+  });
+
+  it('the keys VS Code takes are bound to a command that does nothing while a twk terminal is focused, and nowhere else', async () => {
+    const ext = vscode.extensions.getExtension('twk.twk-vscode');
+    const bindings = (ext?.packageJSON as { contributes: { keybindings: { command: string; key: string; when: string }[] } }).contributes.keybindings;
+    const passed = bindings.filter((b) => b.command === 'twk.keyToApp');
+    for (const key of ['ctrl+w', 'ctrl+f', 'ctrl+r', 'ctrl+shift+c']) {
+      assert.ok(passed.some((b) => b.key === key), key);
+    }
+    // what VS Code's own terminal leaves to VS Code (commandsToSkipShell) stays its
+    for (const key of ['ctrl+p', 'ctrl+shift+p', 'ctrl+k', 'ctrl+e', 'ctrl+b', 'ctrl+j']) {
+      assert.ok(!passed.some((b) => b.key === key), `${key} stays VS Code's`);
+    }
+    assert.ok(
+      passed.every((b) => b.when === "activeWebviewPanelId == 'twk.terminal'"),
+      'only with a twk terminal focused',
+    );
+    assert.ok((await vscode.commands.getCommands(true)).includes('twk.keyToApp'), 'registered');
+    assert.equal(await vscode.commands.executeCommand('twk.keyToApp'), undefined);
+  });
+});
+
 describe('the code lenses over a twk main', () => {
   it('Run and Debug lenses over the main of a twk app, none over a plain Dart main or with twk.codeLens off', async function () {
     if (!(await vscode.languages.getLanguages()).includes('dart')) {

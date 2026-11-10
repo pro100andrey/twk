@@ -232,6 +232,50 @@ a frame back (Left or `,`), play or pause (Space), a frame on (Right or
 update open. A frame back starts the terminal again (RIS) and writes the
 frames before it at once. Played to its end, Play starts it again.
 
+**Selection, copy and paste.** xterm.js selects with a drag when the app
+does not take the mouse, and with Shift held when it does (Option on macOS
+only where `macOptionClickForcesSelection`, which is not set). Nothing copies
+by itself. The webview's key handler (`webview/clipboard_keys.ts`, before the
+kitty encodings) takes Ctrl+Shift+C or Ctrl+Insert (Cmd+C on macOS) as copy (told by the key's
+place, `KeyC`, so a Russian layout copies too):
+the selection goes to the extension as the `clipboard` request and onto VS
+Code's clipboard (`Desktop.writeClipboard`); nothing is sent when nothing is
+selected. Ctrl+Shift+V or Shift+Insert (Cmd+V) is paste: the webview sends
+`paste`, the extension reads VS Code's clipboard (`Desktop.readClipboard`) and
+answers `paste` with the text, which `Terminal.paste` of xterm.js types: lines
+ended by CR, between `ESC [ 200 ~` and `ESC [ 201 ~` where the app set mode
+2004; `ESC [ 200 ~` and `ESC [ 201 ~` in the clipboard's text are removed
+(`withoutPasteMarkers`), or an end marker in it would hand the rest to the app
+as keys; a clipboard that can not be read is logged and noted. The page's own clipboard (`navigator.clipboard`, the browser's paste
+event) is not used: it needs a permission and a focus the iframe may lack, and
+the browser's paste is stopped (`preventDefault`) so a text is not pasted
+twice. Ctrl+C and Ctrl+V are the app's (^C, ^V), as in terminals; a
+selection is not copied by Ctrl+C. Not run: the keys themselves (the test
+sends the messages the page would), a drag.
+
+**Keys VS Code would take.** A key typed in a webview reaches xterm.js, which
+sends it to the app, and is also handed to the workbench, which runs its
+command (Ctrl+P: quick open over the terminal; Ctrl+W: the editor closed, and
+with it the app). The extension cannot stop the page's key from going on, but
+it can put a binding of its own over VS Code's: `package.json` binds
+Ctrl+W, G, N, F, R, T, O and Ctrl+Shift+C to `twk.keyToApp` (declared, hidden
+from the palette), a command that does nothing, `when`
+`activeWebviewPanelId == 'twk.terminal'` (an extension's binding beats a
+default one for the same key); a user's own `keybindings.json` still wins.
+These are the keys VS Code's own integrated terminal sends to the shell (its
+`terminal.integrated.commandsToSkipShell` does not list their commands) and a
+terminal app needs. The keys it keeps for VS Code there are kept here:
+Ctrl+P and Ctrl+E (quick open), Ctrl+Shift+P and F1 (the palette), Ctrl+K
+(the chords), Ctrl+B and Ctrl+J (sidebar, panel): taking those is a choice for
+the person (a `-workbench.action.quickOpen`-style rule in `keybindings.json`,
+or a binding of `twk.keyToApp` to the key with that `when`). On macOS these
+Ctrl keys are not VS Code's (it uses Cmd), so there is no `mac` entry. Which
+keys can not be had: those of the window's menu, which Electron takes before
+any page (Ctrl+Q on Linux, Alt+F4, Ctrl+Shift+W, Ctrl+Shift+N, F11,
+Ctrl+Shift+I), the OS's, and Ctrl+Tab and Ctrl+PageUp/Down. Not run in VS
+Code: that a key reaches the app and not the command, which only a keyboard
+shows; the test holds the bindings and the command.
+
 **Copy the screen**: the rows the terminal shows now, without the blanks
 that end them or the blank rows at the bottom, as plain text (no colours).
 
@@ -244,8 +288,9 @@ while the panel is focused); kitty's graphics protocol (not in the image
 addon for xterm.js 6.0), ambiguous width 2 and bidi (part 3); the render
 tree in the inspector; the log saved to a file, or a recording's input
 replayed into an app; a recording's markers (`m`) shown as places to go
-to (they are read, and played over); a selection of the terminal copied
-(not tried).
+to (they are read, and played over); keys of the window's own menu
+(below); the keys and the drag of the selection, and the paste, in a real
+person's hands (the tests drive what the page sends, not its keys).
 
 ## 1. Debugging a twk app
 

@@ -16,6 +16,8 @@ export type ToWebview =
   | { readonly type: 'focus' }
   /** What to answer and emulate for the app taken now (core/capabilities.ts's answersOf). */
   | { readonly type: 'answers'; readonly answers: Answers }
+  /** Text from the clipboard, pasted as xterm.js pastes: bracketed where the app asked for it. */
+  | { readonly type: 'paste'; readonly text: string }
   /** Whether each click picks a cell (told back as `picked`) in place of reaching the app, until told off or Escape. */
   | { readonly type: 'pick'; readonly on: boolean }
   /** The bar of a recording played back, as it is now; null: none (a terminal of an app). */
@@ -60,7 +62,9 @@ export type FromWebview =
   /** The cell a click picked, from 0, and the row the cursor was on then; null: the pick ended with none (Escape). */
   | { readonly type: 'picked'; readonly cell: { readonly x: number; readonly y: number; readonly cursorY: number } | null }
   /** A button of the player's bar. */
-  | { readonly type: 'control'; readonly control: PlayerControl };
+  | { readonly type: 'control'; readonly control: PlayerControl }
+  /** The paste key was pressed: the extension answers with `paste` and the clipboard's text. */
+  | { readonly type: 'paste' };
 
 type Fields = Record<string, unknown>;
 
@@ -138,6 +142,8 @@ export function isFromWebview(m: unknown): m is FromWebview {
       return m.cell === null || (isObject(m.cell) && isCount(m.cell.x) && isCount(m.cell.y) && Number.isInteger(m.cell.cursorY));
     case 'control':
       return playerControls.some((c) => c === m.control);
+    case 'paste':
+      return true;
     default:
       return false;
   }
@@ -160,6 +166,8 @@ export function isToWebview(m: unknown): m is ToWebview {
       return true;
     case 'answers':
       return isAnswers(m.answers);
+    case 'paste':
+      return isText(m.text);
     case 'pick':
       return typeof m.on === 'boolean';
     case 'player':

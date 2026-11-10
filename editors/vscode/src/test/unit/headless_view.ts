@@ -36,6 +36,13 @@ export class HeadlessView implements TerminalView {
   readonly onReload = this.reloads.event;
   readonly onPick = this.picks.event;
   readonly onControl = this.controls.event;
+  private readonly pastes = new Emitter<void>();
+  readonly onPaste = this.pastes.event;
+  /** What was pasted into it, in order. */
+  readonly pasted: string[] = [];
+  paste(text: string): void {
+    this.pasted.push(text);
+  }
 
   constructor(columns = 60, lines = 12) {
     this.term = new Terminal({ cols: columns, rows: lines, allowProposedApi: true });
