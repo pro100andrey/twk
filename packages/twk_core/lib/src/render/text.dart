@@ -374,8 +374,8 @@ final class RenderParagraph extends RenderObject {
   // edit (a text shifted by a word, a log's tail) repaints all of its rows at
   // each paint, saves nothing and pays for the changed rows and the styles
   // under it. A paint of _wideNum/_wideDen of its rows or more is wide;
-  // _wideRuns of them in a row set _flip to -1, as a glyph does, and mark the
-  // turn wide (_wide), whose wait doubles up to _maxWideBackoff. A narrower
+  // _wideRuns of them in a row set _flip to -1, as a glyph does, and the
+  // turn is wide, whose wait doubles up to _maxWideBackoff. A narrower
   // paint of changed rows, and a paint of all of it, end the run.
   static const _minRows = 8;
   static const _need = 3;
@@ -396,9 +396,9 @@ final class RenderParagraph extends RenderObject {
   var _candidate = false;
   var _backoff = 1;
   var _flip = 0;
-  // wide paints in a row (paint), and whether the turn asked for is of them
+  // wide paints in a row (paint); _wideRuns of them is a turn asked for by
+  // them, not by a glyph
   var _wideRun = 0;
-  var _wide = false;
 
   // counts a layout that held the size, in performLayout of a plain one
   void _noteLayout(int w, int h) {
@@ -413,12 +413,26 @@ final class RenderParagraph extends RenderObject {
     }
   }
 
+  // counts a paint of the changed rows [first], [end) of [h]: wide, or not
+  // Not inlined into paint: there it made typing into 40k characters of a
+  // plain paragraph 10 % slower, with no work added (where the compiler puts
+  // the code).
+  @pragma('vm:never-inline')
+  void _noteWide(int first, int end, int h) {
+    if ((end - first) * _wideDen >= h * _wideNum) {
+      if (++_wideRun >= _wideRuns) {
+        _flip = -1;
+      }
+    } else {
+      _wideRun = 0;
+    }
+  }
+
   // turns the mode at an edit, as the paint asked
   void _turn() {
     final on = _flip > 0;
-    final wide = _wide;
+    final wide = _wideRun >= _wideRuns;
     _flip = 0;
-    _wide = false;
     _wideRun = 0;
     _streak = 0;
     _candidate = false;
@@ -637,7 +651,6 @@ final class RenderParagraph extends RenderObject {
   set keepsPaint(bool on) {
     _forced = on;
     _flip = 0;
-    _wide = false;
     _wideRun = 0;
     _streak = 0;
     _candidate = false;
@@ -732,14 +745,7 @@ final class RenderParagraph extends RenderObject {
       }
       _keptPaints++;
       if (!_forced) {
-        if ((end - first) * _wideDen >= h * _wideNum) {
-          if (++_wideRun >= _wideRuns) {
-            _flip = -1;
-            _wide = true;
-          }
-        } else {
-          _wideRun = 0;
-        }
+        _noteWide(first, end, h);
       }
     } else if (!_forced &&
         !identical(owner?._alone, this) &&
