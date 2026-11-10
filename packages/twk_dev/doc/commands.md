@@ -43,6 +43,17 @@ such a file stays one until it is deleted or as the skill has it. With no
 manifest yet it writes one, removes nothing and leaves what differs from the
 skill, naming it. `--dry-run` says what it would remove.
 
+### `twk doctor [-C <dir>] [--json]`
+
+reports what this terminal does as twk probes it (`TERM`, its name and
+version, colours, DEC 2026, kitty keyboard, graphics, links, a cell's size,
+how long it took to answer) and whether the project agrees: the `twk`,
+`twk_core`, `twk_dev` and `twk_test` versions of the lock, the Dart SDK, the
+files of `.dart_tool/twk` (an app running, or left behind), and the skill for
+agents where `twk agents` wrote one older than this twk_dev. Without a
+terminal it reports the project only. It exits with 1 where the versions
+disagree. See [doctor.md](doctor.md).
+
 ### `twk shell [-C <dir>]`
 
 owns this terminal and serves it over a local socket to an app of the project

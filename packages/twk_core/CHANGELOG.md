@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Added:
+
+- `TerminalInfo.terminalVersion`: the name and version the terminal told by
+  XTVERSION (`kitty(0.39.1)`), empty where it did not tell.
+
 Changed:
 
 - `renderToString` draws no overflow marker (its output is data, as `Cli.show`'s

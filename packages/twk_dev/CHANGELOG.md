@@ -4,6 +4,13 @@
 
 Added:
 
+- `twk doctor [-C <dir>] [--json]`: the terminal as twk probes it (TERM, name
+  and version, colours, DEC 2026, kitty keyboard, graphics, links, cell size,
+  how long the answers took), the project's twk, twk_core, twk_dev and
+  twk_test versions from the lock and whether they agree (exit 1 where not),
+  the Dart SDK, the files of `.dart_tool/twk` and whether they are listened
+  at, and the agents' skill when older than this twk_dev. Without a terminal
+  only the project part. `--json` for tools.
 - `twk run` reloads on a change in the `lib/` of the path dependencies and
   workspace members of the app's package too, found from
   `package_config.json` (hosted and git packages are not watched); the app

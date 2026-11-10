@@ -16,6 +16,7 @@ import 'twk.dart';
 const subcommands = [
   'agents',
   'create',
+  'doctor',
   'inspect',
   'logs',
   'play',

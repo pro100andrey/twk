@@ -75,6 +75,7 @@ final class TerminalInfo {
     this.progressReports = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
+    this.terminalVersion = '',
     Map<int, int> palette = const {},
     Map<String, String> settings = const {},
   }) : palette = Map.unmodifiable(palette),
@@ -119,6 +120,11 @@ final class TerminalInfo {
   /// the terminal a tmux session was started in, from before a profile
   /// changed). Not [brightness].
   final Brightness? declaredBrightness;
+
+  /// The terminal's name and version as it tells them (XTVERSION, such as
+  /// `kitty(0.38.1)`); empty where it did not tell, was not asked (a
+  /// multiplexer, a graphics protocol given) or the terminal is plain.
+  final String terminalVersion;
 
   /// Whether the terminal's colors are dark or light, by [backgroundRgb];
   /// null when the terminal didn't tell its background.
@@ -260,6 +266,7 @@ final class TerminalInfo {
       'text=${textMode.name} ambiguous=$ambiguousWidth '
       'color=${colorMode.name} fg=${foregroundRgb?.toRadixString(16)} '
       'bg=${backgroundRgb?.toRadixString(16)} '
+      'version=$terminalVersion '
       'declared=${declaredBrightness?.name} palette=${palette.length} '
       'inBandResize=$inBandResize mode2027=$graphemeMode '
       'kittyKeyboard=$kittyKeyboard flags=$kittyKeyboardFlags '
@@ -1538,6 +1545,7 @@ final class Terminal
           (env.containsKey('SSH_TTY') || env.containsKey('SSH_CONNECTION')),
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
+      terminalVersion: version,
       notifications: declared.notifications ?? notificationProtocolFor(told),
       multiplexer: multiplexer,
       pointerNames: pointerNames,
