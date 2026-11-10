@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Added:
+
+- `editorCommand` is exported (it was hidden): the command that opens a file
+  at a line, from `TWK_EDITOR`, `VISUAL` or `EDITOR`.
+
 Breaking:
 
 - `LogView` wraps by default (`wrap: true`): `wrap: false` keeps a line a

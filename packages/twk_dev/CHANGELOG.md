@@ -4,6 +4,12 @@
 
 Added:
 
+- `twk inspect`: `g` opens where the selected widget was made in the editor
+  (`TWK_EDITOR`, `VISUAL`, `EDITOR`; a terminal editor runs in the
+  inspector's terminal while it waits). The place is found in the app's code
+  through its VM service: the `build` methods above the element, the calls
+  of the widget's constructor in them, the one at the element's place among
+  them (the same finding as the VS Code extension's).
 - `twk play` controls, as the VS Code player's: Space pauses and plays on,
   Right a frame on, Left a frame back (the terminal reset and the frames
   before written at once), Home from the start, `q` quits (exit 0). A frame

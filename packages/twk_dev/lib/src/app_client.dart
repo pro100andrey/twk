@@ -50,6 +50,16 @@ abstract interface class AppClient {
   Future<void> close();
 }
 
+/// What an app lets be read of its code through its VM service: the
+/// requests of the VM service protocol that name an isolate, answered for
+/// the app's own ([VmAppClient] does).
+abstract interface class VmQueries {
+  /// What the VM service answers to [method] ([args] added, the app's
+  /// isolate named): a JSON object. Throws when it answers with an error
+  /// and when the app has gone.
+  Future<Json> vm(String method, [Map<String, Object?> args]);
+}
+
 /// Calls [added] with each service extension an isolate of [service]
 /// registers: those registered already, then those to come until the
 /// subscription answered is cancelled. Throws what the service threw
@@ -82,7 +92,7 @@ Future<StreamSubscription<Event>> watchExtensions(
 
 /// An app reached over its VM service (`package:vm_service`): the isolate
 /// that registered the binding's extensions.
-final class VmAppClient implements AppClient {
+final class VmAppClient implements AppClient, VmQueries {
   VmAppClient._(this.name, this._service, this._isolate, this._events);
 
   /// Connects to the VM service at [uri]: its WebSocket address
@@ -183,6 +193,16 @@ final class VmAppClient implements AppClient {
       );
     }
     return json;
+  }
+
+  @override
+  Future<Json> vm(String method, [Map<String, Object?> args = const {}]) async {
+    final response = await _service.callMethod(
+      method,
+      isolateId: _isolate,
+      args: {...args},
+    );
+    return {...?response.json}..remove('type');
   }
 
   /// The message of the app's error [e], or what the service says: a

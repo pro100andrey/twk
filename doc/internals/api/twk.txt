@@ -584,6 +584,7 @@ twk.dart function describeInsets
 twk.dart function describePen
 twk.dart function describeText
 twk.dart function describeValue
+twk.dart function editorCommand
 twk.dart function fitText
 twk.dart function fuzzyMatch
 twk.dart function hideCaret

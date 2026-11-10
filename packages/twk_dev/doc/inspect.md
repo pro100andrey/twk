@@ -37,7 +37,23 @@ outlined; a click there selects that node here (`ext.twk.select`), its
 ancestors expanded, and Escape there, or `s` here again, cancels; an app that
 runs inline, whose terminal keeps the mouse, cannot pick. `t` shows the render
 tree from its root, and back, the node's counterpart (an element's render
-object, a render object's element) selected. The tree is loaded as the app
+object, a render object's element) selected. `g` opens the place where the selected widget was made in the editor: twk keeps no
+creation locations, so the inspector looks in the app's code, through its VM
+service, for it: the `build` methods above the element, nearest first, for a call
+of its type's constructor (`Text(`, `const Text(`, `Text.rich(`, in code, not in
+comments or strings), the one at the element's place among those of its type that
+build made. Several calls where the build made as many elements are matched by
+place; otherwise the status says "one of several". The editor is `TWK_EDITOR`
+(`code -g {file}:{line}:{column}`), else `VISUAL`, else `EDITOR` (`editorCommand`):
+a terminal editor runs in the inspector's terminal, which waits for it, any other
+apart. Nothing opens for a render object (`t` back to the widgets first), for a
+widget no build above calls the constructor of (a call in a function or a
+`build` of another package's, a generated one), or without an editor set; the
+status says which. The VS Code extension finds the same places with the same steps
+(`source_find.ts`), a copy of `source_find.dart`: the extension runs without twk_dev
+installed.
+
+The tree is loaded as the app
 comes, on `r`, when this terminal gets the focus back (a focus report) and
 after a pick, again shortly while the app has drawn no frame; nodes are kept
 expanded and selected by id, those not seen before expanded. `q` quits, the
