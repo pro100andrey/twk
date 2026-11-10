@@ -1,0 +1,1216 @@
+{
+  "description": "What a recording's input events make of the keys to be typed back: twk_dev's InputSplitter and replaySteps (lib/src/replay.dart) and the extension's (core/replay_input.ts) are each held to it. events are [time, code, data] of a cast (o output, i input, r resize), steps the keys typed from them, each at its time, with whether the program wrote after them and before the next keys. A change to an answer here that is not made on both sides fails the side that is behind.",
+  "cases": [
+    {
+      "name": "answers among keys",
+      "description": "the terminal's answers (device attributes, mode report, kitty flags, status, size, strings) are left out of an event whatever it holds with them; an event of answers only makes no step",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[?62;4c\u001b[>0;10;1c\u001b[=0c\u001b[?2026;2$y\u001b[2026;2$y\u001b[?0u\u001b[0n\u001b[?997;1n\u001b[8;24;80t\u001b[?12;40R"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b]11;rgb:0000/0000/0000\u0007\u001bP>|xterm\u001b\\\u001b_Gi=1;OK\u001b\\\u001b^pm\u001b\\\u001bXsos\u001b\\"
+        ],
+        [
+          0.3,
+          "i",
+          "a\u001b[?62;4cb\u001b]10;rgb:ffff/ffff/ffff\u001b\\c"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.3,
+          "keys": "abc",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "kitty keys are keys",
+      "description": "only CSI ? ... u is the kitty flags answer; a key event of the protocol has no ?",
+      "events": [
+        [
+          0.1,
+          "i",
+          "x\u001b[?1u\u001b[1u\u001b[97;5u\u001b[97;5:3u"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "x\u001b[1u\u001b[97;5u\u001b[97;5:3u",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "keys are kept",
+      "description": "cursor keys, tilde keys, kitty, SS3, focus, mouse, Alt, text, controls, a bare CSI c and a position nobody asked for: each event its own step",
+      "events": [
+        [
+          0.0,
+          "i",
+          "\u001b[A"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[1;5C"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[3~"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b[97;5u"
+        ],
+        [
+          0.4,
+          "i",
+          "\u001bOP"
+        ],
+        [
+          0.5,
+          "i",
+          "\u001b[I"
+        ],
+        [
+          0.6,
+          "i",
+          "\u001b[O"
+        ],
+        [
+          0.7,
+          "i",
+          "\u001b[<0;5;5M"
+        ],
+        [
+          0.8,
+          "i",
+          "\u001b[<0;5;5m"
+        ],
+        [
+          0.9,
+          "i",
+          "\u001bb"
+        ],
+        [
+          1.0,
+          "i",
+          "\u001b\u001b[A"
+        ],
+        [
+          1.1,
+          "i",
+          "\u001b[1;3C"
+        ],
+        [
+          1.2,
+          "i",
+          "\u00e9\u20ac\ud83d\ude00"
+        ],
+        [
+          1.3,
+          "i",
+          "\r"
+        ],
+        [
+          1.4,
+          "i",
+          "\u007f"
+        ],
+        [
+          1.5,
+          "i",
+          "\u0003"
+        ],
+        [
+          1.6,
+          "i",
+          "\u001b[c"
+        ],
+        [
+          1.7,
+          "i",
+          "\u001b[2~"
+        ],
+        [
+          1.8,
+          "i",
+          "\u001b[5;5~"
+        ],
+        [
+          1.9,
+          "i",
+          "\u001b[1;2R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.0,
+          "keys": "\u001b[A",
+          "reacts": false
+        },
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;5C",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001b[3~",
+          "reacts": false
+        },
+        {
+          "time": 0.3,
+          "keys": "\u001b[97;5u",
+          "reacts": false
+        },
+        {
+          "time": 0.4,
+          "keys": "\u001bOP",
+          "reacts": false
+        },
+        {
+          "time": 0.5,
+          "keys": "\u001b[I",
+          "reacts": false
+        },
+        {
+          "time": 0.6,
+          "keys": "\u001b[O",
+          "reacts": false
+        },
+        {
+          "time": 0.7,
+          "keys": "\u001b[<0;5;5M",
+          "reacts": false
+        },
+        {
+          "time": 0.8,
+          "keys": "\u001b[<0;5;5m",
+          "reacts": false
+        },
+        {
+          "time": 0.9,
+          "keys": "\u001bb",
+          "reacts": false
+        },
+        {
+          "time": 1.0,
+          "keys": "\u001b\u001b[A",
+          "reacts": false
+        },
+        {
+          "time": 1.1,
+          "keys": "\u001b[1;3C",
+          "reacts": false
+        },
+        {
+          "time": 1.2,
+          "keys": "\u00e9\u20ac\ud83d\ude00",
+          "reacts": false
+        },
+        {
+          "time": 1.3,
+          "keys": "\r",
+          "reacts": false
+        },
+        {
+          "time": 1.4,
+          "keys": "\u007f",
+          "reacts": false
+        },
+        {
+          "time": 1.5,
+          "keys": "\u0003",
+          "reacts": false
+        },
+        {
+          "time": 1.6,
+          "keys": "\u001b[c",
+          "reacts": false
+        },
+        {
+          "time": 1.7,
+          "keys": "\u001b[2~",
+          "reacts": false
+        },
+        {
+          "time": 1.8,
+          "keys": "\u001b[5;5~",
+          "reacts": false
+        },
+        {
+          "time": 1.9,
+          "keys": "\u001b[1;2R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "position answer needs a query",
+      "description": "CSI row;column R is an answer once the output asked (CSI 6 n) and only once; unasked it is a key (the modified F3)",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "position asked, answered once",
+      "description": "one query, one answer; the next is F3",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b[6n"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[1;5R"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "position asked twice",
+      "description": "two queries, two answers in one event, a third is a key",
+      "events": [
+        [
+          0.0,
+          "o",
+          "a\u001b[6nb\u001b[6n"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[12;40R\u001b[3;4R\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "extended position",
+      "description": "CSI ? row;column R is always an answer and uses up a CSI ? 6 n; the next plain one is F3",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b[?6n"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[?12;40R\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "extended position unasked",
+      "description": "CSI ? ... R is not a key, asked or not",
+      "events": [
+        [
+          0.1,
+          "i",
+          "a\u001b[?12;40Rb"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "ab",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "query cut between writes",
+      "description": "a query cut between two writes of the output counts",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b[?6n\u001b[6"
+        ],
+        [
+          0.0,
+          "o",
+          "n"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[?3;4R\u001b[12;7R"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[12;7R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "\u001b[12;7R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "query cut at the escape",
+      "description": "a query cut in three writes counts",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b"
+        ],
+        [
+          0.0,
+          "o",
+          "[?6"
+        ],
+        [
+          0.0,
+          "o",
+          "n"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[12;40R"
+        ]
+      ],
+      "steps": []
+    },
+    {
+      "name": "key gives the queries up",
+      "description": "a key typed means the queries before it went unanswered: a later position is F3",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b[6n"
+        ],
+        [
+          0.1,
+          "i",
+          "x"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "x",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "key and answer in one event",
+      "description": "the answer in the same event after a key is still an answer; the queries are given up after it",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b[6n"
+        ],
+        [
+          0.1,
+          "i",
+          "x\u001b[12;7R\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "x\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "other queries are no position query",
+      "description": "CSI 5 n, CSI > 6 n and CSI 16 n are not CSI 6 n",
+      "events": [
+        [
+          0.0,
+          "o",
+          "\u001b[5n\u001b[>6n\u001b[16n"
+        ],
+        [
+          0.1,
+          "i",
+          "\u001b[1;5R"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;5R",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste whole",
+      "description": "a paste's content is the person's whatever it holds, the answers after it are answers",
+      "events": [
+        [
+          0.1,
+          "i",
+          "x\u001b[200~echo \u001b[?62;4c \u001b]11;x\u0007\u001b[201~\u001b[?62;4cy"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "x\u001b[200~echo \u001b[?62;4c \u001b]11;x\u0007\u001b[201~y",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste split across events",
+      "description": "a paste cut between events: each part is keys at its time, the answers inside are kept, the answers after the end are left out",
+      "events": [
+        [
+          0.1,
+          "i",
+          "a\u001b[200~echo \u001b[?62;4c"
+        ],
+        [
+          0.2,
+          "i",
+          " more\u001b]11;x\u0007"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b[201~\u001b[?62;4cz"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "a\u001b[200~echo \u001b[?62;4c",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": " more\u001b]11;x\u0007",
+          "reacts": false
+        },
+        {
+          "time": 0.3,
+          "keys": "\u001b[201~z",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste end cut",
+      "description": "the end marker cut between two events is waited for",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~ab\u001b[?0u\u001b[20"
+        ],
+        [
+          0.2,
+          "i",
+          "1~\u001b[?0uy"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~ab\u001b[?0u",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001b[201~y",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste never closed",
+      "description": "the rest of the recording is the paste's: all keys, answers included",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~ab"
+        ],
+        [
+          0.2,
+          "i",
+          "\u001b[?62;4c"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b[0n"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~ab",
+          "reacts": false
+        },
+        {
+          "time": 0.2,
+          "keys": "\u001b[?62;4c",
+          "reacts": false
+        },
+        {
+          "time": 0.3,
+          "keys": "\u001b[0n",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "two pastes",
+      "description": "the second paste is told as the first",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~a\u001b[201~\u001b[0n\u001b[200~\u001b[0n\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~a\u001b[201~\u001b[200~\u001b[0n\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "empty paste",
+      "description": "a paste with nothing in it is two keys",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[200~\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[200~\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "paste end alone",
+      "description": "a stray end marker is a key",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[201~\u001b[0n"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "control inside a CSI",
+      "description": "a control inside a sequence is typed as it was and the answers of the same event are left out",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[1;\u00075C\u001b[?62;4c\u001b[0nb"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;\u00075Cb",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "control inside an answer",
+      "description": "an answer a control cuts is not told as an answer: keys, as typed",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[?62;\r4c\u001b[0nb"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[?62;\r4cb",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "control inside a CSI before a paste",
+      "description": "the paste after is still whole",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[1;\u00075C\u001b[200~\u001b[?62;4c\u001b[201~"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b[1;\u00075C\u001b[200~\u001b[?62;4c\u001b[201~",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "sequence cut between events",
+      "description": "an answer cut between events is put together and left out; a key cut is typed at the time it ends",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b[?62"
+        ],
+        [
+          0.2,
+          "i",
+          ";4c"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b["
+        ],
+        [
+          0.4,
+          "i",
+          "A"
+        ],
+        [
+          0.5,
+          "i",
+          "a\u001b[?20"
+        ],
+        [
+          0.6,
+          "i",
+          "26;2$yz"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.4,
+          "keys": "\u001b[A",
+          "reacts": false
+        },
+        {
+          "time": 0.5,
+          "keys": "a",
+          "reacts": false
+        },
+        {
+          "time": 0.6,
+          "keys": "z",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "SS3 cut",
+      "description": "ESC O and its letter in two events",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001bO"
+        ],
+        [
+          0.2,
+          "i",
+          "P"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "\u001bOP",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "string cut between events",
+      "description": "an OSC cut before its terminator is an answer",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b]11;rgb:00"
+        ],
+        [
+          0.2,
+          "i",
+          "00/0000/0000"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b\\q"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.3,
+          "keys": "q",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "string cut inside its ST",
+      "description": "the Escape of an ST ends the first event",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b]11;rgb:0000\u001b"
+        ],
+        [
+          0.2,
+          "i",
+          "\\q"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "q",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "lone escape at the end",
+      "description": "a lone Escape waits for the next event and is a key at the end of the recording at its last event's time",
+      "events": [
+        [
+          0.1,
+          "i",
+          "a\u001b"
+        ],
+        [
+          0.5,
+          "o",
+          "x"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "a",
+          "reacts": true
+        },
+        {
+          "time": 0.5,
+          "keys": "\u001b",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "escape and a letter",
+      "description": "Alt+letter across two events",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b"
+        ],
+        [
+          0.2,
+          "i",
+          "b"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "\u001bb",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "Alt+] at the end",
+      "description": "an Escape and a string opener with no terminator are keys at the end",
+      "events": [
+        [
+          0.1,
+          "i",
+          "a\u001b]"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "a",
+          "reacts": false
+        },
+        {
+          "time": 0.1,
+          "keys": "\u001b]",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "unterminated string at the end",
+      "description": "an Alt+letter that opens a string and never ends is keys when flushed",
+      "events": [
+        [
+          0.1,
+          "i",
+          "a\u001bPq"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "a",
+          "reacts": false
+        },
+        {
+          "time": 0.1,
+          "keys": "\u001bPq",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "unterminated OSC at the end",
+      "description": "the same for an OSC",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b]11;rgb"
+        ],
+        [
+          0.2,
+          "o",
+          "x"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "\u001b]11;rgb",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "string broken by another escape",
+      "description": "an Escape in a string that is no ST ends it: the opener was a key, what follows is told afresh",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001b]11;rgb\u001b[?62;4cb"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "\u001b]11;rgbb",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "BEL ends only an OSC",
+      "description": "a DCS with a BEL inside goes on to its ST",
+      "events": [
+        [
+          0.1,
+          "i",
+          "\u001bP>|xt\u0007\u001b\\z"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.1,
+          "keys": "z",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "reacts by the order of events",
+      "description": "output after a key and before the next is the first one's reaction, whatever the times",
+      "events": [
+        [
+          0.1,
+          "o",
+          "x"
+        ],
+        [
+          0.5,
+          "i",
+          "+"
+        ],
+        [
+          0.6,
+          "o",
+          "y"
+        ],
+        [
+          0.9,
+          "i",
+          "a"
+        ],
+        [
+          1.0,
+          "i",
+          "b"
+        ],
+        [
+          1.5,
+          "o",
+          "z"
+        ],
+        [
+          2.0,
+          "i",
+          "q"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.5,
+          "keys": "+",
+          "reacts": true
+        },
+        {
+          "time": 0.9,
+          "keys": "a",
+          "reacts": false
+        },
+        {
+          "time": 1.0,
+          "keys": "b",
+          "reacts": true
+        },
+        {
+          "time": 2.0,
+          "keys": "q",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "reacts with equal times",
+      "events": [
+        [
+          0.5,
+          "i",
+          "a"
+        ],
+        [
+          0.5,
+          "o",
+          "echo of a"
+        ],
+        [
+          0.9,
+          "o",
+          "before b"
+        ],
+        [
+          0.9,
+          "i",
+          "b"
+        ],
+        [
+          0.9,
+          "o",
+          "echo of b"
+        ],
+        [
+          1.0,
+          "i",
+          "c"
+        ],
+        [
+          1.2,
+          "i",
+          "q"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.5,
+          "keys": "a",
+          "reacts": true
+        },
+        {
+          "time": 0.9,
+          "keys": "b",
+          "reacts": true
+        },
+        {
+          "time": 1.0,
+          "keys": "c",
+          "reacts": false
+        },
+        {
+          "time": 1.2,
+          "keys": "q",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "answers make no step",
+      "description": "an event of answers only is no step and no key between: output after the last key still counts for it",
+      "events": [
+        [
+          0.1,
+          "o",
+          "x"
+        ],
+        [
+          0.2,
+          "i",
+          "a"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b[?62;4c"
+        ],
+        [
+          0.4,
+          "o",
+          "y"
+        ],
+        [
+          0.5,
+          "r",
+          "60x20"
+        ],
+        [
+          0.6,
+          "i",
+          "b"
+        ]
+      ],
+      "steps": [
+        {
+          "time": 0.2,
+          "keys": "a",
+          "reacts": true
+        },
+        {
+          "time": 0.6,
+          "keys": "b",
+          "reacts": false
+        }
+      ]
+    },
+    {
+      "name": "no keys",
+      "description": "a recording without keys has nothing to type",
+      "events": [
+        [
+          0.1,
+          "o",
+          "hi"
+        ],
+        [
+          0.2,
+          "r",
+          "60x20"
+        ],
+        [
+          0.3,
+          "i",
+          "\u001b[?62;4c"
+        ]
+      ],
+      "steps": []
+    }
+  ]
+}

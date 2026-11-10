@@ -46,7 +46,8 @@ final class InputPiece {
 /// Everything else is a key: characters, `CSI A` and the other cursor keys,
 /// `CSI … ~`, `CSI … u` (kitty), SS3 sequences, `CSI I` and `CSI O` (focus),
 /// `CSI < … M` (mouse), and a paste (`CSI 200 ~` up to `CSI 201 ~`, its
-/// content whatever it holds). An Alt+letter that opens a string is
+/// content whatever it holds and however many events it is in: each is keys
+/// at its time, as it was typed). An Alt+letter that opens a string is
 /// indistinguishable from the answer's start: with no terminator it is
 /// taken for keys when [flush]ed.
 ///
@@ -58,6 +59,11 @@ final class InputSplitter {
 
   var _carry = '';
   var _positionAsked = 0;
+
+  /// Inside a paste: its content is keys, whatever it holds, up to
+  /// [_pasteEnd], whichever event it comes in.
+  var _inPaste = false;
+  static const _pasteEnd = '\x1b[201~';
 
   /// The start of a query the last output ended in.
   var _queryStart = '';
@@ -103,6 +109,30 @@ final class InputSplitter {
 
     var i = 0;
     while (i < s.length) {
+      if (_inPaste) {
+        final close = s.indexOf(_pasteEnd, i);
+        if (close >= 0) {
+          emit(s.substring(i, close + _pasteEnd.length), false);
+          i = close + _pasteEnd.length;
+          _inPaste = false;
+          continue;
+        }
+        // the end may be cut between two events
+        var keep = 0;
+        if (!flush) {
+          for (var n = _pasteEnd.length - 1; n > 0; n--) {
+            if (s.length - i >= n && s.endsWith(_pasteEnd.substring(0, n))) {
+              keep = n;
+              break;
+            }
+          }
+        }
+        if (s.length - keep > i) {
+          emit(s.substring(i, s.length - keep), false);
+        }
+        _carry = s.substring(s.length - keep);
+        break;
+      }
       if (s.codeUnitAt(i) != 0x1b) {
         emit(s[i], false);
         i++;
@@ -193,8 +223,8 @@ final class InputSplitter {
     final f = String.fromCharCode(last);
     if (f == '~' && params == '200' && intermediates.isEmpty) {
       // a paste: its content is the person's
-      final close = s.indexOf('\x1b[201~', end);
-      return close < 0 ? null : (end: close + 6, answer: false);
+      _inPaste = true;
+      return (end: end, answer: false);
     }
     final answer = switch (f) {
       'c' => private,

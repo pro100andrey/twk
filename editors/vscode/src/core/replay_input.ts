@@ -48,6 +48,36 @@ function unfinished(t: Token): boolean {
 }
 
 /**
+ * The tokens of [data], as a terminal's parser cuts them: an Escape inside a
+ * string that does not start its ST ends the string there (the reader of the
+ * sequence log keeps it in, for tmux's passthrough), so the string's opener
+ * was a key (an Alt+letter) and what follows is read afresh.
+ */
+function tokensOf(data: Buffer): Token[] {
+  const out: Token[] = [];
+  for (const t of new SequenceReader(true).read(data)) {
+    const isString = t.kind === 'osc' || t.kind === 'dcs' || t.kind === 'apc' || t.kind === 'pm' || t.kind === 'sos';
+    if (!isString || !hasInnerEscape(t.raw)) {
+      out.push(t);
+      continue;
+    }
+    out.push({ kind: 'esc', raw: t.raw.slice(0, 2), intermediates: '', final: t.raw[1] });
+    out.push(...tokensOf(latin1Bytes(t.raw.slice(2))));
+  }
+  return out;
+}
+
+/** Whether the string [raw] has an Escape that no backslash follows, before its end. */
+function hasInnerEscape(raw: string): boolean {
+  for (let j = 2; j + 1 < raw.length; j++) {
+    if (raw[j] === '\x1b' && raw[j + 1] !== '\\') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Cuts the recording's input into keys and answers, as `InputSplitter`:
  * [sawOutput] is given what the app wrote, in order, [add] what was sent.
  */
@@ -78,7 +108,7 @@ class InputSplitter {
 
   private split(data: Buffer, flush: boolean): string {
     this.carry = Buffer.alloc(0);
-    const tokens = new SequenceReader(true).read(data);
+    const tokens = tokensOf(data);
     const last = tokens.at(-1);
     if (!flush && last && unfinished(last)) {
       const rest = latin1Bytes(last.raw);

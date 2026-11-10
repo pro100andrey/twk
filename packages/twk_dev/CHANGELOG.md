@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Fixed:
+
+- `twk record --replay`: a paste that comes in more than one event of a
+  recording is typed as it came, each part at its time (it was held back whole
+  until its end, and a paste over 4096 bytes lost the protection of its
+  content from the answers it holds). One golden, `test/replay_split.golden.json`,
+  holds it and the VS Code extension's Type a Recording's Keys to the same
+  keys for a recording.
+
 Added:
 
 - `twk decode <file>...` names what a recording (`.cast`) or the files

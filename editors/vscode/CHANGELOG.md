@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- Replay Input: an Escape inside a string that is no ST ends the string there, as a terminal does (the Alt+letter that opened it is a key, the rest is told afresh: an answer in it is left out), as `twk record --replay`, held to one golden with it.
+
 - Review fixes: after a twk run's leader exits, its group is polled and SIGKILLed after the grace only while it still has a member (an emptied group's id may be someone else's); a Replay Input event holding a control inside a CSI still has its answers left out and its paste kept; Replay Input in timed mode keeps each key at its recorded time (no drift) and shows a short preview of the next keys; nothing is shown at deactivate; New Project reads the folder's package_config.json or pubspec.yaml for twk_dev before running (no failing `dart run` first) and checks the folder's name as a package name; the Test guard is in one place.
 
 - The status bar shows the active twk terminal (the panel focused, else the newest) as `twk 44x7 · xterm.js · overlay`: its size, profile and the switches on; a click opens twk: Choose twk Terminal Capabilities.
