@@ -17,8 +17,18 @@ const twkImport = /^[ \t]*(?:import|export)[ \t]+(['"])package:twk(?:_[a-z0-9_]+
 const mainDeclaration = /^(?:(?:void|Future<void>|FutureOr<void>)[ \t]+)?main[ \t]*\(/m;
 const startsApp = /(?<![\w$.])runApp[ \t]*\(|(?<![\w$])TwkApp\b/;
 
-/** The `main` of a twk app in [source], or null when it is none. */
-export function findTwkMain(source: string): TwkMain | null {
+// a test file or a file under test/ (either separator) is no app to run
+const testFile = /(?:_test\.dart|(?:^|[\\/])test[\\/][^]*)$/;
+
+/**
+ * The `main` of a twk app in [source], or null when it is none. [filePath],
+ * where given, leaves out the test files (`*_test.dart`, under `test/`):
+ * they import twk packages and call `runApp`, but are run by `dart test`.
+ */
+export function findTwkMain(source: string, filePath?: string): TwkMain | null {
+  if (filePath !== undefined && testFile.test(filePath)) {
+    return null;
+  }
   if (!twkImport.test(source)) {
     return null;
   }

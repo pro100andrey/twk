@@ -35,4 +35,13 @@ describe('the main of a twk app', () => {
   it('ignores an import in a comment', () => {
     assert.equal(findTwkMain("// import 'package:twk/twk.dart';\nvoid main() { runApp(x); }\n"), null);
   });
+
+  it('is not found in a test file or under test/, whatever the separator', () => {
+    const src = `${head}void main() {\n  runApp(x);\n}\n`;
+    assert.deepEqual(findTwkMain(src, '/p/example/a.dart'), { line: 2, column: 0 });
+    assert.equal(findTwkMain(src, '/p/example/a_test.dart'), null);
+    assert.equal(findTwkMain(src, '/p/test/a.dart'), null);
+    assert.equal(findTwkMain(src, 'C:\\p\\test\\sub\\a.dart'), null);
+    assert.deepEqual(findTwkMain(src, '/p/latest/a.dart'), { line: 2, column: 0 });
+  });
 });

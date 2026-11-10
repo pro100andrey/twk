@@ -26,5 +26,9 @@ The first packaged version (a preview, `.vsix` built from this repository).
   Styles toggles; with the `<file>.actual` a failed test leaves (twk_test
   after this version), the golden and the actual side by side with the
   differing cells marked, and Accept Actual.
+- The code lenses are not over test files (`*_test.dart`, under `test/`); a
+  golden checked out with CRLF line ends opens as a twk Screen; a quote inside
+  a string's `${...}` no longer throws off where the Inspector finds a widget's
+  source.
 - Needs twk 0.3.0 or later in the app's project for the Inspector, the log
   and the debug aids.

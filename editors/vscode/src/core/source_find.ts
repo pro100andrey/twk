@@ -69,6 +69,51 @@ export function creationOwners(root: InspectNode | null, id: number, makes: (bui
   return owners;
 }
 
+/**
+ * The offset just past the string literal that begins at [start] (a quote):
+ * its closing quote, skipping an escape (none in a raw string) and an
+ * interpolation `${...}`, whose braces are counted and whose own strings
+ * are read the same way; an unclosed one-line string ends at its newline.
+ */
+function stringEnd(source: string, start: number): number {
+  const c = source[start];
+  const raw = start > 0 && source[start - 1] === 'r';
+  const triple = source.startsWith(c.repeat(3), start);
+  const quote = triple ? c.repeat(3) : c;
+  let k = start + quote.length;
+  while (k < source.length && !source.startsWith(quote, k) && (triple || source[k] !== '\n')) {
+    if (!raw && source[k] === '\\') {
+      k += 2;
+    } else if (!raw && source[k] === '$' && source[k + 1] === '{') {
+      k = interpolationEnd(source, k + 2);
+    } else {
+      k++;
+    }
+  }
+  return Math.min(source.length, k + quote.length);
+}
+
+/** The offset past the `}` closing an interpolation whose body begins at [from]. */
+function interpolationEnd(source: string, from: number): number {
+  let depth = 1;
+  let k = from;
+  while (k < source.length && depth > 0) {
+    const c = source[k];
+    if (c === '{') {
+      depth++;
+      k++;
+    } else if (c === '}') {
+      depth--;
+      k++;
+    } else if (c === "'" || c === '"') {
+      k = stringEnd(source, k);
+    } else {
+      k++;
+    }
+  }
+  return k;
+}
+
 /** [source] with its comments and string literals blanked out, each character's offset kept. */
 export function codeOnly(source: string): string {
   const out = source.split('');
@@ -106,14 +151,7 @@ export function codeOnly(source: string): string {
       blank(i, k);
       i = k;
     } else if (c === "'" || c === '"') {
-      const raw = i > 0 && source[i - 1] === 'r';
-      const triple = source.startsWith(c.repeat(3), i);
-      const quote = triple ? c.repeat(3) : c;
-      let k = i + quote.length;
-      while (k < source.length && !source.startsWith(quote, k) && (triple || source[k] !== '\n')) {
-        k += !raw && source[k] === '\\' ? 2 : 1;
-      }
-      const to = Math.min(source.length, k + quote.length);
+      const to = stringEnd(source, i);
       blank(i, to);
       i = to;
     } else {

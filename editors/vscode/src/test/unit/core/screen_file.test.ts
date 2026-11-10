@@ -15,6 +15,10 @@ const goldenPath = path.resolve(__dirname, '../../../../../../packages/twk_test/
 const golden = fs.readFileSync(goldenPath, 'utf8');
 
 describe('a screen file', () => {
+  it('reads a golden checked out with CRLF line ends, as it reads the LF one', () => {
+    assert.deepEqual(parseScreenFile(golden.replace(/\r?\n/g, '\r\n')), parseScreenFile(golden));
+  });
+
   it("reads the shared golden: size, cursor, rows, styles, legend", () => {
     const f = parseScreenFile(golden);
     assert.equal(f.width, 14);

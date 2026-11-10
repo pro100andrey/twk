@@ -28,7 +28,7 @@ const header = /^screen (\d+)×(\d+), cursor (?:at (\d+),(\d+)|hidden)$/;
 
 /** The screen [source] holds; a [ScreenFileError] where it is not a screen file, saying what is wrong as twk_test does. */
 export function parseScreenFile(source: string): ScreenFile {
-  const lines = source.split('\n');
+  const lines = source.split(/\r?\n/);
   if (lines.length > 0 && lines[lines.length - 1] === '') {
     lines.pop();
   }

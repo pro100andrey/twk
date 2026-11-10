@@ -714,6 +714,7 @@ describe('the code lenses over a twk main', () => {
     await vscode.extensions.getExtension<Api>('twk.twk-vscode')!.activate();
     const twkMain = vscode.Uri.file(path.join(project, 'example', 'counter.dart'));
     const plain = scratchFile('plain.dart', "void main() {\n  print('hello');\n}\n");
+    const testFile = scratchFile('app_test.dart', "import 'package:twk/twk.dart';\nvoid main() {\n  runApp(const Text('x'));\n}\n");
     const lenses = async (uri: vscode.Uri) => {
       await vscode.workspace.openTextDocument(uri);
       return (await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', uri)).filter((l) => l.command?.command.startsWith('twk.'));
@@ -725,6 +726,7 @@ describe('the code lenses over a twk main', () => {
     assert.deepEqual(found.map((l) => l.command?.title), ['Run in twk Terminal', 'Debug in twk Terminal']);
     assert.deepEqual(found.map((l) => l.command?.command), ['twk.runFile', 'twk.debugFile']);
     assert.equal((await lenses(plain)).length, 0);
+    assert.equal((await lenses(testFile)).length, 0, 'a test file');
     await vscode.workspace.getConfiguration('twk').update('codeLens', false, vscode.ConfigurationTarget.Global);
     try {
       assert.equal((await lenses(twkMain)).length, 0, 'off');

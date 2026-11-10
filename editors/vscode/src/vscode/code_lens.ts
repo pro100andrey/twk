@@ -23,7 +23,7 @@ export class TwkMainLenses implements vscode.CodeLensProvider, vscode.Disposable
     if (!vscode.workspace.getConfiguration('twk').get<boolean>('codeLens', true)) {
       return [];
     }
-    const main = findTwkMain(document.getText());
+    const main = findTwkMain(document.getText(), document.uri.fsPath);
     if (!main) {
       return [];
     }
