@@ -557,7 +557,7 @@ void main() {
     });
 
     test('every step is skipped, said so, without node or npm', () async {
-      for (final s in ['install', 'compile', 'unit']) {
+      for (final s in ['install', 'compile', 'unit', 'package']) {
         for (final installed in [
           const {'npm'},
           const {'node'},
@@ -656,6 +656,47 @@ void main() {
         'in $vscodeGate',
       ]);
       expect((await step(['unit'], answer: 1)).code, 1);
+    });
+
+    test('package needs compile first and the files of the Marketplace page; '
+        'it copies them, runs npm run package there and holds the .vsix '
+        'to a list', () async {
+      final early = await step(['package']);
+      expect(early.code, 1);
+      expect(early.log.single, contains('run vscode-compile first'));
+
+      write('$vscodeGate/out/vscode/extension.js', '\n');
+      final bare = await step(['package']);
+      expect(bare.code, ExitCode.invalidFile);
+      expect(bare.log.single, 'vscode package: no $vscodeSource/README.md');
+      expect(bare.ran, isEmpty);
+
+      for (final f in [
+        'README.md',
+        'CHANGELOG.md',
+        'LICENSE',
+        'icon.png',
+        '.vscodeignore',
+      ]) {
+        write('$vscodeSource/$f', '$f\n');
+      }
+      final r = await step(['package']);
+      expect(r.ran.single, [
+        ...spare,
+        'npm',
+        'run',
+        'package',
+        '--',
+        '--out',
+        vsixName,
+        'in $vscodeGate',
+      ]);
+      expect(read('$vscodeGate/README.md'), 'README.md\n');
+      expect(read('$vscodeGate/.vscodeignore'), '.vscodeignore\n');
+      // the fake npm wrote no .vsix to list
+      expect(r.code, 1);
+      expect(r.log.last, contains('cannot list'));
+      expect((await step(['package'], answer: 1)).code, 1);
     });
 
     test('a step it does not know is refused', () async {

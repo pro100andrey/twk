@@ -2,10 +2,32 @@
   "name": "twk-vscode",
   "displayName": "twk",
   "description": "Run and debug twk terminal apps in a terminal of the extension's own, with switches for what the terminal can do.",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.0",
+  "preview": true,
   "publisher": "twk",
   "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pro100andrey/twk.git",
+    "directory": "editors/vscode"
+  },
+  "homepage": "https://github.com/pro100andrey/twk/tree/main/editors/vscode#readme",
+  "bugs": {
+    "url": "https://github.com/pro100andrey/twk/issues"
+  },
+  "keywords": [
+    "twk",
+    "dart",
+    "terminal",
+    "tui",
+    "hot reload",
+    "debug"
+  ],
+  "galleryBanner": {
+    "color": "#14213d",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -480,7 +502,10 @@
     "compile": "tsc -p . && tsc -p tsconfig.webview.json",
     "watch": "tsc -watch -p . & tsc -watch -p tsconfig.webview.json",
     "test:unit": "npm run compile && mocha 'out/test/unit/**/*.test.js'",
-    "test": "npm run compile && node out/test/runTest.js"
+    "test": "npm run compile && node out/test/runTest.js",
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\"",
+    "vscode:prepublish": "npm run clean && npm run compile",
+    "package": "vsce package"
   },
   "dependencies": {
     "@xterm/addon-fit": "0.11.0",
@@ -492,6 +517,7 @@
     "@types/node": "^22.0.0",
     "@types/vscode": "~1.95.0",
     "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "^3.0.0",
     "@xterm/headless": "6.0.0",
     "mocha": "^11.0.0",
     "typescript": "^5.9.0"

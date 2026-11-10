@@ -57,8 +57,27 @@ says it was not.
 
 ### Installing it
 
-Not on the Marketplace (`private`, no `vsce` package): it runs from the
-repository.
+Packaged, not published: `npm run package` in `editors/vscode` writes
+`twk-vscode-<version>.vsix` (vsce; the xtask task `vscode-package` builds it
+in the gate's copy and holds its file list), which VS Code installs with
+`code --install-extension`. It holds the compiled `out/` (no sources, tests
+or maps), the Marketplace page (README, CHANGELOG, LICENSE, icon) and of
+`node_modules` three files of xterm.js and its two addons, which the webview
+loads. No bundler: the extension host's code has no runtime dependency, so
+`tsc`'s `out/` is already self-contained, and the same files are what the
+tests and `--extensionDevelopmentPath` run.
+
+What a user outside this repository gets: the commands, the terminal with
+its switches, Run, Debug, F5, reload and restart, the sequence log,
+recording and replay work with any project that runs under `dart run` (the
+app finds the terminal by `TWK_SHELL`, which twk_core reads, in 0.2.0 too). The Inspector, the app's log and the debug aids need what the app's
+twk serves: the service extensions `ext.twk.tree`, `properties`, `layout`,
+`select`, `highlight`, `flags`, `reassemble`, `log` (twk's binding), the
+`logs` debug aid (`TwkApp.serveLogs`) and `TWK_EDITOR`; all of them are in
+the published twk 0.3.0 (checked against the `twk_core-v0.3.0` tag), so a
+project on pub.dev's twk >= 0.3.0 gets everything, and the extension needs
+no checkout of this repository. An older twk lacks some of them and those
+parts find nothing to ask. From the repository:
 
 ```sh
 cd editors/vscode
@@ -71,8 +90,17 @@ With Dart-Code installed for Debug and F5 (Run needs only the Dart SDK).
 `--user-data-dir` and `--extensions-dir` give it a profile of its own.
 After a change to the extension, `npm run compile`, then **Developer:
 Reload Window** in the window that runs it (the apps it runs end with
-it). The inspector and the debug aids take the twk of this repository in
-the app.
+it).
+
+**Publishing** is the person's, with their accounts and tokens; nothing in
+the repository does it. The `.vsix` is what both take: the Marketplace
+(`npx vsce publish`, a publisher created at marketplace.visualstudio.com
+and a personal access token with the Marketplace "Manage" scope; the
+`publisher` in `package.json` is `twk` and must be that publisher's id) and
+Open VSX (`npx ovsx publish twk-vscode-<version>.vsix -p <token>`, a
+namespace `twk` created with `npx ovsx create-namespace twk`). The version
+in `package.json` and the top of `CHANGELOG.md` move together; `preview` is
+set in `package.json`, drop it when the extension is no preview.
 
 ### Using it
 
@@ -206,7 +234,7 @@ that end them or the blank rows at the bottom, as plain text (no colours).
 
 ### Not done
 
-Packaging (`vsce`) and the Marketplace; macOS and Windows (written for,
+Publishing (below); macOS and Windows (written for,
 not run: TCP on the loopback interface on Windows); a person's use beyond
 the tests (keys VS Code takes before the webview: Ctrl+P, Ctrl+Shift+P
 while the panel is focused); kitty's graphics protocol (not in the image
@@ -297,7 +325,7 @@ survives the app (restart, kill), and is the extension's to instrument.
 
 ## 2. The extension: `editors/vscode`
 
-A VS Code extension in TypeScript (no Marketplace publish, `private`),
+A VS Code extension in TypeScript (packaged as a `.vsix`, not published),
 whose terminals are xterm.js 6.0 in webviews, each served to its twk app
 by a port of `TerminalShell` to node. No node-pty: twk's socket terminal
 is the transport, so the app is started by anyone (the extension,
@@ -599,7 +627,8 @@ What the tests cover:
   no progress (its OSC 9;4 dropped), no image addon, and the title saying
   so.
 - Not done: a person using it (all of it is driven by the tests),
-  packaging (`vsce`), macOS and Windows, keys VS Code takes before the
+  publishing, macOS and Windows, the packaged `.vsix` installed in a real
+  VS Code (its file list is checked, it was not opened), keys VS Code takes before the
   webview gets them (Ctrl+P, Ctrl+Shift+P... while the panel is focused:
   not checked; nor that Ctrl+Alt+R typed in the panel reaches the key
   binding: the tests run the commands), kitty's encodings from a real
