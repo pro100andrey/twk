@@ -29,6 +29,12 @@ final class TicksState extends State<Ticks> with TickerProviderStateMixin {
   late final Ticker ticker = createTicker((_) => n++)..start();
 
   @override
+  void dispose() {
+    ticker.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) =>
       Text(ticker.isActive ? 'ticks' : 'stopped');
 }

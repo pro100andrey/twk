@@ -92,6 +92,7 @@ List<String> fresh(
 }) => View(width, height, order: order).show(RenderParagraph(spans));
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('lines ordered for drawing each draw their own glyphs', () {
     // three lines, each with right-to-left text in two spans: every line's
     // pieces are gathered for drawing, so a line drawn from what the next

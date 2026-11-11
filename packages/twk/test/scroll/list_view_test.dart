@@ -8,6 +8,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// `item <from>` to `item <to - 1>`.
 List<String> items(int from, int to) => [
   for (var i = from; i < to; i++) 'item $i',
@@ -130,6 +132,7 @@ void main() {
       'rows below them, and those it is scrolled to', (t) async {
     final built = <int>[];
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 100000,
@@ -162,6 +165,7 @@ void main() {
       'and PageUp a window, End and Home to the ends, while it has the '
       'focus', (t) async {
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 30,
@@ -192,6 +196,7 @@ void main() {
 
   testTwk('the wheel over it scrolls it three rows', (t) async {
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 100,
@@ -245,6 +250,7 @@ void main() {
       'back; one without is built anew', (t) async {
     final log = <String>[];
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 1000,
@@ -272,6 +278,7 @@ void main() {
       'left the view longest ago', (t) async {
     final log = <String>[];
     final controller = ScrollController(initialScrollOffset: 10);
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 1000,
@@ -354,6 +361,7 @@ void main() {
 
   testTwk('a ListController moves it to an item, built or not', (t) async {
     final controller = ListController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       ListView.builder(
         itemCount: 1000,
@@ -382,6 +390,7 @@ void main() {
       'frame, which builds the list again, the wheel wins: a frame applies '
       'it first, and a request waits for the position it leaves', (t) async {
     final controller = ListController();
+    addTearDown(controller.dispose);
     Widget view(int count) => ListView.builder(
       itemCount: count,
       controller: controller,
@@ -410,6 +419,7 @@ void main() {
   testTwk('a ListController request made as the list tells its position '
       'where it settled moves it in the same frame', (t) async {
     final controller = ListController();
+    addTearDown(controller.dispose);
     var asked = false;
     controller.addListener(() {
       if (!asked && controller.offset == 50) {
@@ -434,7 +444,7 @@ void main() {
   testTwk('a ListController keeps the latest request made while it has no '
       'list for the next list mounted, in place of its offset; a jumpTo '
       'after it drops it', (t) async {
-    final controller = ListController(initialScrollOffset: 30)
+    final controller = disposing(ListController(initialScrollOffset: 30))
       ..jumpToIndex(500)
       ..ensureIndexVisible(80);
     Widget view() => ListView.builder(
@@ -461,6 +471,7 @@ void main() {
 
   testTwk('ensureVisible scrolls the least that shows an item', (t) async {
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     final seven = GlobalKey();
     await t.pumpWidget(
       ListView.builder(

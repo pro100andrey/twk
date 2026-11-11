@@ -254,12 +254,13 @@ export function activate(context: vscode.ExtensionContext): Api {
   nodeCommand('twk.inspector.goToSource', (node) => inspector.goToSource(node.id));
   nodeCommand('twk.inspector.goToBuild', (node) => inspector.goToBuild(node.id));
   command('twk.inspector.toggles', async () => {
-    const picks = await vscode.window.showQuickPick(toggleItems(await inspector.flags()), {
+    const flags = await inspector.flags();
+    const picks = await vscode.window.showQuickPick(toggleItems(flags), {
       title: 'What twk draws over the app (the next app in its terminal too)',
       canPickMany: true,
     });
     if (picks) {
-      await inspector.setFlags(togglesPicked(picks.map((p) => p.label)));
+      await inspector.setFlags(togglesPicked(picks.map((p) => p.label), flags));
     }
   });
 

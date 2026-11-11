@@ -5,13 +5,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:twk_core/terminal.dart' show LogLevel, LogRecord, LogSink, log;
+import 'package:twk_core/terminal.dart'
+    show LogData, LogLevel, LogRecord, LogSink, log;
 
 final _at = DateTime(2026, 10, 19, 9, 5, 7, 42);
 
 LogRecord record(String message) => LogRecord(_at, LogLevel.info, message);
 
 void main() {
+  logRecordToStringTests();
   test('the ring keeps the newest records, oldest first', () {
     final sink = LogSink(capacity: 3);
     List<String> messages() => [for (final r in sink.records) r.message];
@@ -142,4 +144,18 @@ void main() {
       );
     },
   );
+}
+
+class _Report implements LogData {
+  @override
+  String toString() => 'the report';
+}
+
+void logRecordToStringTests() {
+  test('toString leaves a LogData error out, as toJson does', () {
+    final r = LogRecord(_at, LogLevel.warning, 'wide', error: _Report());
+    expect(r.toString(), '09:05:07.042 warning wide');
+    final plain = LogRecord(_at, LogLevel.warning, 'x', error: 'boom');
+    expect(plain.toString(), '09:05:07.042 warning x: boom');
+  });
 }

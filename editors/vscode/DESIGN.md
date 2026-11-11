@@ -366,7 +366,7 @@ The code is in layers (part 2b); what each part does:
   - **twk: Choose twk Terminal Switches (Screen Reader, Debug Aids)**:
     a pick of several (settings `twk.terminal.screenReader` and
     `twk.terminal.debugAids`: `overlay`, `console`, `frames`, `timeline`,
-    `logs`, `rainbow`, `relayout`), which the next app to connect gets,
+    `logs`, `rainbow`, `relayout`, `overflow`), which the next app to connect gets,
     a hot restart's too, whoever started it: the welcome's environment
     sets `TWK_SCREEN_READER=1` and `TWK_DEBUG=keys,<the aids>` (`keys`
     as the app's own TWK_DEBUG is then not read), and only those on, so
@@ -919,7 +919,7 @@ made in.
   the Build Method** opens the `build` of a node that has one, at its
   name (after `@override`).
 - **Debug aids** (the view's title): the frame overlay, the repaint
-  rainbow, the relayout highlight and the log console, a pick of several
+  rainbow, the relayout highlight, the overflow marker and the log console, a pick of several
   as the app has them; kept for the terminal, and given again to the
   next app in it (a restart).
 
@@ -1229,8 +1229,9 @@ What the repository offers for the wished features:
   sequences it doesn't know; `twk_term`'s emulator a permissive one.
 - **Widget tree, cell inspector, overlay**: `ext.twk.tree`, `properties`,
   `layout`, `select` (cell to element path), `highlight`, `flags`
-  (`overlay`, the frame overlay; `console`, `rainbow`, `relayout`, `keys`,
-  `select`, `treeEvents`), `reassemble`, `log`; `twk inspect` shows them
+  (`overlay`, the frame overlay; `console`, `rainbow`, `relayout`, `overflow`, `keys`,
+  `select`, `treeEvents`; `overflow` is read where the app reports it, a twk before it answers
+  without it, and the toggle is then left out), `reassemble`, `log`; `twk inspect` shows them
   in a terminal. The inspector (part 2d) takes them over the extension's
   own VM service connection, as Dart's debug adapter doesn't pass
   Extension events on (`handleExtensionEvent` does nothing in

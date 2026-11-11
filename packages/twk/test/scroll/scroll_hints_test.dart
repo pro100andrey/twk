@@ -83,6 +83,7 @@ void main() {
     testTwk('lists none with nothing to scroll, and once the content '
         'outgrows the window, those on', (t) async {
       final rows = ValueNotifier(2);
+      addTearDown(rows.dispose);
       await t.pumpWidget(
         withBar(
           ListenableBuilder(
@@ -128,6 +129,7 @@ void main() {
 
     testTwk('keyHints false: none, the keys scrolling it still', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           controller: controller,
@@ -205,7 +207,9 @@ void main() {
     testTwk('lists the keys that would scroll it; none when all of it '
         'shows, or with keyHints false', (t) async {
       final items = ValueNotifier(30);
+      addTearDown(items.dispose);
       final hinted = ValueNotifier(true);
+      addTearDown(hinted.dispose);
       await t.pumpWidget(
         ListenableBuilder(
           listenable: Listenable.merge([items, hinted]),

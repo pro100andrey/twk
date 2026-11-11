@@ -98,6 +98,50 @@ void main() {
       expect(log, ['a build']);
     });
 
+    test('with a callback returning a Future is an error naming the state, '
+        'but any other result is fine', () {
+      final log = <String>[];
+      final tree = Tree()..pump(Probe('a', log));
+      final state = tree.stateOf<ProbeState>();
+      expect(
+        () => state.change(() async {
+          await null;
+          state.count++;
+        }),
+        throwsA(
+          isA<AssertionError>().having(
+            (e) => e.message.toString(),
+            'message',
+            allOf(contains('returned a Future'), contains('ProbeState')),
+          ),
+        ),
+      );
+      expect(() => state.change(() => state.count++), returnsNormally);
+    });
+
+    test('with an arrow callback whose value is a Future names that cause '
+        'and the block body that fixes it', () {
+      final log = <String>[];
+      final tree = Tree()..pump(Probe('a', log));
+      final state = tree.stateOf<ProbeState>();
+      Future<int>? pending;
+      expect(
+        () => state.change(() => pending = Future.value(1)),
+        throwsA(
+          isA<AssertionError>().having(
+            (e) => e.message.toString(),
+            'message',
+            allOf(
+              contains('arrow function'),
+              contains('block body'),
+              contains('"async"'),
+            ),
+          ),
+        ),
+      );
+      expect(pending, isNotNull);
+    });
+
     test('after dispose is an error, as is the context', () {
       final log = <String>[];
       final tree = Tree()..pump(Probe('a', log));

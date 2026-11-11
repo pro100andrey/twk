@@ -130,6 +130,7 @@ final class Line extends RenderObject {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a boundary the rows of a repaint around it miss keeps what it kept '
       'of its paint', () {
     final kept = Line('kept', boundary: true);

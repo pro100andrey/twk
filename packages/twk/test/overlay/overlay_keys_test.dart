@@ -110,6 +110,7 @@ void main() {
       'skipped too', (t) async {
     final heard = <String>[];
     final extra = ValueNotifier(false);
+    addTearDown(extra.dispose);
     final navigator = GlobalKey();
     Widget nav() => Navigator(key: navigator, home: screen('home'));
     await t.pumpWidget(
@@ -135,6 +136,7 @@ void main() {
       'the rest is still skipped', (t) async {
     final heard = <String>[];
     final extra = ValueNotifier(true);
+    addTearDown(extra.dispose);
     final navigator = GlobalKey();
     Widget nav() => Navigator(key: navigator, home: screen('home'));
     await t.pumpWidget(

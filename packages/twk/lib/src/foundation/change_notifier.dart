@@ -4,6 +4,7 @@
 library;
 
 import 'dart:async';
+import 'dart:collection' show LinkedHashMap;
 
 import 'package:meta/meta.dart';
 
@@ -132,6 +133,10 @@ mixin class ChangeNotifier implements Listenable {
   void dispose() {
     assert(!_disposed, '$this used after dispose()');
     assert(_notifying == 0, '$this disposed while notifying its listeners');
+    assert(
+      DisposalTracker.disposed(this),
+      'tracks the object',
+    );
     _disposed = true;
     _listeners.clear();
     _removed = 0;
@@ -183,7 +188,12 @@ mixin class ChangeNotifier implements Listenable {
 ///  * [ValueListenableBuilder], which shows the value.
 class ValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
   /// A notifier holding [_value] at first.
-  ValueNotifier(this._value);
+  ValueNotifier(this._value) {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   T _value;
 
@@ -220,4 +230,105 @@ final class _MergingListenable extends Listenable {
       listenable?.removeListener(listener);
     }
   }
+}
+
+/// Finds the objects that were never disposed: a debug aid that is off
+/// until `DisposalTracker.start` is called, and that does nothing in a
+/// release build.
+///
+/// A [ChangeNotifier] has no constructor to hook, so the classes that must
+/// be disposed join explicitly: the constructor of a [ValueNotifier] (a
+/// `TextEditingController` among them), of a `ScrollController`, a
+/// `FocusNode` and an `AnimationController` calls
+/// `assert(DisposalTracker.created(this))`, and [ChangeNotifier.dispose]
+/// reports the disposal itself. A class of an app joins the same way. All
+/// of it sits inside `assert`, so a release build pays nothing, and with no
+/// tracker started a debug build pays one null check per object.
+///
+/// `testTwk` starts a tracker with `trackDisposables: true` and fails the
+/// test with what [stop] returns. The tracker holds what it tracks until
+/// [stop], so an object nothing else refers to is still reported, which
+/// weak references could not promise: the collector may take it first.
+///
+/// ```dart
+/// final tracker = DisposalTracker.start();
+/// final count = ValueNotifier(0); // never disposed
+/// final leaked = tracker.stop();
+/// assert(identical(leaked.single.object, count));
+/// ```
+///
+/// See also:
+///
+///  * [ChangeNotifier.dispose], which the tracked objects are disposed by.
+final class DisposalTracker {
+  DisposalTracker._();
+
+  /// Starts tracking the objects that are created from now on; the objects
+  /// of an earlier tracker are forgotten. In a release build nothing is
+  /// tracked, and [stop] returns nothing.
+  ///
+  /// Only one tracker runs at a time, as only one test does.
+  factory DisposalTracker.start() {
+    final tracker = DisposalTracker._();
+    assert(() {
+      _active = tracker;
+      return true;
+    }(), 'starts tracking');
+    return tracker;
+  }
+
+  static DisposalTracker? _active;
+
+  // the objects created and not disposed since [start], by identity
+  final _live = LinkedHashMap<Object, StackTrace>.identity();
+
+  /// Whether a tracker is running.
+  static bool get isTracking => _active != null;
+
+  /// Records [object] as created, with the stack that made it, when a
+  /// tracker runs; always true, to stand in an `assert`.
+  static bool created(Object object) {
+    _active?._live[object] = StackTrace.current;
+    return true;
+  }
+
+  /// Records [object] as disposed, when a tracker runs and knows it; always
+  /// true, to stand in an `assert`.
+  static bool disposed(Object object) {
+    _active?._live.remove(object);
+    return true;
+  }
+
+  /// Stops tracking [object], an app-owned singleton that lives as long as
+  /// the app and is not disposed (the root focus scope); always true, to
+  /// stand in an `assert`.
+  static bool forget(Object object) => disposed(object);
+
+  /// Ends the tracking and returns the objects created meanwhile and never
+  /// disposed, in the order they were created.
+  List<UndisposedObject> stop() {
+    if (identical(_active, this)) {
+      _active = null;
+    }
+    final result = [
+      for (final MapEntry(:key, :value) in _live.entries)
+        UndisposedObject._(key, value),
+    ];
+    _live.clear();
+    return result;
+  }
+}
+
+/// An object a [DisposalTracker] saw created and not disposed.
+final class UndisposedObject {
+  UndisposedObject._(this.object, this.createdAt);
+
+  /// The object.
+  final Object object;
+
+  /// The stack of the code that created it.
+  final StackTrace createdAt;
+
+  @override
+  String toString() => '${object.runtimeType} created at:\n$createdAt';
 }

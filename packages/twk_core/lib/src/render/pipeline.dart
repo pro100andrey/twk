@@ -33,7 +33,18 @@ final class PipelineOwner {
   /// is marked; text is measured with [segmenter], a [TextSegmenter] of
   /// its own when left out.
   PipelineOwner(this.onNeedFrame, {TextSegmenter? segmenter})
-    : segmenter = segmenter ?? TextSegmenter();
+    : segmenter = segmenter ?? TextSegmenter(),
+      _overflowIndicator = debugOverflowIndicatorByDefault;
+
+  /// An owner for output that is data (what `renderToString` returns, a
+  /// line written to a pipe or a file, a capture held to goldens, a commit
+  /// to the scrollback): [debugOverflowIndicator] is off, whatever
+  /// [debugOverflowIndicatorByDefault] says, so no marker is drawn over the
+  /// output; the warning of an overflow still goes to [onLog]. It can be
+  /// turned on afterwards, as on any owner.
+  PipelineOwner.forData(this.onNeedFrame, {TextSegmenter? segmenter})
+    : segmenter = segmenter ?? TextSegmenter(),
+      _overflowIndicator = false;
 
   /// Called each time a render object is marked for layout or paint, and
   /// when [root] is set: the next frame has work to do. Called again for
@@ -63,6 +74,12 @@ final class PipelineOwner {
   /// that lays the tree out. Unset, they go to [log].
   void Function(LogRecord record)? onLog;
 
+  /// Like [onLog], and ahead of it: the tree's own warnings with the render
+  /// object that raised each, for a sink that can say where in the app it
+  /// is (the binding adds the path of its widget). Unset, they go to
+  /// [onLog].
+  void Function(RenderObject source, LogRecord record)? onObjectLog;
+
   /// Each repaint of a repaint boundary, or of the root on its own, blends
   /// the next tint of a cycle over the background of the cells it covered
   /// (its bounds, cut off where its ancestors cut it off), keeping their
@@ -84,6 +101,66 @@ final class PipelineOwner {
   /// as under [debugRepaintRainbow].
   bool get debugRelayoutHighlight => (_debug & _debugRelayout) != 0;
   set debugRelayoutHighlight(bool on) => _setDebug(_debugRelayout, on);
+
+  /// Whether a flex, a wrap or a grid that its children overflow shows
+  /// the marker of it (see [RenderFlex]): a hatch along the cut edge and
+  /// the cells cut off. On from the start while asserts are on
+  /// ([debugOverflowIndicatorByDefault]); with asserts off, the layouts
+  /// note an overflow only while it is on, so turning it on
+  /// (`TWK_DEBUG=overflow`, Ctrl+G w) lays out again every flex, wrap
+  /// and grid, and repaints everything; turned off, everything is
+  /// repainted. Output that is data is drawn by an owner made with
+  /// [PipelineOwner.forData]. A box that clips on purpose
+  /// ([RenderFlex.overflowIntended]) shows none.
+  bool get debugOverflowIndicator => _overflowIndicator;
+  set debugOverflowIndicator(bool on) {
+    if (on == _overflowIndicator) {
+      return;
+    }
+    _overflowIndicator = on;
+    if (on) {
+      // the layouts note an overflow only while the marker is on, so
+      // _overflowRight, _overflowBottom and _overflowed of the objects are
+      // stale until they are laid out again here; read them only while the
+      // flag is on
+      void again(RenderObject o) {
+        if (o is _OverflowIndicator) {
+          o.markNeedsLayout();
+        }
+        o.visitChildren(again);
+      }
+
+      final r = _root;
+      if (r != null) {
+        again(r);
+      }
+    }
+    markAllDirty();
+  }
+
+  /// What [debugOverflowIndicator] is in an owner made from now on: on
+  /// while asserts are on. A test file whose screens overflow on purpose
+  /// sets it once, in `main`.
+  static bool debugOverflowIndicatorByDefault = debugAssertsEnabled;
+
+  bool _overflowIndicator;
+
+  /// Checks, in debug mode, the intrinsic sizes of each object as it is laid
+  /// out: each of the four answers, at the object's own width and height
+  /// and at [BoxConstraints.unbounded], is not negative, and a minimum is
+  /// not above its maximum (see [RenderObject.computeMinIntrinsicWidth]).
+  /// A failure asserts, naming the object and the query. Off by default,
+  /// since it asks the object and the children it asks eight more
+  /// questions on every layout: turn it on in the tests of a render object
+  /// with intrinsics of its own. The questions are not cached.
+  bool debugCheckIntrinsics = debugCheckIntrinsicsByDefault;
+
+  /// What [debugCheckIntrinsics] is in an owner made from now on: a test
+  /// file sets it once, in `main`, for every owner it makes.
+  static var debugCheckIntrinsicsByDefault = false;
+
+  // the check of debugCheckIntrinsics is asking: nothing is cached
+  var _checkingIntrinsics = false;
 
   // the debug paints on (_debugRainbow, _debugRelayout); where each one's
   // cycle of tints is; the flushPaint that outlined last, and the pen it
@@ -416,6 +493,22 @@ final class PipelineOwner {
     list.clear();
     ctx.canvas.reset();
     _throwFirst();
+    assert(
+      ctx.surface.debugRepairWide(_reportWide),
+      'a wide glyph of the surface is split',
+    );
+  }
+
+  // a split wide glyph (asserts only): logged as an error, not thrown, as
+  // the painter that split it is not known; the surface repaired it
+  void _reportWide(String message) {
+    final record = LogRecord(DateTime.now(), LogLevel.error, message);
+    final route = onLog;
+    if (route == null) {
+      log(message, level: LogLevel.error);
+    } else {
+      route(record);
+    }
   }
 
   /// Calls [RenderObject.beforePaint] on the objects

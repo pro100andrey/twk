@@ -11,11 +11,13 @@ Made by `twk create --template=inline`, on the widgets of twk.
 
 ```bash
 dart pub get
-dart run bin/main.dart
+dart run --enable-asserts bin/main.dart
 ```
 
 With hot reload, the files of `lib/` and `bin/main.dart` reloaded as they
-change, each `State` kept (Ctrl+G H restarts the app):
+change, each `State` kept (Ctrl+G H restarts the app), and asserts on, which
+the framework's checks and overflow warnings need (`--no-asserts` runs the
+app without them, for measuring):
 
 ```bash
 dart run twk_dev:twk run bin/main.dart

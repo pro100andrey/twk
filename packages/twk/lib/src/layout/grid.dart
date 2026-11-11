@@ -55,6 +55,7 @@ final class Grid extends MultiChildRenderObjectWidget {
     this.rows = const [],
     this.columnGap = 0,
     this.rowGap = 0,
+    this.overflowIntended = false,
     super.children,
   }) : assert(columnGap >= 0 && rowGap >= 0, 'gaps of 0 cells or more');
 
@@ -70,6 +71,12 @@ final class Grid extends MultiChildRenderObjectWidget {
   /// Rows between one row and the next.
   final int rowGap;
 
+  /// Whether the tracks are meant to be cut off where they do not fit:
+  /// a strip that shows the start of what is longer than it. Then, where
+  /// they overflow, there is neither the marker over the edge in debug mode
+  /// nor the warning in the log ([RenderGrid]). False by default.
+  final bool overflowIntended;
+
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
 
@@ -79,7 +86,7 @@ final class Grid extends MultiChildRenderObjectWidget {
     rows: rows,
     columnGap: columnGap,
     rowGap: rowGap,
-  );
+  )..overflowIntended = overflowIntended;
 
   @override
   void updateRenderObject(BuildContext context, RenderGrid renderObject) {
@@ -87,7 +94,8 @@ final class Grid extends MultiChildRenderObjectWidget {
       ..columns = columns
       ..rows = rows
       ..columnGap = columnGap
-      ..rowGap = rowGap;
+      ..rowGap = rowGap
+      ..overflowIntended = overflowIntended;
   }
 }
 

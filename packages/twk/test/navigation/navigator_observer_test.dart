@@ -120,6 +120,7 @@ void main() {
       'is told the result of a pop', (t) async {
     final calls = <String>[];
     final canPop = ValueNotifier(false);
+    addTearDown(canPop.dispose);
     final navigator = GlobalKey<NavigatorState>();
     await t.pumpWidget(
       KeyBindings(
@@ -195,6 +196,7 @@ void main() {
       'key goes on again, and what lists the keys is told', (t) async {
     final calls = <String>[];
     final canPop = ValueNotifier(false);
+    addTearDown(canPop.dispose);
     await t.pumpWidget(
       KeyBindings(
         {'escape': () => calls.add('app escape')},
@@ -396,6 +398,40 @@ void main() {
     await t.pump();
     expect(() => state.popAndPushNamed<void, void>('/a'), throwsStateError);
   });
+
+  testTwk('a route removed before a frame built it disposes its focus nodes', (
+    t,
+  ) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Navigator(key: navigator, routes: {'/': (_) => const Text('home')}),
+      size: (20, 3),
+    );
+    final state = navigator.currentState!;
+    final d = page('d');
+    unawaited(state.push(d));
+    unawaited(state.push(page('e')));
+    state.removeRoute(d);
+    await t.pump();
+  }, trackDisposables: true);
+
+  testTwk('a route no frame hosted makes no focus node, even when covered '
+      'and removed', (t) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await t.pumpWidget(
+      Navigator(key: navigator, routes: {'/': (_) => const Text('home')}),
+      size: (20, 3),
+    );
+    final state = navigator.currentState!;
+    final d = page('d');
+    unawaited(state.push(d));
+    unawaited(state.push(page('e')));
+    unawaited(state.push(page('f')));
+    state
+      ..removeRoute(d)
+      ..popUntil((r) => r.isFirst);
+    await t.pump();
+  }, trackDisposables: true);
 }
 
 /// Writes down the name of each route pushed, and nothing else.

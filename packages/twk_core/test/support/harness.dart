@@ -559,7 +559,7 @@ void randomOp(Harness hs, Random rnd) {
       }
       hs.editLine = line;
       cv
-        ..fill(hs.editX, hs.editY, w - hs.editX, 1, hs.pens[1])
+        ..fill(hs.editX, hs.editY, max(0, w - hs.editX), 1, hs.pens[1])
         ..text(hs.editX, hs.editY, line, hs.editPen);
     case 0:
     case 1:

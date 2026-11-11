@@ -288,6 +288,7 @@ List<int> intrinsics(RenderObject o, int extent) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('EdgeInsets', () {
     test('are the cells on each side', () {
       const insets = EdgeInsets.only(left: 1, top: 2, right: 3, bottom: 4);
@@ -581,22 +582,6 @@ void main() {
       v.frame();
       expect(box.alignment, Alignment.centerRight);
       expect(v.rows(), ['   ab']);
-    });
-
-    test('cuts off a child that sticks out of it', () {
-      final v = View(9, 3);
-      final child = Stubborn('abcdefg', 7, 3);
-      final box = RenderPositionedBox(child: child);
-      // three columns and one row in the middle of the screen
-      final root = RenderPadding(
-        padding: const EdgeInsets.only(left: 3, top: 1, right: 3, bottom: 1),
-        child: box,
-      );
-      expect(v.show(root), ['', '   cde', '']);
-      expect(child.parentData.dx, -2);
-      box.alignment = Alignment.topLeft;
-      v.frame();
-      expect(v.rows(), ['', '   abc', '']);
     });
 
     test('is a relayout boundary unless a factor makes it as big as its '

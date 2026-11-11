@@ -2,6 +2,10 @@
 /// compiled.
 library;
 
+// One probe for both packages, the core's: the render pipeline's overflow
+// marker and the binding's asserts check must give the same answer.
+export 'package:twk_core/twk_core.dart' show debugAssertsEnabled;
+
 /// Whether the program was compiled for release (`dart compile exe`, or
 /// run with `-Ddart.vm.product=true`).
 ///

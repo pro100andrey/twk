@@ -53,6 +53,7 @@ void main() {
     testTwk('keeps the rows it shows as items are inserted above the '
         'window', (t) async {
       final controller = ScrollController(initialScrollOffset: 10);
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller),
         size: (20, 5),
@@ -67,6 +68,7 @@ void main() {
 
     testTwk('and as items are removed above it', (t) async {
       final controller = ScrollController(initialScrollOffset: 10);
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller),
         size: (20, 5),
@@ -81,6 +83,7 @@ void main() {
     testTwk('keeps its row within an item taller than one, the items '
         'inserted as tall as they like', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       int rows(int id) => id.isEven ? 2 : 3;
       await t.pumpWidget(
         list(ids(0, 30), controller: controller, rows: rows),
@@ -101,6 +104,7 @@ void main() {
     testTwk('finds where the item it shows went by findChildIndexCallback '
         'when it went further than the items built', (t) async {
       final controller = ScrollController(initialScrollOffset: 10);
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller, find: true),
         size: (20, 5),
@@ -120,6 +124,7 @@ void main() {
     testTwk('asks findChildIndexCallback before it builds an item to read '
         'its key', (t) async {
       final controller = ScrollController(initialScrollOffset: 10);
+      addTearDown(controller.dispose);
       final built = <int>[];
       Widget counted(List<int> ids) => ListView.builder(
         autofocus: true,
@@ -145,6 +150,7 @@ void main() {
     testTwk('keeps the rows the next item it shows has when the first is '
         'removed', (t) async {
       final controller = ScrollController(initialScrollOffset: 10);
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller),
         size: (20, 5),
@@ -157,6 +163,7 @@ void main() {
 
     testTwk('without keys keeps its offset: what it shows moves', (t) async {
       final controller = ScrollController(initialScrollOffset: 10);
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 50), controller: controller, keyed: false),
         size: (20, 5),
@@ -171,6 +178,7 @@ void main() {
 
   testTwk('a list at its start shows the items inserted there', (t) async {
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       list(ids(0, 50), controller: controller),
       size: (20, 5),
@@ -185,6 +193,7 @@ void main() {
   testTwk('a list stuck to its end keeps following it as items are '
       'inserted above', (t) async {
     final controller = ScrollController(stickToEnd: true);
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       list(ids(0, 20), controller: controller),
       size: (20, 5),
@@ -203,6 +212,7 @@ void main() {
       t,
     ) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 30), controller: controller, reverse: true),
         size: (20, 5),
@@ -225,6 +235,7 @@ void main() {
     testTwk('scrolled up keeps the rows it shows as older messages load '
         'above them', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 30), controller: controller, reverse: true),
         size: (20, 5),
@@ -243,6 +254,7 @@ void main() {
 
     testTwk('at the bottom keeps the bottom as older messages load', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         list(ids(0, 30), controller: controller, reverse: true),
         size: (20, 5),
@@ -258,6 +270,7 @@ void main() {
         'findItemIndexCallback as older ones load and new ones arrive at '
         'once', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       Widget chat(List<int> ids) => ListView.separated(
         reverse: true,
         autofocus: true,

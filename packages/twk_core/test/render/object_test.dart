@@ -49,6 +49,7 @@ void frame(PipelineOwner owner, Screen screen, int w, int h) => owner
   ..flushPaint(PaintContext(screen.canvas, screen.surface, screen.presenter));
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('BoxConstraints', () {
     test('are equal, with equal hashes, when their limits are', () {
       const a = BoxConstraints(maxWidth: 10, minHeight: 1, maxHeight: 5);

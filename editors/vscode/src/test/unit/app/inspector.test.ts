@@ -27,7 +27,7 @@ import {
 
 /** The flags an app answers, [on] those on. */
 function flagsAnswer(...on: string[]) {
-  const all = ['overlay', 'console', 'rainbow', 'relayout', 'keys', 'select', 'selectMany', 'treeEvents'];
+  const all = ['overlay', 'console', 'rainbow', 'relayout', 'overflow', 'keys', 'select', 'selectMany', 'treeEvents'];
   return { version: 1, ...Object.fromEntries(all.map((f) => [f, on.includes(f)])), framesInRow: false };
 }
 

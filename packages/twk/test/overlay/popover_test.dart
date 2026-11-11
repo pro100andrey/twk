@@ -175,6 +175,7 @@ void main() {
   testTwk('a popover follows its child as that is laid out somewhere '
       'else, in the same frame, and paints no more', (t) async {
     final above = ValueNotifier(1);
+    addTearDown(above.dispose);
     final count = PaintCount();
     await t.pumpWidget(
       Overlay(
@@ -222,6 +223,7 @@ anchor
   testTwk('a popover follows its child moved inside a repaint boundary that '
       'repaints alone, from the next frame', (t) async {
     final dx = ValueNotifier(1);
+    addTearDown(dx.dispose);
     await t.pumpWidget(
       Overlay(
         child: Column(

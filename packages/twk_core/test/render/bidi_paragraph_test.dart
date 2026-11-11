@@ -103,6 +103,7 @@ List<String> ranges(RenderParagraph p, int y) => [
 ];
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('in logical order, the default, right-to-left text is drawn as '
       'stored', () {
     expect(PipelineOwner(() {}).textOrder, TextOrder.logical);

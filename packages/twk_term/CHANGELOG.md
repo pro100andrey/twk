@@ -2,8 +2,26 @@
 
 ## Unreleased
 
+Fixed:
+
+- `TerminalView.canRequestFocus` is `bool?`, null by default: a `focusNode`
+  given keeps its own `canRequestFocus` (it was forced back to true by every
+  build).
+- The check `feed` ends with looks at the screens and the scrollback lines
+  pushed since the last check, not every line of the scrollback (a resize and
+  `debugAssertInvariants()` check all).
+- `TerminalEmulator.debugCorrupt` does nothing outside a debug run.
+- `TerminalSession.resize` gave the program's terminal the size asked for
+  where the emulator kept at least one column and row: `resize(0, 0)`
+  outside a `TerminalView` threw a `RangeError` from `Pty.resize`. Both
+  get the size kept.
+
 Added:
 
+- `TerminalEmulator.debugAssertInvariants`, the emulator's own state checked
+  (cursor, margins, screens, tab stops, saved cursors, scrollback); `feed` and
+  `resize` end with it as an `assert`. Input bytes are still clamped or
+  ignored.
 - `Pty.foregroundProcessGroup`, the process group in the foreground of the
   terminal: another than the program's while a shell runs a job, to ask
   before closing one that is busy.

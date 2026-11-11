@@ -507,6 +507,60 @@ final class Surface {
     return -1;
   }
 
+  /// Debug check, for an `assert`: every two-column glyph in the damaged
+  /// cells of the surface, and one column beside them, is whole, a [kWide]
+  /// cell followed by a [kCont] cell, and no [kCont] cell stands without a
+  /// [kWide] before it. A glyph cut by the surface edge or a clip is blanked
+  /// by the canvas, so none is legal at the last column or at column 0.
+  /// Each split half found is blanked, so that the presenter's diff stays in
+  /// step with the terminal, and [report] is called with a message naming
+  /// the row and column; returns true, for the `assert`.
+  ///
+  /// A painter that writes [cells] itself, and splits a wide glyph, would
+  /// show half of it in the terminal, and the presenter's diff would be out
+  /// of step with the terminal until a full repaint.
+  bool debugRepairWide(void Function(String message) report) {
+    final w = width;
+    final c = cells;
+    for (var y = 0; y < height; y++) {
+      final hi0 = dirtyHi[y];
+      var lo = dirtyLo[y];
+      if (lo >= hi0) {
+        continue;
+      }
+      lo = lo > 0 ? lo - 1 : 0;
+      final hi = hi0 < w ? hi0 + 1 : w;
+      final row = y * w;
+      for (var x = lo; x < hi; x++) {
+        final cell = c[row + x];
+        if ((cell & kWide) != 0 &&
+            (x + 1 >= w || (c[row + x + 1] & kCont) == 0)) {
+          report(
+            'A wide glyph at column $x of row $y has no continuation cell '
+            '${x + 1 >= w ? '(it is at the last column)' : 'after it'}: '
+            'a painter that writes Surface.cells directly split it. Use '
+            'Surface.breakWideAt before overwriting either half of a wide '
+            'glyph, or blank the glyph whole.',
+          );
+          c[row + x] = kBlank;
+          markDirty(y, x, x + 1);
+        } else if ((cell & kCont) != 0 &&
+            (x == 0 || (c[row + x - 1] & kWide) == 0)) {
+          report(
+            'A continuation cell at column $x of row $y has no wide glyph '
+            'before it: a painter that writes Surface.cells directly '
+            'overwrote the first half of a wide glyph. Use '
+            'Surface.breakWideAt before overwriting either half of a wide '
+            'glyph, or blank the glyph whole.',
+          );
+          c[row + x] = kBlank;
+          markDirty(y, x, x + 1);
+        }
+      }
+    }
+    return true;
+  }
+
   /// Moves the content of rows [rowTop, rowBottom) up by [n] rows (down
   /// when negative); exposed rows become blank with [style]. This is how a
   /// scrolling view avoids repainting content that only moved: the damage

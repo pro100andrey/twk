@@ -195,6 +195,10 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  // these tests cut children off on purpose and read the cells; the marker
+  // of an overflow has a file of its own
+  PipelineOwner.debugOverflowIndicatorByDefault = false;
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('the children of a container', () {
     test('are kept in the order they are inserted, moved and removed', () {
       final [a, b, c, d] = [for (final s in 'abcd'.split('')) Label(s)];
@@ -568,9 +572,11 @@ void main() {
       final row = RenderFlex(spacing: 1, children: [Label('ab'), label, sized]);
       flexible(label, 1);
       flexible(sized, 2, FlexFit.loose);
-      row.layout(
-        const BoxConstraints(maxHeight: 1),
-        parentUsesSize: true,
+      printed(
+        () => row.layout(
+          const BoxConstraints(maxHeight: 1),
+          parentUsesSize: true,
+        ),
       );
       expect([row.width, row.height], [11, 1]);
       expect(boxes(row), ['0,0 2x1', '3,0 3x1', '7,0 4x1']);
@@ -642,6 +648,25 @@ void main() {
         ],
       );
     });
+  });
+
+  test('onObjectLog hears the warning with the object, ahead of onLog', () {
+    final v = View(4, 1);
+    final seen = <(RenderObject, LogRecord)>[];
+    final plain = <LogRecord>[];
+    v.owner
+      ..onLog = plain.add
+      ..onObjectLog = (o, r) => seen.add((o, r));
+    final row = RenderFlex(spacing: 1, children: [Label('ab'), Label('cd')]);
+    v.show(row);
+    var asserts = false;
+    assert(asserts = true, 'debug only');
+    expect(plain, isEmpty);
+    expect(seen.length, asserts ? 1 : 0);
+    if (asserts) {
+      expect(seen.single.$1, same(row));
+      expect(seen.single.$2.message, contains('RenderFlex overflowed'));
+    }
   });
 
   group('intrinsic sizes', () {

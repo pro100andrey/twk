@@ -635,6 +635,7 @@ void main() {
     testTwk('gives the widgets below it the theme on the way from the one '
         'it had to the new one', (t) async {
       final data = ValueNotifier(ThemeData.dark);
+      addTearDown(data.dispose);
       await t.pumpWidget(
         ValueListenableBuilder<ThemeData>(
           valueListenable: data,

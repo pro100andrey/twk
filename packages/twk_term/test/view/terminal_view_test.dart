@@ -236,6 +236,24 @@ void main() {
     expect(t.lines[1], 'line 6');
   });
 
+  testTwk('a given focus node keeps its canRequestFocus through builds', (
+    t,
+  ) async {
+    final link = Link(t);
+    final node = FocusNode(canRequestFocus: false);
+    addTearDown(node.dispose);
+    Widget view() => TerminalView(session: link.session, focusNode: node);
+    await t.pumpWidget(view(), size: (10, 4));
+    expect(node.canRequestFocus, isFalse);
+    node.canRequestFocus = true;
+    await t.pumpWidget(view(), size: (10, 4));
+    expect(node.canRequestFocus, isTrue);
+    node.canRequestFocus = false;
+    link.write('x');
+    await t.pump();
+    expect(node.canRequestFocus, isFalse);
+  });
+
   group('the scrollback', () {
     Future<Link> filled(TwkTester t) async {
       final link = Link(t);

@@ -25,6 +25,7 @@ import '../editing/text_editing.dart' show TextBoundaries;
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/basic.dart';
@@ -255,7 +256,8 @@ final class Select<T> extends StatelessWidget {
     this.decoration,
   }) : assert(rows > 0, 'rows below 1');
 
-  /// What can be chosen, in the order the list shows them.
+  /// What can be chosen, in the order the list shows them; no two have
+  /// the same value, which it asserts.
   final List<Choice<T>> choices;
 
   /// The value of the choice chosen; none is when no choice has it.
@@ -391,7 +393,8 @@ final class MultiSelect<T> extends StatelessWidget {
     this.decoration,
   }) : assert(rows > 0, 'rows below 1');
 
-  /// What can be selected, in the order the list shows them.
+  /// What can be selected, in the order the list shows them; no two have
+  /// the same value, which it asserts.
   final List<Choice<T>> choices;
 
   /// The values of the choices selected.
@@ -462,6 +465,21 @@ final class MultiSelect<T> extends StatelessWidget {
     decoration: decoration,
   );
 }
+
+/// Asserts that no two of [choices] have equal values: they would be
+/// chosen together.
+bool _distinctChoices<T>(
+  List<Choice<T>> choices,
+  String widget, {
+  bool full = false,
+}) => debugDistinct<T>(
+  choices.length,
+  (i) => choices[i].value,
+  (value, _) =>
+      '$widget has two choices with the value $value: choices equal in '
+      'value are chosen together, so give each its own value',
+  full: full,
+);
 
 /// What a [Select] and a [MultiSelect] are: a field and the list of the
 /// choices, [chosen] those of them chosen.
@@ -576,6 +594,14 @@ final class _PickerState<T> extends State<_Picker<T>>
   @override
   void initState() {
     super.initState();
+    assert(
+      _distinctChoices(
+        widget.choices,
+        widget.multiple ? 'MultiSelect' : 'Select',
+        full: true,
+      ),
+      'duplicate choices',
+    );
     _popup.addListener(_popupChanged);
     final tookOver = attachPopup(widget.controller);
     _open = _popup.isOpen && _enabled;
@@ -585,6 +611,14 @@ final class _PickerState<T> extends State<_Picker<T>>
   @override
   void didUpdateWidget(_Picker<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    assert(
+      widget.choices == oldWidget.choices ||
+          _distinctChoices(
+            widget.choices,
+            widget.multiple ? 'MultiSelect' : 'Select',
+          ),
+      'duplicate choices',
+    );
     if (!identical(widget.controller, oldWidget.controller)) {
       (oldWidget.controller ?? _ownPopup)?.removeListener(_popupChanged);
       detachPopup(oldWidget.controller);

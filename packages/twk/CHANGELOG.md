@@ -26,14 +26,54 @@ Added:
 - `LogView`: `w` turns the wrapping over (`w wrap` in a `KeyHintsBar`).
 - `ListController.jumpToIndex(rows:)`: the item at the top part way into
   it, `rows` of it above the window.
+- `runApp(onError:)` and `AppBinding(onError:)`, an `ErrorReporter` told
+  of every error the binding reports (build, layout, paint, an input
+  handler, uncaught: `ErrorOrigin`) with the widget path where there is
+  one, besides what happens to the error.
+- `debugAssertsEnabled`, whether asserts are on; `AppBinding` logs one
+  info line when a program runs with them off.
+- `DisposalTracker`, an opt-in debug record of the controllers and
+  notifiers made and never disposed (`testTwk(trackDisposables: true)`
+  reports them); `ValueNotifier`, `ScrollController`, `FocusNode` and
+  `AnimationController` join it.
+- `overflowIntended` on `Flex`, `Row`, `Column`, `Wrap` and `Grid`: a
+  layout that cuts its children off on purpose shows no overflow marker
+  and logs no warning.
+- The debug aids' overflow marker: a hatch with the cells cut off, at the
+  edge of a flex, wrap or grid whose children do not fit
+  (`TWK_DEBUG=overflow`, Ctrl+G then `w`, `DebugAids.overflow`,
+  `ext.twk.flags`), on while asserts are.
+- `ControllerHost(mounted:)`, whether a host that is no `State` is still
+  in the tree.
 
 Changed:
 
 - `LogView(wrap: true)` wraps a line's text in a column of its own right
   of its time and level, not back under them at the left edge.
+- Debug runs assert, with a hint, on what was lost or wrong without a
+  word: `setState` of an element inside its own `build` (the update was
+  dropped); a lookup of an inherited widget or an ancestor from an element
+  out of the tree, in `dispose` or after an await (it gave null or a
+  default; keep the value from `didChangeDependencies`); a `State`
+  disposed with a `Ticker` still active, naming both (a controller it did
+  not dispose); a controller served by two widgets in the tree at once,
+  checked after the build; two choices with one value in `Select`,
+  `MultiSelect` and `SegmentedButton`, two items with one key in
+  `SelectionList`, two rows with one `rowKey` in `Table`; `requestFocus`
+  on a disposed `FocusNode` (the focus handed back by a route or a dialog
+  skips a node disposed meanwhile); `StepperController.next`, `back` or
+  `goTo` after its dispose, at the call (a validator that resolves after
+  it stays silent); a
+  negative `duration`, `reverseDuration`, `animateTo` duration or
+  `repeat` period of an `AnimationController` (`Duration.zero` jumps).
+- Tree warnings (a flex, wrap or grid overflow, a viewport or list given
+  no room) name the widget path of the render object that raised them.
 
 Fixed:
 
+- `State.setState` asserts, in a debug run, on a callback that returns a
+  `Future` (an `async` closure), whose changes after the first await had
+  no rebuild after them.
 - `LogView` scrolled across and its controller cleared: the lines added
   next show from their start, not scrolled out of view.
 - `LogView` scrolled up into a wrapped line stays on its row as lines are
@@ -59,6 +99,90 @@ Fixed:
   `NumberInput` with 45 typed over 30 saved 30).
 - A click on a `LogView` writes the text a selection selects in anew only
   where the lines changed: at 10000 lines a click took 2 ms, now 0.3 ms.
+- `Scrollbar` and a bar on a `Box` border dispose their track's notifier;
+  `SelectionList` and `Table` dispose the list controller they made when
+  they are refused for duplicate keys; a route removed before a frame
+  built it disposes its focus nodes; the window layer disposes its move
+  ticker.
+- A scrollable first built in a `LayoutBuilder` while a scrollbar's frame
+  lays its child out no longer marks the frame for layout inside its own
+  layout: the frame takes the axis into that layout.
+- `Popover` and an overlay entry make their fade ticker in `initState`,
+  not first in `dispose`; `DragTarget` keeps its `MouseTracker` from
+  `didChangeDependencies`.
+- A `showFilePicker` dialog no longer overflows by a row, and a window
+  narrower than its title buttons logs no overflow.
+- `example/hooks/search.dart` loads its list from an effect that cancels
+  its timer, so quitting leaves no timer pending.
+- `showFilePicker` fits a terminal shorter than its `height`: Cancel and
+  Open stay on screen.
+- `Table` keeps its state (rows, selection, scroll) when `rowMenu` is
+  given or taken away.
+- `SelectionList` checks its keys for duplicates again only when the count
+  or `keyOf` changed, not at every rebuild; the `MultiSelect` duplicate
+  check names `MultiSelect`.
+- `OptionList` no longer fails its paint (a negative clip width) when its
+  detail is wider than the list.
+- The "asserts are off" log line is written only in a debug run, not in
+  profile or release builds; `LogView.selectionLines`, a test counter,
+  counts only when asserts are on.
+- `LogController.where` keeps the predicate it had when a new one throws,
+  instead of leaving every later line to throw.
+- `SelectionList` skips its duplicate-key check for a `keyOf` that is
+  `==` to the last, a method tear-off included.
+- The Ctrl+G hint line shows copy and save at 80 columns again.
+- The `setState` Future assert names the arrow form too
+  (`setState(() => _future = fetch())`) and the fix, a block body.
+- Removing a focused field together with the sibling before it in one
+  frame no longer fails the build in a debug run: the focus order walked
+  an element already out of the tree.
+- A controller served by two widgets both in the tree is logged as an
+  error after a 2 s grace on the app's clock instead of ending the app;
+  an old host kept in the tree by a fade-out is no mistake.
+- `LogController.level` and `filter` keep their old value, and tell no
+  listener, when `where` throws during the refilter, as `where` does.
+- `NumberInput` and `DatePicker` keep a number typed until the parent
+  takes it or gives another value; a rebuild with the old value no longer
+  clears it. A value handed over that the parent never took is given up
+  when the focus leaves, the field showing the parent's value again, even
+  where the text was edited into no value meanwhile.
+- The duplicate checks read every key or value when the widget is made,
+  and at most the first 1000 when it is rebuilt.
+- A controller with two hosts in the tree and no app above them fails in
+  a debug run again, where it was only logged; the grace runs on the
+  app's clock. A `State` host finds that clock above it by itself, so
+  `ControllerHost(timerOf:)` is only for a host that is no `State`, and a
+  `MenuController` handed to a new menu while the old one fades out no
+  longer fails.
+- A widget leaving ends only the two-hosts graces it is in, not those of
+  other hosts still in the tree.
+- `LogController` tells its listeners after a refilter is whole, outside
+  the undo of a `where` that throws.
+- The duplicate checks of `Select`, `MultiSelect`, `SegmentedButton`,
+  `SelectionList` and `Table` read at most the first 1000 values or keys,
+  so a huge list rebuilt with an inline `keyOf` no longer costs a pass
+  over all of it in a debug run.
+- `Cli.show` writes no overflow marker over its output; the warning still
+  goes to the console's log.
+- `NumberInput` and `DatePicker` forget a value handed over once the
+  parent took it: Escape after that keeps the parent's value. A key of the
+  field's own at an edge of the text (a caret key, a deletion, a
+  character) hands nothing over to the bindings above.
+- `Table` binds Shift+F10 only while a row is selected, so with none it
+  goes on to the bindings above; one `Listener` over the rows instead of
+  one per row.
+- A route's focus nodes are made and disposed by the navigator's state,
+  once, however the route is removed; a click on a `LogView` finds its
+  line without making a list.
+- The debug console shows an overflow report's text once, not again as
+  its error.
+- `NumberInput` and `DatePicker` keep a value handed over that the parent
+  has not taken across a rebuild for another reason: Escape still gives
+  back the value from before the typing, and the focus leaving gives it
+  up.
+- A `ControllerHost` whose `timerOf` answers null has no clock, as its
+  doc says, a `State` host too; the app's clock is a `State`'s default
+  only where no `timerOf` is given.
 
 ## 0.3.0
 

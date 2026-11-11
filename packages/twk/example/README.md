@@ -13,7 +13,7 @@ shell's history: `dart run example/<file>.dart [--inline]`.
 | [dashboard.dart](dashboard.dart) | an operations dashboard, live: tiles of figures with sparklines, a chart, a heatmap of deploys and a log in a grid with shared borders, a dark or light theme from the terminal, the debug overlays |
 | [files.dart](files.dart) | a file manager: a tree and a table in a split view, a menu bar, a command palette, copying with a progress bar |
 | [hooks/counter.dart](hooks/counter.dart) | the counter written with `package:twk/hooks.dart` |
-| [hooks/search.dart](hooks/search.dart) | a search written with hooks: the list loaded with `useFuture`, filtered by `useMemoized` once the typing pauses, with a hook of its own, `useDebounced` |
+| [hooks/search.dart](hooks/search.dart) | a search written with hooks: the list filled by a `useEffect` whose timer it cancels, filtered by `useMemoized` once the typing pauses, with a hook of its own, `useDebounced` |
 | [provider/counter.dart](provider/counter.dart) | the counter on a `ChangeNotifier` with `package:twk/provider.dart` |
 
 The counter:

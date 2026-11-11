@@ -139,6 +139,7 @@ final class Hug extends RenderObject with RenderObjectWithChildMixin {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('by word', () {
     test('breaks after spaces, which hang at the end of a line', () {
       expect(lay('the quick brown fox', 10), ['the quick', 'brown fox']);

@@ -15,6 +15,8 @@ import 'package:test/test.dart';
 const _layers = <(String, List<String>)>[
   // Unicode segmentation, widths and bidi: tables and code only.
   ('unicode', ['unicode/']),
+  // Whether asserts are on: one probe, no imports.
+  ('asserts', ['asserts.dart']),
   // Cells, pens and their bytes, and the input decoded: no dart:io.
   (
     'draw',
@@ -131,7 +133,7 @@ Map<String, Set<String>?> _exports(String library) {
 }
 
 /// What log.dart shows.
-const _logNames = {'LogLevel', 'LogRecord', 'LogSink', 'log'};
+const _logNames = {'LogData', 'LogLevel', 'LogRecord', 'LogSink', 'log'};
 
 void main() {
   final imports = _imports();

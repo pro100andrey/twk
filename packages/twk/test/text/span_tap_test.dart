@@ -113,6 +113,7 @@ void main() {
       final first = <String>[];
       final second = <String>[];
       final which = ValueNotifier<List<String>?>(null);
+      addTearDown(which.dispose);
       await t.pumpWidget(
         ValueListenableBuilder(
           valueListenable: which,

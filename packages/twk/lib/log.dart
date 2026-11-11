@@ -8,4 +8,5 @@
 /// @docImport 'package:twk_core/terminal.dart';
 library;
 
-export 'package:twk_core/terminal.dart' show LogLevel, LogRecord, LogSink, log;
+export 'package:twk_core/terminal.dart'
+    show LogData, LogLevel, LogRecord, LogSink, log;

@@ -157,6 +157,7 @@ List<int> range(int from, int to) => [for (var i = from; i < to; i++) i];
 const decstbm = '\x1b[1;5r';
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('layout', () {
     test('builds the items in its window and the cache rows below it, each '
         'as wide as the list, and drops those that leave', () {

@@ -304,6 +304,10 @@ List<String> printed(void Function() body) {
 }
 
 void main() {
+  // these tests cut children off on purpose and read the cells; the marker
+  // of an overflow has a file of its own
+  PipelineOwner.debugOverflowIndicatorByDefault = false;
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('tracks describe themselves and are equal by what they say', () {
     expect(
       [

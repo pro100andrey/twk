@@ -109,6 +109,7 @@ void main() {
       t,
     ) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           slim: true,
@@ -166,6 +167,7 @@ void main() {
         'the track, in eighths of a cell: at its start at the start, at its '
         'end at the end', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -195,6 +197,7 @@ void main() {
 
     testTwk('is a cell at least', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -216,6 +219,7 @@ void main() {
     testTwk('along a horizontal axis is in a row below the child, from the '
         'left', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           axis: Axis.horizontal,
@@ -285,7 +289,9 @@ void main() {
       t,
     ) async {
       final outer = ScrollController();
+      addTearDown(outer.dispose);
       final inner = ScrollController();
+      addTearDown(inner.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -317,7 +323,9 @@ void main() {
       expect(down(t, 19, 10), [...track(5), ...thumb(5)]);
 
       final h = ScrollController();
+      addTearDown(h.dispose);
       final v = ScrollController();
+      addTearDown(v.dispose);
       await t.pumpWidget(
         Scrollbar(
           axis: Axis.horizontal,
@@ -365,6 +373,7 @@ void main() {
     testTwk('a move that leaves the thumb where it is does not paint it, a '
         'repaint boundary', (t) async {
       final list = ListController();
+      addTearDown(list.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: ListView.builder(
@@ -390,6 +399,7 @@ void main() {
 
     testTwk('a thumb hidden repaints the bar alone', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           visibility: ScrollbarVisibility.onScroll,
@@ -418,6 +428,7 @@ void main() {
     testTwk('dragging the thumb scrolls the content as far as the thumb '
         'moves, wherever the mouse goes until the release', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -452,6 +463,7 @@ void main() {
       t,
     ) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -475,6 +487,7 @@ void main() {
         'gets nothing of it', (t) async {
       var taps = 0;
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         GestureDetector(
           onTap: () => taps++,
@@ -496,6 +509,7 @@ void main() {
 
     testTwk('the wheel over the bar scrolls the scrollable', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -517,7 +531,9 @@ void main() {
     testTwk('the wheel across over the bar of a list down goes to the view '
         'across around it', (t) async {
       final list = ScrollController();
+      addTearDown(list.dispose);
       final view = ScrollController();
+      addTearDown(view.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -558,6 +574,7 @@ void main() {
 
     testTwk('left out: the outermost scrollable inside, across', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -614,7 +631,9 @@ void main() {
     testTwk('given: that axis of content that scrolls both ways, a bar to '
         'each', (t) async {
       final h = ScrollController();
+      addTearDown(h.dispose);
       final v = ScrollController();
+      addTearDown(v.dispose);
       await t.pumpWidget(
         Scrollbar(
           axis: Axis.horizontal,
@@ -706,7 +725,9 @@ void main() {
     testTwk('left out: the wheel across over the bar goes on to the view '
         'across around it, as the axis of the list inside says', (t) async {
       final list = ScrollController();
+      addTearDown(list.dispose);
       final view = ScrollController();
+      addTearDown(view.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -746,6 +767,7 @@ void main() {
 
     testTwk('never: no bar, the child takes all the room', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           visibility: ScrollbarVisibility.never,
@@ -771,6 +793,7 @@ void main() {
     testTwk('onScroll: the thumb from a move until timeToFade after the last '
         'one on the clock of the app, and while it is dragged', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           visibility: ScrollbarVisibility.onScroll,
@@ -833,6 +856,7 @@ void main() {
       'there too', (t) async {
     var built = 0;
     final list = ListController();
+    addTearDown(list.dispose);
     await t.pumpWidget(
       Scrollbar(
         child: ListView.builder(
@@ -868,4 +892,27 @@ void main() {
     await t.pump();
     expect(t.lines.first, 'item 44446');
   });
+
+  testTwk('a Scrollbar and a bar on a Box border dispose what they made', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      Column(
+        children: [
+          Expanded(
+            child: Scrollbar(child: SingleChildScrollView(child: column(30))),
+          ),
+          Expanded(
+            child: Box(
+              border: const Border.all(),
+              scrollbar: .always,
+              child: SingleChildScrollView(child: column(30)),
+            ),
+          ),
+        ],
+      ),
+      size: (20, 10),
+    );
+    await t.pumpWidget(const SizedBox());
+  }, trackDisposables: true);
 }

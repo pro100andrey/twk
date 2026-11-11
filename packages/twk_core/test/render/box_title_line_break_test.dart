@@ -25,6 +25,7 @@ String topRow(String title) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a title with a line break stays whole when its pen changes', () {
     final screen = Screen(14, 3);
     final box = RenderDecoratedBox(

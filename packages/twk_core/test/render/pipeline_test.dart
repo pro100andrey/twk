@@ -108,6 +108,7 @@ int paintsOf(List<List<Cell>> cells) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('an object marked repaints the rows it covers, not its boundary', () {
     final (column, cells) = grid(10, 5);
     final v = View(20, 10, RenderBox(pen: 0, boundary: true, child: column))

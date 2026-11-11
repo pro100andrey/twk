@@ -6,6 +6,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// [child] in the dark theme with [glyphs].
 Widget themed(Glyphs glyphs, Widget child) => Theme(
   data: ThemeData.dark.copyWith(glyphs: glyphs),
@@ -545,7 +547,7 @@ void main() {
 
     testTwk('a masked TextField shows the bullet of the set', (t) async {
       Widget field({String? mask}) => TextField(
-        controller: TextEditingController(text: 'abc'),
+        controller: disposing(TextEditingController(text: 'abc')),
         obscureText: true,
         obscuringCharacter: mask,
       );
@@ -568,15 +570,15 @@ void main() {
         hint: 'fruit?',
         inline: true,
       );
-      await t.pumpWidget(themed(Glyphs.unicode, select()), size: (12, 1));
-      expect(t.lines.single, endsWith('▾'));
-      await t.pumpWidget(themed(Glyphs.ascii, select()), size: (12, 1));
-      expect(t.lines.single, endsWith('v'));
+      await t.pumpWidget(themed(Glyphs.unicode, select()), size: (12, 4));
+      expect(t.lines.first, endsWith('▾'));
+      await t.pumpWidget(themed(Glyphs.ascii, select()), size: (12, 4));
+      expect(t.lines.first, endsWith('v'));
       await t.pumpWidget(
         themed(Glyphs.unicode.copyWith(down: '+'), select()),
-        size: (12, 1),
+        size: (12, 4),
       );
-      expect(t.lines.single, endsWith('+'));
+      expect(t.lines.first, endsWith('+'));
       // in a decoration too
       Widget decorated() => Select<String>(
         choices: const [Choice('a', 'Apple')],

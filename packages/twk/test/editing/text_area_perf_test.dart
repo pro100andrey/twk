@@ -17,6 +17,8 @@ import 'package:twk_core/twk_core.dart'
     show PipelineTextOrder, TextOrder, TextSegmenter;
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// A focused area of [c], 20 columns wide and 8 rows high, at the top
 /// left.
 Widget area(
@@ -88,6 +90,7 @@ void main() {
     final c = TextEditingController(
       text: [for (var i = 0; i < 12; i++) 'line $i of it'].join('\n'),
     );
+    addTearDown(c.dispose);
     // the caret at the end of line 3
     c.moveCaret(c.text.indexOf('\nline 4'));
     final key = GlobalKey();
@@ -154,6 +157,7 @@ void main() {
     final c = TextEditingController(
       text: [for (var i = 0; i < 12; i++) 'line $i of it'].join('\n'),
     );
+    addTearDown(c.dispose);
     // the caret in the middle of line 3
     c.moveCaret(c.text.indexOf('of it\nline 4'));
     final key = GlobalKey();
@@ -221,6 +225,7 @@ void main() {
     final c = TextEditingController(
       text: [for (var i = 0; i < 30; i++) 'line $i of it'].join('\n'),
     );
+    addTearDown(c.dispose);
     // the caret on the last row in view
     c.moveCaret(c.text.indexOf('\nline 8'));
     final key = GlobalKey();
@@ -276,7 +281,8 @@ void main() {
   testTwk('a change in a text of many lines puts the text together for '
       'onChanged only: for onEdited when it reads it, once', (t) async {
     final text = [for (var i = 0; i < 10000; i++) 'line $i of it'].join('\n');
-    final c = TextEditingController(text: text)..moveCaret(text.length ~/ 2);
+    final c = disposing(TextEditingController(text: text))
+      ..moveCaret(text.length ~/ 2);
     final told = <String>[];
     final edited = <TextEditingValue>[];
     Widget app({bool changed = false, bool edits = false}) => TextArea(
@@ -319,6 +325,7 @@ void main() {
     final c = TextEditingController(
       text: [for (var i = 0; i < 5; i++) 'line $i of it'].join('\n'),
     );
+    addTearDown(c.dispose);
     await t.pumpWidget(area(c), size: (30, 40));
     // the line break and the first character of line 3 replaced by as
     // many, nothing selected: line 3's row starts and ends where it did
@@ -383,16 +390,18 @@ void main() {
     testTwk('what it shows after each of random edits is what a whole '
         'repaint shows, in ${order.name} order', (t) async {
       final r = Random(order.index + 7);
-      final c = TextEditingController(
-        text: [
-          'plain words that wrap onto rows',
-          '日本語のテキストと wide 한국어',
-          'שלום עולם and some מילים',
-          'emoji 👋🏽 and 👨‍👩‍👧 flags 🇺🇦',
-          '',
-          'a\tb\tc',
-          'last',
-        ].join('\n'),
+      final c = disposing(
+        TextEditingController(
+          text: [
+            'plain words that wrap onto rows',
+            '日本語のテキストと wide 한국어',
+            'שלום עולם and some מילים',
+            'emoji 👋🏽 and 👨‍👩‍👧 flags 🇺🇦',
+            '',
+            'a\tb\tc',
+            'last',
+          ].join('\n'),
+        ),
       )..moveCaret(10);
       await t.pumpWidget(area(c), size: (30, 10));
       t.binding.twkApp.owner.textOrder = order;
@@ -437,6 +446,7 @@ void main() {
       text: [for (var i = 0; i < 30; i++) 'line $i ${'·' * (i % 7)}']
           .join('\n'),
     );
+    addTearDown(c.dispose);
     final key = GlobalKey();
     await t.pumpWidget(
       Row(
@@ -504,6 +514,7 @@ void main() {
       final c = TextEditingController(
         text: [for (var i = 0; i < 30; i++) 'line $i of it'].join('\n'),
       );
+      addTearDown(c.dispose);
       // what is under it four columns wider than it, which show it beside
       Widget tree() => Align(
         alignment: Alignment.topLeft,

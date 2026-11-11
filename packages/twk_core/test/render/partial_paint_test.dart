@@ -259,6 +259,7 @@ String? _difference(_Painted a, _Painted b) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a tree painted as marked shows what one painted whole does', () {
     const w = 40;
     const h = 16;

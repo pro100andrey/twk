@@ -7,6 +7,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 /// A page: a popover by an anchor, under a focus node [field] and a
 /// focus node [outside].
 Widget page(
@@ -52,7 +54,9 @@ void main() {
 
     testTwk('autofocus in a popover $where gets the focus', (t) async {
       final field = FocusNode(debugLabel: 'field');
+      addTearDown(field.dispose);
       final go = FocusNode(debugLabel: 'go');
+      addTearDown(go.dispose);
       await openFocused(
         t,
         (open) => page(
@@ -68,7 +72,9 @@ void main() {
 
     testTwk('a popover with no autofocus $where leaves the focus', (t) async {
       final field = FocusNode(debugLabel: 'field');
+      addTearDown(field.dispose);
       final go = FocusNode(debugLabel: 'go');
+      addTearDown(go.dispose);
       await openFocused(
         t,
         (open) => page(
@@ -129,14 +135,16 @@ void main() {
 
   testTwk('Tab inside a popover moves between its nodes', (t) async {
     final go = FocusNode(debugLabel: 'go');
+    addTearDown(go.dispose);
     final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
     var dismissed = 0;
     await openTwo(
       t,
-      field: FocusNode(debugLabel: 'field'),
+      field: disposing(FocusNode(debugLabel: 'field')),
       go: go,
       other: other,
-      after: FocusNode(debugLabel: 'after'),
+      after: disposing(FocusNode(debugLabel: 'after')),
       onDismiss: () => dismissed++,
     );
     expect(go.hasPrimaryFocus, isTrue);
@@ -153,12 +161,14 @@ void main() {
     t,
   ) async {
     final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
     final after = FocusNode(debugLabel: 'after');
+    addTearDown(after.dispose);
     var dismissed = 0;
     await openTwo(
       t,
-      field: FocusNode(debugLabel: 'field'),
-      go: FocusNode(debugLabel: 'go'),
+      field: disposing(FocusNode(debugLabel: 'field')),
+      go: disposing(FocusNode(debugLabel: 'go')),
       other: other,
       after: after,
       onDismiss: () => dismissed++,
@@ -174,14 +184,16 @@ void main() {
 
   testTwk('Shift+Tab from the first node leaves to the anchor', (t) async {
     final field = FocusNode(debugLabel: 'field');
+    addTearDown(field.dispose);
     final go = FocusNode(debugLabel: 'go');
+    addTearDown(go.dispose);
     var dismissed = 0;
     await openTwo(
       t,
       field: field,
       go: go,
-      other: FocusNode(debugLabel: 'other'),
-      after: FocusNode(debugLabel: 'after'),
+      other: disposing(FocusNode(debugLabel: 'other')),
+      after: disposing(FocusNode(debugLabel: 'after')),
       onDismiss: () => dismissed++,
     );
     expect(go.hasPrimaryFocus, isTrue);
@@ -194,8 +206,11 @@ void main() {
 
   testTwk('onDismiss still comes as the focus leaves the popover', (t) async {
     final field = FocusNode(debugLabel: 'field');
+    addTearDown(field.dispose);
     final go = FocusNode(debugLabel: 'go');
+    addTearDown(go.dispose);
     final outside = FocusNode(debugLabel: 'outside');
+    addTearDown(outside.dispose);
     var dismissed = 0;
     await openFocused(
       t,

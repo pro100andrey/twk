@@ -116,6 +116,19 @@ void main() {
       expect(shot.logs.single.message, contains('overflowed by 1 row'));
     }
   });
+  test('the overflow marker is drawn once the pipeline is asked for it', () {
+    final shot = Shot(
+      const SizedBox(
+        height: 2,
+        child: Column(children: [Text('a'), Text('b'), Text('c')]),
+      ),
+      4,
+      2,
+    );
+    shot.pipeline.debugOverflowIndicator = true;
+    shot.frame();
+    expect(shot.rows, [' a', '▚▚+1']);
+  });
 }
 
 /// A repaint boundary that paints `a` in its first cell, and nothing in

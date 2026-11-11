@@ -274,6 +274,7 @@ void main() {
                   ),
                 ],
                 child: const Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Field('a'),
@@ -347,5 +348,47 @@ void main() {
     expect(second.path, isEmpty);
     first.dispose();
     second.dispose();
+  });
+
+  group('a controller handed to a second bar while the first is mounted', () {
+    Widget bars(MenuController controller, List<String> keys) => Overlay(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final k in keys)
+            Expanded(
+              key: ValueKey(k),
+              child: MenuBar(
+                controller: controller,
+                menus: menus([]),
+                child: const Text('body'),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    testTwk('the first leaves within the grace: nothing is thrown or '
+        'logged', (t) async {
+      final controller = MenuController();
+      addTearDown(controller.dispose);
+      await t.pumpWidget(bars(controller, ['a']), size: (40, 20));
+      await t.pumpWidget(bars(controller, ['a', 'b']), size: (40, 20));
+      await t.pump(const Duration(milliseconds: 500));
+      await t.pumpWidget(bars(controller, ['b']), size: (40, 20));
+      await t.pump(const Duration(seconds: 5));
+      expect(t.takeErrors(), isEmpty);
+    });
+
+    testTwk('both stay mounted: logged after the grace, the app goes '
+        'on', (t) async {
+      final controller = MenuController();
+      addTearDown(controller.dispose);
+      await t.pumpWidget(bars(controller, ['a']), size: (40, 20));
+      await t.pumpWidget(bars(controller, ['a', 'b']), size: (40, 20));
+      await t.pump(const Duration(seconds: 5));
+      final [error] = t.takeErrors();
+      expect('${error.error}', contains('two hosts'));
+    });
   });
 }

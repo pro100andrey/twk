@@ -202,7 +202,7 @@ int _clamp(int v, int lo, int hi) => v < lo ? lo : (v > hi ? hi : v);
 ///  * [RenderFlex], children along one axis.
 ///  * [GridParentData], where a child is put in cells of its own.
 final class RenderGrid extends RenderObject
-    with ContainerRenderObjectMixin<GridParentData> {
+    with ContainerRenderObjectMixin<GridParentData>, _OverflowIndicator {
   /// A grid of [children] in [columns] and [rows], none unless given (a
   /// track per child, as long as it asks for), [columnGap] and [rowGap]
   /// cells apart, each 0 or more.
@@ -284,9 +284,6 @@ final class RenderGrid extends RenderObject
   // takes, and the most it grows to
   var _base = Int64List(0);
   var _limit = Int64List(0);
-
-  // the overflow was reported (debug)
-  var _overflowReported = false;
 
   /// The tracks and the gaps that are set; once laid out, the length of
   /// each track and the cells the tracks and gaps need beyond the grid, if
@@ -420,7 +417,7 @@ final class RenderGrid extends RenderObject
     final h = _length(rows, _rowCount, _rowGap);
     width = c.constrainWidth(w);
     height = c.constrainHeight(h);
-    assert(_debugReportOverflow(w - width, h - height), 'reports overflow');
+    _noteOverflow('RenderGrid', w - width, h - height);
     for (var child = _firstChild; child != null;) {
       final at = child.parentData as GridParentData;
       final cw = _span(columns, at._column, at.columnSpan, _columnGap);
@@ -453,20 +450,6 @@ final class RenderGrid extends RenderObject
     return _length(at, count, gap) < min
         ? _size(columns, at, min, across: across)
         : at;
-  }
-
-  /// Logs a warning the first time the tracks and gaps overflow the grid,
-  /// [overW] columns and [overH] rows beyond it.
-  bool _debugReportOverflow(int overW, int overH) {
-    if ((overW > 0 || overH > 0) && !_overflowReported) {
-      _overflowReported = true;
-      final sides = [
-        if (overW > 0) '${_cells(overW, 'column')} on the right',
-        if (overH > 0) '${_cells(overH, 'row')} on the bottom',
-      ].join(' and ');
-      _warn('A RenderGrid overflowed by $sides.');
-    }
-    return true;
   }
 
   /// Sizes the columns, or the rows when not [columns], and returns where
@@ -868,12 +851,15 @@ final class RenderGrid extends RenderObject
       paintChild(ctx, child);
       child = (child.parentData as GridParentData).nextSibling;
     }
+    if (_overflowed) {
+      paintOverflowIndicator(ctx);
+    }
   }
 
   /// Whether a child after [child] reaches the cells.
   @override
   bool paintsOver(RenderObject child, int x, int y, int w, int h) =>
-      _laterReaches(child, x, y, w, h);
+      _laterReaches(child, x, y, w, h) || _overflowOver(x, y, w, h);
 
   /// Paints the children after [child] that reach the cells, in order.
   /// They paint only those cells: whatever they keep of what they painted
@@ -886,5 +872,8 @@ final class RenderGrid extends RenderObject
     int y,
     int w,
     int h,
-  ) => _paintLater(this, ctx, child, x, y, w, h);
+  ) {
+    _paintLater(this, ctx, child, x, y, w, h);
+    paintOverflowIndicator(ctx);
+  }
 }

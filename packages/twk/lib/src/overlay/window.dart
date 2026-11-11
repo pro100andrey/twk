@@ -534,6 +534,7 @@ final class _WindowLayerState extends State<WindowLayer>
       slot.controller.removeListener(slot.changed);
       slot.dispose();
     }
+    _ticker?.dispose();
     super.dispose();
   }
 
@@ -1031,6 +1032,8 @@ final class _Frame extends StatelessWidget {
       chrome = null;
       buttonRow = Row(
         mainAxisSize: MainAxisSize.min,
+        // cut off by a window narrower than its buttons, as it opens
+        overflowIntended: true,
         children: [
           Text(' ', style: border, wrap: TextWrap.none),
           for (final (glyph, onTap) in buttons)
@@ -1149,6 +1152,8 @@ final class _Frame extends StatelessWidget {
         : const Style();
     return Row(
       mainAxisSize: MainAxisSize.min,
+      // cut off by a window narrower than its buttons, as it opens
+      overflowIntended: true,
       children: [
         Text(' ', style: blank(-1), wrap: TextWrap.none),
         for (final (i, (glyph, onTap)) in buttons.indexed)

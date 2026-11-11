@@ -342,7 +342,7 @@ final class TableController extends ChangeNotifier {
 /// moves past an edge: a row restyled repaints alone. A row's key
 /// ([rowKey], by default its index in the rows) keeps its widgets'
 /// [State] while the rows are sorted, and is what the controller selects;
-/// no two rows have the same.
+/// no two rows have the same, which it asserts.
 ///
 /// The columns are [columnGap] cells apart, and sized as a grid sizes
 /// them: a fixed column takes its cells; a content column wants the
@@ -675,7 +675,10 @@ final class _Styles {
 final class _TableState<T> extends State<Table<T>> {
   TableController? _own;
   FocusNode? _ownNode;
-  final _list = ListController();
+  // made on first use, not with the state: initState may throw (duplicate
+  // keys) and a state that never mounted is never disposed
+  ListController? _listMade;
+  ListController get _list => _listMade ??= ListController();
 
   TableController get _controller =>
       widget.controller ?? (_own ??= TableController());
@@ -741,6 +744,24 @@ final class _TableState<T> extends State<Table<T>> {
   var _checkbox = const CheckboxMarks('[', 'x', ' ', ']');
   var _checkboxWidth = 3;
 
+  // in an assert; all rows at initState, at an update the first
+  // debugDistinctLimit; the rows of a lazy source are not read
+  bool _distinctRowKeys({bool full = false}) {
+    final rows = widget.rows;
+    final key = widget.rowKey;
+    if (rows == null || key == null) {
+      return true;
+    }
+    return debugDistinct<Object>(
+      rows.length,
+      (i) => key(rows[i]),
+      (k, i) =>
+          'Table has two rows with the key $k (at $i): rows are kept and '
+          'selected by their keys, so rowKey gives each its own',
+      full: full,
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -748,6 +769,7 @@ final class _TableState<T> extends State<Table<T>> {
       widget.marks?.multiple ?? true,
       'marks hold any number of rows: SelectionController(multiple: true)',
     );
+    assert(_distinctRowKeys(full: true), 'duplicate row keys');
     _node.addListener(_focusChanged);
     _controller.addListener(_changed);
     widget.marks?.addListener(_marksChanged);
@@ -758,6 +780,11 @@ final class _TableState<T> extends State<Table<T>> {
   @override
   void didUpdateWidget(Table<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    assert(
+      (widget.rows == oldWidget.rows && widget.rowKey == oldWidget.rowKey) ||
+          _distinctRowKeys(),
+      'duplicate row keys',
+    );
     if (!identical(widget.focusNode, oldWidget.focusNode)) {
       // the Focus below lets an own node go after this build: it is
       // disposed with this state
@@ -791,7 +818,7 @@ final class _TableState<T> extends State<Table<T>> {
     _node.removeListener(_focusChanged);
     _own?.dispose();
     _ownNode?.dispose();
-    _list.dispose();
+    _listMade?.dispose();
     super.dispose();
   }
 
@@ -876,6 +903,10 @@ final class _TableState<T> extends State<Table<T>> {
     }
     _shownSelected = selected;
     _shownCursor = cursor;
+    if (widget.rowMenu != null && (was < 0) != (selected < 0)) {
+      // Shift+F10 is bound while a row is selected
+      setState(() {});
+    }
     _rows[was]?._rebuild();
     if (selected != was) {
       _rows[selected]?._rebuild();
@@ -1317,20 +1348,37 @@ final class _TableState<T> extends State<Table<T>> {
     _select(index);
   }
 
-  /// A press on the row shown at [index], whose slot's context is
-  /// [context]: the right button opens the row's menu at the mouse, the
-  /// row selected first.
-  void _rowMenuDown(int index, BuildContext context, PointerEvent event) {
+  /// A press anywhere over the rows: the right button opens the menu of the
+  /// row under the mouse at the mouse, the row selected first. The row is
+  /// found among the rows built, by where each is on the screen.
+  void _rowsDown(PointerEvent event) {
     final menu = widget.rowMenu;
     if (event.button != 2 || menu == null) {
       return;
     }
-    _pressRow(index, event.x);
-    showContextMenu(
-      context: context,
-      items: menu(_rowAt(_order?[index] ?? index)),
-      at: (event.x, event.y),
-    );
+    for (final MapEntry(key: index, value: slot) in _rows.entries) {
+      // a row out of view, kept by the list, is not placed
+      if (!slot.mounted || (slot.context as Element).slot == null) {
+        continue;
+      }
+      final box = slot.context.findRenderObject();
+      if (box == null) {
+        continue;
+      }
+      final (gx, gy) = box.globalOffset;
+      final x = event.screenX - gx;
+      final y = event.screenY - gy;
+      if (x < 0 || y < 0 || x >= box.width || y >= box.height) {
+        continue;
+      }
+      _pressRow(index, x);
+      showContextMenu(
+        context: slot.context,
+        items: menu(_rowAt(_order?[index] ?? index)),
+        at: (x, y),
+      );
+      return;
+    }
   }
 
   /// Opens the menu of the row selected under it, once the row is
@@ -1518,26 +1566,36 @@ final class _TableState<T> extends State<Table<T>> {
                 styles.base,
               ),
             Expanded(
-              child: ListView.builder(
-                padding: w.padding,
-                itemCount: _count,
-                itemExtent: w.rowHeight,
-                controller: _list,
-                canRequestFocus: false,
-                style: w.style,
-                itemBuilder: (context, i) => _slot(i),
+              // one Listener over the rows, always, so that a menu given or
+              // taken away keeps the rows' State; it takes no press, and is
+              // not opaque, without a menu
+              child: Listener(
+                behavior: w.rowMenu != null
+                    ? HitTestBehavior.opaque
+                    : HitTestBehavior.deferToChild,
+                onPointerDown: w.rowMenu != null ? _rowsDown : null,
+                child: ListView.builder(
+                  padding: w.padding,
+                  itemCount: _count,
+                  itemExtent: w.rowHeight,
+                  controller: _list,
+                  canRequestFocus: false,
+                  style: w.style,
+                  itemBuilder: (context, i) => _slot(i),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
-    if (w.rowMenu == null) {
-      return table;
-    }
+    // the same wrappers with or without a row menu, the key unbound
+    // while no row is selected to open one for (and passing on to an outer
+    // binding): a menu given or taken away keeps the subtree's state
+    final menu = w.rowMenu != null && _shownSelected >= 0;
     return KeyBindings.combos(
-      {_shiftF10: _openRowMenu},
-      hints: {_shiftF10: 'menu'},
+      {_shiftF10: menu ? _openRowMenu : null},
+      hints: {if (menu) _shiftF10: 'menu'},
       debugLabel: 'row menu',
       child: table,
     );
@@ -1808,24 +1866,9 @@ final class _RowSlotState<T> extends State<_RowSlot<T>> {
   void _onDown(TapDownDetails tap) =>
       widget.table._rowDown(widget.index, tap.event);
 
-  // made once, not at each build
-  late final void Function(PointerEvent event) _menuDown = _onMenuDown;
-
-  void _onMenuDown(PointerEvent event) =>
-      widget.table._rowMenuDown(widget.index, context, event);
-
   @override
-  Widget build(BuildContext context) {
-    final row = widget.table._row(widget.index, widget.row, _down);
-    if (widget.table.widget.rowMenu == null) {
-      return row;
-    }
-    return Listener(
-      behavior: HitTestBehavior.opaque,
-      onPointerDown: _menuDown,
-      child: row,
-    );
-  }
+  Widget build(BuildContext context) =>
+      widget.table._row(widget.index, widget.row, _down);
 }
 
 /// The widths of columns [tracks], [gap] cells apart, in [available]

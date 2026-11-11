@@ -6,6 +6,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 Widget app(
   List<String> seen,
   TextEditingController text, {
@@ -32,7 +34,7 @@ void main() {
   ) async {
     final seen = <String>[];
     await t.pumpWidget(
-      app(seen, TextEditingController(), field: false),
+      app(seen, disposing(TextEditingController()), field: false),
       size: (40, 4),
     );
     expect(bar(t), contains('q quit'));
@@ -46,6 +48,7 @@ void main() {
   ) async {
     final seen = <String>[];
     final text = TextEditingController();
+    addTearDown(text.dispose);
     await t.pumpWidget(app(seen, text), size: (40, 4));
     await t.type('q');
     await t.pump();
@@ -55,7 +58,10 @@ void main() {
 
   testTwk('in a text field the bar does not offer q quit, and keeps the keys '
       'that work', (t) async {
-    await t.pumpWidget(app([], TextEditingController()), size: (40, 4));
+    await t.pumpWidget(
+      app([], disposing(TextEditingController())),
+      size: (40, 4),
+    );
     expect(bar(t), isNot(contains('quit')), reason: 'the bar: ${bar(t)}');
     expect(bar(t), contains('ctrl+s save'));
   });
@@ -65,6 +71,7 @@ void main() {
   ) async {
     final seen = <String>[];
     final text = TextEditingController();
+    addTearDown(text.dispose);
     await t.pumpWidget(app(seen, text), size: (40, 4));
     final row = t.lines.indexWhere((l) => l.contains('save'));
     final x = t.lines[row].indexOf('quit');
@@ -86,7 +93,7 @@ void main() {
             SizedBox(
               width: 20,
               child: TextField(
-                controller: TextEditingController(),
+                controller: disposing(TextEditingController()),
                 readOnly: true,
                 autofocus: true,
               ),

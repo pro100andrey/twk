@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
 import '../text/plain_lines.dart';
 
 const List<Choice<String>> tags = [
@@ -64,7 +65,7 @@ Widget list(
     ),
     Button(
       'next',
-      focusNode: FocusNode(debugLabel: 'next'),
+      focusNode: disposing(FocusNode(debugLabel: 'next')),
       onPressed: () {},
     ),
   ],
@@ -139,7 +140,9 @@ void main() {
     t,
   ) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     await t.pumpWidget(Theme.terminal(child: list(chips, on)), size: (16, 4));
     // ' dart ' 6, ' tui ' 5, ' beta ' 6, ' terminal ' 10, × 2 each
     expect(t.lines.take(3), [' dart ×   tui ×', ' beta ×', ' terminal ×']);
@@ -151,7 +154,9 @@ void main() {
   testTwk('one stop of Tab; arrows move the highlight over the enabled '
       'chips, round; Up and Down between rows; hinted', (t) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'tags');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -196,7 +201,9 @@ void main() {
       'Backspace remove it; the highlight stays in place, or on the last '
       'chip', (t) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     final pressed = <String>[];
     final removed = <String>[];
     final node = FocusNode(debugLabel: 'tags');
@@ -237,7 +244,9 @@ void main() {
   testTwk('a click on a chip presses it, on its × removes it, between '
       'chips nothing; the clicked chip is highlighted', (t) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     final pressed = <String>[];
     final removed = <String>[];
     await t.pumpWidget(
@@ -278,7 +287,9 @@ void main() {
     'only highlights; with neither the list takes no focus',
     (t) async {
       final chips = ValueNotifier(tags);
+      addTearDown(chips.dispose);
       final on = ValueNotifier(<String>{});
+      addTearDown(on.dispose);
       final node = FocusNode(debugLabel: 'tags');
       addTearDown(node.dispose);
       await t.pumpWidget(
@@ -329,7 +340,9 @@ void main() {
   testTwk('a screen reader reads checkboxes, checked while selected; the '
       'highlighted chip focused', (t) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier({'tui'});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'tags');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -352,7 +365,9 @@ void main() {
   testTwk('a screen reader finds no chip focused while the list has not the '
       'focus', (t) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'tags');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -371,7 +386,9 @@ void main() {
 
   testTwk('the hidden cursor rests on the highlighted chip', (t) async {
     final chips = ValueNotifier(tags);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     final node = FocusNode(debugLabel: 'tags');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -387,7 +404,9 @@ void main() {
 
   testTwk('a label too long for the row is cut off with …', (t) async {
     final chips = ValueNotifier(const [Choice('x', 'a very long label')]);
+    addTearDown(chips.dispose);
     final on = ValueNotifier(<String>{});
+    addTearDown(on.dispose);
     await t.pumpWidget(Theme.terminal(child: list(chips, on)), size: (10, 2));
     expect(t.lines.first.trimRight().length, lessThanOrEqualTo(10));
     expect(t.lines.first, contains('…'));

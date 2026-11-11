@@ -15,7 +15,9 @@ void main() {
   testTwk('a SingleChildScrollView with NeverScrollableScrollPhysics leaves '
       'the wheel to the view around', (t) async {
     final outer = ScrollController();
+    addTearDown(outer.dispose);
     final inner = ScrollController();
+    addTearDown(inner.dispose);
     await t.pumpWidget(
       SingleChildScrollView(
         controller: outer,
@@ -66,7 +68,9 @@ void main() {
     testTwk('a $name that never scrolls offers no key hints and no stop '
         'of Tab', (t) async {
       final node = FocusNode();
+      addTearDown(node.dispose);
       final other = FocusNode();
+      addTearDown(other.dispose);
       await t.pumpWidget(
         Column(
           children: [

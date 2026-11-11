@@ -22,6 +22,7 @@ void main() {
   testTwk('a frame callback is called once, at the start of the next frame '
       "and before its build, with the frame's time", (t) async {
     final text = ValueNotifier('before');
+    addTearDown(text.dispose);
     await t.pumpWidget(show(text), size: (10, 1), maxFps: 100);
     final written = t.frames.length;
     final times = <Duration>[];

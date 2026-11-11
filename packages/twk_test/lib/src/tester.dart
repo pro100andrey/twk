@@ -12,6 +12,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_core/twk_core.dart' show OverflowReport;
 
 import '../vt.dart';
 import 'fake_clock.dart';
@@ -59,21 +60,64 @@ import 'screen_text.dart';
 /// ([TwkTester.logs]), its last 20 records: what it printed, its warnings (a
 /// layout that overflowed) and its errors (a build that threw), which its
 /// screen shows none of.
+///
+/// With [trackDisposables] (off by default) the test also fails when, after
+/// the app is quit and the test's tear-downs ran (an
+/// `addTearDown(x.dispose)` counts), a controller or notifier made during
+/// it was never disposed (a `ScrollController`, a `TextEditingController`, a
+/// `FocusNode`, an `AnimationController`, any `ValueNotifier`, and the
+/// classes of the app that join a `DisposalTracker`), naming each with the
+/// stack that made it. An app-owned singleton that outlives the test is not
+/// one to track: leave the option off in that test. It needs asserts, so a
+/// test run with them off checks nothing.
+///
+/// With [failOnPendingTimers] (on by default; `false` turns it off) the test
+/// also fails when a timer of the app's clock ([TwkTester.clock]) still waits
+/// one frame after the app is quit: a `Timer.periodic` that `dispose` left
+/// running, a delayed call nobody cancelled. The clock moves one frame
+/// first, so the frame timer of the framework, which the quit leaves for that
+/// long, is not counted; a timer due later than that is. The failure names
+/// each timer with where it was started ([FakeClock.describeTimers]).
+///
+/// With [failOnOverflow] (on by default; `false` turns it off) the test also
+/// fails when a flex, a wrap or a grid of the app was overflowed by its
+/// children (the warning of the log that the debug marker of the screen
+/// shows), naming each with the widget it is in. A layout that clips on
+/// purpose says so with `overflowIntended` and is not counted; `false`
+/// is for a test of what an overflow shows. It needs asserts, as the
+/// warning does.
 @isTest
 void testTwk(
   String description,
   FutureOr<void> Function(TwkTester t) body, {
   int framesOnFailure = 3,
+  bool trackDisposables = false,
+  bool failOnPendingTimers = true,
+  bool failOnOverflow = true,
   Timeout? timeout,
   Object? skip,
   Object? tags,
 }) => test(
   description,
   () async {
+    final tracker = trackDisposables ? DisposalTracker.start() : null;
+    // checked as the last tear-down (they run last first), so what the
+    // test's own tear-downs dispose is disposed; not where the test
+    // failed already, which reports its own error
+    var failed = false;
+    if (tracker != null) {
+      addTearDown(() {
+        if (!failed) {
+          _failOnUndisposed(tracker);
+        }
+      });
+    }
     final t = TwkTester._();
     try {
       await runZoned(() => body(t), zoneValues: {_testerKey: t});
     } on Object {
+      failed = true;
+      tracker?.stop();
       t._printOnFailure(framesOnFailure);
       try {
         await t._end();
@@ -86,7 +130,15 @@ void testTwk(
     try {
       await t._end();
       t._failOnErrors();
+      if (failOnOverflow) {
+        t._failOnOverflows();
+      }
+      if (failOnPendingTimers) {
+        await t._failOnPendingTimers();
+      }
     } on Object {
+      failed = true;
+      tracker?.stop();
       t._printOnFailure(framesOnFailure);
       rethrow;
     } finally {
@@ -98,6 +150,21 @@ void testTwk(
   skip: skip,
   tags: tags,
 );
+
+/// Fails the test with what [tracker] saw created and not disposed.
+void _failOnUndisposed(DisposalTracker? tracker) {
+  if (tracker == null) {
+    return;
+  }
+  final leaked = tracker.stop();
+  if (leaked.isNotEmpty) {
+    final count = leaked.length == 1 ? 'an object' : '${leaked.length} objects';
+    fail(
+      'the test made $count it did not dispose (trackDisposables):\n'
+      '${leaked.join('\n')}',
+    );
+  }
+}
 
 final _testerKey = Object();
 
@@ -184,6 +251,23 @@ final class TwkTester {
   void _keepError(LogRecord record) {
     if (record.level == LogLevel.error) {
       _errors.add(record);
+    } else if (record.error is OverflowReport) {
+      _overflows.add(record);
+    }
+  }
+
+  // the warnings of an overflow the app logged
+  final _overflows = <LogRecord>[];
+
+  void _failOnOverflows() {
+    if (_overflows.isNotEmpty) {
+      final count = _overflows.length == 1
+          ? 'an overflow'
+          : '${_overflows.length} overflows';
+      fail(
+        'the app logged $count (failOnOverflow; overflowIntended says a clip '
+        'is meant):\n${_overflows.map((r) => r.message).join('\n')}',
+      );
     }
   }
 
@@ -892,6 +976,21 @@ final class TwkTester {
 
   static StateError _notStarted() =>
       StateError('no app: pumpWidget starts one');
+
+  /// Fails when a timer still waits one frame after the quit.
+  Future<void> _failOnPendingTimers() async {
+    if (_vt == null) {
+      return;
+    }
+    await clock.elapse(_frameGap);
+    final count = clock.pendingTimers;
+    if (count != 0) {
+      fail(
+        'the app left ${count == 1 ? 'a timer' : '$count timers'} pending '
+        'after it was quit (failOnPendingTimers):\n${clock.describeTimers()}',
+      );
+    }
+  }
 
   /// Ends the test's app, if it started: quits it, throws an error it
   /// ended with that was not thrown yet, feeds the emulator the rest.

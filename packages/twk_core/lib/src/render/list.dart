@@ -419,7 +419,19 @@ final class RenderList extends RenderObject
       } finally {
         _inLayout = false;
       }
+      // the callback may move the window ([scrollOffset], [jumpToIndex]):
+      // the pass after this one lays it out, so a mark is not lost
+      var inLayout = false;
+      assert(() {
+        inLayout = _debugLayingOut;
+        _debugLayingOut = false;
+        return true;
+      }(), 'lifts the layout flag');
       onMetrics?.call(height, _content, _offset);
+      assert(() {
+        _debugLayingOut = inLayout;
+        return true;
+      }(), 'restores the layout flag');
       if (_target == null && _targetIndex == null) {
         return;
       }

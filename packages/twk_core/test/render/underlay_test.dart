@@ -77,6 +77,7 @@ const _box = Color.rgb(0x22, 0x25, 0x2c);
 const _mark = Color.rgb(0x2b, 0x45, 0x66);
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test("on its parent's background, painted with it and on its own", () {
     final v = _View(underlay: true)..frame();
     expect(v.bgAt(1, 1), _box);

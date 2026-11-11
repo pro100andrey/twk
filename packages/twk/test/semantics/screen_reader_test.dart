@@ -136,6 +136,8 @@ void main() {
       Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
+        // more rows than the region has, on purpose
+        overflowIntended: true,
         children: [
           Button(
             'one two threefold four',

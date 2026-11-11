@@ -242,6 +242,7 @@ final class Tint extends RenderEffect {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a repaint boundary across a two-column glyph the effect shows '
       'repaints in place, the effect painting its child again', () {
     final view = View(6, 1);

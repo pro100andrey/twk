@@ -33,6 +33,7 @@ final class RenderKeyHint extends RenderObject {
     ('y', 'copy'),
     ('s', 'save'),
     ('x', 'clear'),
+    ('w', 'overflow'),
     ('h', 'reload'),
     ('H', 'restart'),
     ('ctrl+g', 'to the app'),

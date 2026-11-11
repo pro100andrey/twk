@@ -157,6 +157,7 @@ final class Cover extends RenderObject with RenderObjectWithChildMixin {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a layout that throws shows the message in white on red, as big as '
       'it is within the constraints, and is reported once', () {
     final v = View(6, 3);

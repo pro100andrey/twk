@@ -121,12 +121,13 @@ void main() {
         for (final t in ['a', 'b', 'c']) RenderText(t, plain),
       ],
     );
+    var asserts = false;
+    assert(asserts = true, 'only in debug');
+    // what is returned is data: no marker of the overflow over the last row
     expect(
       renderToString(column, 4, 2, styles: styles, onLog: records.add),
       'a\nb',
     );
-    var asserts = false;
-    assert(asserts = true, 'only in debug');
     expect(records, hasLength(asserts ? 1 : 0));
     if (asserts) {
       expect(records.single.level, LogLevel.warning);

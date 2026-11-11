@@ -31,7 +31,9 @@ void main() {
 
   testTwk('the wheel over a ListView takes it', (t) async {
     final outer = ScrollController();
+    addTearDown(outer.dispose);
     final inner = ScrollController();
+    addTearDown(inner.dispose);
     await t.pumpWidget(around(outer, inner), size: (20, 8));
     await t.mouse(MouseKind.wheelDown, 2, 1);
     await t.pump();
@@ -41,7 +43,9 @@ void main() {
   testTwk('with NeverScrollableScrollPhysics the wheel over a ListView goes '
       'to the view around', (t) async {
     final outer2 = ScrollController();
+    addTearDown(outer2.dispose);
     final inner2 = ScrollController();
+    addTearDown(inner2.dispose);
     await t.pumpWidget(
       around(outer2, inner2, physics: const NeverScrollableScrollPhysics()),
       size: (20, 8),
@@ -54,6 +58,7 @@ void main() {
   testTwk('NeverScrollableScrollPhysics leaves the keys and the hints out, '
       'and the controller still moves the list', (t) async {
     final inner = ScrollController();
+    addTearDown(inner.dispose);
     await t.pumpWidget(
       SizedBox(
         height: 4,

@@ -56,6 +56,9 @@ Future<void> main(List<String> args) async {
   final Stream<List<int>> from = socket ?? stdin;
   final IOSink to = socket ?? stdout;
   to.writeln('pid \$pid');
+  var asserts = false;
+  assert(asserts = true);
+  to.writeln('asserts \${asserts ? 'on' : 'off'}');
   if (args.contains('--kill')) {
     Process.killPid(pid, ProcessSignal.sigkill);
   }
@@ -283,11 +286,12 @@ TwkHere _runHere(
   _Screen screen, [
   List<String> arguments = const [],
   void Function(HotRunner runner)? started,
+  List<String> options = const [],
 ]) {
   HotRunner? runner;
   var tornDown = false;
   final run = TwkHere.start(
-    ['run', entry, '--port=${screen.port}', ...arguments],
+    ['run', ...options, entry, '--port=${screen.port}', ...arguments],
     twk: (args) => _twkRun(args, (r) {
       runner = r;
       if (tornDown) {
@@ -456,6 +460,20 @@ void main() {
     );
     screen.type('go');
     await screen.waitFor('clicks 0');
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('twk run runs the app with asserts on', () async {
+    final project = await _Project.create();
+    final screen = await _Screen.serve();
+    _runHere(project.entry, screen);
+    await screen.said('asserts on', within: _start);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('twk run --no-asserts runs the app with asserts off', () async {
+    final project = await _Project.create();
+    final screen = await _Screen.serve();
+    _runHere(project.entry, screen, const [], null, ['--no-asserts']);
+    await screen.said('asserts off', within: _start);
   }, timeout: const Timeout(Duration(minutes: 3)));
 
   test('a test that ends while twk run runs its app leaves no app '

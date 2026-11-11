@@ -2,8 +2,117 @@
 
 ## Unreleased
 
+Changed:
+
+- `renderToString` draws no overflow marker (its output is data, as `Cli.show`'s
+  and `Shot`'s); the warning still goes to `onLog`. Nor do the inline
+  commits (`TwkApp.commit`, a line written to the scrollback) and
+  `Shot`'s captures (twk_test): they are made by `PipelineOwner.forData`.
+- In a debug run a `RenderFlex` logs a warning, once, when a flexible
+  child (`Expanded`, `Flexible`) is laid out by its content because the
+  main axis is unbounded, and the app logs one, once per character, when
+  `Canvas.text` drops a control character: for an ESC (which leaves
+  `[31m` as letters) it points at `Text` with spans, for a newline or a
+  carriage return at text split into lines.
+
+Added:
+
+- `Canvas.onDroppedControl`, told in a debug run the first time `text`
+  drops each control character; `TwkApp` sets it to its log.
+
+- `PipelineOwner.forData`, a constructor for an owner whose output is data
+  (what `renderToString` returns, a line written to a pipe or a file, a
+  capture held to goldens, a commit to the scrollback):
+  `debugOverflowIndicator` is off in it whatever
+  `debugOverflowIndicatorByDefault` says, and can be turned on afterwards.
+
+- `debugAssertsEnabled`, whether asserts are on, exported by the core; the
+  render pipeline's overflow marker and `package:twk`'s binding read this
+  one probe (twk re-exports it under the same name).
+- The overflow marker. A `RenderFlex`, `RenderWrap` or `RenderGrid` whose
+  content needs more room than it has now paints, in debug mode, over the
+  edge it is cut off at: a hatch `▚` in yellow on black down the right
+  edge or along the bottom one (`/` where the terminal draws `▚` two cells
+  wide), and the cells cut off, `+3`, in the corner. It is on while asserts
+  are, and with asserts off where it is turned on, the layouts measuring the
+  cells cut off only while it is on (turning it on lays them out again; a
+  release build with it off pays one flag read a layout, and no field of a
+  render object is kept for the debug checks) (`PipelineOwner.debugOverflowIndicator`, which
+  `PipelineOwner.debugOverflowIndicatorByDefault` sets for the owners made
+  afterwards; `TWK_DEBUG=overflow` turns it on, the debug key `w` of twk
+  toggles it). `RenderFlex.overflowIntended`, `RenderWrap.overflowIntended`
+  and `RenderGrid.overflowIntended` say a box clips on purpose: it shows
+  neither the marker nor the warning.
+- The warning of an overflow carries an `OverflowReport` as the `error` of
+  its record, and is logged again once an overflow that went away starts
+  anew (it was logged once for the life of the object, and the three
+  copies of the check are one now). `OverflowReport` is `LogData`
+  (`terminal.dart`, `package:twk/log.dart`), which is not an error to
+  print: `LogRecord.toJson` leaves it out and the twk console shows the
+  message alone, where the warning showed twice.
+- In debug mode, `RenderObject.width` and `RenderObject.height` assert when
+  the parent reads them in its own `performLayout` after laying the object
+  out without `parentUsesSize: true` (and without tight constraints or
+  `sizedByParent`): the object is then a relayout boundary, and the
+  parent's layout goes stale when it resizes. The two are getters and
+  setters over private fields now; the check is inside `assert`, so a
+  release build reads a field as before, and the record it needs is kept
+  outside the objects (an `Expando`, reached from asserts only).
+- `PipelineOwner.debugCheckIntrinsics` (off by default, since it asks eight
+  more intrinsic questions of every object laid out): in debug mode, the
+  intrinsic sizes of an object just laid out, at its own extent and at
+  `BoxConstraints.unbounded`, assert when one is negative or a minimum is
+  above its maximum. Its questions are not cached, so the check changes
+  nothing else. `PipelineOwner.debugCheckIntrinsicsByDefault` sets it for
+  the owners made afterwards; the core's render tests turn it on.
+- `Surface.debugRepairWide`, run at the end of every paint flush in debug
+  mode: a wide glyph split in the damaged cells (a wide cell without its
+  continuation, at the last column too, or a continuation cell without a
+  wide cell before it) is logged as an error naming the row and column,
+  where a painter that writes `Surface.cells` itself is to blame, and the
+  cell is blanked; it does not throw out of the frame, as the
+  painter that split it is not known.
+- `PipelineOwner.onObjectLog`: the tree's own warnings (a flex, wrap or
+  grid overflow, a viewport or list given no room) with the render object
+  that raised each, ahead of `onLog`, so a binding can name where it is.
+- Debug-mode asserts for the layout contract of a `RenderObject`: a size
+  from `performLayout` outside the constraints, a child painted by
+  `paintChild` before it was laid out (it painted 0 x 0, unseen), and
+  `markNeedsLayout` on an object from inside its own `performLayout` (the
+  mark was lost when the layout ended) each fail with a hint. So does a
+  `paint` (or `paintOver`) that calls `Canvas.save()` without `restore()`,
+  which shifted and clipped everything painted after it; the canvas is
+  brought back to its depth, so only that object shows the error.
+  `Canvas.debugSaveDepth` counts the saves kept.
+- Debug-mode assert: an object that marks itself for paint (`markNeedsPaint`)
+  inside its own `paint` in three paints in a row repaints on every frame,
+  and fails with a hint. One such mark, which settles something a frame
+  late, stays legal, as does a mark on another object.
+- Debug-mode asserts for negative sizes: a `BoxConstraints` with a negative
+  bound (any constructor, `copyWith`) and `Canvas.fill` or `Canvas.clipRect`
+  with a negative width or height, which drew nothing and hid a
+  `width - padding` that needed a floor of 0, fail with a hint. A rectangle
+  partly or wholly off the surface stays legal.
+
 Fixed:
 
+- `LogRecord.toString` leaves out an error that is `LogData`, as the
+  console, `toJson` and the log view do: an overflow report was printed
+  twice.
+- A layout bug found after `performLayout` (a size outside the constraints,
+  an intrinsic size against the contract) is the error box of the object
+  that has it also when the owner lays it out alone (a relayout boundary
+  marked for layout); the assertion escaped `flushLayout` there, leaving its
+  list uncleared, and on the parent-driven path showed on the parent.
+- An object that moves its own children as it is laid out (a list sorting
+  its items) while its parent asks it for intrinsic sizes in the parent's
+  own layout (`IntrinsicHeight` over a reordered `ListView.builder`) no
+  longer fails the parent's layout with "marked itself for layout inside its
+  own performLayout".
+- The overflow marker shows where asserts are off and `TWK_DEBUG=overflow`
+  or Ctrl+G `w` turned it on: the cells cut off are measured by the layout
+  (two integer stores), not inside an assert; the warning is logged with
+  asserts only.
 - An app on a pseudo-terminal of no size (one `script` opens with no
   terminal around it: a background job, CI) has it for its terminal, as
   wide and tall as `COLUMNS` and `LINES` say, else 80 × 24; it ran as plain

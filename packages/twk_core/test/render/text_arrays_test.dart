@@ -5,6 +5,7 @@ import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('Canvas.shapeInto', () {
     test('writes the glyphs and width that shape makes', () {
       final canvas = Canvas(Surface(10, 1), StyleTable(), GlyphTable());

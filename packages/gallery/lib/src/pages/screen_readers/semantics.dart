@@ -379,10 +379,20 @@ final class _SignInState extends State<_SignIn> with KeptState {
     }
   }
 
+  // kept from didChangeDependencies: the nodes tell _readNext, and dispose
+  // cancels, with the element out of the tree, where no lookup is allowed
+  AppBinding? _binding;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _binding = AppBinding.maybeOf(context);
+  }
+
   @override
   void dispose() {
     if (_pending case final id?) {
-      AppBinding.maybeOf(context)?.cancelFrameCallback(id);
+      _binding?.cancelFrameCallback(id);
     }
     for (final node in _nodes) {
       node.dispose();
@@ -395,7 +405,7 @@ final class _SignInState extends State<_SignIn> with KeptState {
     if (_pending != null || !mounted) {
       return;
     }
-    _pending = AppBinding.maybeOf(context)?.scheduleFrameCallback((_) {
+    _pending = _binding?.scheduleFrameCallback((_) {
       _pending = null;
       _readForm();
     });
@@ -519,6 +529,9 @@ final class _SignInState extends State<_SignIn> with KeptState {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 1,
+        // read out, the form is laid out under the lines and not painted,
+        // in the room they leave
+        overflowIntended: widget.reader,
         children: _formChildren(theme),
       ),
     );

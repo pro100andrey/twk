@@ -43,8 +43,8 @@ const ctrlG = '\x1b[103;5u';
 /// The line of the debug keys over the bottom row while Ctrl+G waits, on
 /// a terminal 80 columns wide.
 const keysLine =
-    ' ctrl+g  o overlay  r rainbow  c console  l relayout  f level  y copy'
-    '  s save';
+    ' ctrl+g  o overlay  r rainbow  c console  l relayout  f level  y copy  '
+    's save';
 
 /// What a toast and the log say Enter on [day] shows.
 String deployed(DateTime day) =>

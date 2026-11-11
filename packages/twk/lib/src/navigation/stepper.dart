@@ -164,7 +164,12 @@ final class StepperController extends ChangeNotifier {
   /// [Stepper.onFinished] and returns true. False while [validating],
   /// and while it serves no stepper. An error [Step.validate] throws is
   /// thrown here.
-  Future<bool> next() async {
+  Future<bool> next() {
+    assert(!_disposed, '$this: next() after dispose()');
+    return _next();
+  }
+
+  Future<bool> _next() async {
     final host = _hosts.host;
     if (host == null || _validating) {
       return false;
@@ -195,6 +200,7 @@ final class StepperController extends ChangeNotifier {
   /// [StepState.disabled], validating nothing; does nothing on the first
   /// and while [validating].
   void back() {
+    assert(!_disposed, '$this: back() after dispose()');
     final host = _hosts.host;
     if (host == null || _validating) {
       return;
@@ -216,7 +222,12 @@ final class StepperController extends ChangeNotifier {
   /// moving there. False for a step it does not have or that is
   /// [StepState.disabled], while [validating], and while it serves no
   /// stepper.
-  Future<bool> goTo(int step) async {
+  Future<bool> goTo(int step) {
+    assert(!_disposed, '$this: goTo() after dispose()');
+    return _goTo(step);
+  }
+
+  Future<bool> _goTo(int step) async {
     final host = _hosts.host;
     if (host == null || _validating) {
       return false;

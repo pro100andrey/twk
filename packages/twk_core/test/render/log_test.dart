@@ -37,6 +37,7 @@ final class View {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a line added below a log scrolled back asks for no paint, and shows '
       'when scrolled into view', () {
     final v = View(8, 2);

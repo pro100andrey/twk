@@ -5,6 +5,52 @@ import 'package:test/test.dart';
 import 'package:twk/src/foundation/helpers.dart';
 
 void main() {
+  test('debugDistinct reads at most debugDistinctLimit keys, however many '
+      'items, and still finds a duplicate among the first', () {
+    var reads = 0;
+    expect(
+      debugDistinct<int>(1000000, (i) {
+        reads++;
+        return i;
+      }, (k, i) => 'dup $k'),
+      isTrue,
+    );
+    expect(reads, debugDistinctLimit);
+    expect(
+      () => debugDistinct<int>(5, (i) => i == 3 ? 1 : i, (k, i) => 'dup $k'),
+      throwsA(isA<AssertionError>()),
+    );
+    // beyond the limit a duplicate goes unseen
+    expect(
+      debugDistinct<int>(
+        debugDistinctLimit + 1,
+        (i) => i == debugDistinctLimit ? 0 : i,
+        (k, i) => 'dup $k',
+      ),
+      isTrue,
+    );
+  });
+
+  test(
+    'debugDistinct with full reads every key and finds a duplicate far on',
+    () {
+      var reads = 0;
+      expect(
+        () => debugDistinct<int>(
+          5000,
+          (i) {
+            reads++;
+            return i == 3000 ? 0 : i;
+          },
+          (k, i) => 'dup $k at $i',
+          full: true,
+        ),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(reads, 3001);
+    },
+  );
+
   test('nextEnabled: the next enabled index, round, from inside or off the '
       'ends; -1 where none', () {
     final on = [true, false, true, false];

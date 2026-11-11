@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
 import '../text/ambiguous.dart';
 
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
@@ -74,7 +75,7 @@ Widget pages(
     ),
     Button(
       'next',
-      focusNode: FocusNode(debugLabel: 'next'),
+      focusNode: disposing(FocusNode(debugLabel: 'next')),
       onPressed: () {},
     ),
   ],
@@ -93,7 +94,7 @@ Future<String> row(
   await t.pumpWidget(
     Theme.terminal(
       child: pages(
-        ValueNotifier(page),
+        disposing(ValueNotifier(page)),
         width,
         pageCount: pageCount,
         siblings: siblings,
@@ -111,6 +112,7 @@ void main() {
       'primary color and bold, … for a gap, the range; the arrows that go '
       'nowhere, the gap and the range muted', (t) async {
     final page = ValueNotifier(1);
+    addTearDown(page.dispose);
     await t.pumpWidget(Theme.terminal(child: pages(page, 70)), size: (70, 3));
     expect(
       t.lines.first.trimRight(),
@@ -209,6 +211,7 @@ void main() {
       'PageUp and PageDown ten back and on, Home and End to the ends, '
       'nothing past them; hinted', (t) async {
     final page = ValueNotifier(1);
+    addTearDown(page.dispose);
     final changes = <int>[];
     final node = FocusNode(debugLabel: 'pages');
     addTearDown(node.dispose);
@@ -240,6 +243,7 @@ void main() {
     t,
   ) async {
     final page = ValueNotifier(1);
+    addTearDown(page.dispose);
     final node = FocusNode(debugLabel: 'pages');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -266,6 +270,7 @@ void main() {
       'last where there are fewer; Backspace takes one back, Escape and '
       'the focus leaving drop them', (t) async {
     final page = ValueNotifier(0);
+    addTearDown(page.dispose);
     final changes = <int>[];
     final node = FocusNode(debugLabel: 'pages');
     addTearDown(node.dispose);
@@ -314,6 +319,7 @@ void main() {
       'the current page, the gap, the range and the arrows that go nowhere '
       'do nothing', (t) async {
     final page = ValueNotifier(0);
+    addTearDown(page.dispose);
     final changes = <int>[];
     final node = FocusNode(debugLabel: 'pages');
     addTearDown(node.dispose);
@@ -342,7 +348,7 @@ void main() {
 
   testTwk('the mouse over a page or an arrow underlines it', (t) async {
     await t.pumpWidget(
-      Theme.terminal(child: pages(ValueNotifier(1), 70)),
+      Theme.terminal(child: pages(disposing(ValueNotifier(1)), 70)),
       size: (70, 3),
     );
     await t.mouse(MouseKind.move, 21, 0);
@@ -360,6 +366,7 @@ void main() {
   testTwk('without onChanged it takes neither the focus nor the mouse, all '
       'of it muted', (t) async {
     final page = ValueNotifier(1);
+    addTearDown(page.dispose);
     final node = FocusNode(debugLabel: 'pages');
     addTearDown(node.dispose);
     await t.pumpWidget(
@@ -383,7 +390,9 @@ void main() {
     t,
   ) async {
     await t.pumpWidget(
-      Theme.terminal(child: pages(ValueNotifier(1), 70, showFirstLast: false)),
+      Theme.terminal(
+        child: pages(disposing(ValueNotifier(1)), 70, showFirstLast: false),
+      ),
       size: (70, 3),
     );
     expect(
@@ -391,7 +400,9 @@ void main() {
       '‹ Prev 1 [2] 3 4 5 … 42 Next ›  (21–40 of 840)',
     );
     await t.pumpWidget(
-      Theme.terminal(child: pages(ValueNotifier(1), 70, showPrevNext: false)),
+      Theme.terminal(
+        child: pages(disposing(ValueNotifier(1)), 70, showPrevNext: false),
+      ),
       size: (70, 3),
     );
     expect(
@@ -405,6 +416,7 @@ void main() {
     final node = FocusNode(debugLabel: 'pages');
     addTearDown(node.dispose);
     final page = ValueNotifier(0);
+    addTearDown(page.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: pages(page, 70, focusNode: node, pageCount: 3, itemCount: 50),

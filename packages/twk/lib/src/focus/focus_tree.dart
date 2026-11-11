@@ -69,7 +69,12 @@ class FocusNode with ChangeNotifier {
     this.skipTraversal = false,
     this._descendantsAreFocusable = true,
     this._takesText = false,
-  });
+  }) {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   /// Names the node in [toString].
   String? debugLabel;
@@ -231,8 +236,15 @@ class FocusNode with ChangeNotifier {
 
   /// Gives this node the primary focus, when it is attached to an app's
   /// focus tree and [canRequestFocus]. Each scope above it remembers the
-  /// way to it ([FocusScopeNode.focusedChild]).
+  /// way to it ([FocusScopeNode.focusedChild]). Asserts that the node is
+  /// not disposed: a request on a disposed node would do nothing, so the
+  /// widget that keeps it past its dispose is the bug.
   void requestFocus() {
+    assert(
+      !_disposed,
+      '$this: requestFocus after dispose(); a disposed node takes no focus, '
+      'drop the reference when the owner disposes it',
+    );
     final manager = _manager;
     if (manager != null && _active && canRequestFocus) {
       manager._setPrimary(this);
@@ -428,7 +440,9 @@ class FocusNode with ChangeNotifier {
         return true;
       }
     }
-    fallback?.requestFocus();
+    if (fallback != null && !fallback._disposed) {
+      fallback.requestFocus();
+    }
     return false;
   }
 
@@ -633,6 +647,11 @@ final class FocusManager {
   /// changes; the binding makes one.
   FocusManager({this.onFlushScheduled}) {
     rootScope._manager = this;
+    // lives as long as the app, which does not dispose it
+    assert(
+      DisposalTracker.forget(rootScope),
+      'tracks the object',
+    );
   }
 
   /// Called when the focus changed while no [flush] is pending: the frame
@@ -765,7 +784,10 @@ final class FocusManager {
       _autofocus.clear();
       for (final node in nodes) {
         final scope = node.enclosingScope;
-        if (node._active && scope != null && scope.focusedChild == null) {
+        if (!node._disposed &&
+            node._active &&
+            scope != null &&
+            scope.focusedChild == null) {
           node.requestFocus();
         }
       }
@@ -947,7 +969,7 @@ final class FocusManager {
     }
     // the top of the subtree removed with it, whose parent is still there
     var top = element;
-    element.visitAncestorElements((e) {
+    element.visitRetainedAncestors((e) {
       top = e;
       return true;
     });
@@ -1062,7 +1084,9 @@ final class FocusManager {
         return;
       }
     }
-    node.requestFocus();
+    if (!node._disposed) {
+      node.requestFocus();
+    }
   }
 }
 
@@ -1147,7 +1171,9 @@ final class _TreeOrder {
 
   static Element? _parentOf(Element element) {
     Element? parent;
-    element.visitAncestorElements((e) {
+    // a retained walk: [element] may be the removed node's previous
+    // sibling, removed in the same frame
+    element.visitRetainedAncestors((e) {
       parent = e;
       return false;
     });
@@ -1209,7 +1235,8 @@ final class _TreeOrder {
     }
     final path = [element];
     var below = false;
-    element.visitAncestorElements((e) {
+    // retained: a path of an element removed in this frame is still asked
+    element.visitRetainedAncestors((e) {
       if (identical(e, root)) {
         below = true;
         return false;

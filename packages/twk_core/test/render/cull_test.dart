@@ -109,6 +109,7 @@ RenderFlex column(List<RenderObject> children) =>
     RenderFlex(direction: Axis.vertical, children: children);
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('a child the clip leaves nothing of', () {
     test('is not painted: a viewport paints the rows in view', () {
       final r = rows(100);

@@ -32,6 +32,11 @@ final class BoxConstraints {
     this.minHeight = 0,
     this.maxHeight = unbounded,
   }) : assert(
+         minWidth >= 0 && minHeight >= 0 && maxWidth >= 0 && maxHeight >= 0,
+         'a constraint is never negative; a size computed by subtracting '
+         'insets or a gap needs a floor of 0 (max(0, width - padding))',
+       ),
+       assert(
          minWidth <= maxWidth && minHeight <= maxHeight,
          'each minimum at most its maximum',
        );
@@ -46,7 +51,12 @@ final class BoxConstraints {
     : minWidth = width ?? 0,
       maxWidth = width ?? unbounded,
       minHeight = height ?? 0,
-      maxHeight = height ?? unbounded;
+      maxHeight = height ?? unbounded,
+      assert(
+        (width ?? 0) >= 0 && (height ?? 0) >= 0,
+        'a constraint is never negative; a size computed by subtracting '
+        'insets or a gap needs a floor of 0 (max(0, width - padding))',
+      );
 
   /// At most [w] wide and [h] tall, any size down to nothing.
   const BoxConstraints.loose(int w, int h) : this(maxWidth: w, maxHeight: h);
@@ -59,7 +69,12 @@ final class BoxConstraints {
     : minWidth = width ?? unbounded,
       maxWidth = width ?? unbounded,
       minHeight = height ?? unbounded,
-      maxHeight = height ?? unbounded;
+      maxHeight = height ?? unbounded,
+      assert(
+        (width ?? 0) >= 0 && (height ?? 0) >= 0,
+        'a constraint is never negative; a size computed by subtracting '
+        'insets or a gap needs a floor of 0 (max(0, width - padding))',
+      );
 
   /// An extent no screen reaches: a limit that limits nothing, as Flutter's
   /// infinity does.
@@ -358,7 +373,7 @@ mixin ContainerRenderObjectMixin<P extends ContainerParentDataMixin>
     }
     _unlink(child);
     _link(child, after);
-    markNeedsLayout();
+    _markNeedsLayout();
   }
 
   void _link(RenderObject child, RenderObject? after) {
@@ -691,14 +706,24 @@ abstract class RenderObject {
   PipelineOwner? owner;
 
   // a record of the tree itself, a warning unless [level] says another, to
-  // where its owner routes them (PipelineOwner.onLog), and to log() where it
-  // routes none
-  void _warn(String message, {LogLevel level = LogLevel.warning}) {
+  // where its owner routes them (PipelineOwner.onObjectLog, else onLog), and
+  // to log() where it routes none
+  void _warn(
+    String message, {
+    LogLevel level = LogLevel.warning,
+    Object? error,
+  }) {
+    final record = LogRecord(DateTime.now(), level, message, error: error);
+    final withSource = owner?.onObjectLog;
+    if (withSource != null) {
+      withSource(this, record);
+      return;
+    }
     final route = owner?.onLog;
     if (route == null) {
       log(message, level: level);
     } else {
-      route(LogRecord(DateTime.now(), level, message));
+      route(record);
     }
   }
 
@@ -709,13 +734,93 @@ abstract class RenderObject {
 
   /// How many columns this object takes, set by its [performLayout] within
   /// the constraints it was given.
-  var width = 0;
+  ///
+  /// In debug mode, a read of it by the parent in the parent's own
+  /// [performLayout] asserts when the parent laid this object out without
+  /// `parentUsesSize` (see [layout]): the object is then a relayout
+  /// boundary, and the parent's layout goes stale when it resizes.
+  int get width {
+    assert(_debugParentMayReadSize('width'), 'unreachable: asserts itself');
+    return _sizeW;
+  }
+
+  set width(int v) => _sizeW = v;
 
   /// How many rows this object takes, set by its [performLayout] within
-  /// the constraints it was given.
-  var height = 0;
+  /// the constraints it was given. Checked in debug mode like [width].
+  int get height {
+    assert(_debugParentMayReadSize('height'), 'unreachable: asserts itself');
+    return _sizeH;
+  }
+
+  set height(int v) => _sizeH = v;
+
+  var _sizeW = 0;
+  var _sizeH = 0;
+
+  // debug only: throws when the parent reads this object's size in its own
+  // performLayout, after laying it out without parentUsesSize (the
+  // sizeNotUsed flag of _debugStates; a tight constraint or sizedByParent
+  // also make a boundary, but one whose size can't change within the
+  // constraints, so they don't set it). "The parent in its own
+  // performLayout" is _debugInLayout, the innermost object in layout, being
+  // the parent: so a sibling or another non-parent reading a boundary
+  // child's size during the parent's layout is not flagged, nor is a read
+  // while a deeper object (a child laid out by the parent) is the innermost.
+  bool _debugParentMayReadSize(String which) {
+    final p = parent;
+    // the object in its own performLayout now is the parent: a static test,
+    // as every read of a size during a layout comes here
+    if (p == null ||
+        !identical(p, _debugInLayout) ||
+        !(_debugStates[this]?.sizeNotUsed ?? false)) {
+      return true;
+    }
+    throw AssertionError(
+      '${p.runtimeType} read the $which of $this in its performLayout, but '
+      'laid it out without parentUsesSize: it is a relayout boundary, so '
+      'the parent is not laid out again when its $which changes. Pass '
+      'parentUsesSize: true to layout() for a child whose size is read.',
+    );
+  }
+
   BoxConstraints? _constraints;
   var _needsLayout = true;
+
+  // debug only, kept apart from the object so that a release build has no
+  // field for them on every render object; only reached from asserts. One
+  // Expando holds one mutable state per object, made on the first write and
+  // edited in place after (an Expando entry per flag, written and removed on
+  // every layout and paint, made asserts-on frames 70 % slower). Laying out:
+  // this object is in its own performLayout, where a mark on it would be
+  // cleared by the layout. Painting: it is in its own paint, and whether it
+  // marked itself there (selfMarked); and how many paints in a row did
+  // (selfMarkRun). One mark settles something on purpose (a child moved a
+  // frame late); a paint that marks every time repaints on every frame.
+  // SizeNotUsed: the last layout call was made without parentUsesSize.
+  static final _debugStates = Expando<_DebugState>('render object debug state');
+
+  // the object whose performLayout runs now, innermost: null outside a
+  // layout, and in a layout callback (where the object is not "in its
+  // layout" for a read of a child's size, see _debugParentMayReadSize)
+  static RenderObject? _debugInLayout;
+
+  _DebugState get _debugState => _debugStates[this] ??= _DebugState();
+
+  // the reads outside the hot paths, which hold the state in a local
+  bool get _debugLayingOut => _debugStates[this]?.layingOut ?? false;
+  // lifts and restores the flag around a callback of this object's layout
+  // (the hot paths hold the state, and the static, themselves)
+  set _debugLayingOut(bool v) {
+    _debugState.layingOut = v;
+    if (v) {
+      _debugInLayout = this;
+    } else if (identical(_debugInLayout, this)) {
+      _debugInLayout = null;
+    }
+  }
+
+  bool get _debugPainting => _debugStates[this]?.painting ?? false;
 
   // laid out last so that its size can't change the parent's layout: a
   // layout mark stops here, and this subtree is laid out on its own
@@ -998,8 +1103,8 @@ abstract class RenderObject {
   void _keepUnderlay(Canvas canvas) {
     final ox = canvas.originX;
     final oy = canvas.originY;
-    final w = width;
-    final h = height;
+    final w = _sizeW;
+    final h = _sizeH;
     if (w <= 0 || h <= 0) {
       return;
     }
@@ -1073,8 +1178,8 @@ abstract class RenderObject {
     if (u == null ||
         canvas.originX != _uox ||
         canvas.originY != _uoy ||
-        width != _uw ||
-        height != _uh) {
+        _sizeW != _uw ||
+        _sizeH != _uh) {
       return;
     }
     final (x0, y0, x1, y1) = canvas.clipBounds;
@@ -1130,7 +1235,7 @@ abstract class RenderObject {
     if (owner != null) {
       child.attach(owner!);
     }
-    markNeedsLayout();
+    _markNeedsLayout();
   }
 
   /// Removes [child] from this object (the parent's own list of children
@@ -1140,7 +1245,7 @@ abstract class RenderObject {
     child
       ..parent = null
       ..detach();
-    markNeedsLayout();
+    _markNeedsLayout();
   }
 
   /// Joins the pipeline of [o], with everything inside it: the owner lays
@@ -1205,12 +1310,25 @@ abstract class RenderObject {
   /// intrinsic sizes worked out so far; when any was asked for, the parent
   /// is marked too, boundary or not, since its layout may have used them.
   void markNeedsLayout() {
+    assert(
+      !_debugLayingOut,
+      '$this marked itself for layout inside its own performLayout: the mark '
+      'is lost when the layout ends. Change what the layout reads before it '
+      'runs (or in invokeLayoutCallback), not while it runs.',
+    );
+    _markNeedsLayout();
+  }
+
+  // markNeedsLayout without the check of the contract: for what an object
+  // does to its own children as it lays them out (a list sorting them), which
+  // the layout in progress takes into account
+  void _markNeedsLayout() {
     if (_intrinsicsCached != 0) {
       _intrinsicsCached = 0;
       final p = parent;
       if (p != null) {
         _needsLayout = true;
-        p.markNeedsLayout();
+        p._markNeedsLayout();
         return;
       }
     }
@@ -1233,6 +1351,12 @@ abstract class RenderObject {
   /// ancestors paint there, then what is inside them there, in order. A
   /// boundary marked itself repaints all of it.
   void markNeedsPaint() {
+    assert(() {
+      if (_debugPainting) {
+        _debugState.selfMarked = true;
+      }
+      return true;
+    }(), 'notes a mark made in paint');
     if (_errorShown == _shownUntilPaint) {
       // its paint is tried again
       _errorShown = _shownNot;
@@ -1275,6 +1399,14 @@ abstract class RenderObject {
     // decided by every call, even one that has nothing to lay out
     _relayoutBoundary =
         !parentUsesSize || c.isTight || sizedByParent || parent == null;
+    assert(() {
+      final notUsed =
+          _relayoutBoundary &&
+          !parentUsesSize &&
+          !(c.isTight || sizedByParent || parent == null);
+      _debugState.sizeNotUsed = notUsed;
+      return true;
+    }(), 'records the layout call');
     if (same) {
       return;
     }
@@ -1288,14 +1420,14 @@ abstract class RenderObject {
   /// Lays this relayout boundary out again within the constraints its
   /// parent gave it last.
   void _relayout() {
-    final w = width;
-    final h = height;
+    final w = _sizeW;
+    final h = _sizeH;
     _layOut(_constraints!);
     _needsLayout = false;
     markNeedsPaint();
     // a size the parent doesn't use may still change: the cells this
     // object no longer covers are the parent's to repaint
-    if ((width != w || height != h) && parent != null) {
+    if ((_sizeW != w || _sizeH != h) && parent != null) {
       parent!.markNeedsPaint();
     }
   }
@@ -1327,7 +1459,23 @@ abstract class RenderObject {
     // forgotten, so that marks from below stop here
     _intrinsicsCached = 0;
     _needsLayout = true;
+    var outer = false;
+    RenderObject? outerNow;
+    _DebugState? st;
+    assert(() {
+      st = _debugState;
+      outer = st!.layingOut;
+      st!.layingOut = false;
+      outerNow = _debugInLayout;
+      _debugInLayout = null;
+      return true;
+    }(), 'sets the layout flag');
     callback();
+    assert(() {
+      _debugInLayout = outerNow;
+      st!.layingOut = outer;
+      return true;
+    }(), 'restores the layout flag');
     if (asked != 0 && _intrinsicsChanged(asked)) {
       final asker = parent ?? this;
       final o = owner;
@@ -1357,9 +1505,45 @@ abstract class RenderObject {
   /// Runs [performLayout] within [c]; what it throws, this object shows.
   void _layOut(BoxConstraints c) {
     _laidOut = true;
+    var outer = false;
+    RenderObject? outerNow;
+    _DebugState? st;
+    assert(() {
+      st = _debugState;
+      outer = st!.layingOut;
+      st!.layingOut = true;
+      outerNow = _debugInLayout;
+      _debugInLayout = this;
+      return true;
+    }(), 'sets the layout flag');
     try {
       performLayout(c);
+      assert(() {
+        st!.layingOut = outer;
+        _debugInLayout = outerNow;
+        return true;
+      }(), 'restores the layout flag');
+      // inside the try: a layout bug found here is this object's error box
+      // on the relayout path too, not an exception out of flushLayout
+      assert(
+        _sizeW >= c.minWidth &&
+            _sizeW <= c.maxWidth &&
+            _sizeH >= c.minHeight &&
+            _sizeH <= c.maxHeight,
+        '$this laid out at ${_sizeW}x$_sizeH, outside its constraints $c: '
+        'performLayout sets a size within them (c.constrain, '
+        'c.constrainWidth, c.constrainHeight).',
+      );
+      assert(
+        owner?.debugCheckIntrinsics != true || _intrinsicsAreSane(),
+        'unreachable: the check asserts itself',
+      );
     } on Object catch (error, stack) {
+      assert(() {
+        st!.layingOut = outer;
+        _debugInLayout = outerNow;
+        return true;
+      }(), 'restores the layout flag');
       _layoutFailed(c, error, stack);
       return;
     }
@@ -1368,13 +1552,70 @@ abstract class RenderObject {
     }
   }
 
+  /// The check of [PipelineOwner.debugCheckIntrinsics]: asserts what the
+  /// contract of [computeMinIntrinsicWidth] promises, at the extents the
+  /// object is laid out at and at [BoxConstraints.unbounded].
+  bool _intrinsicsAreSane() {
+    const unbounded = BoxConstraints.unbounded;
+    final failures = <String>[];
+    void check(
+      String axis,
+      int Function(int) min,
+      int Function(int) max,
+      int extent,
+    ) {
+      final lo = min(extent);
+      final hi = max(extent);
+      if (lo < 0) {
+        failures.add('computeMin${axis}Intrinsic($extent) is negative: $lo');
+      }
+      if (hi < 0) {
+        failures.add('computeMax${axis}Intrinsic($extent) is negative: $hi');
+      }
+      if (lo > hi) {
+        failures.add(
+          'computeMin${axis}Intrinsic($extent) = $lo is above '
+          'computeMax${axis}Intrinsic($extent) = $hi',
+        );
+      }
+    }
+
+    final o = owner!.._checkingIntrinsics = true;
+    try {
+      for (final extent in {unbounded, _sizeH}) {
+        check(
+          'Width',
+          computeMinIntrinsicWidth,
+          computeMaxIntrinsicWidth,
+          extent,
+        );
+      }
+      for (final extent in {unbounded, _sizeW}) {
+        check(
+          'Height',
+          computeMinIntrinsicHeight,
+          computeMaxIntrinsicHeight,
+          extent,
+        );
+      }
+    } finally {
+      o._checkingIntrinsics = false;
+    }
+    assert(
+      failures.isEmpty,
+      '$this has intrinsic sizes that break the contract '
+      '(PipelineOwner.debugCheckIntrinsics):\n * ${failures.join('\n * ')}',
+    );
+    return true;
+  }
+
   /// [performLayout] threw [error]: this object shows its message, as big
   /// as the message is within [c].
   void _layoutFailed(BoxConstraints c, Object error, StackTrace stack) {
     final message = '$error';
     _errorShown = _shownUntilLayout;
     width = c.constrainWidth(_messageWidth(this, message));
-    height = c.constrainHeight(_messageLines(this, message, width).length);
+    height = c.constrainHeight(_messageLines(this, message, _sizeW).length);
     _failed(message, RenderPhase.layout, error, stack);
   }
 
@@ -1449,23 +1690,35 @@ abstract class RenderObject {
   /// What [getMaxIntrinsicHeight] answers; see [computeMinIntrinsicWidth].
   int computeMaxIntrinsicHeight(int width) => 0;
 
+  int _computeIntrinsic(int kind, int extent) => switch (kind) {
+    _minWidth => computeMinIntrinsicWidth(extent),
+    _maxWidth => computeMaxIntrinsicWidth(extent),
+    _minHeight => computeMinIntrinsicHeight(extent),
+    _ => computeMaxIntrinsicHeight(extent),
+  };
+
   /// The intrinsic size of [kind] at [extent] on the other axis; the
   /// cached answer when the last question of that kind had the same
   /// [extent].
   int _intrinsic(int kind, int extent) {
     assert(extent >= 0, 'an intrinsic size is asked at an extent of 0 or more');
+    var checking = false;
+    assert(() {
+      checking = owner?._checkingIntrinsics ?? false;
+      return true;
+    }(), 'reads the check of intrinsics');
+    if (checking) {
+      // the check leaves no trace: a cached answer changes what a mark
+      // does (markNeedsLayout)
+      return _computeIntrinsic(kind, extent);
+    }
     final cache = _intrinsics ??= Int64List(8);
     final bit = 1 << kind;
     final at = 2 * kind;
     if ((_intrinsicsCached & bit) != 0 && cache[at] == extent) {
       return cache[at + 1];
     }
-    final answer = switch (kind) {
-      _minWidth => computeMinIntrinsicWidth(extent),
-      _maxWidth => computeMaxIntrinsicWidth(extent),
-      _minHeight => computeMinIntrinsicHeight(extent),
-      _ => computeMaxIntrinsicHeight(extent),
-    };
+    final answer = _computeIntrinsic(kind, extent);
     cache[at] = extent;
     cache[at + 1] = answer;
     _intrinsicsCached |= bit;
@@ -1488,6 +1741,11 @@ abstract class RenderObject {
   /// something inside it is [paintedWhenCutOff]; one not painted keeps
   /// what it kept of its paint, since its cells are as it left them.
   void paintChild(PaintContext ctx, RenderObject child) {
+    assert(
+      child._constraints != null,
+      '$child is painted by $this before it was laid out: lay every child '
+      'out in performLayout, or it is painted 0x0.',
+    );
     final at = child.parentData;
     final canvas = ctx.canvas
       ..save()
@@ -1518,15 +1776,83 @@ abstract class RenderObject {
       _paintError(ctx);
       return;
     }
+    var depth = 0;
+    assert(() {
+      depth = ctx.canvas.debugSaveDepth;
+      return true;
+    }(), 'the depth of the canvas saves');
+    _DebugState? st;
+    assert(() {
+      st = _debugState;
+      st!.painting = true;
+      return true;
+    }(), 'sets the paint flag');
     try {
       paint(ctx);
+      assert(_debugPaintEnd(ctx, depth, st!), 'paint left saves or marks');
     } on Object catch (error, stack) {
+      assert(() {
+        st!
+          ..painting = false
+          ..selfMarked = false;
+        return true;
+      }(), 'clears the paint flag');
+      assert(_unwindSaves(ctx, depth), 'unwinding the saves of a paint');
       _paintFailed(error, stack);
       return;
     }
     if (_error != null) {
       _error = null;
     }
+  }
+
+  // debug only, in assert: ends the paint flag; fails with a hint when
+  // this object marked itself in each of its last paints, or left saves
+  bool _debugPaintEnd(PaintContext ctx, int depth, _DebugState st) {
+    final marked = st.selfMarked;
+    st
+      ..painting = false
+      ..selfMarked = false
+      ..selfMarkRun = marked ? st.selfMarkRun + 1 : 0;
+    if (st.selfMarkRun >= 3) {
+      st.selfMarkRun = 0;
+      _unwindSaves(ctx, depth);
+      throw AssertionError(
+        '$this marked itself for paint inside its own paint in three paints '
+        'in a row: it repaints on every frame. Mark it when what it shows '
+        'changes, not while it paints (one mark that settles a late move '
+        'is fine).',
+      );
+    }
+    return _saveBalanced(ctx, depth, 'paint');
+  }
+
+  // debug only, in assert: what a paint that threw left saved is
+  // restored, so the rest of the frame is not shifted by it
+  bool _unwindSaves(PaintContext ctx, int depth) {
+    final canvas = ctx.canvas;
+    while (canvas.debugSaveDepth > depth) {
+      canvas.restore();
+    }
+    return true;
+  }
+
+  // debug only, in assert: [what] left the canvas deeper in saves than it
+  // found it (a save() with no restore() shifts and clips everything
+  // painted after it); brings the depth back, so only this object shows
+  // the error, then fails with a hint.
+  bool _saveBalanced(PaintContext ctx, int depth, String what) {
+    final left = ctx.canvas.debugSaveDepth - depth;
+    _unwindSaves(ctx, depth);
+    if (left != 0) {
+      throw AssertionError(
+        '$this: $what() left $left Canvas.save() unmatched by restore(): '
+        'everything painted after it, siblings included, would be shifted '
+        'and clipped. Pair every save() with a restore(), in a finally if '
+        'the code between can throw.',
+      );
+    }
+    return true;
   }
 
   /// Paints the error this object shows over all of it.
@@ -1583,9 +1909,19 @@ abstract class RenderObject {
     if (_errorShown != _shownNot) {
       return;
     }
+    var depth = 0;
+    assert(() {
+      depth = ctx.canvas.debugSaveDepth;
+      return true;
+    }(), 'the depth of the canvas saves');
     try {
       paintOver(ctx, child, x, y, w, h);
+      assert(
+        _saveBalanced(ctx, depth, 'paintOver'),
+        'paintOver left saves',
+      );
     } on Object catch (error, stack) {
+      assert(_unwindSaves(ctx, depth), 'unwinding the saves of a paintOver');
       _overFailed(error, stack);
     }
   }
@@ -1913,4 +2249,13 @@ void _forgetCutChild(RenderObject c) {
   _cutAt = y;
   _forgetCutKeepers(c);
   _cutAt = at;
+}
+
+/// The debug-only state of a render object, see `RenderObject._debugStates`.
+class _DebugState {
+  var layingOut = false;
+  var painting = false;
+  var selfMarked = false;
+  var selfMarkRun = 0;
+  var sizeNotUsed = false;
 }

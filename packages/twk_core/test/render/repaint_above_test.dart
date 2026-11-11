@@ -168,6 +168,7 @@ Frame covered(Panel under, Panel other, {required int otherRow}) => Frame(
 );
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a boundary marked with one under a wide glyph cut is not painted '
       'again when the rows repainted above held it', () {
     final under = Panel('.');

@@ -59,8 +59,11 @@ import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
 import '../focus/focus.dart';
-import '../foundation/constants.dart' show kReleaseMode;
+import '../foundation/constants.dart'
+    show debugAssertsEnabled, kDebugMode, kReleaseMode;
 import '../foundation/helpers.dart';
+import '../foundation/render_elements.dart';
+import '../framework/app_clock.dart' show AppClock;
 import '../framework/framework.dart';
 import '../gestures/mouse.dart';
 import '../layout/one_child.dart';
@@ -123,6 +126,11 @@ enum ScreenMode {
 /// the default, for what the process's terminal is found to do. A given
 /// [terminal] has to be ordered so (an [ArgumentError] if not).
 ///
+/// [onError] is told of every error the binding reports: a build, a layout
+/// or a paint that throws, a handler of an event that throws, and an error
+/// that ends the app otherwise ([ErrorReporter], [ErrorOrigin]), in
+/// addition to what happens to it. Null, the default, tells no one.
+///
 /// [maxFps] frames a second at most, 60 by default, and [maxInputFps] the
 /// frames input asks for (`TwkApp.maxInputFps`: 120 by default, [maxFps] on
 /// a remote terminal or below 60); [maxInlineRows] the
@@ -167,6 +175,7 @@ Future<void> runApp(
   bool? screenReader,
   BidiReordering? bidi,
   Stopwatch? clock,
+  ErrorReporter? onError,
 }) async {
   final fullscreen = mode == ScreenMode.fullscreen;
   if (terminal != null && terminal.info.alternateScreen != fullscreen) {
@@ -207,6 +216,7 @@ Future<void> runApp(
     restCursor: restCursor,
     clock: clock,
     screenReader: screenReader,
+    onError: onError,
   ).run(app);
 }
 
@@ -310,7 +320,14 @@ final class AppBinding implements FrameClock {
   /// whole of it. A test passes `const {}`, and turns a debug aid on
   /// through [debug] or [screenReader]; so does a server of apps to
   /// others, as twk_ssh's `serveSsh` does, whose clients are not to turn
-  /// the server's debug aids on.
+  /// the server's debug aids on. [assertsEnabled] is whether the
+  /// program runs with asserts, null (the default) as it does
+  /// ([debugAssertsEnabled]); off, in a debug run ([kDebugMode]: not a
+  /// profile or release build, whose advice to run with asserts is of no
+  /// use), one info line says so in the app's log.
+  /// [debugMode] is for a test to play the other builds. A test passes
+  /// [assertsEnabled] to see that line, which a test run, with asserts,
+  /// never gets. [onError] is as [runApp] takes it.
   AppBinding(
     TerminalBackend terminal, {
     Viewport? viewport,
@@ -326,6 +343,9 @@ final class AppBinding implements FrameClock {
     this._startTime,
     bool? screenReader,
     Map<String, String>? environment,
+    bool? assertsEnabled,
+    @visibleForTesting bool debugMode = kDebugMode,
+    this.onError,
   }) : twkApp = TwkApp(
          terminal,
          viewport: viewport,
@@ -342,7 +362,19 @@ final class AppBinding implements FrameClock {
       _screenReader = _readerAsked(twkApp.environment);
     }
     twkApp.owner.onError = _renderFailed;
+    twkApp.owner.onObjectLog = _renderLogged;
     debug = DebugAids._(this);
+    if (debugMode && !(assertsEnabled ?? debugAssertsEnabled)) {
+      twkApp.logs.add(
+        LogRecord(
+          DateTime.now(),
+          LogLevel.info,
+          'Asserts are off, so the checks of the framework (the layout '
+          'contract, overflow warnings) do not run: `twk run` or '
+          '`dart run --enable-asserts` runs the app with them.',
+        ),
+      );
+    }
   }
 
   /// Whether `TWK_SCREEN_READER` in [environment] asks for the
@@ -388,6 +420,10 @@ final class AppBinding implements FrameClock {
   /// clock and in the zone the app runs in, as [startTimer] does.
   Timer startPeriodic(Duration period, void Function(Timer) callback) =>
       _zone.createPeriodicTimer(period, callback);
+
+  /// Told of every error the binding reports, in addition to what happens
+  /// to it: see [ErrorReporter]. Null (the default) tells no one.
+  final ErrorReporter? onError;
 
   /// What runs the frames.
   final TwkApp twkApp;
@@ -601,8 +637,12 @@ final class AppBinding implements FrameClock {
         beforePresent: _beforePresent,
         afterPresent: _afterPresent,
       );
-    } on Object {
+    } on Object catch (error, stack) {
       _ended();
+      // a widget's error was told at the throw
+      if (error is! WidgetError) {
+        _report(error, stack, ErrorOrigin.uncaught, null);
+      }
       try {
         _unmount();
       } on Object catch (error, stack) {
@@ -652,7 +692,7 @@ final class AppBinding implements FrameClock {
       child: _mouse.scope(
         FocusScope(
           node: focusManager.rootScope,
-          child: _Scope(this, child: app),
+          child: AppClock(startTimer, child: _Scope(this, child: app)),
         ),
       ),
     );
@@ -1291,19 +1331,48 @@ final class AppBinding implements FrameClock {
     }
   }
 
-  Never _mouseFailed(RenderObject target, Object error, StackTrace stack) =>
-      Error.throwWithStackTrace(
-        WidgetError(error, _renderPathOf(target)),
-        stack,
+  Never _mouseFailed(RenderObject target, Object error, StackTrace stack) {
+    final path = _renderPathOf(target);
+    _report(error, stack, ErrorOrigin.input, path);
+    Error.throwWithStackTrace(WidgetError(error, path), stack);
+  }
+
+  /// Tells [onError] of an error, once: one it throws is logged, not
+  /// reported again.
+  void _report(
+    Object error,
+    StackTrace stack,
+    ErrorOrigin origin,
+    String? path,
+  ) {
+    final report = onError;
+    if (report == null) {
+      return;
+    }
+    try {
+      report(error, stack, origin, path);
+    } on Object catch (thrown, thrownStack) {
+      twkApp.logs.add(
+        LogRecord(
+          DateTime.now(),
+          LogLevel.error,
+          'onError threw while told of ${origin.name} error: $error',
+          error: thrown,
+          stack: thrownStack,
+        ),
       );
+    }
+  }
 
   Widget _buildFailed(Element element, Object error, StackTrace stack) {
+    final path = _pathOf(element);
     log(
-      '${_pathOf(element)} failed to build',
+      '$path failed to build',
       level: LogLevel.error,
       error: error,
       stack: stack,
     );
+    _report(error, stack, ErrorOrigin.build, path);
     return ErrorWidget(error);
   }
 
@@ -1314,11 +1383,30 @@ final class AppBinding implements FrameClock {
     StackTrace stack,
   ) {
     final doing = phase == RenderPhase.layout ? 'lay out' : 'paint';
+    final path = _renderPathOf(object);
     log(
-      '${_renderPathOf(object)} failed to $doing',
+      '$path failed to $doing',
       level: LogLevel.error,
       error: error,
       stack: stack,
+    );
+    _report(
+      error,
+      stack,
+      phase == RenderPhase.layout ? ErrorOrigin.layout : ErrorOrigin.paint,
+      path,
+    );
+  }
+
+  void _renderLogged(RenderObject source, LogRecord record) {
+    twkApp.logs.add(
+      LogRecord(
+        record.time,
+        record.level,
+        '${record.message} (at ${_renderPathOf(source)})',
+        error: record.error,
+        stack: record.stack,
+      ),
     );
   }
 
@@ -1327,6 +1415,21 @@ final class AppBinding implements FrameClock {
   /// the one whose render object is its child, if none, for a commit that
   /// holds one of the tree's (`Static`).
   String _renderPathOf(RenderObject object) {
+    // The tree's own map is kept in debug only; where it is not (release),
+    // or does not have the object, the element tree is walked.
+    String? path;
+    assert(() {
+      // an ancestor's element is not told by the map for the object's own
+      // (one it does not have): only the object's own element counts
+      final own = renderElements[object];
+      if (own != null) {
+        path = _pathOf(own);
+      }
+      return true;
+    }(), 'keeps the render-to-element map in debug only');
+    if (path != null) {
+      return path!;
+    }
     final elements = Map<RenderObject, Element>.identity();
     void visit(Element e) {
       if (e is RenderObjectElement) {
@@ -1336,6 +1439,15 @@ final class AppBinding implements FrameClock {
     }
 
     _root?.visitChildren(visit);
+    return _renderPathIn(object, elements) ?? '${object.runtimeType}';
+  }
+
+  /// [_renderPathOf] by [elements], null where it holds no element of
+  /// [object], its ancestors or its children.
+  String? _renderPathIn(
+    RenderObject object,
+    Map<RenderObject, Element> elements,
+  ) {
     for (RenderObject? o = object; o != null; o = o.parent) {
       final element = elements[o];
       if (element != null) {
@@ -1345,7 +1457,7 @@ final class AppBinding implements FrameClock {
     }
     Element? held;
     object.visitChildren((child) => held ??= elements[child]);
-    return held == null ? '${object.runtimeType}' : _pathOf(held!);
+    return held == null ? null : _pathOf(held!);
   }
 
   void _dispatch(InputEvent event) {
@@ -1406,10 +1518,9 @@ final class AppBinding implements FrameClock {
         try {
           taken = listener.widget.onEvent(event);
         } on Object catch (error, stack) {
-          Error.throwWithStackTrace(
-            WidgetError(error, _pathOf(listener.context)),
-            stack,
-          );
+          final path = _pathOf(listener.context);
+          _report(error, stack, ErrorOrigin.input, path);
+          Error.throwWithStackTrace(WidgetError(error, path), stack);
         }
         if (taken) {
           return;
@@ -1456,10 +1567,9 @@ final class AppBinding implements FrameClock {
         result = onKeyEvent(node, event);
       } on Object catch (error, stack) {
         final context = node.context;
-        Error.throwWithStackTrace(
-          WidgetError(error, context == null ? '$node' : _pathOf(context)),
-          stack,
-        );
+        final path = context == null ? '$node' : _pathOf(context);
+        _report(error, stack, ErrorOrigin.input, path);
+        Error.throwWithStackTrace(WidgetError(error, path), stack);
       }
       if (result == KeyEventResult.handled) {
         return true;
@@ -1469,9 +1579,11 @@ final class AppBinding implements FrameClock {
   }
 }
 
-/// The debug aids of an app ([AppBinding.debug]), all off by default: the
+/// The debug aids of an app ([AppBinding.debug]), all off by default but
+/// the overflow marker, which is on while asserts are: the
 /// frame overlay ([overlay]), the log console ([console]), the repaint
-/// rainbow ([rainbow]), the relayout highlight ([relayout]), the outline
+/// rainbow ([rainbow]), the relayout highlight ([relayout]), the overflow
+/// marker ([overflow]), the outline
 /// over a render object ([highlight]) and the pick of a node on the screen
 /// for a tool ([select]). The app turns them on and off, or the debug
 /// keys do, or a tool by the service extensions
@@ -1488,7 +1600,9 @@ final class AppBinding implements FrameClock {
 /// `TWK_DEBUG` names `keys` or any of the aids: Ctrl+G, then
 ///
 /// * `o` shows or hides the frame overlay, `c` opens or closes the
-///   console, `r` turns the rainbow on or off, `l` the relayout highlight;
+///   console, `r` turns the rainbow on or off, `l` the relayout highlight,
+///   `w` the marker of an overflow (on from the start while asserts are on,
+///   `TWK_DEBUG=overflow` names it too);
 /// * `f` lists the console's next level and above (debug, info, warning,
 ///   error, then debug again), `y` copies its selected record to the
 ///   clipboard, `s` saves the records it lists to a file in the system's
@@ -1567,7 +1681,14 @@ final class DebugAids {
     }
   }
 
-  static const _names = {'keys', 'overlay', 'console', 'rainbow', 'relayout'};
+  static const _names = {
+    'keys',
+    'overlay',
+    'console',
+    'rainbow',
+    'relayout',
+    'overflow',
+  };
 
   final AppBinding _binding;
 
@@ -1729,6 +1850,12 @@ final class DebugAids {
   bool get relayout => _binding.twkApp.owner.debugRelayoutHighlight;
   set relayout(bool on) => _binding.twkApp.owner.debugRelayoutHighlight = on;
 
+  /// Whether a flex, a wrap or a grid its children overflow shows the
+  /// marker of it (`PipelineOwner.debugOverflowIndicator`): on from the
+  /// start while asserts are on.
+  bool get overflow => _binding.twkApp.owner.debugOverflowIndicator;
+  set overflow(bool on) => _binding.twkApp.owner.debugOverflowIndicator = on;
+
   /// The render object outlined over the app, null for none: the cells of
   /// it the screen shows, those an ancestor cuts off left out, their
   /// backgrounds blended with blue, its edges' more, their glyphs and text
@@ -1851,6 +1978,7 @@ final class DebugAids {
     final console = asked('console');
     final rainbow = asked('rainbow');
     final relayout = asked('relayout');
+    final overflow = asked('overflow');
     final keys = asked('keys');
     final select = asked('select');
     final selectMany = asked('selectMany');
@@ -1871,6 +1999,9 @@ final class DebugAids {
     if (relayout != null) {
       this.relayout = relayout;
     }
+    if (overflow != null) {
+      this.overflow = overflow;
+    }
     if (keys != null) {
       this.keys = keys;
     }
@@ -1888,6 +2019,7 @@ final class DebugAids {
       'console': _console?.isOpen ?? false,
       'rainbow': this.rainbow,
       'relayout': this.relayout,
+      'overflow': this.overflow,
       'keys': this.keys,
       'select': this.select,
       'selectMany': this.selectMany,
@@ -1962,6 +2094,8 @@ final class DebugAids {
         rainbow = !rainbow;
       case 'l':
         relayout = !relayout;
+      case 'w':
+        overflow = !overflow;
       case 'f':
         const levels = LogLevel.values;
         console.level = levels[(console.level.index + 1) % levels.length];
@@ -2116,6 +2250,46 @@ final class DebugAids {
     _console?.dispose();
   }
 }
+
+/// Where an error [AppBinding.onError] is told of happened.
+enum ErrorOrigin {
+  /// A widget's build, or a child created or updated: shown as an
+  /// [ErrorWidget] in place of what it builds.
+  build,
+
+  /// A render object's layout: shown as a message in place.
+  layout,
+
+  /// A render object's paint: shown as a message in place.
+  paint,
+
+  /// The code of a widget handling an event (a key handler of a focus node,
+  /// an [InputListener], a mouse [Listener]): ends the app as a
+  /// [WidgetError].
+  input,
+
+  /// Any other error that ends the app: one nothing in a frame, a timer or
+  /// a future of the app's zone caught, or a failure writing to the
+  /// terminal.
+  uncaught,
+}
+
+/// What [runApp]'s `onError` is: told of an [error] and its [stack], the
+/// [origin] it happened at and, for all but [ErrorOrigin.uncaught], the
+/// [path] of the widget it happened in (as [WidgetError.path]; null for
+/// an uncaught one).
+///
+/// It is called in addition to what happens to the error (logged, shown in
+/// place, or ending the app with the terminal restored), and cannot stop
+/// the app from ending. An error it throws itself is logged, and not
+/// reported again. An uncaught error is told once the terminal is
+/// restored.
+typedef ErrorReporter = void Function(
+  Object error,
+  StackTrace stack,
+  ErrorOrigin origin,
+  String? path,
+);
 
 /// An error the code of a widget threw that ended the app: [error], thrown
 /// in the widget at [path]. Its [stackTrace] is that of [error].

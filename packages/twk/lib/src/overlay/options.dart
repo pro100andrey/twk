@@ -2,6 +2,8 @@
 /// command palette list them: [OptionList].
 library;
 
+import 'dart:math' as math;
+
 import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart'
     show
@@ -462,7 +464,7 @@ final class _RenderOptionList extends RenderObject {
         labelEnd = w - 3 - dw;
         canvas
           ..save()
-          ..clipRect(1, row, w - 2, 1);
+          ..clipRect(1, row, math.max(0, w - 2), 1);
         painters.detail.paint(canvas, owner, w - 1 - dw, row);
         canvas.restore();
       }
@@ -475,14 +477,14 @@ final class _RenderOptionList extends RenderObject {
       );
       canvas
         ..save()
-        ..clipRect(1, row, labelEnd - 1, 1);
+        ..clipRect(1, row, math.max(0, labelEnd - 1), 1);
       // cut at the room it has, at its end, as a Text's overflow is
       painters.label.paint(
         canvas,
         owner,
         1,
         row,
-        room: labelEnd - 1,
+        room: math.max(0, labelEnd - 1),
         ellipsis: s.glyphs.ellipsis,
       );
       canvas.restore();

@@ -45,6 +45,25 @@ final class _PickerState extends State<Picker> {
 Widget themed(Widget child) => Theme(data: dark, child: child);
 
 void main() {
+  testTwk('a detail wider than the list leaves the label no room and does '
+      'not fail the paint', (t) async {
+    await t.pumpWidget(
+      themed(
+        const Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 12,
+            child: OptionList(
+              options: [Option('apple', detail: 'ctrl+shift+alt+k')],
+              highlighted: 0,
+            ),
+          ),
+        ),
+      ),
+      size: (30, 3),
+    );
+  });
+
   testTwk('the highlighted row is on the selection with a primary ▎ in its '
       'first column', (t) async {
     await t.pumpWidget(

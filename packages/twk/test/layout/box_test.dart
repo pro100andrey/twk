@@ -36,7 +36,7 @@ void main() {
     });
 
     test('is as big as its child and border, and as wide as its titles', () {
-      final v = View(9, 4)
+      final v = View(9, 5)
         ..pump(
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +50,7 @@ void main() {
             ],
           ),
         );
-      expect(v.rows(), ['┌──┐', '│ab│', '└──┘', 'title']);
+      expect(v.rows(), ['┌──┐', '│ab│', '└──┘', 'title', 'a']);
     });
 
     test('gives its render object the pens of its styles', () {

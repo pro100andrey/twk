@@ -164,6 +164,7 @@ RenderObject cell(
     ..columnSpan = columnSpan);
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('a hit test', () {
     test('finds the objects at a cell from the deepest to the root, each '
         'with the cell in its own coordinates', () {
@@ -234,9 +235,8 @@ void main() {
           children: [
             Fill('under'),
             pin(
-              RenderPositionedBox(
-                alignment: Alignment.topLeft,
-                child: Sized('big', 6, 1),
+              RenderStack(
+                children: [pin(Sized('big', 6, 1), left: 0, width: 6)],
               ),
               left: 0,
               top: 0,
@@ -248,7 +248,7 @@ void main() {
       );
       expect(v.at(2, 0), [
         'big 2,0',
-        'RenderPositionedBox 2,0',
+        'RenderStack 2,0',
         'RenderStack 2,0',
       ]);
       expect(v.at(4, 0), ['under 4,0', 'RenderStack 4,0']);
@@ -467,7 +467,9 @@ void main() {
       final box = RenderDecoratedBox(
         border: const BoxBorder(left: Pen(), top: Pen()),
         titles: const [BoxTitle('ab', alignment: Alignment.bottomRight)],
-        child: Sized('kid', 1, 1),
+        child: RenderStack(
+          children: [pin(Sized('kid', 1, 1), left: 0, top: 0)],
+        ),
       );
       final v = View(
         5,
@@ -484,6 +486,7 @@ void main() {
       expect(v.at(4, 3), ['RenderDecoratedBox 4,3', 'RenderStack 4,3']);
       expect(v.at(1, 1), [
         'kid 0,0',
+        'RenderStack 0,0',
         'RenderDecoratedBox 1,1',
         'RenderStack 1,1',
       ]);

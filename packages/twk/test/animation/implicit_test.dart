@@ -20,6 +20,7 @@ Future<ValueNotifier<T>> start<T>(
   (int, int) size = (20, 1),
 }) async {
   final value = ValueNotifier(first);
+  addTearDown(value.dispose);
   await t.pumpWidget(
     ValueListenableBuilder<T>(
       valueListenable: value,

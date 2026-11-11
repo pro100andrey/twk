@@ -135,15 +135,9 @@ final class _PopoverState extends State<Popover>
   OverlayEntry? _entry;
 
   // how far it has faded in: 1 open, 0 closed
-  late final _fade =
-      AnimationController(
-          vsync: this,
-          duration: widget.fadeIn,
-          reverseDuration: widget.fadeOut,
-          value: widget.open ? 1 : 0,
-        )
-        ..addListener(_stepped)
-        ..addStatusListener(_faded);
+  // (made in initState: made first in dispose, it would take its ticker
+  // from an element out of the tree)
+  late final AnimationController _fade;
 
   // The entry is built by the overlay, maybe earlier in the build scope
   // this state is built in than this state, as when a step of the fade
@@ -167,6 +161,15 @@ final class _PopoverState extends State<Popover>
   @override
   void initState() {
     super.initState();
+    _fade =
+        AnimationController(
+            vsync: this,
+            duration: widget.fadeIn,
+            reverseDuration: widget.fadeOut,
+            value: widget.open ? 1 : 0,
+          )
+          ..addListener(_stepped)
+          ..addStatusListener(_faded);
     _insertSoon();
   }
 

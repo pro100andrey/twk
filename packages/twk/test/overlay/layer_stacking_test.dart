@@ -15,8 +15,11 @@ void main() {
 
     testTwk('a dialog opened from a popover $where leaves it open', (t) async {
       final field = FocusNode(debugLabel: 'field');
+      addTearDown(field.dispose);
       final inside = FocusNode(debugLabel: 'inside');
+      addTearDown(inside.dispose);
       final ok = FocusNode(debugLabel: 'ok');
+      addTearDown(ok.dispose);
       var open = true;
       var dismissed = 0;
       late BuildContext at;
@@ -80,7 +83,9 @@ void main() {
       t,
     ) async {
       final inside = FocusNode(debugLabel: 'inside');
+      addTearDown(inside.dispose);
       final ok = FocusNode(debugLabel: 'ok');
+      addTearDown(ok.dispose);
       var open = false;
       var dismissed = 0;
       late void Function(void Function()) set;
@@ -148,8 +153,11 @@ void main() {
   testTwk('a popover closes when a dialog over it cannot give it the focus '
       'back', (t) async {
     final inside = FocusNode(debugLabel: 'inside');
+    addTearDown(inside.dispose);
     final other = FocusNode(debugLabel: 'other');
+    addTearDown(other.dispose);
     final ok = FocusNode(debugLabel: 'ok');
+    addTearDown(ok.dispose);
     var open = true;
     var kept = true;
     var dismissed = 0;
@@ -221,7 +229,9 @@ void main() {
 
   testTwk('a closed popover does not watch a dialog over it', (t) async {
     final field = FocusNode(debugLabel: 'field');
+    addTearDown(field.dispose);
     final ok = FocusNode(debugLabel: 'ok');
+    addTearDown(ok.dispose);
     late BuildContext at;
     await t.pumpWidget(
       App(
@@ -269,6 +279,7 @@ void main() {
 
   testTwk('a menu opened from a popover leaves it open', (t) async {
     final inside = FocusNode(debugLabel: 'inside');
+    addTearDown(inside.dispose);
     var open = true;
     var dismissed = 0;
     late BuildContext at;

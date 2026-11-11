@@ -42,6 +42,7 @@ final class Logged extends StatelessWidget {
   Widget build(BuildContext context) {
     log.add(name);
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: children,
     );

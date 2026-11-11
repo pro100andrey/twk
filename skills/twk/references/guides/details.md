@@ -183,9 +183,17 @@ from the bytes the app wrote. `dart test` runs it.
   with any of those four), `logs` (serve the log to `twk logs`), `frames`
   (each frame as text below the last). An app can turn the keys on
   itself: `AppBinding.of(context).debug.keys = true`.
+- A row, column, wrap or grid whose children need more room than it has
+  paints a hatch `▚` (yellow on black) over the edge they are cut off at,
+  with the cells cut off, `+3`, and logs a warning once; it is on while
+  asserts are, and with asserts off `TWK_DEBUG=overflow` or Ctrl+G then `w`
+  turns it on (the warning is logged with asserts only).
+  A layout that clips on purpose says so with `overflowIntended: true` and
+  shows neither. `testTwk` fails a test whose app overflows
+  (`failOnOverflow: false` turns that off).
 - With the keys on, Ctrl+G and then: `o` the overlay, `c` the console
   (Up and Down select a record, `y` copies it, `s` saves the log to a
-  file, Escape), `r` the rainbow, `l` the relayout highlight; under
+  file, Escape), `r` the rainbow, `l` the relayout highlight, `w` the overflow marker; under
   `twk run`, `h` hot reloads and `H` restarts.
 - `TWK_LOG=/tmp/app.log` appends every record of the log to that file.
 - `dart run twk_dev:twk run bin/main.dart`: hot reload as the files of

@@ -130,7 +130,9 @@ void main() {
   testTwk('Tab passes by the nodes that skip traversal and those that cannot '
       'be focused; requestFocus focuses only the first', (t) async {
     final b = FocusNode();
+    addTearDown(b.dispose);
     final c = FocusNode();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       column([
         const Field('a'),
@@ -225,6 +227,7 @@ void main() {
   testTwk('a scope keeps Tab among its nodes; Tab onto it from outside '
       'focuses the node it focused last, or its first', (t) async {
     final a = FocusNode();
+    addTearDown(a.dispose);
     late BuildContext inside;
     await t.pumpWidget(
       column([
@@ -435,7 +438,9 @@ void main() {
     final key = GlobalKey();
     final told = <String>[];
     final left = FocusNode(debugLabel: 'left');
+    addTearDown(left.dispose);
     final right = FocusNode(debugLabel: 'right');
+    addTearDown(right.dispose);
     for (final node in [left, right]) {
       node.addListener(() => told.add('${node.debugLabel} ${node.hasFocus}'));
     }
@@ -479,7 +484,9 @@ void main() {
   testTwk('another focusNode takes the place of the one before, with the '
       'focus', (t) async {
     final first = FocusNode(debugLabel: 'first');
+    addTearDown(first.dispose);
     final second = FocusNode(debugLabel: 'second');
+    addTearDown(second.dispose);
     await t.pumpWidget(
       Host(
         key: host,
@@ -627,7 +634,9 @@ void main() {
   ) async {
     final told = <String>[];
     final a = FocusNode(debugLabel: 'a');
+    addTearDown(a.dispose);
     final outer = FocusNode(debugLabel: 'outer');
+    addTearDown(outer.dispose);
     for (final node in [a, outer]) {
       node.addListener(
         () => told.add(

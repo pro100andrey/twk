@@ -74,6 +74,7 @@ void main() {
   group('a field', () {
     testTwk('in visual order by default on a headless terminal', (t) async {
       final c = TextEditingController(text: 'abc אבג');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       expect(t.binding.twkApp.owner.textOrder, TextOrder.visual);
       expect(t.lines[0], 'abc גבא');
@@ -82,6 +83,7 @@ void main() {
     testTwk('in logical order (a terminal that reorders itself) draws and '
         'moves as the text is stored', (t) async {
       final c = TextEditingController(text: 'abc אבג');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       t.binding.twkApp.owner.textOrder = TextOrder.logical;
       await t.pump();
@@ -93,6 +95,7 @@ void main() {
     testTwk('in visual order draws Hebrew and Arabic as they read, numbers '
         'and brackets the way they go', (t) async {
       final c = TextEditingController(text: 'abc אבג (12)');
+      addTearDown(c.dispose);
       await t.pumpWidget(
         Theme.terminal(child: field(c, width: 30)),
         size: (30, 1),
@@ -109,6 +112,7 @@ void main() {
       t,
     ) async {
       final c = TextEditingController(text: 'abc אבג');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       await visual(t);
       expect(t.lines[0], 'abc גבא');
@@ -132,6 +136,7 @@ void main() {
     testTwk('narrower than its text, scrolls as drawn to keep the caret in '
         'view, at the start of a character', (t) async {
       final c = TextEditingController(text: 'abcdefgh 漢字 אבג');
+      addTearDown(c.dispose);
       await t.pumpWidget(
         Theme.terminal(child: field(c, width: 5)),
         size: (20, 1),
@@ -147,6 +152,7 @@ void main() {
       t,
     ) async {
       final c = TextEditingController(text: 'שלום עולם');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       await visual(t);
       expect(t.lines[0], 'םלוע םולש');
@@ -163,6 +169,7 @@ void main() {
     testTwk('Home, End, Alt+B and the keys that delete go as the text is '
         'stored', (t) async {
       final c = TextEditingController(text: 'abc אבג');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       await visual(t);
       expect(await after(t, c, 'home end alt+b'), [(0, 0), (7, 4), (4, 7)]);
@@ -176,6 +183,7 @@ void main() {
     testTwk('shows the selection where its pieces are drawn; Left and Right '
         'end it at the end drawn on their side', (t) async {
       final c = TextEditingController(text: 'abc אבג');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       await visual(t);
       c.selection = const TextSelection(baseOffset: 2, extentOffset: 5);
@@ -195,6 +203,7 @@ void main() {
 
     testTwk('Shift with Right selects as the caret moves as drawn', (t) async {
       final c = TextEditingController(text: 'ab אב');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
       await visual(t);
       expect(t, cursorAt(3, 0));
@@ -209,6 +218,7 @@ void main() {
       t,
     ) async {
       final c = TextEditingController(text: 'אבג דה');
+      addTearDown(c.dispose);
       await t.pumpWidget(
         Theme.terminal(child: field(c, obscureText: true)),
         size: (20, 1),
@@ -228,6 +238,7 @@ void main() {
     testTwk('draws each line as it reads, one whose first strong character '
         'is right to left in that direction', (t) async {
       final c = TextEditingController(text: 'abc אבג\nשלום abc');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: area(c)), size: (20, 2));
       await visual(t);
       expect(t.lines, ['abc גבא', 'abc םולש']);
@@ -237,6 +248,7 @@ void main() {
     testTwk('breaks rows as stored, a blank hanging past the left edge of a '
         'right-to-left row', (t) async {
       final c = TextEditingController(text: 'שלום עולם');
+      addTearDown(c.dispose);
       await t.pumpWidget(
         Theme.terminal(child: area(c, width: 6)),
         size: (6, 2),
@@ -253,6 +265,7 @@ void main() {
     testTwk('Left at the edge of a right-to-left line goes on into the next '
         'line, and back', (t) async {
       final c = TextEditingController(text: 'שלום\nab');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: area(c)), size: (20, 2));
       await visual(t);
       c.selection = const TextSelection.collapsed(offset: 0);
@@ -281,6 +294,7 @@ void main() {
 
     testTwk('Up and Down keep the column as drawn', (t) async {
       final c = TextEditingController(text: 'abcdef\nאבגדהו');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: area(c)), size: (20, 2));
       await visual(t);
       expect(t.lines, ['abcdef', 'והדגבא']);
@@ -297,6 +311,7 @@ void main() {
 
     testTwk('shows the selection where its pieces are drawn', (t) async {
       final c = TextEditingController(text: 'abc אבג\nde');
+      addTearDown(c.dispose);
       await t.pumpWidget(Theme.terminal(child: area(c)), size: (20, 2));
       await visual(t);
       c.selection = const TextSelection(baseOffset: 2, extentOffset: 5);

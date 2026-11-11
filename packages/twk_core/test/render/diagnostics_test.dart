@@ -69,6 +69,7 @@ DiagnosticsNode node(
 );
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   group('toStringDeep', () {
     test('guides, sizes aligned on the ×, flags and their legend', () {
       final tree = node(

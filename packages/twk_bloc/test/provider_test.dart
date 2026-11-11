@@ -260,6 +260,28 @@ void main() {
     });
   });
 
+  testTwk('a create that returns a closed bloc is an assertion naming '
+      'BlocProvider.value', (t) async {
+    final log = <String>[];
+    final closed = Counter();
+    await closed.close();
+    await t.pumpWidget(
+      BlocProvider(
+        create: (_) => closed,
+        child: Built(
+          'reader',
+          log,
+          (c) => Text('${c.read<Counter>()}'),
+        ),
+      ),
+      size: (10, 1),
+    );
+    expect(
+      errors(t).join(),
+      allOf(contains('already closed'), contains('.value')),
+    );
+  });
+
   testTwk('a provider without a child outside a MultiBlocProvider or '
       'MultiRepositoryProvider fails, naming it', (t) async {
     await t.pumpWidget(BlocProvider.value(value: Counter()), size: (10, 1));

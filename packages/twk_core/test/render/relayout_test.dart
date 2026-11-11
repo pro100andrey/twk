@@ -171,6 +171,7 @@ final class Indent extends RenderObject {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a layout change under tight constraints lays out that subtree', () {
     final v = View(10, 3);
     final header = Label('header', v.pen);

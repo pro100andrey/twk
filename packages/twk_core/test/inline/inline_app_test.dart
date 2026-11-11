@@ -56,6 +56,32 @@ final class Lines extends RenderObject {
   }
 }
 
+/// A one-row box of the given width whatever the constraints, which a flex
+/// can't narrow: two of them in a row overflow it.
+final class Wide extends RenderObject {
+  Wide(this.pen, this.columns);
+  final int pen;
+  final int columns;
+
+  @override
+  int computeMaxIntrinsicWidth(int height) => columns;
+
+  @override
+  int computeMinIntrinsicWidth(int height) => columns;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) => 1;
+
+  @override
+  void performLayout(BoxConstraints c) {
+    width = c.constrainWidth(columns);
+    height = c.constrainHeight(1);
+  }
+
+  @override
+  void paint(PaintContext ctx) => ctx.canvas.text(0, 0, 'x' * width, pen);
+}
+
 /// A row saying `fine` to commit, or what throws when asked for its
 /// height, laid out or painted.
 final class Fails extends RenderObject {
@@ -392,6 +418,28 @@ void main() {
         'to wrap at twenty',
         'live 3',
       ]);
+      await stop();
+    });
+
+    test('of an overflowing row writes no overflow marker into the history, '
+        'and logs the warning', () async {
+      await start(['live'], height: 10);
+      app.commit(
+        RenderFlex(
+          children: [
+            Wide(app.screen.styles.pen(plain), 15),
+            Wide(app.screen.styles.pen(plain), 15),
+          ],
+        ),
+      );
+      await pass();
+      final committed = term.lines.skip(history.length).first;
+      expect(committed, 'x' * 20);
+      expect(term.lines.join(), isNot(anyOf(contains('▚'), contains('+'))));
+      expect(
+        app.logs.records.where((r) => r.message.contains('overflowed')),
+        isNotEmpty,
+      );
       await stop();
     });
 

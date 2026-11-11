@@ -205,6 +205,11 @@ final class Canvas {
     _saved = n;
   }
 
+  /// How many [save]s are kept and not yet [restore]d. For asserts: a
+  /// paint that leaves it deeper than it found it shifts and clips
+  /// everything painted after it.
+  int get debugSaveDepth => _saved ~/ 6;
+
   /// Brings back the origin and the clip the last [save] kept.
   ///
   /// Asserts there is one.
@@ -230,6 +235,12 @@ final class Canvas {
 
   /// Intersects the clip with the rectangle (local coordinates).
   void clipRect(int x, int y, int w, int h) {
+    assert(
+      w >= 0 && h >= 0,
+      'clipRect($x, $y, $w, $h): a negative size clips everything; a size '
+      'computed by subtracting needs a floor of 0 (max(0, width - padding)); '
+      'a rectangle off the surface is fine',
+    );
     final x0 = x + _ox;
     final y0 = y + _oy;
     if (x0 > _cx0) {
@@ -269,6 +280,12 @@ final class Canvas {
   /// stand in a cell of its own (a control, a mark, or one a terminal
   /// would join with its neighbours) fills with blanks.
   void fill(int x, int y, int w, int h, int pen, [int cp = kBlank]) {
+    assert(
+      w >= 0 && h >= 0,
+      'fill($x, $y, $w, $h): a negative size fills nothing; a size computed '
+      'by subtracting needs a floor of 0 (max(0, width - padding)); a '
+      'rectangle off the surface is fine',
+    );
     final ax = x + _ox;
     var x0 = ax;
     var y0 = y + _oy;
@@ -532,6 +549,7 @@ final class Canvas {
           final w = codePointWidth(cu, seg.ambiguousWidth);
           i++;
           if (w == 0) {
+            assert(_debugDropped(cu), 'logs a dropped control');
             continue;
           }
           _place(ax, w, codePointUncertain(cu) ? cu | kUncertain : cu);
@@ -546,6 +564,7 @@ final class Canvas {
       int glyph;
       if (w == 0) {
         if (scan.first != 0x09) {
+          assert(_debugDropped(scan.first), 'logs a dropped control');
           continue;
         }
         w = 1;
@@ -565,6 +584,51 @@ final class Canvas {
     }
     _end();
     return ax - startX;
+  }
+
+  /// Told, in debug mode (asserts only), the first time [text] drops each
+  /// control character: a message to log as a warning. The app sets it to
+  /// its log; null, the default, says nothing.
+  void Function(String message)? onDroppedControl;
+
+  // the control characters [text] dropped and logged (debug only): one
+  // record per distinct character, so a stream of escape sequences logs the
+  // few it has and not one a frame; bounded by the 65 controls there are
+  // null until the first report, so a release Canvas holds none
+  Set<int>? _droppedLogged;
+
+  /// Logs, the first time for each [cp], that [text] dropped the control
+  /// character [cp] (asserts only; a zero-width mark that is no control is
+  /// not reported). Reached only where one is dropped, so the fast path
+  /// pays nothing.
+  bool _debugDropped(int cp) {
+    if ((cp >= 0x20 && cp < 0x7F) || cp > 0x9F) {
+      return true;
+    }
+    if (!(_droppedLogged ??= <int>{}).add(cp)) {
+      return true;
+    }
+    final name = cp == 0x1B
+        ? 'ESC (U+001B)'
+        : 'U+${cp.toRadixString(16).toUpperCase().padLeft(4, '0')}';
+    final String advice;
+    if (cp == 0x1B) {
+      advice =
+          'the characters after it stay as letters (an ANSI sequence '
+          'prints as "[31m"). Draw styled text with Text and spans, or '
+          'parse ANSI text into spans first.';
+    } else if (cp == 0x0A || cp == 0x0D) {
+      advice =
+          'Canvas.text draws one line: split the text into lines and draw '
+          'each one, or use a Text widget, which breaks lines.';
+    } else {
+      advice = 'strip it from the text before drawing it.';
+    }
+    onDroppedControl?.call(
+      'Canvas.text dropped the control character $name: it is not drawn; '
+      '$advice',
+    );
+    return true;
   }
 
   /// Segments [s] once (for retained text layout); see [run].

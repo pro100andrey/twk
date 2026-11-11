@@ -785,7 +785,9 @@ final class RenderConsolePanel extends RenderObject {
       }
       // the error formatted once; what the row leaves out of the record
       // (more lines, a stack) at its end
-      final error = record.error == null ? null : '${record.error}';
+      final error = record.error == null || record.error is LogData
+          ? null
+          : '${record.error}';
       final more = _more(record, error);
       final text = _firstLine(record, error, limit);
       canvas

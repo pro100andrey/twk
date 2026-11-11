@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
 import '../text/ambiguous.dart';
 
 const path = ['Root', 'Projects', 'my_app', 'lib', 'src', 'widgets'];
@@ -60,7 +61,7 @@ Widget crumbs(
       ),
       Button(
         'next',
-        focusNode: FocusNode(debugLabel: 'next'),
+        focusNode: disposing(FocusNode(debugLabel: 'next')),
         onPressed: () {},
       ),
     ],

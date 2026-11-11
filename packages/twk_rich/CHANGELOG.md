@@ -4,6 +4,15 @@
 
 Fixed:
 
+- A `MarkdownView` table answers its height to a parent that asks for
+  intrinsic sizes (the inline screen's root) in the frame it is built, not
+  one build late: no overflow on the first frame or on each appended row.
+- A `CodeView` narrower than its gutter paints (its code clip was of a
+  negative width, which fails `Canvas.clipRect`'s assert in debug).
+- The inline chat example shows the newest lines of an answer's block that
+  is taller than the room above the prompt, the start of it cut off, not
+  the end of it cut off at the prompt (a `SingleChildScrollView` that sticks
+  to its end).
 - `changedWords`, and with it `DiffView`'s highlighting of the words a
   line changed, gives none for lines of more than 20000 words between
   them, which a diff of their words took up to a minute on in a frame
@@ -28,6 +37,11 @@ Fixed:
   lays out the row added alone (an append to 2000 rows took 23 ms, now
   1 ms; to 10 rows 0.5 ms, now 0.3), and no longer asks the terminal for
   the mouse's drags.
+- `DiffView` asserts, in a debug run, that each hunk's `oldCount` and
+  `newCount` are the lines it has, naming the hunk: the line numbers after
+  a hunk built by hand with the wrong counts drifted without a word. A
+  hunk `Diff.parse` reads from a patch cut short (or a header that counts
+  too many) has the counts of the lines it got.
 
 ## 0.3.0
 

@@ -8,8 +8,10 @@ void main() {
   testTwk('a TreeView with NeverScrollableScrollPhysics leaves the wheel to '
       'the list around, and keeps its keys and its stop of Tab', (t) async {
     final outer = ScrollController();
+    addTearDown(outer.dispose);
     final controller = TreeController();
     final node = FocusNode();
+    addTearDown(node.dispose);
     await t.pumpWidget(
       SingleChildScrollView(
         controller: outer,

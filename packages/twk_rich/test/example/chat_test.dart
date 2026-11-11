@@ -145,13 +145,15 @@ $sentPrompt''',
     await t.type('how do I read a file?');
     await t.press('enter');
     await t.pump(pieceInterval * 30);
+    // the block is taller than the room: its newest line shows, the
+    // start of it cut off at the top
     expect(t.scrollback.last, '  To read a file, use File from dart:io:');
     expect(t.lines.sublist(0, 9), [
       '',
-      "   import 'dart:io';",
       '',
       '   Future<void> main() async {',
       "     final text = await File('notes.txt').readAsString();",
+      "     print(text.split('",
       '',
       ...prompt.split('\n').take(3),
     ]);

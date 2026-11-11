@@ -53,6 +53,7 @@ final class Flex extends MultiChildRenderObjectWidget {
     this.mainAxisSize = MainAxisSize.max,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.spacing = 0,
+    this.overflowIntended = false,
     super.children,
   }) : assert(spacing >= 0, 'a spacing of 0 cells or more');
 
@@ -72,6 +73,12 @@ final class Flex extends MultiChildRenderObjectWidget {
   /// Cells between one child and the next.
   final int spacing;
 
+  /// Whether the children are meant to be cut off where they do not fit:
+  /// a strip that shows the start of what is longer than it. Then, where
+  /// they overflow, there is neither the marker over the edge in debug mode
+  /// nor the warning in the log ([RenderFlex]). False by default.
+  final bool overflowIntended;
+
   @override
   MultiChildRenderObjectElement createElement() => ChildListElement(this);
 
@@ -82,7 +89,7 @@ final class Flex extends MultiChildRenderObjectWidget {
     mainAxisSize: mainAxisSize,
     crossAxisAlignment: crossAxisAlignment,
     spacing: spacing,
-  );
+  )..overflowIntended = overflowIntended;
 
   @override
   void updateRenderObject(BuildContext context, RenderFlex renderObject) {
@@ -91,7 +98,8 @@ final class Flex extends MultiChildRenderObjectWidget {
       ..mainAxisAlignment = mainAxisAlignment
       ..mainAxisSize = mainAxisSize
       ..crossAxisAlignment = crossAxisAlignment
-      ..spacing = spacing;
+      ..spacing = spacing
+      ..overflowIntended = overflowIntended;
   }
 }
 
@@ -122,6 +130,7 @@ final class Row extends Flex {
     super.mainAxisSize,
     super.crossAxisAlignment,
     super.spacing,
+    super.overflowIntended,
     super.children,
   }) : super(direction: Axis.horizontal);
 }
@@ -153,6 +162,7 @@ final class Column extends Flex {
     super.mainAxisSize,
     super.crossAxisAlignment,
     super.spacing,
+    super.overflowIntended,
     super.children,
   }) : super(direction: Axis.vertical);
 }

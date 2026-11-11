@@ -30,6 +30,7 @@ describe('switches', () => {
       ['screen reader', 'timeline'],
     );
     assert.deepEqual(switchesPicked(['timeline', 'screen reader', 'rainbow']), { screenReader: true, debug: ['timeline', 'rainbow'] });
+    assert.deepEqual(switchesPicked(['overflow']), { screenReader: false, debug: ['overflow'] });
     assert.deepEqual(switchesPicked([]), noSwitches);
   });
 });

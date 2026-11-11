@@ -223,8 +223,9 @@ void main() {
   }
 
   testTwk('a key above that does not act on the value leaves the typing as '
-      'it was: text that is no number yet, and a number, which Escape '
-      'gives up', (t) async {
+      'it was: text that is no number yet, and a number the app takes', (
+    t,
+  ) async {
     final value = ValueNotifier<double>(30);
     addTearDown(value.dispose);
     final changes = <double>[];
@@ -247,10 +248,224 @@ void main() {
     await press(t, 'f1');
     expect(t.lines.first, startsWith('-4'));
     expect(changes, [-4]);
+    // the app took -4 (the helper sets its notifier), so Escape reverts
+    // nothing: the text typed is the value now
     await press(t, 'escape');
-    expect(t.lines.first, startsWith('30'));
-    expect(changes, [-4, 30]);
-    expect(value.value, 30);
+    expect(t.lines.first, startsWith('-4'));
+    expect(changes, [-4]);
+    expect(value.value, -4);
+  });
+
+  testTwk('Escape after the parent took the value handed over is not '
+      'consumed and reverts nothing', (t) async {
+    final shown = ValueNotifier<double>(30);
+    addTearDown(shown.dispose);
+    final changes = <double>[];
+    var closed = 0;
+    await t.pumpWidget(
+      KeyBindings(
+        {'ctrl+s': () {}, 'escape': () => closed++},
+        child: ValueListenableBuilder<double>(
+          valueListenable: shown,
+          builder: (context, v, _) => SizedBox(
+            width: 10,
+            child: NumberInput(
+              value: v,
+              onChanged: (x) {
+                changes.add(x);
+                shown.value = x;
+              },
+              autofocus: true,
+            ),
+          ),
+        ),
+      ),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'ctrl+s');
+    expect(changes, [45]);
+    await press(t, 'escape');
+    expect(closed, 1);
+    expect(changes, [45]);
+    expect(shown.value, 45);
+    expect(t.lines[1], startsWith('45'));
+  });
+
+  for (final key in [
+    'right',
+    'end',
+    'delete',
+    'ctrl+d',
+    'ctrl+y',
+  ]) {
+    testTwk('the field\'s own key "$key" at an edge hands nothing over', (
+      t,
+    ) async {
+      final value = ValueNotifier<double>(30);
+      addTearDown(value.dispose);
+      final changes = <double>[];
+      await t.pumpWidget(
+        input(value, changes: changes, autofocus: true),
+        size: (20, 3),
+      );
+      await press(t, 'backspace backspace');
+      await type(t, '4');
+      await press(t, 'backspace');
+      await type(t, '45');
+      // at the end now
+      await press(t, key);
+      expect(changes, isEmpty);
+    });
+  }
+
+  testTwk('Backspace at column 0 and Home hand nothing over', (t) async {
+    final value = ValueNotifier<double>(30);
+    addTearDown(value.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(
+      input(value, changes: changes, autofocus: true),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'home backspace home');
+    expect(changes, isEmpty);
+    expect(t.lines.first, startsWith('45'));
+  });
+
+  /// A field whose parent holds [shown], rebuilt by [rebuild] (to the same
+  /// value too); [changes] gets each value the field gives, which the parent
+  /// takes only when it sets [shown].
+  Widget lazyParent(
+    ValueNotifier<double> shown,
+    ValueNotifier<int> rebuild,
+    List<double> changes,
+  ) {
+    final node = FocusNode(debugLabel: 'input');
+    addTearDown(node.dispose);
+    return KeyBindings(
+      {'f1': () {}},
+      child: ValueListenableBuilder<int>(
+        valueListenable: rebuild,
+        builder: (context, _, _) => SizedBox(
+          width: 10,
+          child: NumberInput(
+            value: shown.value,
+            onChanged: changes.add,
+            focusNode: node,
+            autofocus: true,
+          ),
+        ),
+      ),
+    );
+  }
+
+  testTwk('a parent that has not taken the value handed over yet, and '
+      'rebuilds, leaves the text typed; one that takes it one build later '
+      'keeps it', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    expect(changes, [45]);
+    rebuild.value++;
+    await t.pump();
+    expect(t.lines[1], startsWith('45'));
+    shown.value = 45;
+    await t.pump();
+    expect(t.lines[1], startsWith('45'));
+    expect(changes, [45]);
+  });
+
+  testTwk('a rebuild for another reason leaves a hand-over the parent has '
+      'not taken: Escape reverts it, the focus leaving gives it up', (
+    t,
+  ) async {
+    for (final escape in [true, false]) {
+      final shown = ValueNotifier<double>(30);
+      final rebuild = ValueNotifier<int>(0);
+      addTearDown(shown.dispose);
+      addTearDown(rebuild.dispose);
+      final changes = <double>[];
+      await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+      await press(t, 'backspace backspace');
+      await type(t, '45');
+      await press(t, 'f1');
+      expect(changes, [45]);
+      rebuild.value++;
+      await t.pump();
+      if (escape) {
+        await press(t, 'escape');
+        expect(changes, [45, 30]);
+      } else {
+        t.binding.focusManager.primaryFocus!.unfocus();
+        await t.pump();
+        expect(changes, [45]);
+      }
+      expect(t.lines[1], startsWith('30'));
+    }
+  });
+
+  testTwk('a parent that gives another value after one was handed over '
+      'replaces the text typed', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    shown.value = 12;
+    rebuild.value++;
+    await t.pump();
+    expect(t.lines[1], startsWith('12'));
+  });
+
+  testTwk('a value handed over that the parent never takes is given up as '
+      'the focus leaves: the field shows the value of the parent', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    expect(changes, [45]);
+    t.binding.focusManager.primaryFocus!.unfocus();
+    await t.pump();
+    expect(t.lines[1], startsWith('30'));
+    expect(changes, [45]);
+  });
+
+  testTwk('a value handed over that the parent never takes, the text then '
+      'edited into no value: the focus leaving shows the value of the '
+      'parent', (t) async {
+    final shown = ValueNotifier<double>(30);
+    final rebuild = ValueNotifier<int>(0);
+    addTearDown(shown.dispose);
+    addTearDown(rebuild.dispose);
+    final changes = <double>[];
+    await t.pumpWidget(lazyParent(shown, rebuild, changes), size: (20, 3));
+    await press(t, 'backspace backspace');
+    await type(t, '45');
+    await press(t, 'f1');
+    expect(changes, [45]);
+    await type(t, '-');
+    t.binding.focusManager.primaryFocus!.unfocus();
+    await t.pump();
+    expect(t.lines[1], startsWith('30'));
+    expect(changes, [45]);
   });
 
   testTwk('a click on a button after text typed, its press and release in '

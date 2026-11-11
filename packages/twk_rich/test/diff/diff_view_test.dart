@@ -337,6 +337,7 @@ void main() {
     final lexed = [0];
     final language = Language(name: 'count', lexer: CountingLexer(lexed));
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     await t.pumpWidget(
       DiffView(
         Diff.between(before, after, path: 'big.txt'),
@@ -363,5 +364,47 @@ void main() {
     expect(t.lines.last, '50000 50000   line 49999');
     expect(find.byType(Text).evaluate(), hasLength(lessThanOrEqualTo(26)));
     expect(lexed.single, lessThan(100000 + 1000));
+  });
+
+  testTwk('a hunk whose counts are not those of its lines is an assertion '
+      'naming it', (t) async {
+    const diff = Diff([
+      FileDiff(
+        newPath: 'lib/a.dart',
+        hunks: [
+          DiffHunk(
+            oldStart: 3,
+            oldCount: 2,
+            newStart: 3,
+            newCount: 3,
+            lines: [
+              DiffLine(DiffLineKind.context, 'a', oldNumber: 3, newNumber: 3),
+              DiffLine(DiffLineKind.removed, 'b', oldNumber: 4),
+            ],
+          ),
+        ],
+      ),
+    ]);
+    await t.pumpWidget(view(diff), size: (30, 4));
+    final text = [for (final r in t.takeErrors()) '${r.error}'].join();
+    expect(text, contains('@@ -3,2 +3,3 @@ of lib/a.dart'));
+    expect(text, contains('has 2 old and 1 new lines'));
+  });
+
+  testTwk('a truncated patch parses and shows without an error', (t) async {
+    final diff = Diff.parse(
+      [
+        '--- a/a.txt',
+        '+++ b/a.txt',
+        '@@ -3,4 +3,5 @@',
+        ' a',
+        '-b',
+        '+c',
+      ].join('\n'),
+    );
+    final hunk = diff.files.single.hunks.single;
+    expect((hunk.oldCount, hunk.newCount), (2, 2));
+    await t.pumpWidget(view(diff), size: (30, 6));
+    expect(t.takeErrors(), isEmpty);
   });
 }

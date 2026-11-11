@@ -96,6 +96,7 @@ void main() {
       final first = <String>[];
       final second = <String>[];
       final which = ValueNotifier<void Function(String)?>(null);
+      addTearDown(which.dispose);
       await t.pumpWidget(
         ValueListenableBuilder(
           valueListenable: which,
@@ -123,6 +124,7 @@ void main() {
     ) async {
       final taps = <String>[];
       final shown = ValueNotifier<Widget>(links(null));
+      addTearDown(shown.dispose);
       await t.pumpWidget(
         ValueListenableBuilder(
           valueListenable: shown,

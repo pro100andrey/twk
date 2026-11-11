@@ -658,6 +658,37 @@ void main() {
     });
   });
 
+  testTwk('a table answers its height at once in an inline screen: no '
+      'overflow on the first frame', (t) async {
+    await t.pumpWidget(
+      view('| a | b |\n|---|---|\n| 1 | 2 |\n| 3 | 4 |'),
+      mode: ScreenMode.inline,
+      size: (30, 10),
+    );
+    expect(rows(t, 6)[0], startsWith('a'));
+    expect(rows(t, 6)[2], startsWith('1'));
+    expect(rows(t, 6)[3], startsWith('3'));
+  });
+
+  testTwk('a table that grows a row at a time never overflows an inline '
+      'screen', (t) async {
+    final text = ValueNotifier('| a | b |\n|---|---|\n');
+    addTearDown(text.dispose);
+    await t.pumpWidget(
+      ValueListenableBuilder<String>(
+        valueListenable: text,
+        builder: (_, markdown, _) => view(markdown),
+      ),
+      mode: ScreenMode.inline,
+      size: (30, 10),
+    );
+    for (var i = 0; i < 4; i++) {
+      text.value += '| $i | x |\n';
+      await t.pump();
+      expect(rows(t, 3 + i)[2 + i], startsWith('$i'));
+    }
+  });
+
   group('blocks given', () {
     testTwk('show as the view of their document shows them', (t) async {
       final document = section(1);

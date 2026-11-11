@@ -74,6 +74,7 @@ void main() {
       t,
     ) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           controller: controller,
@@ -92,6 +93,7 @@ void main() {
     testTwk('Down and Up scroll it a row, PageDown and PageUp a window, End '
         'and Home to the ends, while it has the focus', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(controller: controller, child: column(30)),
         size: (20, 5),
@@ -124,6 +126,7 @@ void main() {
         'as do the keys of the other axis', (t) async {
       final above = <String>[];
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Focus(
           onKeyEvent: (node, event) {
@@ -150,7 +153,9 @@ void main() {
     testTwk('the wheel over it scrolls it three rows, and the innermost of '
         'two under the mouse alone', (t) async {
       final outer = ScrollController();
+      addTearDown(outer.dispose);
       final inner = ScrollController();
+      addTearDown(inner.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           controller: outer,
@@ -187,7 +192,9 @@ void main() {
     testTwk('a wheel along the axis it does not scroll on goes to the '
         'nearest scrollable around it that does', (t) async {
       final across = ScrollController();
+      addTearDown(across.dispose);
       final down = ScrollController();
+      addTearDown(down.dispose);
       // a list down inside a view across
       await t.pumpWidget(
         SingleChildScrollView(
@@ -212,7 +219,9 @@ void main() {
       // a view across inside a list down: the wheel down scrolls the list,
       // the wheel across the view
       final list = ScrollController();
+      addTearDown(list.dispose);
       final row = ScrollController();
+      addTearDown(row.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           key: const ValueKey('list'),
@@ -242,6 +251,7 @@ void main() {
     testTwk('along a horizontal axis Left and Right scroll it a column, and '
         'either wheel three', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -273,6 +283,7 @@ void main() {
     testTwk('keeps its offset within its content as the content and the '
         'window change', (t) async {
       final controller = ScrollController(initialScrollOffset: 100);
+      addTearDown(controller.dispose);
       Widget view(int count) =>
           SingleChildScrollView(controller: controller, child: column(count));
       await t.pumpWidget(view(30), size: (20, 5));
@@ -354,6 +365,7 @@ void main() {
       t,
     ) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       expect(controller.hasClients, isFalse);
       expect(() => controller.position, throwsStateError);
       final heard = <String>[];
@@ -414,7 +426,9 @@ void main() {
       t,
     ) async {
       final a = ScrollController();
+      addTearDown(a.dispose);
       final b = ScrollController();
+      addTearDown(b.dispose);
       Widget view(ScrollController c) =>
           SingleChildScrollView(controller: c, child: column(10));
       await t.pumpWidget(view(a), size: (20, 4));
@@ -429,6 +443,7 @@ void main() {
     testTwk('ensureVisible scrolls the least that shows a widget inside, its '
         'start when it is taller than the window', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       final twelve = GlobalKey();
       final tall = GlobalKey();
       await t.pumpWidget(
@@ -463,6 +478,7 @@ void main() {
     testTwk('given to two scrollables, ensureVisible scrolls the one the '
         'widget is in', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       final inSecond = GlobalKey();
       Widget view({Key? key}) => Expanded(
         child: SingleChildScrollView(
@@ -513,6 +529,7 @@ void main() {
     t,
   ) async {
     final controller = ScrollController(stickToEnd: true);
+    addTearDown(controller.dispose);
     Widget app({required bool reverse}) => ListView(
       controller: controller,
       reverse: reverse,
@@ -534,7 +551,9 @@ void main() {
   testTwk('Scrollable.ensureVisible scrolls each scrollable above, the '
       'nearest first; Scrollable.of finds the nearest position', (t) async {
     final outer = ScrollController();
+    addTearDown(outer.dispose);
     final inner = ScrollController();
+    addTearDown(inner.dispose);
     final target = GlobalKey();
     final first = GlobalKey();
     ScrollPosition? found;
@@ -591,6 +610,7 @@ void main() {
     testTwk('a notch scrolls three cells however fast they come, while '
         'the input is sparse', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(controller: controller, child: column(100)),
         size: (20, 5),
@@ -607,6 +627,7 @@ void main() {
     testTwk('the notches of a frame scroll it once, at the start of the '
         'frame, not as each comes', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(controller: controller, child: column(100)),
         size: (20, 5),
@@ -621,6 +642,7 @@ void main() {
     testTwk('a burst of a trackpad, events 0 ms apart, turns dense: a row an '
         'event, one move a frame, growing within a stroke', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(controller: controller, child: column(1000)),
         size: (20, 5),
@@ -644,7 +666,9 @@ void main() {
     testTwk('a ScrollConfiguration above a view gives it its own '
         'behavior; App.scrollBehavior gives the default of an app', (t) async {
       final plain = ScrollController();
+      addTearDown(plain.dispose);
       final fixed = ScrollController();
+      addTearDown(fixed.dispose);
       await t.pumpWidget(
         App(
           scrollBehavior: const ScrollBehavior(step: 2),
@@ -679,6 +703,7 @@ void main() {
     testTwk('a behavior of a ScrollConfiguration changed reaches the view '
         'below it', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       Widget view(int step) => ScrollConfiguration(
         behavior: ScrollBehavior(step: step),
         child: SingleChildScrollView(controller: controller, child: column(50)),
@@ -692,6 +717,7 @@ void main() {
     testTwk('a key that moves the view drops what the wheel gathered for '
         'the frame', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(
           controller: controller,
@@ -709,6 +735,7 @@ void main() {
     testTwk('the wheel over a scrollbar of the view goes through the '
         "view's input", (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         Scrollbar(
           child: SingleChildScrollView(
@@ -731,6 +758,7 @@ void main() {
         'an OverscrollNotification', (t) async {
       final heard = <String>[];
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         NotificationListener<ScrollNotification>(
           onNotification: (n) {
@@ -777,7 +805,9 @@ void main() {
         'listener that returns true stops one', (t) async {
       final heard = <String>[];
       final inner = ScrollController();
+      addTearDown(inner.dispose);
       final outer = ScrollController();
+      addTearDown(outer.dispose);
       bool hear(String name, ScrollNotification n, {bool stop = false}) {
         heard.add('$name ${n.depth} ${n.metrics.pixels}');
         return stop;
@@ -831,6 +861,7 @@ void main() {
     testTwk('say how much of the content is after the window, and whether '
         'it shows either end', (t) async {
       final controller = ScrollController();
+      addTearDown(controller.dispose);
       await t.pumpWidget(
         SingleChildScrollView(controller: controller, child: column(10)),
         size: (20, 4),
@@ -884,6 +915,7 @@ void main() {
   testTwk('a position, its controller and its notifications say where the '
       'scrollable is in their toStrings', (t) async {
     final controller = ScrollController();
+    addTearDown(controller.dispose);
     expect('$controller', 'ScrollController(0 clients)');
     final heard = <String>[];
     await t.pumpWidget(

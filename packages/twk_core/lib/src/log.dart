@@ -31,6 +31,12 @@ enum LogLevel {
   error,
 }
 
+/// What a record carries as its `error` for a sink in the process to read
+/// (`OverflowReport` is one), which is not an error: the message says all
+/// there is to read, so the console, the JSON and a log view show none of
+/// it.
+abstract interface class LogData {}
+
 /// One entry of a [LogSink]: when, how much it matters, the message, and
 /// the error and its stack where there are.
 final class LogRecord {
@@ -74,12 +80,13 @@ final class LogRecord {
   final StackTrace? stack;
 
   /// `time` (ISO 8601), `level` (its name), `message`, and the `error` and
-  /// the `stack` as text where there are.
+  /// the `stack` as text where there are. An error that is [LogData] is
+  /// left out.
   Map<String, Object?> toJson() => {
     'time': time.toIso8601String(),
     'level': level.name,
     'message': message,
-    if (error != null) 'error': '$error',
+    if (error != null && error is! LogData) 'error': '$error',
     if (stack != null) 'stack': '$stack',
   };
 
@@ -100,7 +107,8 @@ final class LogRecord {
   }
 
   /// `09:05:07.042 warning message: error` ([formatTime]), then the stack
-  /// on lines of its own.
+  /// on lines of its own. An error that is [LogData] is left out, as in
+  /// [toJson].
   @override
   String toString() {
     final sb = StringBuffer()
@@ -109,7 +117,7 @@ final class LogRecord {
       ..write(level.name)
       ..write(' ')
       ..write(message);
-    if (error != null) {
+    if (error != null && error is! LogData) {
       sb.write(': $error');
     }
     if (stack != null) {

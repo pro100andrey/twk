@@ -163,6 +163,7 @@ void main() {
     testTwk('and of a SelectionList the cursor scrolls, and of a list a '
         'ListController moves to an item', (t) async {
       final controller = ListController();
+      addTearDown(controller.dispose);
       final after = await hear(
         t,
         SelectionList<int>(

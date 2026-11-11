@@ -10,6 +10,7 @@ import 'package:twk_core/twk_core.dart' show Attr, PointerShape, TextWrap;
 
 import '../focus/focus.dart';
 import '../foundation/change_notifier.dart';
+import '../foundation/helpers.dart';
 import '../framework/framework.dart';
 import '../gestures/gesture_detector.dart';
 import '../layout/box.dart';
@@ -216,7 +217,8 @@ final class SelectionList<K> extends StatefulWidget {
   /// How many items the list has.
   final int itemCount;
 
-  /// The key of an item, by its index: one no other item has.
+  /// The key of an item, by its index: one no other item has, which the
+  /// list asserts.
   final K Function(int index) keyOf;
 
   /// Builds an item, by its index, as it comes into view and as the list
@@ -282,7 +284,10 @@ final class SelectionList<K> extends StatefulWidget {
 
 final class _SelectionListState<K> extends State<SelectionList<K>> {
   SelectionController<K>? _own;
-  final _list = ListController();
+  // made on first use, not with the state: initState may throw (duplicate
+  // keys) and a state that never mounted is never disposed
+  ListController? _listMade;
+  ListController get _list => _listMade ??= ListController();
 
   // where the cursor's key was found last, which it is looked for from
   var _hint = 0;
@@ -294,15 +299,38 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   SelectionController<K> get _controller =>
       widget.controller ?? (_own ??= SelectionController<K>());
 
+  // in an assert: no two items have the same key; all items at initState,
+  // at an update only when the count or the keyOf given changed, and then
+  // the first debugDistinctLimit
+  bool _distinctKeys({bool full = false}) => debugDistinct<K>(
+    widget.itemCount,
+    widget.keyOf,
+    (key, i) =>
+        'SelectionList has two items with the key $key (at $i): items are '
+        'selected by their keys, so keyOf gives each its own',
+    full: full,
+  );
+
   @override
   void initState() {
     super.initState();
+    assert(_distinctKeys(full: true), 'duplicate keys');
     _controller.addListener(_changed);
   }
 
   @override
   void didUpdateWidget(SelectionList<K> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // unchanged: the same count and a keyOf that is ==, so that a list
+    // rebuilt with a keyOf kept (a field, or a tear-off of a method of one
+    // object, which == holds for though identical does not; not a closure
+    // made at each build) is not read item by item at every rebuild
+    assert(
+      (widget.itemCount == oldWidget.itemCount &&
+              widget.keyOf == oldWidget.keyOf) ||
+          _distinctKeys(),
+      'duplicate keys',
+    );
     if (!identical(widget.controller, oldWidget.controller)) {
       (oldWidget.controller ?? _own)?.removeListener(_changed);
       _controller.addListener(_changed);
@@ -313,7 +341,7 @@ final class _SelectionListState<K> extends State<SelectionList<K>> {
   void dispose() {
     _controller.removeListener(_changed);
     _own?.dispose();
-    _list.dispose();
+    _listMade?.dispose();
     super.dispose();
   }
 

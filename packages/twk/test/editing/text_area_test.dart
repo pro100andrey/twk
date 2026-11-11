@@ -20,6 +20,7 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../data/shot.dart' show Counted, PaintCount;
+import '../disposing.dart';
 
 /// The microseconds of a pass over [text] that taking it in at all makes:
 /// its UTF-8 bytes decoded and its lines found, the mean of three.
@@ -74,6 +75,7 @@ void main() {
   testTwk('breaks its lines into rows by word, and grows from minLines to '
       'maxLines, then scrolls to keep the caret in view', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -119,6 +121,7 @@ void main() {
     t,
   ) async {
     final c = TextEditingController(text: 'abcdefghijklmn');
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: area(c, width: 6)), size: (8, 4));
     expect(t.lines.sublist(0, 3), ['abcdef', 'ghijkl', 'mn']);
     expect(t, cursorAt(2, 2));
@@ -151,8 +154,9 @@ void main() {
 
   testTwk('Up and Down move a row, wrapped or not, keeping the column the '
       'caret had, over wide glyphs; with Shift they select', (t) async {
-    final c = TextEditingController(text: 'one two three four\n日本語日本語\nxy')
-      ..selection = const TextSelection.collapsed(offset: 5);
+    final c = disposing(
+      TextEditingController(text: 'one two three four\n日本語日本語\nxy'),
+    )..selection = const TextSelection.collapsed(offset: 5);
     await t.pumpWidget(Theme.terminal(child: area(c, width: 8)), size: (8, 7));
     expect(t.lines.sublist(0, 6), [
       'one two',
@@ -182,7 +186,7 @@ void main() {
 
   testTwk('Up on the first row moves to the start of the text, Down on the '
       'last to its end, and then they go up to the nodes above', (t) async {
-    final c = TextEditingController(text: 'abc\ndef')
+    final c = disposing(TextEditingController(text: 'abc\ndef'))
       ..selection = const TextSelection.collapsed(offset: 1);
     final above = <String>[];
     await t.pumpWidget(
@@ -209,8 +213,10 @@ void main() {
 
   testTwk('PageUp and PageDown move the caret and the text as many rows as '
       'the area shows', (t) async {
-    final c = TextEditingController(
-      text: [for (var i = 0; i < 20; i++) 'line $i'].join('\n'),
+    final c = disposing(
+      TextEditingController(
+        text: [for (var i = 0; i < 20; i++) 'line $i'].join('\n'),
+      ),
     )..selection = const TextSelection.collapsed(offset: 3);
     await t.pumpWidget(
       Theme.terminal(child: area(c, maxLines: 5)),
@@ -261,6 +267,7 @@ void main() {
   testTwk('scrolls a row at a time to keep the caret in view, without '
       'blank rows after the text', (t) async {
     final c = TextEditingController(text: 'a\nb\nc\nd\ne\nf');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: area(c, maxLines: 3)),
       size: (10, 4),
@@ -287,7 +294,7 @@ void main() {
       'delete to the ends of the line, and at them join the lines', (
     t,
   ) async {
-    final c = TextEditingController(text: 'ab\ncd\nef')
+    final c = disposing(TextEditingController(text: 'ab\ncd\nef'))
       ..selection = const TextSelection.collapsed(offset: 4);
     await t.pumpWidget(Theme.terminal(child: area(c)), size: (10, 3));
     final carets = <int>[];
@@ -311,6 +318,7 @@ void main() {
     t,
   ) async {
     final c = TextEditingController(text: 'one\n\ntwo three\nfour');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: area(c, width: 20)),
       size: (20, 4),
@@ -340,6 +348,7 @@ void main() {
   testTwk('Enter breaks the line; with onSubmitted, Enter submits and '
       'Alt+Enter breaks the line', (t) async {
     final c = TextEditingController(text: 'ab');
+    addTearDown(c.dispose);
     final submitted = <String>[];
     await t.pumpWidget(Theme.terminal(child: area(c)), size: (10, 4));
     await t.press('left enter');
@@ -358,6 +367,7 @@ void main() {
   testTwk('takes a paste as typed, keeping its line breaks, without other '
       'control characters but tabs', (t) async {
     final c = TextEditingController(text: '> ');
+    addTearDown(c.dispose);
     final changed = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: area(c, width: 20, onChanged: changed.add)),
@@ -374,6 +384,7 @@ void main() {
   testTwk('Ctrl+Z undoes typing a word at a time and a paste at once, '
       'Ctrl+Y redoes; with nothing to undo they go up', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final changed = <String>[];
     final above = <String>[];
     await t.pumpWidget(
@@ -412,7 +423,7 @@ void main() {
 
   testTwk('shows the selection across rows and lines, a line break in it '
       'as a cell', (t) async {
-    final c = TextEditingController(text: 'abc def\nxy\n\nz')
+    final c = disposing(TextEditingController(text: 'abc def\nxy\n\nz'))
       ..selection = const TextSelection(baseOffset: 2, extentOffset: 12);
     await t.pumpWidget(Theme.terminal(child: area(c, width: 5)), size: (6, 5));
     expect(t.lines.sublist(0, 5), ['abc', 'def', 'xy', '', 'z']);
@@ -432,6 +443,7 @@ void main() {
   testTwk('shows its placeholder while empty, in the muted style, and the '
       "controller's composing range underlined", (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Align(
@@ -466,6 +478,7 @@ void main() {
 
   testTwk('hides the cursor once it loses the focus', (t) async {
     final c = TextEditingController(text: 'ab\ncd');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -490,6 +503,7 @@ void main() {
   testTwk('as wide as its widest line and a column for the caret where '
       'asked', (t) async {
     final c = TextEditingController(text: 'ab\n日本語\nc');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Row(
@@ -508,6 +522,7 @@ void main() {
   testTwk('grows with its text under IntrinsicHeight, which asks for its '
       'height', (t) async {
     final c = TextEditingController(text: 'a');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -533,6 +548,7 @@ void main() {
 
   testTwk('in the inline mode the region grows with its text', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -561,6 +577,7 @@ void main() {
   testTwk('a keystroke repaints nothing but the area', (t) async {
     final count = PaintCount();
     final c = TextEditingController(text: 'one\ntwo');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -595,6 +612,7 @@ void main() {
   testTwk('a megabyte pasted is shown and edited in time, the area laying '
       'out the lines in view only', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final key = GlobalKey();
     await t.pumpWidget(
       Theme.terminal(child: area(c, width: 80, maxLines: 20, key: key)),
@@ -650,7 +668,7 @@ void main() {
     const word = 'lorem ipsum dolor sit amet, привет 日本語 👋🏽 ';
     final line = word * (1048576 ~/ word.length);
     final middle = line.length ~/ 2 - line.length ~/ 2 % word.length;
-    final c = TextEditingController(text: line)..moveCaret(middle);
+    final c = disposing(TextEditingController(text: line))..moveCaret(middle);
     await t.pumpWidget(
       Theme.terminal(child: area(c, width: 80, maxLines: 20)),
       size: (80, 24),
@@ -685,6 +703,7 @@ void main() {
   testTwk('shows the cursor in its cursorShape, and rebuilt with another '
       'in that one', (t) async {
     final c = TextEditingController(text: 'ab\ncd');
+    addTearDown(c.dispose);
     Widget area(CursorShape shape) =>
         TextArea(controller: c, autofocus: true, cursorShape: shape);
     await t.pumpWidget(

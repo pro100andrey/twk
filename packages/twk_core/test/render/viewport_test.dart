@@ -132,6 +132,7 @@ const solid = Pen(bg: Color.rgb(0, 0, 40));
 const decstbm = '\x1b[1;5r';
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('a background of no foreground takes none from what scrolled away', () {
     final screen = Screen(10, 4);
     final red = screen.styles.pen(const Pen(fg: Color.rgb(255, 0, 0)));

@@ -420,7 +420,8 @@ final class HeadlessTerminal
 /// [onLog] is where the tree's own warnings go, such as a [RenderFlex]
 /// whose children overflow it, in debug ([PipelineOwner.onLog]): the sink
 /// of the tool that renders it. Null, they go to [log], as from any tree
-/// whose owner has no route of its own.
+/// whose owner has no route of its own. The text is data, so the overflow
+/// marker is never drawn over it, with asserts on or off.
 ///
 /// ```dart
 /// final styles = StyleTable();
@@ -444,7 +445,7 @@ String renderToString(
   final surface = Surface(width, height);
   final canvas = Canvas(surface, styles, glyphs);
   final presenter = Presenter(width, height, styles, glyphs);
-  final owner = PipelineOwner(() {}, segmenter: canvas.segmenter)
+  final owner = PipelineOwner.forData(() {}, segmenter: canvas.segmenter)
     ..onLog = onLog
     ..root = root
     ..markAllDirty();

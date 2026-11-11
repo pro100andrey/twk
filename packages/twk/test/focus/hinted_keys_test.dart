@@ -16,6 +16,7 @@ void main() {
     expect(names.length, greaterThan(70));
     final taken = names.toSet();
     final changes = ValueNotifier(0);
+    addTearDown(changes.dispose);
     final node = FocusNode(debugLabel: 'field');
     addTearDown(node.dispose);
     await t.pumpWidget(

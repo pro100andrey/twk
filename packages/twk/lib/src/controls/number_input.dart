@@ -2,8 +2,9 @@
 /// with a `DatePicker`, a value typed in a field ([TypedInputState]).
 library;
 
-import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind;
+import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 
+import '../binding/app_binding.dart' show AppBinding;
 import '../editing/text_editing.dart';
 import '../editing/text_field.dart';
 import '../focus/focus.dart';
@@ -266,6 +267,9 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   T get value => _value;
   late T _value = widgetValue;
 
+  // the value the widget gave as built last
+  late T _seen;
+
   /// What holds the text.
   late final controller = TextEditingController(text: format(_value));
 
@@ -312,6 +316,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   @override
   void initState() {
     super.initState();
+    _seen = widgetValue;
     _given = focusNode;
     node.addListener(_focusChanged);
   }
@@ -326,11 +331,20 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       _given = focusNode;
       node.addListener(_focusChanged);
     }
-    if (widgetValue != _value) {
-      _value = widgetValue;
+    final given = widgetValue;
+    final seen = _seen;
+    _seen = given;
+    if (given != _value && !(_untyped != null && given == seen)) {
+      // another value: the widget's, but not that of a text handed over
+      // ([_handOver]) that the parent has not taken yet; one it never
+      // takes is given up with Escape or the focus leaving
+      _value = given;
       _show();
-    } else if (!_typed) {
-      // as the widget shows it now
+    } else if (!_typed || (_untyped != null && given == _value)) {
+      // as the widget shows it now; where it is the value handed over
+      // ([_handOver]) the parent has taken it, and Escape reverts it no
+      // more. A parent that rebuilt without taking it leaves the hand-over
+      // as it is
       _show();
     }
   }
@@ -358,9 +372,35 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
 
   void _focusChanged() {
     if (!node.hasFocus) {
-      commit();
+      final binding = AppBinding.maybeOf(context);
+      if (_untyped != null && widgetValue != _value && binding != null) {
+        // the text was handed over ([_handOver]) and the parent has not
+        // built with it yet: when it has, in this frame, it took it, else
+        // it is given up and the field shows the value of the widget
+        binding.addPostFrameCallback((_) => _settleHandedOver());
+      } else {
+        commit();
+      }
     }
     setState(() {});
+  }
+
+  void _settleHandedOver() {
+    if (!mounted || node.hasFocus || !_typed) {
+      return;
+    }
+    if (_untyped != null && widgetValue != _value) {
+      final typed = parse(controller.text);
+      if (typed != null && clamp(typed.value) == _value) {
+        _value = widgetValue;
+        revert();
+        return;
+      }
+      // the value handed over was not taken, whatever the text became: it
+      // is the widget's value that gives way to, or is changed from
+      _value = widgetValue;
+    }
+    commit();
   }
 
   /// Takes the text typed, if it was, as the value: within the bounds as
@@ -462,6 +502,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       _combos = [for (final name in _keys.keys) KeyCombo.parse(name)];
     }
     if (event.code == KeyCode.escape && event.modifiers == 0 ||
+        _editsText(event) ||
         _combos.any((combo) => combo.accepts(event))) {
       return KeyEventResult.ignored;
     }
@@ -471,6 +512,27 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       _handOver();
     }
     return KeyEventResult.ignored;
+  }
+
+  /// Whether [event] is a key of the text field's own (a character, a
+  /// caret key, a deletion) rather than one for the bindings above: it
+  /// comes here ignored at an edge of the text, with nothing to do.
+  static bool _editsText(KeyEvent event) {
+    final mods = event.modifiers;
+    final rest = mods & ~Mod.shift;
+    return switch (event.code) {
+      KeyCode.left ||
+      KeyCode.right ||
+      KeyCode.home ||
+      KeyCode.end ||
+      KeyCode.backspace ||
+      KeyCode.delete => rest == 0 || rest == Mod.ctrl || rest == Mod.alt,
+      KeyCode.char =>
+        rest == 0 ||
+            (rest == Mod.alt && 'bfd'.contains(event.char)) ||
+            (rest == Mod.ctrl && 'aedwukzy'.contains(event.char)),
+      _ => false,
+    };
   }
 
   /// Gives [onChanged] the text typed where it is a value within the

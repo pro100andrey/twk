@@ -45,6 +45,7 @@ hooks.dart function useValueChanged
 hooks.dart function useValueListenable
 hooks.dart function useValueNotifier
 hooks.dart mixin HookElement
+log.dart class LogData
 log.dart class LogRecord
 log.dart class LogSink
 log.dart enum LogLevel
@@ -180,6 +181,7 @@ twk.dart class DiagnosticsProperty
 twk.dart class Dialog
 twk.dart class DirectoryTree
 twk.dart class DirectoryTreeController
+twk.dart class DisposalTracker
 twk.dart class Dissolve
 twk.dart class Divider
 twk.dart class DockArea
@@ -487,6 +489,7 @@ twk.dart class TweenAnimationBuilder
 twk.dart class TwkLocalizations
 twk.dart class TwkStrings
 twk.dart class UnderlineInputBorder
+twk.dart class UndisposedObject
 twk.dart class UniqueKey
 twk.dart class ValueKey
 twk.dart class ValueListenable
@@ -517,6 +520,7 @@ twk.dart enum CursorShape
 twk.dart enum DecorationPosition
 twk.dart enum DiagnosticsFlag
 twk.dart enum DockSide
+twk.dart enum ErrorOrigin
 twk.dart enum FileKind
 twk.dart enum FilePickerMode
 twk.dart enum FlexFit
@@ -601,6 +605,7 @@ twk.dart function stringWidth
 twk.dart function stripAnsi
 twk.dart function thumbSteps
 twk.dart function traceback
+twk.dart getter debugAssertsEnabled
 twk.dart mixin ContainerParentDataMixin
 twk.dart mixin ContainerRenderObjectMixin
 twk.dart mixin RenderObjectWithChildMixin
@@ -618,6 +623,7 @@ twk.dart typedef DotDrawer
 twk.dart typedef DragTargetBuilder
 twk.dart typedef EditorCommand
 twk.dart typedef ElementVisitor
+twk.dart typedef ErrorReporter
 twk.dart typedef FocusOnKeyEventCallback
 twk.dart typedef FrameCallback
 twk.dart typedef GestureDragEndCallback
@@ -634,6 +640,7 @@ twk.dart typedef RouteFactory
 twk.dart typedef RoutePredicate
 twk.dart typedef SlotLayout
 twk.dart typedef SourceLines
+twk.dart typedef StartTimer
 twk.dart typedef StateSetter
 twk.dart typedef StatefulWidgetBuilder
 twk.dart typedef TickerCallback

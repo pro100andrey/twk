@@ -22,11 +22,15 @@ Widget _anchors() => Column(
       items: [MenuItem('Copy', onSelected: () {})],
       child: const Text('right click'),
     ),
-    MenuBar(
-      menus: [
-        Menu('File', items: [MenuItem('Open', onSelected: () {})]),
-      ],
-      child: const Text('bar body'),
+    // a bar takes the room it is given
+    SizedBox(
+      height: 2,
+      child: MenuBar(
+        menus: [
+          Menu('File', items: [MenuItem('Open', onSelected: () {})]),
+        ],
+        child: const Text('bar body'),
+      ),
     ),
   ],
 );

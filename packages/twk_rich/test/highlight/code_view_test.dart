@@ -12,6 +12,17 @@ import 'painted.dart';
 const red = Color.rgb(255, 0, 0);
 
 void main() {
+  test('narrower than its gutter, paints without a negative clip', () {
+    expect(
+      () => Painted(
+        const CodeView('a\nb', lineNumbers: true, firstLineNumber: 100),
+        2,
+        2,
+      ),
+      returnsNormally,
+    );
+  });
+
   test('shows the lines, none after a final line break', () {
     final view = Painted(
       const CodeView('final x = 1;\n  var y;\n', language: dartLanguage),

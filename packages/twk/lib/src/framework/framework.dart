@@ -38,6 +38,8 @@ import 'package:twk_core/twk_core.dart'
         RenderObject,
         RenderObjectWithChildMixin;
 
+import '../foundation/render_elements.dart';
+import 'app_clock.dart' show AppClock;
 import 'builder.dart' show Builder;
 
 export 'package:twk_core/twk_core.dart'
@@ -384,6 +386,13 @@ abstract class State<T extends StatefulWidget> {
   /// Whether this state has an element: false once [dispose] has run.
   bool get mounted => _element != null;
 
+  /// The clock of the app this state is in (the [AppClock] above it), null
+  /// where there is no app: for what waits on the app's time and does
+  /// something else without one (`ControllerHost`'s grace).
+  @internal
+  StartTimer? get appTimer =>
+      _element?.getInheritedWidgetOfExactType<AppClock>()?.startTimer;
+
   /// Called once, when the element is placed in the tree, before the first
   /// [build]. Not the place to depend on inherited widgets: that is
   /// [didChangeDependencies]. When it throws, the element leaves the tree
@@ -447,10 +456,26 @@ abstract class State<T extends StatefulWidget> {
   /// Runs [fn], which changes this state, and rebuilds the element in the
   /// owner's next build scope: any number of calls before then make one
   /// rebuild.
+  ///
+  /// [fn] is synchronous: one that returns a [Future] (an `async` closure)
+  /// is an error in a debug run, as what it changes after its first await
+  /// is not followed by a rebuild. Called from this state's own [build] it
+  /// is an error in a debug run too: the rebuild under way clears the mark
+  /// as it ends, so the change would not be shown.
   @protected
   void setState(void Function() fn) {
     assert(_element != null, 'setState() called after dispose(): $this');
-    fn();
+    final Object? result = fn() as dynamic;
+    assert(
+      result is! Future,
+      'setState() callback returned a Future: $this.\n'
+      'Either the callback is marked "async", and what it changes after its '
+      'first await is not followed by a rebuild, or it is an arrow function '
+      'whose value is a Future, as in setState(() => _future = fetch()).\n'
+      'Do the asynchronous work first, outside of setState(), then change '
+      'the state synchronously inside a call to setState(); or give the '
+      'callback a block body, setState(() { _future = fetch(); }).',
+    );
     _element!.markNeedsBuild();
   }
 }
@@ -618,6 +643,19 @@ abstract class Element implements BuildContext {
 
   @override
   void visitAncestorElements(ConditionalElementVisitor visitor) {
+    assert(
+      _debugCheckActiveForLookup('visitAncestorElements'),
+      'lookup from an inactive element',
+    );
+    visitRetainedAncestors(visitor);
+  }
+
+  /// Like [visitAncestorElements], for code of the framework that walks the
+  /// parents an element still has while it is out of the tree, within the
+  /// frame that removed it (where the focus was, for one): it skips the
+  /// check that the element is active.
+  @internal
+  void visitRetainedAncestors(ConditionalElementVisitor visitor) {
     var ancestor = _parent;
     while (ancestor != null && visitor(ancestor)) {
       ancestor = ancestor._parent;
@@ -626,6 +664,10 @@ abstract class Element implements BuildContext {
 
   @override
   T? findAncestorWidgetOfExactType<T extends Widget>() {
+    assert(
+      _debugCheckActiveForLookup('findAncestorWidgetOfExactType<$T>'),
+      'lookup from an inactive element',
+    );
     for (var a = _parent; a != null; a = a._parent) {
       final widget = a.widget;
       if (widget.runtimeType == T) {
@@ -637,16 +679,40 @@ abstract class Element implements BuildContext {
 
   @override
   T? dependOnInheritedWidgetOfExactType<T extends InheritedWidget>() {
+    assert(
+      _debugCheckActiveForLookup('dependOnInheritedWidgetOfExactType<$T>'),
+      'lookup from an inactive element',
+    );
     final ancestor = _inheritedElements?[T];
     return ancestor == null ? null : dependOnInheritedElement(ancestor) as T;
   }
 
   @override
   InheritedWidget dependOnInheritedElement(InheritedElement ancestor) {
+    assert(
+      _debugCheckActiveForLookup('dependOnInheritedElement'),
+      'lookup from an inactive element',
+    );
     if ((_dependencies ??= _Dependencies()).add(ancestor)) {
       ancestor._dependents.add(this);
     }
     return ancestor.widget;
+  }
+
+  /// Debug only: fails where this element is not in the tree, whose
+  /// ancestors and inherited widgets it can no longer see: a lookup then
+  /// silently finds nothing (or a default), or walks a detached chain.
+  bool _debugCheckActiveForLookup(String lookup) {
+    assert(
+      _lifecycle == _Lifecycle.active,
+      '$lookup from an element that is ${_lifecycle.name} ($this): '
+      'looking up the ancestors of an element that is not in '
+      'the tree is unsafe, and finds nothing.\n'
+      "To use an ancestor's value in dispose(), save it in "
+      'didChangeDependencies() (or initState) and use the saved one; after an '
+      'await, look it up before the await.',
+    );
+    return true;
   }
 
   /// Whether [ancestor] is above this element in the tree.
@@ -704,16 +770,32 @@ abstract class Element implements BuildContext {
   }
 
   @override
-  T? getInheritedWidgetOfExactType<T extends InheritedWidget>() =>
-      _inheritedElements?[T]?.widget as T?;
+  T? getInheritedWidgetOfExactType<T extends InheritedWidget>() {
+    assert(
+      _debugCheckActiveForLookup('getInheritedWidgetOfExactType<$T>'),
+      'lookup from an inactive element',
+    );
+    return _inheritedElements?[T]?.widget as T?;
+  }
 
   @override
   InheritedElement?
-  getElementForInheritedWidgetOfExactType<T extends InheritedWidget>() =>
-      _inheritedElements?[T];
+  getElementForInheritedWidgetOfExactType<T extends InheritedWidget>() {
+    assert(
+      _debugCheckActiveForLookup(
+        'getElementForInheritedWidgetOfExactType<$T>',
+      ),
+      'lookup from an inactive element',
+    );
+    return _inheritedElements?[T];
+  }
 
   @override
   T? findAncestorStateOfType<T extends State<StatefulWidget>>() {
+    assert(
+      _debugCheckActiveForLookup('findAncestorStateOfType<$T>'),
+      'lookup from an inactive element',
+    );
     for (var a = _parent; a != null; a = a._parent) {
       if (a is StatefulElement && a.state is T) {
         return a.state as T;
@@ -1126,8 +1208,24 @@ abstract class Element implements BuildContext {
     visitChildren((child) => child.reassemble());
   }
 
+  // debug only: this element's own build() is running
+  var _debugBuilding = false;
+
   /// Rebuilds this element in its owner's next build scope.
+  ///
+  /// An element marked from its own [ComponentElement.build] fails an
+  /// assert: the rebuild in progress clears the mark as it ends, so the
+  /// change would show only when something else marked it. (Flutter ignores
+  /// the call.)
   void markNeedsBuild() {
+    assert(
+      !_debugBuilding,
+      '${_pathOf(this)} was marked dirty (setState) inside its own build, '
+      'where the mark is lost: the rebuild under way clears it, and the '
+      'screen keeps showing what the build saw.\n'
+      'Change the state before the build, or in a callback after it '
+      '(a post-frame callback, an event), not in build().',
+    );
     if (_lifecycle != _Lifecycle.active || _dirty) {
       return;
     }
@@ -1270,8 +1368,16 @@ abstract class ComponentElement extends Element with _BuildsChild {
     try {
       _beginDependencies();
       try {
+        assert(() {
+          _debugBuilding = true;
+          return true;
+        }(), 'enters the build');
         built = build();
       } finally {
+        assert(() {
+          _debugBuilding = false;
+          return true;
+        }(), 'leaves the build');
         _endDependencies();
       }
       _built();
@@ -1916,7 +2022,11 @@ abstract class RenderObjectElement extends Element {
   @override
   void mount(Element? parent, Object? newSlot) {
     super.mount(parent, newSlot);
-    _renderObject = widget.createRenderObject(this);
+    final o = _renderObject = widget.createRenderObject(this);
+    assert(() {
+      renderElements[o] = this;
+      return true;
+    }(), 'keeps the render-to-element map in debug only');
     attachRenderObject(newSlot);
     _dirty = false;
   }
@@ -2033,6 +2143,10 @@ abstract class RenderObjectElement extends Element {
     // there is none when createRenderObject threw
     final o = _renderObject;
     if (o != null) {
+      assert(() {
+        renderElements[o] = null;
+        return true;
+      }(), 'keeps the render-to-element map in debug only');
       oldWidget.didUnmountRenderObject(o);
     }
     _renderObject = null;
@@ -3004,3 +3118,9 @@ class _Dependencies {
     return true;
   }
 }
+
+/// Starts a timer on some clock: `AppBinding.startTimer`'s shape.
+typedef StartTimer = Timer Function(
+  Duration duration,
+  void Function() callback,
+);

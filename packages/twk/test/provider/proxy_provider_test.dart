@@ -94,6 +94,7 @@ void main() {
         'anew when either changes', (t) async {
       final counter = Counter(2);
       final names = ValueNotifier('a');
+      addTearDown(names.dispose);
       await t.pumpWidget(
         ChangeNotifierProvider.value(
           value: counter,

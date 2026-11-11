@@ -84,7 +84,7 @@
       },
       {
         "command": "twk.inspector.toggles",
-        "title": "Inspector Debug Aids (Frame Overlay, Repaint Rainbow, Relayout, Console)",
+        "title": "Inspector Debug Aids (Frame Overlay, Repaint Rainbow, Relayout, Overflow, Console)",
         "category": "twk",
         "icon": "$(eye)"
       },
@@ -246,7 +246,8 @@
               "timeline",
               "logs",
               "rainbow",
-              "relayout"
+              "relayout",
+              "overflow"
             ]
           },
           "uniqueItems": true,

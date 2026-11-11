@@ -440,6 +440,34 @@ void main() {
     await run.ended();
   });
 
+  test('a binding made with asserts off says so once, at info level, in the '
+      "app's log; with them on it says nothing", () {
+    expect(debugAssertsEnabled, isTrue, reason: 'tests run with asserts');
+    final on = AppBinding(HeadlessTerminal(), environment: const {});
+    expect(on.twkApp.logs.records, isEmpty);
+    final off = AppBinding(
+      HeadlessTerminal(),
+      environment: const {},
+      assertsEnabled: false,
+    );
+    final records = off.twkApp.logs.records.toList();
+    expect(records, hasLength(1));
+    expect(records.single.level, LogLevel.info);
+    expect(records.single.message, contains('Asserts are off'));
+    expect(records.single.message, contains('twk run'));
+  });
+
+  test('a binding of a profile or release build, asserts off, says nothing '
+      'of them: its advice is of no use there', () {
+    final b = AppBinding(
+      HeadlessTerminal(),
+      environment: const {},
+      assertsEnabled: false,
+      debugMode: false,
+    );
+    expect(b.twkApp.logs.records, isEmpty);
+  });
+
   test('the environment given is what the binding reads: TWK_SCREEN_READER '
       "and TWK_DEBUG, the core's names known without a list of its own; "
       'given none, nothing is on', () {
@@ -461,7 +489,8 @@ void main() {
     ];
     const mine =
         "TWK_DEBUG names nothing it knows as 'mine': it takes keys, overlay, "
-        'console, rainbow, relayout, frames, timeline, logs, comma-separated';
+        'console, rainbow, relayout, overflow, frames, timeline, logs, '
+        'comma-separated';
     expect(warnings, [mine]);
     expect(
       AppBinding(

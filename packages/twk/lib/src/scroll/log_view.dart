@@ -450,8 +450,8 @@ final class LogController extends ChangeNotifier {
       return;
     }
     final narrower = level.index > _level.index;
-    _level = level;
-    _refilter(narrower: narrower);
+    final before = _level;
+    _refilterWith(() => _level = level, () => _level = before, narrower);
   }
 
   /// What the lines shown contain; empty for every line.
@@ -462,9 +462,19 @@ final class LogController extends ChangeNotifier {
       return;
     }
     final narrower = filter.contains(_filter);
-    _filter = filter;
-    _filterCase = Smartcase(filter);
-    _refilter(narrower: narrower);
+    final before = _filter;
+    final beforeCase = _filterCase;
+    _refilterWith(
+      () {
+        _filter = filter;
+        _filterCase = Smartcase(filter);
+      },
+      () {
+        _filter = before;
+        _filterCase = beforeCase;
+      },
+      narrower,
+    );
   }
 
   /// Which lines are shown, of those at [level] and above that contain
@@ -495,8 +505,8 @@ final class LogController extends ChangeNotifier {
     if (where == null && _where == null) {
       return;
     }
-    _where = where;
-    _refilter(narrower: false);
+    final before = _where;
+    _refilterWith(() => _where = where, () => _where = before, false);
   }
 
   /// What [nextMatch] and [previousMatch] look for, highlighted in the
@@ -588,18 +598,40 @@ final class LogController extends ChangeNotifier {
     return true;
   }
 
-  void _refilter({required bool narrower}) {
-    final from = narrower
-        ? [for (var i = _shownHead; i < _shown.length; i++) _line(_shown[i])]
-        : _lines.skip(_head);
-    _shown = [
-      for (final line in from)
-        if (_passes(line)) line.number,
-    ];
+  /// Applies a change of what the lines are tested by and refilters; a
+  /// test that throws leaves the controller as it was: [undo] restores
+  /// the change, nothing else was written, and the error goes on. The
+  /// listeners are told after the change is whole, outside that: an error
+  /// of theirs leaves it made.
+  void _refilterWith(
+    void Function() apply,
+    void Function() undo,
+    bool narrower,
+  ) {
+    apply();
+    final List<int> shown;
+    try {
+      shown = _passing(narrower: narrower);
+    } catch (_) {
+      undo();
+      rethrow;
+    }
+    _shown = shown;
     _shownHead = 0;
     _reshaped++;
     _refiltered++;
     notifyListeners();
+  }
+
+  // the numbers of the lines that pass the tests now, nothing written
+  List<int> _passing({required bool narrower}) {
+    final from = narrower
+        ? [for (var i = _shownHead; i < _shown.length; i++) _line(_shown[i])]
+        : _lines.skip(_head);
+    return [
+      for (final line in from)
+        if (_passes(line)) line.number,
+    ];
   }
 
   bool _passes(LogLine line) =>
@@ -1159,7 +1191,10 @@ final class _LogViewState extends State<LogView> {
       _numbers.add(line.number);
       _starts.add(out.length);
       out.write(_textOf(line));
-      LogView.selectionLines++;
+      assert(() {
+        LogView.selectionLines++;
+        return true;
+      }(), 'counts the lines of a selection, for a test');
     }
     _text = out.toString();
   }
@@ -1902,13 +1937,12 @@ final class _RenderLine extends RenderObject {
 
   @override
   bool hitTestChildren(HitTestResult result, int x, int y) {
-    for (final c in [_body, _head]) {
-      final at = c.parentData;
-      if (c.hitTest(result, x - at.dx, y - at.dy)) {
-        return true;
-      }
+    final body = _body.parentData;
+    if (_body.hitTest(result, x - body.dx, y - body.dy)) {
+      return true;
     }
-    return false;
+    final head = _head.parentData;
+    return _head.hitTest(result, x - head.dx, y - head.dy);
   }
 
   @override

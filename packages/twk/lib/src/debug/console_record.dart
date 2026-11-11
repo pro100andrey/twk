@@ -106,7 +106,7 @@ List<RecordLine> recordLines(LogRecord record, int width) {
       for (final part in _broken(line, w)) RecordLine(part, .message),
   ];
   final error = record.error;
-  if (error != null) {
+  if (error != null && error is! LogData) {
     for (final line in '$error'.split('\n')) {
       for (final part in _broken(line, w)) {
         out.add(RecordLine(part, .error));

@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import '../disposing.dart';
+
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
 
 List<String> hints(TwkTester t) => [
@@ -332,7 +334,7 @@ void main() {
           child: names(
             list,
             controller: c,
-            node: FocusNode(debugLabel: 'list'),
+            node: disposing(FocusNode(debugLabel: 'list')),
           ),
         ),
         size: (8, 4),
@@ -579,7 +581,7 @@ void main() {
           child: names(
             list,
             controller: c,
-            node: FocusNode(debugLabel: 'list'),
+            node: disposing(FocusNode(debugLabel: 'list')),
             onSubmitted: submitted.add,
           ),
         ),
@@ -640,7 +642,7 @@ void main() {
           child: names(
             list,
             controller: c,
-            node: FocusNode(debugLabel: 'list'),
+            node: disposing(FocusNode(debugLabel: 'list')),
             disabled: (name) => 'def'.contains(name),
           ),
         ),
@@ -665,7 +667,7 @@ void main() {
                 child: names(
                   list,
                   controller: c,
-                  node: FocusNode(debugLabel: 'list'),
+                  node: disposing(FocusNode(debugLabel: 'list')),
                   enabled: false,
                 ),
               ),
@@ -712,6 +714,45 @@ void main() {
       expect(built.length, lessThan(40));
       // the window it left built again once, as the list is; none between
       expect(built, everyElement(anyOf(lessThan(20), greaterThan(99900))));
+    });
+  });
+
+  group('duplicate keys', () {
+    testTwk('a duplicate past the cap asserts at the first build', (t) async {
+      await t.pumpWidget(
+        Theme.terminal(
+          child: SelectionList<int>(
+            itemCount: 5000,
+            keyOf: (i) => i == 3000 ? 0 : i,
+            itemBuilder: (context, i) => Text('item $i'),
+            itemExtent: 1,
+          ),
+        ),
+        size: (12, 5),
+      );
+      expect(
+        t.takeErrors().map((r) => '${r.error}'),
+        [contains('two items with the key 0 (at 3000)')],
+      );
+    });
+
+    testTwk('a rebuild with an inline keyOf reads at most the cap', (t) async {
+      var reads = 0;
+      Widget list() => Theme.terminal(
+        child: SelectionList<int>(
+          itemCount: 100000,
+          keyOf: (i) {
+            reads++;
+            return i;
+          },
+          itemBuilder: (context, i) => Text('item $i'),
+          itemExtent: 1,
+        ),
+      );
+      await t.pumpWidget(list(), size: (12, 5));
+      reads = 0;
+      await t.pumpWidget(list(), size: (12, 5));
+      expect(reads, lessThan(1500));
     });
   });
 }

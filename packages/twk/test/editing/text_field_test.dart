@@ -11,6 +11,7 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../data/shot.dart' show Counted, PaintCount;
+import '../disposing.dart';
 
 /// A focused field of [c], [width] columns wide.
 Widget field(
@@ -95,6 +96,7 @@ void main() {
     testTwk("none of its own: over what is under it, the page's or a box's, "
         'a field of an Autocomplete too: no square inside the box', (t) async {
       final c = TextEditingController(text: 'ab');
+      addTearDown(c.dispose);
       for (final theme in [
         ThemeData.dark,
         ThemeData.light,
@@ -144,7 +146,9 @@ void main() {
       const from = Color.rgb(0, 0, 96);
       const to = Color.rgb(0, 0, 0);
       final c = TextEditingController(text: 'abc');
+      addTearDown(c.dispose);
       final g = TextEditingController(text: 'abc');
+      addTearDown(g.dispose);
       await t.pumpWidget(
         Theme(
           data: theme,
@@ -216,6 +220,7 @@ void main() {
   testTwk('takes mixed scripts and emoji typed through the parser, the '
       'cursor a bar after them', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (30, 3));
     expect(t.cursorVisible, isTrue);
     expect(t, cursorAt(0, 0));
@@ -230,6 +235,7 @@ void main() {
   testTwk('moves the caret a character, a cluster of code points of any '
       'width, and puts what is typed there', (t) async {
     final c = TextEditingController(text: 'aé日👨‍👩‍👧z');
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
     expect(t, cursorAt(7, 0));
     final columns = <int>[];
@@ -250,6 +256,7 @@ void main() {
   testTwk('moves by words with Ctrl, Alt, Alt+B and Alt+F, to the ends with '
       'Home, End, Ctrl+A and Ctrl+E', (t) async {
     final c = TextEditingController(text: 'say "привет, мир" now');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, width: 30)),
       size: (30, 1),
@@ -279,6 +286,7 @@ void main() {
   testTwk('selects with Shift, shows the selection, and puts what is typed '
       'in its place', (t) async {
     final c = TextEditingController(text: 'foo bar baz');
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
     await t.press('ctrl+left shift+ctrl+left shift+left');
     await t.pump();
@@ -308,6 +316,7 @@ void main() {
   testTwk('Left and Right without Shift end the selection at its start and '
       'its end; Shift with Home and End selects to them', (t) async {
     final c = TextEditingController(text: 'abcdef');
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
     await t.press('left shift+left shift+left left');
     expect(c.selection, const TextSelection.collapsed(offset: 3));
@@ -322,6 +331,7 @@ void main() {
   testTwk('deletes a character, a word with Ctrl, Alt, Alt+D and Ctrl+W, '
       'and to the ends with Ctrl+U and Ctrl+K', (t) async {
     final c = TextEditingController(text: 'git commit -m "fix 👋🏽"');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, width: 30)),
       size: (30, 1),
@@ -364,6 +374,7 @@ void main() {
 
   testTwk('a deleting key deletes the selection when there is one', (t) async {
     final c = TextEditingController(text: 'one two three');
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
     await t.press('ctrl+left shift+ctrl+left ctrl+w');
     expect(c.text, 'one three');
@@ -374,6 +385,7 @@ void main() {
   testTwk('takes a paste as typed, its lines joined by blanks, without the '
       'line break at its end and other control characters', (t) async {
     final c = TextEditingController(text: 'say: ');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, width: 30)),
       size: (30, 1),
@@ -390,7 +402,9 @@ void main() {
   testTwk('only the focused field takes a paste or a key, and only it shows '
       'the cursor', (t) async {
     final a = TextEditingController(text: 'a');
+    addTearDown(a.dispose);
     final b = TextEditingController(text: 'bb');
+    addTearDown(b.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -449,10 +463,12 @@ void main() {
 
   testTwk('the cursor stays at the caret while other parts of the app '
       'repaint, the field or not', (t) async {
-    final c = TextEditingController(text: 'abc')
+    final c = disposing(TextEditingController(text: 'abc'))
       ..selection = const TextSelection.collapsed(offset: 1);
     final other = TextEditingController(text: 'x');
+    addTearDown(other.dispose);
     final label = ValueNotifier('one');
+    addTearDown(label.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -486,7 +502,9 @@ void main() {
   testTwk('the cursor stays at the caret while it is painted cut off, by a '
       'repaint of only some rows', (t) async {
     final c = TextEditingController(text: 'abc');
+    addTearDown(c.dispose);
     final repaints = ValueNotifier(0);
+    addTearDown(repaints.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: FirstRow(
@@ -512,6 +530,7 @@ void main() {
     t,
   ) async {
     final c = TextEditingController(text: 'abc');
+    addTearDown(c.dispose);
     final node = FocusNode();
     Widget app({required bool shown}) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,10 +558,13 @@ void main() {
 
   testTwk('hides the cursor where the field is cut off', (t) async {
     final c = TextEditingController(text: 'abc');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          // the field is cut off, on purpose
+          overflowIntended: true,
           children: [
             const Text('one'),
             const Text('two'),
@@ -559,6 +581,7 @@ void main() {
   testTwk('in the inline mode the cursor is on the row of the field in the '
       'region', (t) async {
     final c = TextEditingController(text: 'ls');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -585,6 +608,7 @@ void main() {
   testTwk('scrolls sideways to keep the caret in view, a wide character '
       'whole', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, width: 6)),
       size: (10, 1),
@@ -613,7 +637,7 @@ void main() {
   });
 
   testTwk("shows the controller's composing range underlined", (t) async {
-    final c = TextEditingController(text: 'nihon')
+    final c = disposing(TextEditingController(text: 'nihon'))
       ..composing = const TextRange(start: 2, end: 5);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
     for (var x = 0; x < 6; x++) {
@@ -638,6 +662,7 @@ void main() {
       'mark without a base none', (t) async {
     // a skin tone after a tab has no emoji to join: the canvas drops it
     final c = TextEditingController(text: 'a\t\u{1F3FD}b');
+    addTearDown(c.dispose);
     await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
     expect(t, hasTextAt(2, 0, 'b'));
     expect(t, cursorAt(3, 0));
@@ -649,6 +674,7 @@ void main() {
   testTwk('shows its placeholder while empty, in the muted style, the '
       'caret over it', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, placeholder: 'Search')),
       size: (20, 1),
@@ -666,6 +692,7 @@ void main() {
     t,
   ) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, obscureText: true)),
       size: (20, 1),
@@ -680,6 +707,7 @@ void main() {
 
   testTwk('takes no more characters than maxLength from the user', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c, maxLength: 4)),
       size: (20, 1),
@@ -700,6 +728,7 @@ void main() {
   testTwk('calls onChanged after each change the user makes, onSubmitted '
       'with the text on Enter', (t) async {
     final c = TextEditingController(text: 'a');
+    addTearDown(c.dispose);
     final changed = <String>[];
     final submitted = <String>[];
     await t.pumpWidget(
@@ -720,6 +749,7 @@ void main() {
   testTwk('Ctrl+Z undoes typing a word at a time, a paste and a deletion '
       'at once; Ctrl+Y redoes', (t) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     final changed = <String>[];
     await t.pumpWidget(
       Theme.terminal(child: field(c, onChanged: changed.add)),
@@ -749,6 +779,7 @@ void main() {
     t,
   ) async {
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(child: field(c)),
       size: (20, 1),
@@ -761,6 +792,7 @@ void main() {
 
   testTwk('the keys it does not take go up to the nodes above it', (t) async {
     final c = TextEditingController(text: 'abc');
+    addTearDown(c.dispose);
     final above = <String>[];
     await t.pumpWidget(
       Theme.terminal(
@@ -796,6 +828,7 @@ void main() {
   testTwk('a keystroke repaints nothing but the field', (t) async {
     final count = PaintCount();
     final c = TextEditingController();
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Column(
@@ -822,6 +855,7 @@ void main() {
   testTwk('fills the width its constraints allow; asked, it would be as '
       'wide as its text and a column for the caret', (t) async {
     final c = TextEditingController(text: 'ab');
+    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Row(
@@ -844,6 +878,7 @@ void main() {
   testTwk('shows the cursor in its cursorShape, and rebuilt with another '
       'in that one', (t) async {
     final c = TextEditingController(text: 'ab');
+    addTearDown(c.dispose);
     Widget field(CursorShape shape) =>
         TextField(controller: c, autofocus: true, cursorShape: shape);
     await t.pumpWidget(

@@ -153,7 +153,12 @@ void main() {
     await press(t, 'x');
     expect(results, ['done 1']);
     expect(focused(t), 'b');
-    expect(Navigator.canPop(context), isFalse);
+    // the dialog's own context left the tree with it: ask from the one
+    // the focus is back in
+    expect(
+      Navigator.canPop(t.binding.focusManager.primaryFocus!.context!),
+      isFalse,
+    );
     expect(t, matchesScreen(' a\n>b'));
   });
 
@@ -285,6 +290,7 @@ left     a
     final navigator = GlobalKey<NavigatorState>();
     final told = <bool>[];
     final canPop = ValueNotifier(false);
+    addTearDown(canPop.dispose);
     late BuildContext home;
     await t.pumpWidget(
       Navigator(

@@ -160,6 +160,7 @@ String textOf(RenderObject o) {
 }
 
 void main() {
+  PipelineOwner.debugCheckIntrinsicsByDefault = true;
   test('what a layout callback changes is laid out with the object, and '
       'asks for no layout on the next frame', () {
     final owner = PipelineOwner(() {});
