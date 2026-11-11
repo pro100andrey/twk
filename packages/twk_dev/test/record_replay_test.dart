@@ -87,14 +87,19 @@ void main() {
     ];
     final want = screens(recorded);
     final got = screens(replayed);
-    for (final mark in ['coffee     1 ■', 'coffee     2 ■']) {
-      expect(
-        got.any((s) => s.any((l) => l.contains(mark))),
-        isTrue,
-        reason: mark,
-      );
+    for (final mark in ['coffee     1 ■ ', 'coffee     2 ■■']) {
       expect(want.any((s) => s.any((l) => l.contains(mark))), isTrue);
     }
+    // The replay reaches the last of them. The one between is not held to:
+    // as soon as possible, a key goes once the command has been quiet for
+    // Recorder.settle, which a command slow to start is before its first
+    // frame, and it then draws the two keys in one frame (the runner of the
+    // CI did; one CPU shared with six busy loops does every time).
+    expect(
+      got.any((s) => s.any((l) => l.contains('coffee     2 ■■'))),
+      isTrue,
+      reason: '${got.lastOrNull}',
+    );
     // the keys typed, once each; the answers in it are the live terminal's
     final splitter = InputSplitter();
     final keys = StringBuffer();
