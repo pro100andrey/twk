@@ -13,6 +13,7 @@ import {
   cellSizeReply,
   clipboardOf,
   isColorQuery,
+  fileLinkOf,
   isSafeLink,
   modeReply,
   notificationOf,
@@ -161,7 +162,7 @@ export class Emulation implements Disposable {
 
   /** A link the person activated in the terminal: asked to be opened, where links are on and it is one that may be. */
   activateLink(uri: string): void {
-    if (this.answers.links && isSafeLink(uri)) {
+    if (this.answers.links && (isSafeLink(uri) || fileLinkOf(uri) !== undefined)) {
       this.sinks.request({ type: 'openLink', uri });
     }
   }

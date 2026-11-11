@@ -239,6 +239,30 @@ final frameScenarios = <FrameScenario>[
       };
     },
   ),
+  FrameScenario(
+    'shift',
+    'a paragraph of words of one length at its full size, shifted by a word '
+        'each frame so that every row changes, as a Text is: turning plain '
+        'by itself',
+    (hs) {
+      final s = _Shift(hs, autoKeepsPaint: true)..render();
+      return (i) {
+        s.shift(i);
+        return s.render();
+      };
+    },
+  ),
+  FrameScenario(
+    'shift-plain',
+    'the same with the paragraph not keeping its paint',
+    (hs) {
+      final s = _Shift(hs)..render();
+      return (i) {
+        s.shift(i);
+        return s.render();
+      };
+    },
+  ),
   FrameScenario('ellipsis', 'the same cut off at 2/3 of the rows with "…"', (
     hs,
   ) {
@@ -820,6 +844,48 @@ final class _Prose extends _Scene {
         if (k == h) (base[k].$1, _highlight) else base[k],
     ];
   }
+}
+
+/// A paragraph of the screen's size of words of five digits and a space (six
+/// cells), cut at the screen's height, the text moved on by a word at each
+/// [shift]: the lines of words of one length break at the same places, so
+/// every row changes (in prose of words of different lengths the breaks
+/// meet again within two rows).
+final class _Shift extends _Scene {
+  _Shift(super.hs, {bool autoKeepsPaint = false}) {
+    paragraph = cutParagraph(
+      _spans(0),
+      maxLines: hs.surface.height,
+      ellipsis: '\u2026',
+      autoKeepsPaint: autoKeepsPaint,
+    );
+    owner.root = RenderBox(
+      pen: hs.styles.pen(const Pen(bg: Color.rgb(16, 18, 24))),
+      boundary: true,
+      child: paragraph,
+    );
+  }
+
+  late final RenderParagraph paragraph;
+
+  static const _pen = Pen(fg: Color.rgb(200, 200, 200));
+
+  List<(String, Pen)> _spans(int from) {
+    final perRow = hs.surface.width ~/ 6;
+    final words = perRow * hs.surface.height + perRow;
+    return [
+      (
+        [
+          for (var k = from; k < from + words; k++)
+            (k % 100000).toString().padLeft(5, '0'),
+        ].join(' '),
+        _pen,
+      ),
+    ];
+  }
+
+  /// The text moved on to the word [i].
+  void shift(int i) => paragraph.spans = _spans(i);
 }
 
 /// A [RenderList] of 100k items over the screen, 1 to 3 rows of text each,

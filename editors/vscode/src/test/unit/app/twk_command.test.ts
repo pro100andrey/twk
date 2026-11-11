@@ -1,0 +1,158 @@
+// Running twk (app/twk_command.ts) with real processes: a deadline or a
+// cancel ends the whole group the command started, by SIGKILL where SIGTERM
+// is ignored.
+import * as assert from 'node:assert/strict';
+
+import { runTwk } from '../../../app/twk_command';
+import { AppProcess, Exit, startNodeProcess } from '../../../core/process';
+import { FakeLog } from '../fakes';
+
+/** Whether process [pid] exists. */
+function alive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A parent that starts a child ignoring SIGTERM, tells its pid once the child
+ * has said its handler is installed (a node that has not got that far dies of
+ * SIGTERM), and waits; the parent ignores SIGTERM too.
+ */
+const parent = `
+  const { spawn } = require('node:child_process');
+  process.on('SIGTERM', () => {});
+  const child = spawn(process.execPath, ['-e', "process.on('SIGTERM', () => {}); console.log('up'); setInterval(() => {}, 1000)"], { stdio: ['ignore', 'pipe', 'ignore'] });
+  child.stdout.on('data', () => console.log('child ' + child.pid));
+  setInterval(() => {}, 1000);`;
+
+/** The grace of the real-process tests: long against the stalls of a loaded machine. */
+const GRACE_MS = 2000;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** Polls [done] every 20 ms until it holds; fails after [limitMs], an upper bound only. */
+async function until(done: () => boolean, what: string, limitMs = 20000): Promise<void> {
+  const end = Date.now() + limitMs;
+  while (!done()) {
+    assert.ok(Date.now() < end, `timed out waiting for ${what}`);
+    await sleep(20);
+  }
+}
+
+describe('runTwk over real processes', function () {
+  this.timeout(30000);
+
+  (process.platform === 'win32' ? it.skip : it)('a cancel ends the group: SIGTERM ignored by both, SIGKILL reaches the child too', async () => {
+    const abort = new AbortController();
+    let seen = '';
+    const start: typeof startNodeProcess = (c, a, o) => {
+      const p = startNodeProcess(c, a, o);
+      p.onOutput((t) => (seen += t));
+      return p;
+    };
+    const run = runTwk({ start, command: () => [process.execPath, '-e', parent, '--'], env: process.env, log: new FakeLog() }, [], {
+      cwd: process.cwd(),
+      label: 'x',
+      cancel: abort.signal,
+      graceMs: 200,
+    });
+    // what is awaited is a real process's start
+    await until(() => /child \d+/.test(seen), 'the child');
+    const pid = Number(/child (\d+)/.exec(seen)![1]);
+    assert.ok(alive(pid));
+    abort.abort();
+    const r = await run;
+    assert.ok(r.cancelled);
+    assert.ok(!r.timedOut);
+    assert.equal(r.exit.signal, 'SIGKILL');
+    await until(() => !alive(pid), 'the child to end');
+  });
+
+  (process.platform === 'win32' ? it.skip : it)('a child that ignores SIGTERM does not outlive a leader that exited on it: SIGKILL to the group after the grace', async () => {
+    const leader = parent.replace("process.on('SIGTERM', () => {});\n  const child", "process.on('SIGTERM', () => process.exit(0));\n  const child");
+    assert.notEqual(leader, parent);
+    const abort = new AbortController();
+    let seen = '';
+    const start: typeof startNodeProcess = (c, a, o) => {
+      const p = startNodeProcess(c, a, o);
+      p.onOutput((t) => (seen += t));
+      return p;
+    };
+    const run = runTwk({ start, command: () => [process.execPath, '-e', leader, '--'], env: process.env, log: new FakeLog() }, [], { cwd: process.cwd(), label: 'x', cancel: abort.signal, graceMs: GRACE_MS });
+    await until(() => /child \d+/.test(seen), 'the child');
+    const pid = Number(/child (\d+)/.exec(seen)![1]);
+    abort.abort();
+    const r = await run;
+    assert.equal(r.exit.code, 0);
+    // the leader is gone; the child ignored SIGTERM and lives until the grace is over
+    // (the grace is long against a loaded machine's stalls, so it is not over yet)
+    assert.ok(alive(pid));
+    // bounded: a child that stays would otherwise keep this loop, and mocha, running after the failure
+    await until(() => !alive(pid), 'the group kill', GRACE_MS + 10000).catch(() => {});
+    const stays = alive(pid);
+    if (stays) {
+      process.kill(pid, 'SIGKILL');
+    }
+    assert.ok(!stays, 'the child outlived the group kill');
+  });
+
+  /** A fake whose leader exits on SIGTERM; [alive] says whether its group has a member. */
+  function leaderExitingOnTerm(alive: { value: boolean }, sent: string[]): AppProcess {
+    let exited = false;
+    let finish!: (e: Exit) => void;
+    const done = new Promise<Exit>((r) => (finish = r));
+    return {
+      pid: 1,
+      get hasExited() {
+        return exited;
+      },
+      exited: done,
+      onOutput: () => {},
+      onError: () => {},
+      write: () => {},
+      groupAlive: () => alive.value,
+      signal(sig) {
+        sent.push(sig);
+        if (sig === 'SIGTERM') {
+          exited = true;
+          finish({ code: null, signal: 'SIGTERM' });
+        }
+      },
+    };
+  }
+
+  async function cancelled(fake: AppProcess, graceMs: number): Promise<void> {
+    const abort = new AbortController();
+    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog() }, [], { cwd: '.', label: 'x', cancel: abort.signal, graceMs, pollMs: 5 });
+    abort.abort();
+    await run;
+  }
+
+  it('the leader exited on SIGTERM and its group is empty: no SIGKILL, the id may be another group\'s', async () => {
+    const sent: string[] = [];
+    await cancelled(leaderExitingOnTerm({ value: false }, sent), 40);
+    // a negative: the grace has to pass for it to show
+    await sleep(120);
+    assert.deepEqual(sent, ['SIGTERM']);
+  });
+
+  it('the group empties after the leader exited, before the grace is over: no SIGKILL', async () => {
+    const sent: string[] = [];
+    const alive = { value: true };
+    await cancelled(leaderExitingOnTerm(alive, sent), 150);
+    alive.value = false;
+    await sleep(300);
+    assert.deepEqual(sent, ['SIGTERM']);
+  });
+
+  it('the group still has a member when the grace is over: SIGKILL to it', async () => {
+    const sent: string[] = [];
+    await cancelled(leaderExitingOnTerm({ value: true }, sent), 30);
+    await until(() => sent.length === 2, 'the SIGKILL');
+    assert.deepEqual(sent, ['SIGTERM', 'SIGKILL']);
+  });
+});

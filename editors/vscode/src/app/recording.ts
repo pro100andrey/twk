@@ -113,6 +113,26 @@ export class Recording {
     }
   }
 
+  private markers = 0;
+
+  /** Leaves a marker here, labelled `marker <n>` as `twk record --marker-key` does, for a player to go to; its label, or undefined where it was stopped (or is being: the file is closed then, nothing is written). */
+  mark(): string | undefined {
+    if (this.stopped) {
+      return undefined;
+    }
+    const label = `marker ${++this.markers}`;
+    this.preambleFirst();
+    this.writer.marker(this.at(), label);
+    return label;
+  }
+
+  /** The preamble is written before anything that follows it. */
+  private preambleFirst(): void {
+    if (this.preamble.length > 0) {
+      this.output(new Uint8Array(0));
+    }
+  }
+
   /** Microseconds since it began. */
   private at(): number {
     return Math.round((this.deps.clock.now() - this.start) * 1000);

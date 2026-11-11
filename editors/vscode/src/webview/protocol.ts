@@ -16,6 +16,8 @@ export type ToWebview =
   | { readonly type: 'focus' }
   /** What to answer and emulate for the app taken now (core/capabilities.ts's answersOf). */
   | { readonly type: 'answers'; readonly answers: Answers }
+  /** Text from the clipboard, pasted as xterm.js pastes: bracketed where the app asked for it. */
+  | { readonly type: 'paste'; readonly text: string }
   /** Whether each click picks a cell (told back as `picked`) in place of reaching the app, until told off or Escape. */
   | { readonly type: 'pick'; readonly on: boolean }
   /** The bar of a recording played back, as it is now; null: none (a terminal of an app). */
@@ -32,12 +34,16 @@ export interface PlayerState {
   /** The recording's time of the last frame shown, and of its end, in seconds. */
   readonly time: number;
   readonly duration: number;
+  /** The recording's markers, in the file's order, labels already cut for display; absent for a recording without. */
+  readonly markers?: readonly { readonly label: string; readonly time: number }[];
+  /** The markers reached by the screen shown (0 before the first); with [markers]. */
+  readonly marker?: number;
 }
 
-/** What a player's bar (or a key in its terminal) asks: play or pause, a frame on, a frame back, from the start. */
-export type PlayerControl = 'toggle' | 'step' | 'back' | 'restart';
+/** What a player's bar (or a key in its terminal) asks: play or pause, a frame on, a frame back, from the start, a test made of the recording, its keys typed into an app. */
+export type PlayerControl = 'toggle' | 'step' | 'back' | 'restart' | 'test' | 'input' | 'previousMarker' | 'nextMarker';
 
-const playerControls: readonly PlayerControl[] = ['toggle', 'step', 'back', 'restart'];
+const playerControls: readonly PlayerControl[] = ['toggle', 'step', 'back', 'restart', 'test', 'input', 'previousMarker', 'nextMarker'];
 
 /** What the webview tells the extension. */
 export type FromWebview =
@@ -60,7 +66,11 @@ export type FromWebview =
   /** The cell a click picked, from 0, and the row the cursor was on then; null: the pick ended with none (Escape). */
   | { readonly type: 'picked'; readonly cell: { readonly x: number; readonly y: number; readonly cursorY: number } | null }
   /** A button of the player's bar. */
-  | { readonly type: 'control'; readonly control: PlayerControl };
+  | { readonly type: 'control'; readonly control: PlayerControl }
+  /** A marker of the player's track was clicked: its number among the markers, from 1. */
+  | { readonly type: 'marker'; readonly marker: number }
+  /** The paste key was pressed: the extension answers with `paste` and the clipboard's text. */
+  | { readonly type: 'paste' };
 
 type Fields = Record<string, unknown>;
 
@@ -108,7 +118,16 @@ const isSeconds = (v: unknown): v is number => typeof v === 'number' && Number.i
 
 /** Whether [s] is a [PlayerState]. */
 export function isPlayerState(s: unknown): s is PlayerState {
-  return isObject(s) && typeof s.playing === 'boolean' && isCount(s.frame) && isCount(s.frames) && isSeconds(s.time) && isSeconds(s.duration);
+  return (
+    isObject(s) &&
+    typeof s.playing === 'boolean' &&
+    isCount(s.frame) &&
+    isCount(s.frames) &&
+    isSeconds(s.time) &&
+    isSeconds(s.duration) &&
+    (s.markers === undefined ||
+      (Array.isArray(s.markers) && s.markers.every((m) => isObject(m) && typeof m.label === 'string' && isSeconds(m.time)) && isCount(s.marker) && s.marker <= s.markers.length))
+  );
 }
 
 /** Whether [m] is a [FromWebview] message. */
@@ -138,6 +157,10 @@ export function isFromWebview(m: unknown): m is FromWebview {
       return m.cell === null || (isObject(m.cell) && isCount(m.cell.x) && isCount(m.cell.y) && Number.isInteger(m.cell.cursorY));
     case 'control':
       return playerControls.some((c) => c === m.control);
+    case 'marker':
+      return isCount(m.marker) && m.marker >= 1;
+    case 'paste':
+      return true;
     default:
       return false;
   }
@@ -160,6 +183,8 @@ export function isToWebview(m: unknown): m is ToWebview {
       return true;
     case 'answers':
       return isAnswers(m.answers);
+    case 'paste':
+      return isText(m.text);
     case 'pick':
       return typeof m.on === 'boolean';
     case 'player':

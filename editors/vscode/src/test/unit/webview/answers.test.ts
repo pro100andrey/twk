@@ -144,7 +144,12 @@ describe("the webview's answers, on xterm.js", () => {
     assert.deepEqual(seen, [';https://dart.dev', ';']);
     emulation.activateLink('https://dart.dev');
     emulation.activateLink('command:workbench.action.quit');
-    assert.deepEqual(requests, [{ type: 'openLink', uri: 'https://dart.dev' }]);
+    emulation.activateLink('file:///work/lib/a.dart#L3');
+    assert.deepEqual(requests, [
+      { type: 'openLink', uri: 'https://dart.dev' },
+      { type: 'openLink', uri: 'file:///work/lib/a.dart#L3' },
+    ]);
+    requests.length = 1;
     emulation.configure(answersOf(presetNamed('bare').capabilities));
     seen.length = 0;
     await new Promise<void>((r) => term.write(link, r));

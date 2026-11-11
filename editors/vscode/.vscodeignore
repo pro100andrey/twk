@@ -1,0 +1,24 @@
+# What `vsce package` leaves out of the .vsix. The extension has no
+# runtime dependency but xterm.js, which only the webview loads (as
+# plain scripts and a stylesheet from node_modules, see
+# src/vscode/panel.ts): of node_modules the three files below go in.
+**
+!package.json
+!language-configuration.json
+!syntaxes/*.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!icon.png
+!out/core/**/*.js
+!out/app/**/*.js
+!out/vscode/**/*.js
+!out/webview/**/*.js
+!out/media/**/*.js
+!node_modules/@xterm/xterm/lib/xterm.js
+!node_modules/@xterm/xterm/css/xterm.css
+!node_modules/@xterm/addon-fit/lib/addon-fit.js
+!node_modules/@xterm/addon-image/lib/addon-image.js
+!node_modules/@xterm/xterm/LICENSE
+!node_modules/@xterm/addon-fit/LICENSE
+!node_modules/@xterm/addon-image/LICENSE

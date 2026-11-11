@@ -96,6 +96,18 @@ describe('WebviewTerminalView', () => {
     assert.equal(clock.pending, 0);
   });
 
+  it('the paste key told, the clipboard text posted back to the webview', async () => {
+    panel.send({ type: 'ready', columns: 80, lines: 24 });
+    await view.ready;
+    let pressed = 0;
+    view.onPaste(() => pressed++);
+    panel.send({ type: 'paste' });
+    view.paste('one\ntwo');
+    await new Promise((r) => setImmediate(r));
+    assert.equal(pressed, 1);
+    assert.deepEqual(panel.posted.at(-1), { type: 'paste', text: 'one\ntwo' });
+  });
+
   it("a player's bar: its state posted, its buttons told; active as its panel is", async () => {
     panel.send({ type: 'ready', columns: 80, lines: 24 });
     await view.ready;
@@ -111,9 +123,17 @@ describe('WebviewTerminalView', () => {
     panel.send({ type: 'control', control: 'step' });
     panel.send({ type: 'control', control: 'fly' });
     assert.deepEqual(controls, ['step']);
+    const clicks: number[] = [];
+    view.onMarker((n) => clicks.push(n));
+    panel.send({ type: 'marker', marker: 2 });
+    panel.send({ type: 'marker', marker: 0 });
+    assert.deepEqual(clicks, [2]);
     assert.equal(view.isActive, false);
-    panel.active = true;
+    let changes = 0;
+    view.onDidChangeActive(() => changes++);
+    panel.setActive(true);
     assert.equal(view.isActive, true);
+    assert.equal(changes, 1);
     panel.dispose();
     assert.equal(view.isActive, false);
   });

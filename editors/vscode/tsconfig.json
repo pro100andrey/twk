@@ -13,5 +13,5 @@
     "types": ["node", "mocha"]
   },
   "include": ["src"],
-  "exclude": ["src/webview/main.ts", "src/webview/log.ts"]
+  "exclude": ["src/webview/main.ts", "src/webview/log.ts", "src/webview/app_logs.ts", "src/webview/screen.ts"]
 }

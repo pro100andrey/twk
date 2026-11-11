@@ -10,6 +10,7 @@ import 'package:args/command_runner.dart';
 import 'package:twk_core/terminal.dart' show LogLevel, LogRecord;
 import 'package:twk_core/twk_core.dart';
 
+import 'completion.dart';
 import 'project.dart';
 
 // Examples can assume:
@@ -19,7 +20,7 @@ import 'project.dart';
 
 /// `twk logs`: tails the log an app of the project serves
 /// (`LogSink.serve`), one app after another, until stopped.
-final class LogsCommand extends Command<int> {
+final class LogsCommand extends Command<int> with Completes {
   /// Sets up `twk logs`'s options: `--directory` and `--[no-]color`.
   LogsCommand() {
     argParser
@@ -40,6 +41,14 @@ final class LogsCommand extends Command<int> {
             'or TWK_PLAIN=1 that it takes plain text).',
       );
   }
+
+  @override
+  Positionals get positionals => const Positionals.none();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'directory': OptionPath.directory,
+  };
 
   @override
   String get name => 'logs';

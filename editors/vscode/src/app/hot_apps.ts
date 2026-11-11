@@ -42,6 +42,14 @@ export interface HotAppsDeps {
   readonly clock: Clock;
   /** The extension's environment: TWK_DEBUG is read from it. */
   readonly env: Readonly<Record<string, string | undefined>>;
+  /**
+   * The command that opens a file in this editor (`"/opt/code/bin/code" -r -g
+   * {file}:{line}:{column}`), which the apps get as TWK_EDITOR, so the app's
+   * console opens a frame of its stack here; none where the editor has no
+   * command line. An app's own TWK_EDITOR (the launch's, the extension's
+   * environment) is kept.
+   */
+  readonly editor?: string;
 }
 
 /** An app's VM service, as an inspector takes it: the terminal it runs in, and its service, or undefined once it went away. */
@@ -103,6 +111,12 @@ export class HotApps {
     return this.last;
   }
 
+  /** TWK_EDITOR for an app: [given], else the extension's, else the editor's own command; nothing where none is. */
+  private editorEnv(given?: string): Record<string, string> {
+    const editor = given ?? this.deps.env.TWK_EDITOR ?? this.deps.editor;
+    return editor === undefined || editor.trim() === '' ? {} : { TWK_EDITOR: editor };
+  }
+
   /** TWK_DEBUG ([given], else the extension's) with `keys` added: the app's own hot keys, Ctrl+G h and Ctrl+G H, on. */
   private debugKeys(given = this.deps.env.TWK_DEBUG): string {
     const debug = new Set((given ?? '').split(',').filter(Boolean));
@@ -151,7 +165,7 @@ export class HotApps {
       cwd: project,
       // CI=false: the app has a terminal, the twk terminal, also where the
       // extension inherited CI=true, which makes a twk app write plain text
-      env: { CI: 'false', TWK_DEBUG: this.debugKeys(), [shellVariable]: terminal.variable },
+      env: { CI: 'false', ...this.editorEnv(), TWK_DEBUG: this.debugKeys(), [shellVariable]: terminal.variable },
       onOutput: (text) => this.deps.log.append(text),
       onStatus: (s) => hot !== undefined && this.running.has(hot) && this.show(s),
       onApp: (service) => this.connections.fire({ terminal, service }),
@@ -209,7 +223,7 @@ export class HotApps {
       program,
       cwd: request.cwd ?? project,
       console: 'debugConsole',
-      env: { CI: 'false', ...request.env, TWK_DEBUG: this.debugKeys(request.env.TWK_DEBUG), [shellVariable]: terminal.variable },
+      env: { CI: 'false', ...this.editorEnv(request.env.TWK_EDITOR), ...request.env, TWK_DEBUG: this.debugKeys(request.env.TWK_DEBUG), [shellVariable]: terminal.variable },
       twkSession: key,
       others: request.others,
     };

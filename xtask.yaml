@@ -645,8 +645,26 @@ tasks:
     desc: the VS Code extension's unit tests (mocha), over that compile
     gate: [handover, ci]
     needs: [vscode-compile]
+    # vscode-package cleans and compiles out/ again under it
+    exclusive: [vscode-out]
     do: vscode
     args: [unit]
+
+  vscode-package:
+    # The .vsix (vsce package), built in .dart_tool/vscode/ from what
+    # vscode-compile wrote, with the files the Marketplace page and the
+    # package need copied there. Its file list is held to what the extension
+    # runs on (the entry, the webview's scripts, xterm.js's three files) and
+    # to none of the sources, tests or the rest of node_modules. Nothing is
+    # published: that is `npx vsce publish` and `npx ovsx publish`, run by
+    # the person with a token (editors/vscode/README.md).
+    desc: package the VS Code extension (.vsix), its file list checked
+    gate: [handover, ci]
+    needs: [vscode-compile]
+    # its prepublish cleans and compiles out/, which vscode-unit reads
+    exclusive: [vscode-out]
+    do: vscode
+    args: [package]
 
   e2e-fullscreen:
     # pty_run.py takes Python's pty, which Windows has not.
@@ -718,6 +736,7 @@ tasks:
       - vscode-install
       - vscode-compile
       - vscode-unit
+      - vscode-package
       - e2e-fullscreen
       - e2e-inline
       - alloc-follow

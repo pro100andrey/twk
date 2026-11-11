@@ -2,10 +2,13 @@
 library;
 
 import 'dart:async';
+import 'dart:io' show Platform, Process, ProcessStartMode;
 
 import 'package:twk/twk.dart';
 
 import 'app_client.dart';
+import 'source_find.dart';
+import 'source_locator.dart';
 
 /// What `twk inspect` shows of a running app ([AppClient]): its widget
 /// tree, or its render tree, in a [TreeView], and the selected node's
@@ -27,7 +30,10 @@ import 'app_client.dart';
 /// (`ext.twk.flags` `select`): the next click on its screen selects the
 /// node there (`ext.twk.select`), its ancestors expanded; `s` again, or
 /// Escape in the app, cancels. `t` shows the other tree, the counterpart
-/// of the node selected selected; `q` and Ctrl+C take the pick and the
+/// of the node selected; `g` opens the place in the app's code where the
+/// widget of the node was made ([SourceLocator]) in the editor
+/// (`editorCommand`: `TWK_EDITOR`, `VISUAL`, `EDITOR`), a terminal editor
+/// here while the inspector waits for it; `q` and Ctrl+C take the pick and the
 /// outline off the app and quit.
 final class InspectorView extends StatefulWidget {
   /// A view of the apps [apps] gives, one after another, showing
@@ -37,8 +43,31 @@ final class InspectorView extends StatefulWidget {
     required this.apps,
     required this.waiting,
     this.gone,
+    this.environment,
+    this.openEditor = runEditor,
     super.key,
   });
+
+  /// What the editor is looked for in (`TWK_EDITOR`, `VISUAL`, `EDITOR`);
+  /// the process's environment when null.
+  final Map<String, String>? environment;
+
+  /// Runs the command that opens a file: its exit code, null for one run
+  /// apart. Called with the inspector's terminal suspended for a terminal
+  /// editor.
+  final Future<int?> Function(EditorCommand command) openEditor;
+
+  /// Runs [command]: on this terminal while it ends, or apart.
+  static Future<int?> runEditor(EditorCommand command) async {
+    final p = await Process.start(
+      command.executable,
+      command.arguments,
+      mode: command.inTerminal
+          ? ProcessStartMode.inheritStdio
+          : ProcessStartMode.detached,
+    );
+    return command.inTerminal ? p.exitCode : null;
+  }
 
   /// The apps to inspect, one after another.
   final Stream<AppClient> apps;
@@ -53,56 +82,19 @@ final class InspectorView extends StatefulWidget {
   State<InspectorView> createState() => _InspectorViewState();
 }
 
-/// A node of a tree an app describes (`ext.twk.tree`).
-final class _Node {
-  _Node(this.json)
-    : id = json['id']! as int,
-      children = [
-        for (final child in json['children'] as List<Object?>? ?? const [])
-          _Node(child! as Json),
-      ];
-
-  final Json json;
-  final int id;
-  final List<_Node> children;
-
-  String get name => json['name'] as String? ?? '?';
-
-  /// The id of the node's counterpart in the other tree: an element's
-  /// render object, a render object's element.
-  int? get counterpart => (json['render'] ?? json['element']) as int?;
-
-  /// The value of its first property without a name, which says most of
-  /// it (a text's string).
-  String? get summary {
-    for (final p in json['properties'] as List<Object?>? ?? const []) {
-      if (p case final Json p when p['name'] == null) {
-        return p['value'] as String?;
-      }
-    }
-    return null;
-  }
-
-  Iterable<_Node> get all sync* {
-    yield this;
-    for (final c in children) {
-      yield* c.all;
-    }
-  }
-}
-
 final class _InspectorViewState extends State<InspectorView> {
   final _controller = TreeController();
   final _split = SplitController(fractions: [0.55, 0.45]);
   StreamSubscription<AppClient>? _apps;
   StreamSubscription<(int, int)?>? _picks;
   AppClient? _app;
+  SourceLocator? _locator;
   var _wasConnected = false;
 
   // the render tree is shown, not the element tree
   var _render = false;
-  _Node? _root;
-  var _ids = <int, _Node>{};
+  InspectNode? _root;
+  var _ids = <int, InspectNode>{};
   final _seen = <int>{};
 
   // the node whose details are shown, and they
@@ -178,6 +170,7 @@ final class _InspectorViewState extends State<InspectorView> {
     );
     setState(() {
       _app = app;
+      _locator = app is VmQueries ? SourceLocator(app as VmQueries) : null;
       _wasConnected = true;
       _root = null;
       _ids = {};
@@ -222,6 +215,8 @@ final class _InspectorViewState extends State<InspectorView> {
   /// selected before when that is, else the top one.
   Future<void> _refresh({int? select}) async {
     final load = ++_load;
+    // the code may have been reloaded
+    _locator?.forget();
     final json = await _call('tree', {if (_render) 'tree': 'render'});
     if (json == null || load != _load || !mounted) {
       return;
@@ -232,9 +227,9 @@ final class _InspectorViewState extends State<InspectorView> {
       // the app has drawn no frame, which mounts its tree
       _again = Timer(_unmounted, () => unawaited(_refresh(select: select)));
     }
-    final all = top == null ? null : _Node(top);
+    final all = top == null ? null : InspectNode(top);
     final app = json['app'] as int?;
-    final ids = {for (final n in all?.all ?? const <_Node>[]) n.id: n};
+    final ids = {for (final n in all?.all ?? const <InspectNode>[]) n.id: n};
     final root = ids[app] ?? all;
     final fresh = [
       for (final id in ids.keys)
@@ -246,7 +241,7 @@ final class _InspectorViewState extends State<InspectorView> {
     });
     _controller.expandAll(fresh);
     final before = _controller.selectedKey;
-    final shown = {for (final n in root?.all ?? const <_Node>[]) n.id};
+    final shown = {for (final n in root?.all ?? const <InspectNode>[]) n.id};
     // the node may be the same, its details not
     _shown = null;
     _controller.selectedKey = shown.contains(select)
@@ -315,6 +310,76 @@ final class _InspectorViewState extends State<InspectorView> {
     final counterpart = _ids[_controller.selectedKey]?.counterpart;
     setState(() => _render = !_render);
     unawaited(_refresh(select: counterpart));
+  }
+
+  /// Opens the place the selected widget was made in the editor.
+  Future<void> _openSource() async {
+    final app = _app;
+    final locator = _locator;
+    final binding = AppBinding.of(context);
+    final id = _controller.selectedKey as int?;
+    final node = _ids[id];
+    if (app == null || id == null || node == null) {
+      return;
+    }
+    if (_render) {
+      setState(() => _status = 'a render object has no widget: t shows them');
+      return;
+    }
+    if (locator == null) {
+      setState(() => _status = 'this app’s code cannot be looked at');
+      return;
+    }
+    setState(() => _status = 'looking for where ${node.name} was made');
+    final SourceSpot? spot;
+    try {
+      spot = await locator.creation(_root, id, node.name);
+    } on Object catch (e) {
+      _say('could not look for ${node.name}: $e', app);
+      return;
+    }
+    if (spot == null) {
+      _say('no call of ${node.name} found in the builds above it', app);
+      return;
+    }
+    final path = spot.path;
+    if (path == null) {
+      _say('${node.name} is made in ${spot.uri}, which is not a file', app);
+      return;
+    }
+    final command = editorCommand(
+      widget.environment ?? Platform.environment,
+      path,
+      spot.line,
+      spot.column,
+    );
+    if (command == null) {
+      _say(
+        'to open code, set TWK_EDITOR to a command with {file}, {line} and '
+        '{column} (code -g {file}:{line}:{column}), or VISUAL or EDITOR to '
+        'an editor',
+        app,
+      );
+      return;
+    }
+    final where = '${spot.method} $path:${spot.line}:${spot.column}';
+    _say('${spot.exact ? 'opened' : 'opened, one of several,'} $where', app);
+    try {
+      final code = command.inTerminal
+          ? await binding.twkApp.suspend(() => widget.openEditor(command))
+          : await widget.openEditor(command);
+      if (code != null && code != 0) {
+        _say('${command.executable} ended with $code', app);
+      }
+    } on Object catch (e) {
+      _say('could not open $path with ${command.executable}: $e', app);
+    }
+  }
+
+  void _say(String status, AppClient app) {
+    if (mounted && identical(app, _app)) {
+      setState(() => _status = status);
+    }
   }
 
   Future<void> _togglePick() async {
@@ -401,6 +466,7 @@ final class _InspectorViewState extends State<InspectorView> {
           'r': () => unawaited(_refresh()),
           's': () => unawaited(_togglePick()),
           'h': _toggleHighlight,
+          'g': () => unawaited(_openSource()),
           't': _toggleTree,
           'q': () => unawaited(_quit()),
           'ctrl+c': () => unawaited(_quit()),
@@ -409,6 +475,7 @@ final class _InspectorViewState extends State<InspectorView> {
           'r': 'refresh',
           's': _picking ? 'stop picking' : 'select on screen',
           'h': _highlight ? 'highlight off' : 'highlight on',
+          'g': 'open source',
           't': _render ? 'widget tree' : 'render tree',
           'q': 'quit',
         },
@@ -429,7 +496,7 @@ final class _InspectorViewState extends State<InspectorView> {
                               _wasConnected ? '' : 'no app yet',
                               style: theme.muted,
                             )
-                          : TreeView<_Node>(
+                          : TreeView<InspectNode>(
                               roots: [root],
                               children: (n) => n.children,
                               hasChildren: (n) => n.children.isNotEmpty,
@@ -466,7 +533,7 @@ final class _InspectorViewState extends State<InspectorView> {
     );
   }
 
-  static Widget _label(_Node node, ThemeData theme) {
+  static Widget _label(InspectNode node, ThemeData theme) {
     final key = node.json['key'] as String?;
     final summary = node.summary;
     final flags = node.json['flags'] as List<Object?>? ?? const [];

@@ -20,7 +20,7 @@ import { HotRun } from '../../../core/runner';
 import { VmClient } from '../../../core/vm';
 import { HeadlessView } from '../headless_view';
 import { TerminalView } from '../../../app/ports';
-import { FakeDebugger, FakeDesktop, FakeInspectorView, FakeLog, FakeNotice, FakeOpener, FakePickingIndicator, FakeSettings, FakeStatus, FakeView, realShell } from '../fakes';
+import { FakeDebugger, FakeDesktop, FakeInspectorView, FakeLog, FakeNodeDetailsView, FakeNotice, FakeOpener, FakePickingIndicator, FakeSettings, FakeStatus, FakeView, realShell } from '../fakes';
 
 /** From out/test/unit/app, where this runs compiled, to the repository's root. */
 const root = path.resolve(__dirname, '../../../../../..');
@@ -87,6 +87,7 @@ describe('the inspector, on a twk app', function () {
   let terminals: Terminals;
   let apps: HotApps;
   let view: FakeInspectorView;
+  let details: FakeNodeDetailsView;
   let opener: FakeOpener;
   let inspector: Inspector;
 
@@ -149,8 +150,9 @@ describe('the inspector, on a twk app', function () {
       env: {},
     });
     view = new FakeInspectorView();
+    details = new FakeNodeDetailsView();
     opener = new FakeOpener();
-    inspector = new Inspector({ apps: apps.onApp, view, opener, picking: new FakePickingIndicator(), notice: new FakeNotice(), clock: realClock, log });
+    inspector = new Inspector({ apps: apps.onApp, view, details, opener, picking: new FakePickingIndicator(), notice: new FakeNotice(), clock: realClock, log });
   });
 
   afterEach(async () => {
@@ -208,6 +210,10 @@ describe('the inspector, on a twk app', function () {
     views[0].type('\x1b[<0;1;3m');
     await until('the pick revealed', () => view.revealed.length === 1);
     assert.equal(view.revealed[0], textShowing(inspector.tree, 'last')!.id);
+    // its properties and layout, as twk answers them, in the node view
+    await until('the picked widget\'s details', () => details.sections.some((x) => x.title === 'Layout'));
+    assert.ok(details.lines.some((l) => l.startsWith('Layout: constraints w ')), details.lines.join('\n'));
+    assert.ok(details.lines.some((l) => l.includes('last')), details.lines.join('\n'));
     // and opened where it was made
     await until('the pick opened', () => opener.opened.length === opened + 1);
     assert.deepEqual({ line: opener.opened[opened].line, column: opener.opened[opened].column }, place(source, "Text('last"));

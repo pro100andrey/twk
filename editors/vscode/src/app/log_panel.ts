@@ -7,7 +7,8 @@
 // came before it was opened is the screen's [Traffic], kept as bytes from
 // the screen's start (its probe, its modes), and decoded only then.
 import { Clock, Disposable, Emitter } from '../core/events';
-import { SequenceLog } from '../core/seqlog';
+import { LogFilter, SequenceLog, wholeLog } from '../core/seqlog';
+import { TrafficPiece, logCast, logText, noteOf } from '../core/seqlog_save';
 import { ToLog, isFromLog } from '../webview/log_protocol';
 import { Screen } from './ports';
 import { WebviewPanelPort } from './webview_view';
@@ -15,11 +16,38 @@ import { WebviewPanelPort } from './webview_view';
 /** Opens a new panel for the log of [screen]. */
 export type LogPanelFactory = (title: string) => WebviewPanelPort<ToLog>;
 
-/** A piece of a screen's traffic, at [time] ms of its clock. */
-type Piece =
-  | { readonly time: number; readonly output: Uint8Array; readonly fromApp: boolean }
-  | { readonly time: number; readonly input: Uint8Array }
-  | { readonly time: number; readonly note: string };
+type Piece = TrafficPiece;
+
+/** Pieces of traffic kept up to [budget] bytes, the oldest dropped first. */
+class Pieces {
+  private readonly kept: Piece[] = [];
+  private size = 0;
+
+  constructor(private readonly budget: number) {}
+
+  add(p: Piece): void {
+    this.kept.push(p);
+    this.size += weight(p);
+    while (this.size > this.budget && this.kept.length > 1) {
+      this.size -= weight(this.kept.shift()!);
+    }
+  }
+
+  each(f: (p: Piece) => void): void {
+    this.kept.forEach(f);
+  }
+
+  all(): readonly Piece[] {
+    return this.kept;
+  }
+
+  clear(): void {
+    this.kept.length = 0;
+    this.size = 0;
+  }
+}
+
+const weight = (p: Piece): number => ('output' in p ? p.output.length : 'input' in p ? p.input.length : p.note.length);
 
 /**
  * What a screen wrote and sent since it was made, as it came, up to
@@ -29,37 +57,28 @@ type Piece =
 export class Traffic {
   /** The clock's time it began at: the log's times are from it. */
   readonly start: number;
-  private readonly pieces: Piece[] = [];
-  private size = 0;
+  private readonly pieces: Pieces;
   private readonly listening: Disposable[];
 
   constructor(
     screen: Screen,
     clock: Clock,
-    private readonly budget = 4 << 20,
+    budget = 4 << 20,
   ) {
+    this.pieces = new Pieces(budget);
     this.start = clock.now();
-    this.add({ time: this.start, note: `${screen.name} opened, at ${screen.view.columns}x${screen.view.lines}` }, 0);
+    this.pieces.add({ time: this.start, note: `${screen.name} opened, at ${screen.view.columns}x${screen.view.lines}` });
     this.listening = [
-      screen.onDidOutput((o) => this.add({ time: clock.now(), output: o.bytes, fromApp: o.fromApp }, o.bytes.length)),
-      screen.onDidInput((bytes) => this.add({ time: clock.now(), input: bytes }, bytes.length)),
-      screen.onDidNote((note) => this.add({ time: clock.now(), note }, note.length)),
+      screen.onDidOutput((o) => this.pieces.add({ time: clock.now(), output: o.bytes, fromApp: o.fromApp })),
+      screen.onDidInput((bytes) => this.pieces.add({ time: clock.now(), input: bytes })),
+      screen.onDidNote((note) => this.pieces.add({ time: clock.now(), note })),
       screen.onDidDispose(() => this.dispose()),
     ];
   }
 
-  private add(p: Piece, bytes: number): void {
-    this.pieces.push(p);
-    this.size += bytes;
-    while (this.size > this.budget && this.pieces.length > 1) {
-      const gone = this.pieces.shift()!;
-      this.size -= 'output' in gone ? gone.output.length : 'input' in gone ? gone.input.length : gone.note.length;
-    }
-  }
-
   /** Each piece kept, the oldest first. */
   replay(f: (p: Piece) => void): void {
-    this.pieces.forEach(f);
+    this.pieces.each(f);
   }
 
   dispose(): void {
@@ -72,6 +91,8 @@ export class LogPanel {
   static readonly interval = 100;
 
   private readonly log: SequenceLog;
+  /** The bytes behind the log, as it has them (times from its start): what is saved as a recording. */
+  private readonly pieces = new Pieces(4 << 20);
   /** What it listens to of the screen, until the screen goes. */
   private readonly following: Disposable[];
   /** What it listens to of its panel, until it is closed. */
@@ -86,7 +107,10 @@ export class LogPanel {
   private ended = false;
   private readonly start: number;
   /** What the webview said it shows, last. */
-  shown: { readonly rows: number; readonly held: number; readonly last: readonly string[] } | undefined;
+  shown: { readonly rows: number; readonly held: number; readonly last: readonly string[]; readonly filter?: LogFilter } | undefined;
+  private readonly saves = new Emitter<void>();
+  /** The webview's Save button was pressed. */
+  readonly onDidAskSave = this.saves.event;
 
   constructor(
     readonly screen: Screen,
@@ -98,37 +122,23 @@ export class LogPanel {
     this.log = new SequenceLog();
     this.start = history?.start ?? clock.now();
     const at = (time: number) => Math.round(time - this.start);
-    const output = (time: number, bytes: Uint8Array, fromApp: boolean) => {
-      if (fromApp) {
-        this.log.output(at(time), bytes);
-      } else {
-        this.log.note(at(time), new TextDecoder().decode(bytes).replace(/\x1b\[[0-9;]*m/g, '').trim());
-      }
-    };
+    const apply = (p: Piece) => this.apply(p);
     if (history) {
-      history.replay((p) => {
-        if ('output' in p) {
-          output(p.time, p.output, p.fromApp);
-        } else if ('input' in p) {
-          this.log.input(at(p.time), p.input);
-        } else {
-          this.log.note(at(p.time), p.note);
-        }
-      });
+      history.replay((p) => apply({ ...p, time: at(p.time) }));
     } else {
-      this.log.note(0, `the log of ${screen.name} begins, at ${screen.view.columns}x${screen.view.lines}`);
+      apply({ time: 0, note: `the log of ${screen.name} begins, at ${screen.view.columns}x${screen.view.lines}` });
     }
     this.following = [
       screen.onDidOutput((o) => {
-        output(clock.now(), o.bytes, o.fromApp);
+        apply({ time: at(clock.now()), output: o.bytes, fromApp: o.fromApp });
         this.later();
       }),
       screen.onDidInput((bytes) => {
-        this.log.input(at(clock.now()), bytes);
+        apply({ time: at(clock.now()), input: bytes });
         this.later();
       }),
       screen.onDidNote((text) => {
-        this.log.note(at(clock.now()), text);
+        apply({ time: at(clock.now()), note: text });
         this.later();
       }),
       screen.onDidDispose(() => this.end()),
@@ -140,6 +150,8 @@ export class LogPanel {
         }
         if (m.type === 'shown') {
           this.shown = m;
+        } else if (m.type === 'save') {
+          this.saves.fire();
         } else if (m.type === 'ready') {
           // its first, or a webview loaded again: all of it
           this.ready = true;
@@ -150,6 +162,7 @@ export class LogPanel {
           }
         } else {
           this.log.clear();
+          this.pieces.clear();
           void this.panel.post({ type: 'reset', title: this.title(), entries: [] });
         }
       }),
@@ -168,6 +181,31 @@ export class LogPanel {
   /** What it shows, as the webview was sent it: for the tests. */
   entries() {
     return this.log.all();
+  }
+
+  /** The filter the webview applies, as it last said; the whole log before it did. */
+  get filter(): LogFilter {
+    return this.shown?.filter ?? wholeLog;
+  }
+
+  /** The rows [filter] lets through, as text: one line each, as `twk decode` prints them. */
+  text(filter: LogFilter = this.filter): string {
+    return logText(this.log.all(), filter);
+  }
+
+  /**
+   * The log's bytes with their times as asciicast v2 (`twk decode` and `twk play` read it): the app's output, what the
+   * terminal sent, the notes as markers; [filter] leaves out a direction. [epochSeconds] is now, [term] the terminal's `TERM`.
+   */
+  cast(epochSeconds: number, term?: string, filter: LogFilter = this.filter): string {
+    const elapsed = (this.clock.now() - this.start) / 1000;
+    return logCast(this.pieces.all(), filter, {
+      width: this.screen.view.columns,
+      height: this.screen.view.lines,
+      title: this.screen.name,
+      timestamp: Math.trunc(epochSeconds - elapsed),
+      ...(term ? { term } : {}),
+    });
   }
 
   /** Sends what came, at most every interval. */
@@ -189,12 +227,28 @@ export class LogPanel {
     }
   }
 
+  /** Keeps [p] and makes of it what the log has. */
+  private apply(p: Piece): void {
+    this.pieces.add(p);
+    if ('output' in p) {
+      if (p.fromApp) {
+        this.log.output(p.time, p.output);
+      } else {
+        this.log.note(p.time, noteOf(p.output));
+      }
+    } else if ('input' in p) {
+      this.log.input(p.time, p.input);
+    } else {
+      this.log.note(p.time, p.note);
+    }
+  }
+
   private end(): void {
     if (this.ended) {
       return;
     }
     this.ended = true;
-    this.log.note(Math.round(this.clock.now() - this.start), `${this.screen.name} was closed`);
+    this.apply({ time: Math.round(this.clock.now() - this.start), note: `${this.screen.name} was closed` });
     this.flush();
     void this.panel.post({ type: 'ended' });
     this.following.forEach((d) => d.dispose());
@@ -213,6 +267,7 @@ export class LogPanel {
     this.panel.dispose();
     this.disposes.fire();
     this.disposes.dispose();
+    this.saves.dispose();
   }
 }
 
@@ -220,6 +275,9 @@ export class LogPanel {
 export class LogPanels {
   private readonly open = new Map<Screen, LogPanel>();
   private readonly traffic = new Map<Screen, Traffic>();
+  private readonly saves = new Emitter<LogPanel>();
+  /** The Save button of a panel's webview was pressed. */
+  readonly onDidAskSave = this.saves.event;
 
   constructor(
     private readonly panels: LogPanelFactory,
@@ -244,6 +302,7 @@ export class LogPanels {
     }
     const panel = new LogPanel(screen, this.panels(`${screen.name} · twk sequence log`), this.clock, this.traffic.get(screen));
     this.open.set(screen, panel);
+    panel.onDidAskSave(() => this.saves.fire(panel));
     panel.onDidDispose(() => this.open.delete(screen));
     return panel;
   }
@@ -257,5 +316,6 @@ export class LogPanels {
     [...this.open.values()].forEach((p) => p.dispose());
     [...this.traffic.values()].forEach((t) => t.dispose());
     this.traffic.clear();
+    this.saves.dispose();
   }
 }

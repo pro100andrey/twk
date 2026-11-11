@@ -13,7 +13,7 @@ import 'console_record.dart';
 // late BuildContext context;
 
 export 'console.dart' hide RenderConsolePanel;
-export 'editor.dart' hide editorCommand;
+export 'editor.dart';
 export 'traceback.dart';
 
 /// Prints the element tree [context] is in, from its root down, as

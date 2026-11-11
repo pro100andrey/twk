@@ -30,6 +30,12 @@ bool get updatingScreenFiles {
 @visibleForTesting
 bool? updateScreenFilesOverride;
 
+/// Where `matchesScreenFile` leaves the screen it did not match, as the
+/// file would hold it: [path] and `.actual`. The editor tooling reads it to
+/// show the difference and to accept it. A match, or a write while
+/// updating, removes it. Not exported by the package.
+String actualScreenFilePath(String path) => '$path.actual';
+
 /// A screen as the file holds it: its size, its cursor, the rows of its
 /// text and of its styles, and the style each character of the styles
 /// stands for.
@@ -156,6 +162,61 @@ final class ScreenFile {
       legend[line[0]] = line.substring(2);
     }
     return ScreenFile._(width, height, cursor, text, styles, legend);
+  }
+
+  /// This screen with its styles given the characters [previous] gave
+  /// them where it had them, as [ScreenFile.of] does with `previous`, for a
+  /// screen that was taken without it.
+  ScreenFile relegend(ScreenFile? previous) {
+    if (previous == null) {
+      return this;
+    }
+    final target = <String, String>{}; // old character to new
+    final taken = <String>{};
+    final byStyle = {
+      for (final MapEntry(key: char, value: style) in previous.legend.entries)
+        style: char,
+    };
+    for (final MapEntry(key: char, value: style) in legend.entries) {
+      if (byStyle[style] case final kept? when !taken.contains(kept)) {
+        target[char] = kept;
+        taken.add(kept);
+      }
+    }
+    final reserved = {...previous.legend.keys, ...taken};
+    var next = 0;
+    for (final char in legend.keys) {
+      if (target.containsKey(char)) {
+        continue;
+      }
+      var chosen = char;
+      if (taken.contains(chosen) || previous.legend.containsKey(chosen)) {
+        do {
+          if (next == _chars.length) {
+            throw ScreenFileException(
+              'the screen has more than ${_chars.length} styles',
+            );
+          }
+          chosen = _chars[next++];
+        } while (reserved.contains(chosen) || taken.contains(chosen));
+      }
+      target[char] = chosen;
+      taken.add(chosen);
+    }
+    return ScreenFile._(
+      width,
+      height,
+      cursor,
+      text,
+      [
+        for (final row in styles)
+          [for (final c in row.split('')) target[c] ?? c].join(),
+      ],
+      {
+        for (final MapEntry(key: char, value: style) in legend.entries)
+          target[char]!: style,
+      },
+    );
   }
 
   /// The screen's columns.

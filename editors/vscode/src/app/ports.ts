@@ -5,7 +5,7 @@ import { Answers, Choice } from '../core/capabilities';
 import { TerminalRequest } from '../core/emulation';
 import { Clock, Event } from '../core/events';
 import { HotStatus } from '../core/hot';
-import { InspectTree } from '../core/inspect';
+import { DetailSection, InspectTree, TreeKind } from '../core/inspect';
 import { SourceSpot } from '../core/locator';
 import { HotRunOptions } from '../core/runner';
 import { Switches } from '../core/switches';
@@ -47,6 +47,8 @@ export interface TerminalView {
   readonly isClosed: boolean;
   /** Whether it is the editor's active one (its panel focused, or the last focused). */
   readonly isActive: boolean;
+  /** Whether it is the editor's active one changed (its panel gained or lost the focus). */
+  readonly onDidChangeActive: Event<void>;
   /** Settles once the view parsed [bytes], or at once when it is closed. */
   write(bytes: Uint8Array): Promise<void>;
   /** What it shows; empty once it is closed. */
@@ -67,8 +69,14 @@ export interface TerminalView {
   readonly onPick: Event<PickedCell | null>;
   /** Shows the bar of a recording played back in it, as [state] says; null takes it away. */
   player(state: PlayerState | null): void;
+  /** The paste key was pressed in it: answered with [paste]. */
+  readonly onPaste: Event<void>;
+  /** Pastes [text] into it as typed: bracketed where the app asked for it. */
+  paste(text: string): void;
   /** A button of its player's bar was pressed. */
   readonly onControl: Event<PlayerControl>;
+  /** A marker of its player's track was clicked: its number among the markers, from 1. */
+  readonly onMarker: Event<number>;
   /** What the app in it asked of the editor, as its answers allow. */
   readonly onRequest: Event<TerminalRequest>;
   /** Its size changed. */
@@ -91,6 +99,11 @@ export interface Log {
   appendLine(line: string): void;
 }
 
+/** Where the size, profile and aids of the active twk terminal are shown (the status bar); [text] undefined hides it. */
+export interface TerminalStatusSink {
+  show(text: string | undefined, tooltip?: string): void;
+}
+
 /** Where the status of reloads and restarts is shown (the status bar). */
 export interface StatusSink {
   show(status: HotStatus, appsRunning: boolean): void;
@@ -108,8 +121,18 @@ export interface Desktop {
   progress(owner: object, source: string, state: number, percent: number | null): void;
   /** Puts [text] on the clipboard. */
   writeClipboard(text: string): void;
+  /** The clipboard's text. */
+  readClipboard(): Promise<string>;
   /** Opens [uri] (http, https, mailto) outside the editor. */
   openLink(uri: string): void;
+  /** The folders of the workspace: the only places [openFile] is asked to open. */
+  workspaceFolders(): readonly string[];
+  /** [path] with its symbolic links followed (the real file); undefined where there is none. */
+  realPath(path: string): string | undefined;
+  /** Whether file names differing by case alone are one (Windows, macOS). */
+  readonly foldsCase: boolean;
+  /** Opens the file [path] in the editor at [line] and [column] (from 1). */
+  openFile(path: string, line: number, column: number): void;
 }
 
 /** The settings the use cases read, each time they need one. */
@@ -184,6 +207,8 @@ export type HotContext = (running: boolean) => void;
 export interface InspectorView {
   /** Shows [tree], or none with [message] saying why. */
   show(tree: InspectTree | undefined, message: string): void;
+  /** Says which tree it shows from now on (the title's toggle, the view's description). */
+  showKind(kind: TreeKind): void;
   /** Selects the node [id] and shows it, those above it expanded. */
   reveal(id: number): void;
   /** Whether it is on the screen now. */
@@ -193,6 +218,12 @@ export interface InspectorView {
   readonly onSelect: Event<number | undefined>;
   /** Selects no node. */
   clearSelection(): void;
+}
+
+/** The inspector's node view: the properties and layout of the node selected or picked. */
+export interface NodeDetailsView {
+  /** Shows [sections], or none with [message] saying why (none selected, the node gone). */
+  show(sections: readonly DetailSection[], message: string): void;
 }
 
 /** Opens a place of the code in the editor. */

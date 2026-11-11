@@ -15,6 +15,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:twk_dev/src/record.dart' show markerKeyByte;
 import 'package:twk_dev/twk_dev.dart';
 import 'package:twk_test/twk_test.dart' show ScreenFrame, screenFrames;
 import 'package:twk_test/twk_test.dart' show runProcess, waitFor;
@@ -139,6 +140,59 @@ void main() {
     final events = Cast.read(cast).events;
     expect(events.map((e) => e.code).toSet(), {CastEvent.output});
     expect(events.map((e) => e.data).join(), 'hi\r\ngot hi\r\n');
+  });
+
+  test('--marker-key leaves a marker at the key and does not pass it on; '
+      'the keys around it go on in order', () async {
+    final cast = p.join(temp, 's.cast');
+    final t = await Terminal.twk([
+      'record',
+      '--keys',
+      '--marker-key=ctrl+]',
+      '--out=$cast',
+      '--',
+      'sh',
+      '-c',
+      r'read x; echo "got $x"; exit 0',
+    ]);
+    await t.until(() => t.modes.raw, 'raw mode');
+    t.type('a\x1db\x1d\r');
+
+    expect(await t.ended(), exits(0));
+    final events = Cast.read(cast).events;
+    expect(
+      [
+        for (final e in events)
+          if (e.code == CastEvent.marker) e.data,
+      ],
+      ['marker 1', 'marker 2'],
+    );
+    final typed = [
+      for (final e in events)
+        if (e.code == CastEvent.input) e.data,
+    ].join();
+    expect(typed, 'ab\r');
+    expect(
+      events.where((e) => e.code == CastEvent.output).map((e) => e.data).join(),
+      contains('got ab'),
+    );
+  });
+
+  test('--marker-key refuses a key the terminal needs', () async {
+    final t = await Terminal.twk([
+      'record',
+      '--marker-key=ctrl+c',
+      '--',
+      'true',
+    ]);
+    expect(await t.ended(), exits(64));
+    expect(markerKeyByte('ctrl+]'), 0x1d);
+    expect(markerKeyByte('Ctrl+A'), 1);
+    expect(markerKeyByte('ctrl+m'), isNull);
+    expect(markerKeyByte('f5'), isNull);
+    for (final name in ['h', 'd', 's', 'q', 'z']) {
+      expect(markerKeyByte('ctrl+$name'), isNull, reason: 'ctrl+$name');
+    }
   });
 
   test('turns off what the command left turned on, which the recording '

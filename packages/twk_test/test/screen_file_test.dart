@@ -192,6 +192,74 @@ void main() {
     ]);
   });
 
+  testTwk('a screen that does not match is left beside the file as '
+      '.actual, as the file would hold it; a match removes it', (t) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    final actual = File(actualScreenFilePath(path));
+    expect(actual.path, '$path.actual');
+    File(path).writeAsStringSync(formFile);
+    expect(failure(t, matchesScreenFile(path)), isNotEmpty);
+    // what updating would write, the legend's characters kept
+    // the style that is new takes a character the file does not use
+    expect(
+      actual.readAsStringSync(),
+      formFile
+          .replaceFirst('│bbbcbb', '│dddcdd')
+          .replaceFirst('b red on', 'd green on'),
+    );
+    expect(File(path).readAsStringSync(), formFile);
+
+    await t.pumpWidget(form(), size: (14, 3));
+    expect(t, matchesScreenFile(path));
+    expect(actual.existsSync(), isFalse);
+  });
+
+  testTwk('a mismatch that is expected, or polled, leaves no .actual', (
+    t,
+  ) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    final actual = File(actualScreenFilePath(path));
+    File(path).writeAsStringSync(formFile);
+    expect(t, isNot(matchesScreenFile(path)));
+    expect(actual.existsSync(), isFalse);
+    expect(t, isNot(matchesScreenFile('${dir.path}/none.txt')));
+    expect(File('${dir.path}/none.txt.actual').existsSync(), isFalse);
+  });
+
+  testTwk('a directory that cannot be written to does not hide the '
+      'difference', (t) async {
+    await t.pumpWidget(form(fg: Color.green), size: (14, 3));
+    final path = '${dir.path}/form.txt';
+    File(path).writeAsStringSync(formFile);
+    // the .actual's place is taken by a directory: the write fails
+    Directory('$path.actual').createSync();
+    final lines = failure(t, matchesScreenFile(path));
+    expect(lines[2], '   Which: differs from $path $_legend');
+    expect(lines.join('\n'), contains('$path.actual not written'));
+    Directory('$path.actual').deleteSync();
+  });
+
+  testTwk('a missing file gets an .actual to accept, and updating removes '
+      'it', (t) async {
+    await t.pumpWidget(form(), size: (14, 3));
+    final path = '${dir.path}/a/new.txt';
+    final actual = File(actualScreenFilePath(path));
+    failure(t, matchesScreenFile(path));
+    expect(actual.readAsStringSync(), formFile);
+    updateScreenFilesOverride = true;
+    expect(t, matchesScreenFile(path));
+    expect(actual.existsSync(), isFalse);
+    expect(File(path).readAsStringSync(), formFile);
+  });
+
+  testTwk('the shared golden: the extension reads this very file', (t) async {
+    await t.pumpWidget(form(), size: (14, 3));
+    expect(t, matchesScreenFile('test/screen_file.golden.txt'));
+    expect(File('test/screen_file.golden.txt').readAsStringSync(), formFile);
+  });
+
   // that it is not the working directory is fromPackageRoot's test of a
   // package elsewhere: Directory.current is the whole process's, which the
   // runner's other suites run in and start programs from

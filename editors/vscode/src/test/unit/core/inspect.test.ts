@@ -8,7 +8,12 @@ import {
   detailsOf,
   flagParams,
   nodeOf,
+  constraintsText,
+  counterpartOf,
+  detailSections,
   parseFlags,
+  parseLayout,
+  parseProperties,
   parsePicked,
   parseSelect,
   parseTree,
@@ -17,7 +22,7 @@ import {
   toggleItems,
   togglesPicked,
 } from '../../../core/inspect';
-import { treeAnswer } from '../fakes';
+import { renderAnswer, treeAnswer } from '../fakes';
 
 describe("twk's inspector answers", () => {
   it('reads the element tree, each node with what twk tells of it', () => {
@@ -39,12 +44,25 @@ describe("twk's inspector answers", () => {
     assert.equal(pathTo(tree.root, 99), undefined);
     assert.equal(shownRoot(tree)!.name, 'Padding');
     assert.equal(shownRoot({ ...tree, app: null })!.name, 'RootWidget');
-    assert.deepEqual(parseTree({ version: 1, tree: 'element', root: null, app: null }), { root: null, app: null });
+    assert.deepEqual(parseTree({ version: 1, tree: 'element', root: null, app: null }), { kind: 'element', root: null, app: null });
+  });
+
+  it('reads the render tree: no app, each render object with the element it is of; the counterpart in either tree', () => {
+    const tree = parseTree(renderAnswer);
+    assert.equal(tree.kind, 'render');
+    assert.equal(tree.app, null);
+    assert.equal(shownRoot(tree)!.name, 'RenderRoot');
+    const text = nodeOf(tree, 11)!;
+    assert.equal(text.element, 4);
+    assert.equal(counterpartOf(text), 4);
+    assert.equal(counterpartOf(nodeOf(parseTree(treeAnswer), 4)!), 11);
+    assert.equal(counterpartOf(nodeOf(tree, 9)!), undefined, 'the root has no element');
+    assert.equal(parseTree(treeAnswer).kind, 'element');
   });
 
   it('refuses an answer of another version, of the render tree, or one it does not read', () => {
     assert.throws(() => parseTree({ ...treeAnswer, version: 2 }), /version 2; this extension reads 1/);
-    assert.throws(() => parseTree({ ...treeAnswer, tree: 'render' }), /not the element tree/);
+    assert.throws(() => parseTree({ ...treeAnswer, tree: 'layers' }), /not the element tree or the render tree: layers/);
     assert.throws(() => parseTree({ ...treeAnswer, root: { id: 'x', name: 'A', children: [] } }), /does not read/);
     assert.throws(() => parseTree({ ...treeAnswer, root: { id: 1, name: 'A', children: [{ id: 0, name: 'B', children: [] }] } }), /does not read/);
     assert.throws(() => parseTree([]), /no JSON object/);
@@ -102,5 +120,74 @@ describe("twk's inspector answers", () => {
     );
     assert.deepEqual(togglesPicked(['Repaint rainbow', 'Log console'], flags), { overlay: false, rainbow: true, relayout: false, overflow: false, console: true });
     assert.deepEqual(flagParams({ overlay: true, treeEvents: false }), { overlay: 'true', treeEvents: 'false' });
+  });
+});
+
+describe("a node's properties and layout", () => {
+  const properties = {
+    version: 1,
+    id: 4,
+    name: 'Text',
+    key: '[GlobalKey#2]',
+    render: 11,
+    properties: [{ value: '"n 0"' }, { name: 'overflow', value: 'clip' }],
+    flags: ['needsLayout', 'dirty'],
+  };
+  const layout = {
+    version: 1,
+    id: 4,
+    render: 11,
+    name: 'RenderText',
+    constraints: { minWidth: 0, maxWidth: 40, minHeight: 0, maxHeight: 5 },
+    size: { width: 3, height: 1 },
+    offset: { x: 2, y: 0 },
+    global: { x: 2, y: 1 },
+  };
+
+  it('reads what twk answers, each checked', () => {
+    const p = parseProperties(properties);
+    assert.equal(p.key, '[GlobalKey#2]');
+    assert.equal(p.render, 11);
+    assert.deepEqual(p.properties, [{ value: '"n 0"' }, { name: 'overflow', value: 'clip' }]);
+    assert.equal(parseProperties({ version: 1, id: 2, name: '_Count', properties: [], flags: [] }).render, undefined);
+    assert.equal(parseProperties({ version: 1, id: 2, name: 'RenderPadding', element: 3, properties: [], flags: [] }).element, 3);
+    assert.throws(() => parseProperties({ ...properties, version: 2 }), /version 2/);
+    assert.throws(() => parseProperties({ version: 1, name: 'x' }), /properties/);
+    const l = parseLayout(layout);
+    assert.deepEqual(l.constraints, { minWidth: 0, maxWidth: 40, minHeight: 0, maxHeight: 5 });
+    assert.deepEqual(l.offset, { x: 2, y: 0 });
+    // before the first layout: nothing of the geometry
+    assert.deepEqual(parseLayout({ version: 1, id: 4, render: 11, name: 'RenderText' }), {});
+    // no limit is null
+    assert.equal(parseLayout({ ...layout, constraints: { ...layout.constraints, maxHeight: null } }).constraints?.maxHeight, null);
+    assert.throws(() => parseLayout({ ...layout, constraints: { minWidth: 'a' } }), /layout/);
+    assert.throws(() => parseLayout({ ...layout, version: 0 }), /version/);
+  });
+
+  it('says constraints as twk inspect does: one number where the axis is tight, inf for no limit', () => {
+    assert.equal(constraintsText({ minWidth: 0, maxWidth: 40, minHeight: 0, maxHeight: 5 }), 'w 0..40, h 0..5');
+    assert.equal(constraintsText({ minWidth: 80, maxWidth: 80, minHeight: 0, maxHeight: null }), 'w 80, h 0..inf');
+  });
+
+  it('lays the lines out: the node, then its layout where there is one', () => {
+    const sections = detailSections({ properties: parseProperties(properties), layout: parseLayout(layout) });
+    assert.deepEqual(sections.map((s) => s.title), ['Text', 'Layout']);
+    assert.deepEqual(sections[0].rows, [
+      { label: 'id', value: '#4' },
+      { label: 'key', value: '[GlobalKey#2]' },
+      { label: 'render', value: '#11' },
+      { value: '"n 0"' },
+      { label: 'overflow', value: 'clip' },
+      { label: 'flags', value: 'needsLayout, dirty' },
+    ]);
+    assert.deepEqual(sections[1].rows, [
+      { label: 'constraints', value: 'w 0..40, h 0..5' },
+      { label: 'size', value: '3 x 1' },
+      { label: 'offset', value: '2, 0' },
+      { label: 'on screen', value: '2, 1' },
+    ]);
+    // none laid out yet: no layout section
+    assert.equal(detailSections({ properties: parseProperties(properties), layout: {} }).length, 1);
+    assert.equal(detailSections({ properties: parseProperties(properties) }).length, 1);
   });
 });

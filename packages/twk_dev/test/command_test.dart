@@ -15,7 +15,10 @@ import 'twk.dart';
 /// The subcommands `twk --help` lists, by name.
 const subcommands = [
   'agents',
+  'completion',
   'create',
+  'decode',
+  'doctor',
   'inspect',
   'logs',
   'play',
@@ -23,6 +26,7 @@ const subcommands = [
   'run',
   'shell',
   'tape',
+  'test-from-cast',
 ];
 
 /// The names in the "Available commands:" section of [usage]: the lines

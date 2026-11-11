@@ -5,8 +5,10 @@
 // nowhere. It plays, pauses, goes a frame on or back and starts again, a
 // frame as twk_test's screenFrames takes one (core/cast.ts's castSteps), from
 // the bar of its view or keys typed in it: Space, Right or `.`, Left or
-// `,`, Home or `r`.
-import { Cast, CastStep, castSteps } from '../core/cast';
+// `,`, Home or `r`; a recording's markers (its `m` events) are places to go
+// to, `]` for the next and `[` for the one before or a click on the track,
+// as `twk play` goes to them: each marker is a stop, several on one step too.
+import { Cast, CastMarker, CastStep, castMarkers, castSteps, markerLabel } from '../core/cast';
 import { Clock, Disposable, Emitter } from '../core/events';
 import { PlayerControl, PlayerState } from '../webview/protocol';
 import { Output, Screen, TerminalView } from './ports';
@@ -18,6 +20,8 @@ const keys: Readonly<Record<string, PlayerControl>> = {
   '\x1b[C': 'step',
   ',': 'back',
   '\x1b[D': 'back',
+  '[': 'previousMarker',
+  ']': 'nextMarker',
   r: 'restart',
   '\x1b[H': 'restart',
 };
@@ -29,6 +33,12 @@ export class Player implements Screen {
   private readonly steps: readonly CastStep[];
   /** When each step is played, in seconds from the start, its pauses cut. */
   private readonly due: readonly number[];
+  /** The recording's markers. */
+  private readonly markers: readonly CastMarker[];
+  /** The markers as the state tells them, made once. */
+  private readonly markerList: readonly { label: string; time: number }[];
+  /** The marker a marker key or a click last went to (from 1), while the screen is still the one it showed. */
+  private pin: number | undefined;
   /** The steps written. */
   private shown = 0;
   private playing = false;
@@ -46,6 +56,12 @@ export class Player implements Screen {
   readonly onDidInput = this.inputs.event;
   private readonly notes = new Emitter<string>();
   readonly onDidNote = this.notes.event;
+  private readonly tests = new Emitter<void>();
+  /** The bar's Test button was pressed: a test of the recording is asked for. */
+  readonly onDidAskTest = this.tests.event;
+  private readonly inputAsks = new Emitter<void>();
+  /** The bar's Keys button was pressed: the recording's keys are asked to be typed into an app. */
+  readonly onDidAskInput = this.inputAsks.event;
   private readonly resizes = new Emitter<void>();
   readonly onDidResize = this.resizes.event;
   private readonly disposes = new Emitter<void>();
@@ -61,6 +77,8 @@ export class Player implements Screen {
     private readonly speed = 1,
   ) {
     this.steps = castSteps(cast);
+    this.markers = castMarkers(cast, this.steps);
+    this.markerList = this.markers.map((m) => ({ label: markerLabel(m.label), time: m.time }));
     const limit = cast.header.idleTimeLimit;
     let at = 0;
     let last = 0;
@@ -79,6 +97,7 @@ export class Player implements Screen {
           this.control(c);
         }
       }),
+      view.onMarker((n) => this.goToMarker(n)),
       view.onResize(() => this.resizes.fire()),
       // a webview that loaded again shows nothing: what was shown, again
       view.onReload(() => this.seek(this.shown)),
@@ -90,13 +109,24 @@ export class Player implements Screen {
   get state(): PlayerState {
     const frames = this.steps.filter((s) => s.frame > 0).length;
     const last = this.shown > 0 ? this.steps[this.shown - 1] : undefined;
+    const markers = this.markerList;
     return {
       playing: this.playing,
       frame: this.steps.slice(0, this.shown).filter((s) => s.frame > 0).length,
       frames,
       time: last?.time ?? 0,
       duration: this.cast.events.at(-1)?.time ?? 0,
+      ...(markers.length > 0 ? { markers, marker: this.reached() } : {}),
     };
+  }
+
+  /** The markers the screen shown has reached: those at or before it, and the pinned one where it is exactly at its place. */
+  private reached(): number {
+    const k = this.pin;
+    if (k !== undefined && k > 0 && this.markers[k - 1]?.at === this.shown) {
+      return k;
+    }
+    return this.shown === 0 ? 0 : this.markers.filter((m) => m.at <= this.shown).length;
   }
 
   /** Shows the recording's first screen, its size and its bar, then plays when [play]. */
@@ -117,7 +147,27 @@ export class Player implements Screen {
 
   /** Does what a button of the bar, or a key, asks. */
   control(c: PlayerControl): void {
+    if (c === 'toggle' || c === 'step' || c === 'back' || c === 'restart') {
+      this.pin = undefined;
+    }
     switch (c) {
+      case 'nextMarker':
+      case 'previousMarker': {
+        const now = this.reached();
+        // the stop as a count of markers: the next, or the one before the
+        // screen (the one shown is not "before" it when the screen is
+        // exactly its place); none after the last or before the first
+        const k =
+          c === 'nextMarker'
+            ? now < this.markers.length
+              ? now + 1
+              : 0
+            : now > 0 && this.markers[now - 1].at === this.shown
+              ? now - 1
+              : now;
+        this.goToMarker(k);
+        break;
+      }
       case 'toggle':
         if (this.playing) {
           this.pause();
@@ -134,7 +184,26 @@ export class Player implements Screen {
       case 'restart':
         this.restart();
         break;
+      case 'test':
+        this.tests.fire();
+        break;
+      case 'input':
+        this.inputAsks.fire();
+        break;
     }
+  }
+
+  /** Paused, the screen as at the place of marker [k] (from 1) among the events; none such stays where it is. */
+  goToMarker(k: number): void {
+    this.pause();
+    if (this.disposed) {
+      return;
+    }
+    if (Number.isInteger(k) && k >= 1 && k <= this.markers.length) {
+      this.pin = k;
+      this.seek(this.markers[k - 1].at);
+    }
+    this.told();
   }
 
   /** Plays on from where it is; from the start once it ended. */
@@ -270,6 +339,6 @@ export class Player implements Screen {
     this.listening.forEach((d) => d.dispose());
     this.view.close();
     this.disposes.fire();
-    [this.changes, this.outputs, this.inputs, this.notes, this.resizes, this.disposes].forEach((e) => e.dispose());
+    [this.changes, this.tests, this.inputAsks, this.outputs, this.inputs, this.notes, this.resizes, this.disposes].forEach((e) => e.dispose());
   }
 }

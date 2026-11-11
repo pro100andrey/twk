@@ -2,19 +2,21 @@
 // [InspectorView] of app/inspector.ts, the [SourceOpener] that opens a
 // place of the code in an editor, and the pick mode's button
 // ([PickingIndicator]: the context key `twk.inspector.picking`, which
-// shows the pressed one in the view's title).
+// shows the pressed one in the view's title); its Widgets / Render switch is
+// the context key `twk.inspector.render`.
 import * as vscode from 'vscode';
 
 import { Emitter } from '../core/events';
-import { InspectNode, InspectTree, describeNode, detailsOf, shownRoot } from '../core/inspect';
+import { DetailRow, DetailSection, InspectNode, InspectTree, TreeKind, describeNode, detailsOf, shownRoot } from '../core/inspect';
 import { SourceSpot } from '../core/locator';
-import { InspectorView, PickingIndicator, SourceOpener } from '../app/ports';
+import { InspectorView, NodeDetailsView, PickingIndicator, SourceOpener } from '../app/ports';
 
 /** How many levels below the app's own element are shown expanded at first. */
 const expandedLevels = 3;
 
 export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvider<InspectNode>, vscode.Disposable {
   private root: InspectNode | null = null;
+  private kind: TreeKind = 'element';
   private readonly parents = new Map<number, InspectNode>();
   private readonly nodes = new Map<number, InspectNode>();
   private readonly depths = new Map<number, number>();
@@ -53,6 +55,12 @@ export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvid
   /** The node [id] names in the tree shown. */
   node(id: number): InspectNode | undefined {
     return this.nodes.get(id);
+  }
+
+  showKind(kind: TreeKind): void {
+    this.kind = kind;
+    this.treeView.description = kind === 'render' ? 'render tree' : undefined;
+    void vscode.commands.executeCommand('setContext', 'twk.inspector.render', kind === 'render');
   }
 
   show(tree: InspectTree | undefined, message: string): void {
@@ -104,7 +112,8 @@ export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvid
     item.id = `${this.generation}:${n.id}`;
     item.description = describeNode(n);
     item.tooltip = detailsOf(n).join('\n');
-    item.contextValue = n.build ? 'twkBuilds' : 'twkNode';
+    // a render object has no widget: no menu to go to the code
+    item.contextValue = this.kind === 'render' ? 'twkRenderNode' : n.build ? 'twkBuilds' : 'twkNode';
     return item;
   }
 
@@ -120,6 +129,65 @@ export class VsCodeInspectorView implements InspectorView, vscode.TreeDataProvid
     this.listening.forEach((d) => d.dispose());
     this.visibility.dispose();
     this.selections.dispose();
+  }
+}
+
+/** An item of the node view: a section, or a line of one (a value after its label). */
+export type DetailItem = DetailSection | (DetailRow & { readonly section: string });
+
+const isSection = (i: DetailItem): i is DetailSection => 'rows' in i;
+
+/** The text a line of the node view copies: its value. */
+export const copyText = (item: DetailItem): string | undefined => (isSection(item) ? undefined : item.value);
+
+/**
+ * The node view (`twk.node`, beneath the tree): a TreeView of the selected
+ * node's sections, each with its lines, label and value, whose value a
+ * context command copies. A TreeView, not a webview: the lines are short
+ * label-value pairs, and it takes the theme, the keyboard and the copy
+ * menu for nothing.
+ */
+export class VsCodeNodeDetailsView implements NodeDetailsView, vscode.TreeDataProvider<DetailItem>, vscode.Disposable {
+  private sections: readonly DetailSection[] = [];
+  private readonly changes = new vscode.EventEmitter<DetailItem | undefined>();
+  readonly onDidChangeTreeData = this.changes.event;
+  readonly treeView: vscode.TreeView<DetailItem>;
+
+  constructor() {
+    this.treeView = vscode.window.createTreeView('twk.node', { treeDataProvider: this });
+  }
+
+  show(sections: readonly DetailSection[], message: string): void {
+    this.sections = sections;
+    this.treeView.message = message || undefined;
+    this.changes.fire(undefined);
+  }
+
+  getTreeItem(i: DetailItem): vscode.TreeItem {
+    if (isSection(i)) {
+      const item = new vscode.TreeItem(i.title, vscode.TreeItemCollapsibleState.Expanded);
+      item.id = `section:${i.title}`;
+      return item;
+    }
+    const item = new vscode.TreeItem(i.label ?? i.value, vscode.TreeItemCollapsibleState.None);
+    if (i.label !== undefined) {
+      item.description = i.value;
+    }
+    item.tooltip = i.label === undefined ? i.value : `${i.label}: ${i.value}`;
+    item.contextValue = 'twkDetail';
+    return item;
+  }
+
+  getChildren(i?: DetailItem): DetailItem[] {
+    if (!i) {
+      return [...this.sections];
+    }
+    return isSection(i) ? i.rows.map((r) => ({ ...r, section: i.title })) : [];
+  }
+
+  dispose(): void {
+    this.treeView.dispose();
+    this.changes.dispose();
   }
 }
 

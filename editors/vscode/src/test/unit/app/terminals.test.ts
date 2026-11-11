@@ -107,6 +107,74 @@ describe('Terminals', () => {
     await until('the progress taken away', () => desktop.done.at(-1) === 'progress counter.dart: 0 null');
   });
 
+  it('pastes the clipboard into the view when the paste key was pressed there, nothing when it holds nothing', async () => {
+    await terminals.create('counter.dart');
+    const v = views[0];
+    desktop.clipboard = 'line one\nline two';
+    v.pressPaste();
+    await until('the text pasted', () => v.pasted.length === 1);
+    assert.deepEqual(v.pasted, ['line one\nline two']);
+    desktop.clipboard = '';
+    v.pressPaste();
+    desktop.clipboard = 'last';
+    v.pressPaste();
+    await until('the last pasted', () => v.pasted.length === 2);
+    assert.deepEqual(v.pasted, ['line one\nline two', 'last']);
+  });
+
+  it('a paste keeps no begin or end marker of a bracketed paste of the clipboard; an unreadable clipboard is logged, not thrown', async () => {
+    const t = await terminals.create('counter.dart');
+    const notes: string[] = [];
+    t.onDidNote((n) => notes.push(n));
+    const v = views[0];
+    desktop.clipboard = 'a\x1b[201~rm -rf\r\x1b[2\x1b[201~00~b\x1b[200~';
+    v.pressPaste();
+    await until('the text pasted', () => v.pasted.length === 1);
+    assert.deepEqual(v.pasted, ['arm -rf\rb']);
+    desktop.clipboardError = new Error('denied');
+    v.pressPaste();
+    await until('the failure noted', () => notes.includes('the clipboard could not be read'));
+    assert.equal(v.pasted.length, 1);
+  });
+
+  it('opens a file: link of a workspace folder at its line, no other', async () => {
+    const t = await terminals.create('counter.dart');
+    const app = await App.connect(t.variable);
+    await app.next(ShellFrame.welcome);
+    desktop.folders = ['/work/app'];
+    const link = (uri: string) => views[0].request({ type: 'openLink', uri });
+    link('file:///work/app/lib/main.dart#L12C3');
+    link('file:///work/app/lib/my%20file.dart');
+    link('file:///work/app/lib/../../etc/passwd#L1');
+    link('file:///work/app2/x.dart');
+    link('file:///etc/passwd');
+    link('file://other-host/work/app/x.dart');
+    assert.deepEqual(desktop.done, ['file /work/app/lib/main.dart:12:3', 'file /work/app/lib/my file.dart:1:1']);
+    app.socket.destroy();
+  });
+
+  it('a file: link is compared by real paths: a link out of the workspace is refused, and case folds only where the platform folds it', async () => {
+    const t = await terminals.create('counter.dart');
+    const app = await App.connect(t.variable);
+    await app.next(ShellFrame.welcome);
+    desktop.folders = ['/work/app'];
+    desktop.links.set('/work/app/lib/escape.dart', '/etc/passwd');
+    desktop.links.set('/work/app', '/real/app');
+    desktop.links.set('/work/app/lib/in.dart', '/real/app/lib/in.dart');
+    desktop.missing.add('/work/app/lib/gone.dart');
+    const link = (uri: string) => views[0].request({ type: 'openLink', uri });
+    link('file:///work/app/lib/escape.dart');
+    link('file:///work/app/lib/in.dart');
+    link('file:///work/app/lib/gone.dart');
+    link('file:///work/APP/lib/other.dart');
+    assert.deepEqual(desktop.done, ['file /work/app/lib/in.dart:1:1']);
+    desktop.links.set('/work/APP/lib/other.dart', '/Real/App/lib/other.dart');
+    desktop.foldsCase = true;
+    link('file:///work/APP/lib/other.dart');
+    assert.deepEqual(desktop.done.at(-1), 'file /work/APP/lib/other.dart:1:1');
+    app.socket.destroy();
+  });
+
   it('one shell each: two terminals, two addresses; one closed is forgotten, its shell stopped, the other serving on', async () => {
     const first = await terminals.create('a.dart');
     const second = await terminals.create('b.dart');

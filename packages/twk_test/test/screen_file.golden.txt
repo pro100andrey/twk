@@ -1,0 +1,13 @@
+screen 14×3, cursor hidden
+text
+│sent: привет  │
+│[x] 界        │
+│              │
+styles
+│aaaaa         │
+│bbbcbb        │
+│              │
+legend
+a bold
+b red on #010203
+c on #010203

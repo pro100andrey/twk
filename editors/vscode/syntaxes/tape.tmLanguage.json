@@ -1,0 +1,78 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Tape",
+  "scopeName": "source.tape",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#statement" },
+    { "include": "#key" }
+  ],
+  "repository": {
+    "comment": { "name": "comment.line.number-sign.tape", "match": "#.*$" },
+    "statement": {
+      "patterns": [
+        {
+          "comment": "Wait[+Screen|+Line][@time] /regexp/ or \"text\"",
+          "match": "^\\s*(Wait)(?:(\\+)(Screen|Line))?(?:(@)(\\S+))?",
+          "captures": {
+            "1": { "name": "keyword.control.tape" },
+            "2": { "name": "keyword.operator.tape" },
+            "3": { "name": "support.constant.tape" },
+            "4": { "name": "keyword.operator.tape" },
+            "5": { "name": "constant.numeric.tape" }
+          }
+        },
+        {
+          "match": "^\\s*(Type)(?:(@)(\\S+))?",
+          "captures": {
+            "1": { "name": "keyword.control.tape" },
+            "2": { "name": "keyword.operator.tape" },
+            "3": { "name": "constant.numeric.tape" }
+          }
+        },
+        {
+          "match": "^\\s*(Set)\\s+(Width|Height|Theme|FontSize|FontFamily|Padding|Framerate|TypingSpeed|WaitTimeout)\\b",
+          "captures": {
+            "1": { "name": "keyword.control.tape" },
+            "2": { "name": "variable.parameter.tape" }
+          }
+        },
+        { "match": "^\\s*(Output|Set|Env|Run|Sleep|Hide|Show|Screenshot)\\b", "captures": { "1": { "name": "keyword.control.tape" } } },
+        { "include": "#time" },
+        { "include": "#regex" },
+        { "include": "#string" },
+        { "include": "#number" }
+      ]
+    },
+    "key": {
+      "patterns": [
+        {
+          "comment": "[Ctrl+|Alt+|Shift+]... key[@time] [count]",
+          "match": "^\\s*((?:(?:Ctrl|Alt|Shift)\\+)*)(Enter|Tab|Space|Backspace|Escape|Up|Down|Left|Right|Home|End|PageUp|PageDown|Insert|Delete|F(?:1[0-2]|[1-9])|[A-Za-z0-9])(?![A-Za-z0-9])(?:(@)(\\S+))?",
+          "captures": {
+            "1": { "name": "keyword.operator.tape" },
+            "2": { "name": "support.constant.key.tape" },
+            "3": { "name": "keyword.operator.tape" },
+            "4": { "name": "constant.numeric.tape" }
+          }
+        },
+        { "include": "#number" }
+      ]
+    },
+    "time": { "name": "constant.numeric.time.tape", "match": "(?<![\\w.])\\d+(?:\\.\\d+)?(?:ms|s|m)\\b" },
+    "number": { "name": "constant.numeric.tape", "match": "(?<![\\w.])\\d+(?:\\.\\d+)?\\b" },
+    "regex": {
+      "name": "string.regexp.tape",
+      "begin": "(?<=\\s)/",
+      "end": "/",
+      "patterns": [{ "name": "constant.character.escape.tape", "match": "\\\\." }]
+    },
+    "string": {
+      "patterns": [
+        { "name": "string.quoted.double.tape", "begin": "\"", "end": "\"" },
+        { "name": "string.quoted.single.tape", "begin": "'", "end": "'" },
+        { "name": "string.quoted.other.tape", "begin": "`", "end": "`" }
+      ]
+    }
+  }
+}

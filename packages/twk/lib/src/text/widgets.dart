@@ -42,7 +42,8 @@ export 'package:twk_core/twk_core.dart' show TextAlign, TextOverflow, TextWrap;
 ///
 /// A text of eight lines or more that is edited line by line repaints only
 /// the lines that changed, by itself: no option to set
-/// ([RenderParagraph.autoKeepsPaint]).
+/// ([RenderParagraph.autoKeepsPaint]). One whose lines nearly all change at
+/// each edit goes back to painting whole.
 ///
 /// A space at the end of the text, or of a line it breaks, is not counted
 /// with [wrap] at its default, [TextWrap.word]: it hangs past the line,

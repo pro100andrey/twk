@@ -43,6 +43,17 @@ such a file stays one until it is deleted or as the skill has it. With no
 manifest yet it writes one, removes nothing and leaves what differs from the
 skill, naming it. `--dry-run` says what it would remove.
 
+### `twk doctor [-C <dir>] [--json]`
+
+reports what this terminal does as twk probes it (`TERM`, its name and
+version, colours, DEC 2026, kitty keyboard, graphics, links, a cell's size,
+how long it took to answer) and whether the project agrees: the `twk`,
+`twk_core`, `twk_dev` and `twk_test` versions of the lock, the Dart SDK, the
+files of `.dart_tool/twk` (an app running, or left behind), and the skill for
+agents where `twk agents` wrote one older than this twk_dev. Without a
+terminal it reports the project only. It exits with 1 where the versions
+disagree. See [doctor.md](doctor.md).
+
 ### `twk shell [-C <dir>]`
 
 owns this terminal and serves it over a local socket to an app of the project
@@ -53,11 +64,14 @@ started without a terminal (from the IDE, under the debugger)
 tails the log an app of the project serves over a local socket, with levels
 and colours
 
-### `twk run <file> [<arguments>...]`
+### `twk run [--no-asserts] [--no-watch-deps] [--debug=<aids>] [--screen-reader] [--plain] <file> [<arguments>...]`
 
 runs the app in `<file>` in this terminal with hot reload: watches the
-package's `lib/` and `<file>` and reloads them as they change, each State
-kept; Ctrl+G h in the app reloads, Ctrl+G H restarts
+package's `lib/`, those of its path dependencies
+(`--no-watch-deps` leaves them out) and `<file>` and reloads them as they change, each State
+kept; Ctrl+G h in the app reloads, Ctrl+G H restarts. `--debug`, `--screen-reader` and `--plain` set
+`TWK_DEBUG`, `TWK_SCREEN_READER` and `TWK_PLAIN` for the app; an unknown
+aid is refused with 64
 
 ### `twk inspect [<vm-service-uri>] [-C <dir>]`
 
@@ -75,11 +89,34 @@ passed through in raw mode, and records the session as asciicast v2
 
 plays a recording back in this terminal
 
+### `twk decode [--frames] [--only=output|input] [--grep=<regexp>] <file>...`
+
+names the sequences of a recording or a byte trace, a row each, with its time
+(see [decode.md](decode.md))
+
 ### `twk tape <file.tape>`
 
 runs a tape, a script of what to type into a program and when, in a
 pseudo-terminal, and writes the session as asciicast v2, as an animated SVG
 and as still SVGs of the screens it names
+
+### `twk completion <bash|zsh|fish>`
+
+prints the shell's completion script for `twk`: its subcommands, the options of
+each (the `--no-` form of a flag that has one, the values an option allows,
+directories for `-C`/`--directory`, files for `--out` and `--replay`) and the
+files each command takes (`.cast` for `play` and `test-from-cast`, recordings
+and traces for `decode`, `.tape` for
+`tape`, `.dart` for `run`, directories for `create`). The script is written
+from the command's own parsers, so an option added to a command is completed
+without a change here, and a test holds every subcommand and option to be in
+it. Load it:
+
+```bash
+source <(twk completion bash)                      # in ~/.bashrc
+twk completion zsh > ~/.zfunc/_twk                 # a directory in fpath, before compinit
+twk completion fish > ~/.config/fish/completions/twk.fish
+```
 
 ## Projects
 

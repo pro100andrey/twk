@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import 'agents/skill.g.dart';
+import 'completion.dart';
 import 'project.dart';
 
 /// What `twk agents` writes into a project, each a choice of its own.
@@ -547,7 +548,7 @@ bool dependsOnTwk(String project) {
 /// `twk agents`: writes the twk skill, packed in twk_dev, and a block of
 /// `AGENTS.md` into a project, and writes them again after twk was
 /// upgraded.
-final class AgentsCommand extends Command<int> {
+final class AgentsCommand extends Command<int> with Completes {
   /// Sets up `twk agents`'s options: `--directory` and `--dry-run`.
   AgentsCommand() {
     argParser
@@ -565,6 +566,14 @@ final class AgentsCommand extends Command<int> {
         help: 'Say what it would write, and write nothing.',
       );
   }
+
+  @override
+  Positionals get positionals => const Positionals.none();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'directory': OptionPath.directory,
+  };
 
   @override
   String get name => 'agents';

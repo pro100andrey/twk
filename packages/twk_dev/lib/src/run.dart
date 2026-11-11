@@ -9,16 +9,18 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
+import 'package:twk/twk.dart' show DebugAids;
 import 'package:twk_core/twk_core.dart' show LocalAddress;
 import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'app_client.dart';
+import 'completion.dart';
 import 'project.dart';
 
 /// `twk run`: runs an app with hot reload ([HotRunner]) in this terminal,
 /// which the app has to itself.
-final class RunCommand extends Command<int> {
+final class RunCommand extends Command<int> with Completes {
   /// `twk run`; [started] is given the runner of each run of the command
   /// before it starts the app.
   RunCommand({this.started});
@@ -39,7 +41,37 @@ final class RunCommand extends Command<int> {
           "framework's checks and overflow warnings. --no-asserts runs it "
           'as it ships, for measuring; the app then logs a line saying '
           'asserts are off.',
+    )
+    ..addFlag(
+      'watch-deps',
+      defaultsTo: true,
+      help:
+          'Reload on a change in the lib/ of the path dependencies and '
+          'workspace members of the package too (the pub cache excluded). '
+          '--no-watch-deps watches the package and the file only.',
+    )
+    ..addMultiOption(
+      'debug',
+      valueHelp: 'aids',
+      help:
+          "Turn on twk's debug aids, added to the TWK_DEBUG the app is run "
+          'with (the debug keys are always on): ${DebugAids.known.join(', ')}.',
+    )
+    ..addFlag(
+      'screen-reader',
+      negatable: false,
+      help: 'Run the app in its screen-reader mode (TWK_SCREEN_READER=1).',
+    )
+    ..addFlag(
+      'plain',
+      negatable: false,
+      help:
+          'Run the app writing plain text, with no escape sequences '
+          '(TWK_PLAIN=1).',
     );
+
+  @override
+  Positionals get positionals => const Positionals.files(glob: '*.dart');
 
   @override
   String get name => 'run';
@@ -52,7 +84,8 @@ final class RunCommand extends Command<int> {
       'Run an app with hot reload, in this terminal.\n\n'
       'Starts the app in <file> with the VM service, the arguments after '
       'it its own, and leaves it this terminal. Watches the lib/ of the '
-      'package <file> is in and <file>: when a .dart file changes, reloads '
+      'package <file> is in, of its path dependencies and <file>: when a '
+      '.dart file changes, reloads '
       'the sources and has the app rebuild every widget, each State kept. '
       'In the app Ctrl+G h reloads and Ctrl+G H restarts it; what a reload '
       "did goes to the app's log, its console opening when it failed. "
@@ -67,6 +100,17 @@ final class RunCommand extends Command<int> {
     if (rest.isEmpty) {
       usageException('No file to run.');
     }
+    final debug = argResults!.multiOption('debug');
+    final unknown = [
+      for (final aid in debug)
+        if (!DebugAids.known.contains(aid)) aid,
+    ];
+    if (unknown.isNotEmpty) {
+      usageException(
+        'Unknown debug aid ${unknown.join(', ')}: --debug takes '
+        '${DebugAids.known.join(', ')}.',
+      );
+    }
     final file = rest.first;
     if (!File(file).existsSync()) {
       stderr.writeln('twk run: no file $file');
@@ -76,6 +120,10 @@ final class RunCommand extends Command<int> {
       file,
       rest.sublist(1),
       asserts: argResults!.flag('asserts'),
+      debug: debug,
+      screenReader: argResults!.flag('screen-reader'),
+      plain: argResults!.flag('plain'),
+      watchDeps: argResults!.flag('watch-deps'),
     );
     started?.call(runner);
     return runner.run();
@@ -91,7 +139,8 @@ final class RunCommand extends Command<int> {
 /// app's console. The app's debug keys are on (`TWK_DEBUG=keys`), and
 /// its asserts, unless [asserts] is false.
 ///
-/// When a `.dart` file in the `lib/` of the package [entry] is in, or
+/// When a `.dart` file in the `lib/` of the package [entry] is in, or of a
+/// path dependency or workspace member of it ([watchDeps]), or
 /// [entry] itself, changes ([debounce] after the last change), or the app
 /// asks for it (Ctrl+G h, the event `twk.reload`), the sources are
 /// reloaded (`reloadSources`) and the app rebuilds and repaints all of
@@ -106,10 +155,18 @@ final class RunCommand extends Command<int> {
 final class HotRunner {
   /// A runner of the app whose `main` is in the file [entry], given
   /// [arguments].
-  HotRunner(String entry, this.arguments, {this.asserts = true})
-    : entry = p.normalize(p.absolute(entry)),
-      package = projectOf(p.dirname(entry)),
-      serviceFile = serviceFileOf(projectOf(null));
+  HotRunner(
+    String entry,
+    this.arguments, {
+    this.asserts = true,
+    this.debug = const [],
+    this.screenReader = false,
+    this.plain = false,
+    this.watchDeps = true,
+  }) : entry = p.normalize(p.absolute(entry)),
+       package = projectOf(p.dirname(entry)),
+       serviceFile = serviceFileOf(projectOf(null)),
+       _deps = watchDeps ? pathDependencyLibs(projectOf(p.dirname(entry))) : {};
 
   /// The file of the app's `main`, absolute.
   final String entry;
@@ -120,6 +177,27 @@ final class HotRunner {
   /// Whether the app runs with asserts on (`--enable-asserts`), which the
   /// framework's checks and overflow warnings need.
   final bool asserts;
+
+  /// The debug aids asked for, added to the `TWK_DEBUG` of this process's
+  /// environment and to `keys`.
+  final List<String> debug;
+
+  /// Whether the app runs in its screen-reader mode (`TWK_SCREEN_READER=1`).
+  final bool screenReader;
+
+  /// Whether the app writes plain text (`TWK_PLAIN=1`).
+  final bool plain;
+
+  /// Whether the `lib/` of the path dependencies and workspace members of
+  /// the package are watched too ([pathDependencyLibs]).
+  final bool watchDeps;
+
+  // the lib/ directories watched besides the package's, by package name
+  final Map<String, String> _deps;
+
+  /// The `lib/` directories of the path dependencies watched besides the
+  /// package's own, by package name: none with [watchDeps] false.
+  Map<String, String> get watchedDependencies => Map.unmodifiable(_deps);
 
   /// The directory of the package [entry] is in.
   final String package;
@@ -249,8 +327,9 @@ final class HotRunner {
     if (info.existsSync()) {
       info.deleteSync();
     }
-    final debug = {
+    final aids = {
       ...(Platform.environment['TWK_DEBUG'] ?? '').split(','),
+      ...debug,
       'keys',
     }..remove('');
     final process = await Process.start(
@@ -267,7 +346,11 @@ final class HotRunner {
         ...arguments,
       ],
       mode: ProcessStartMode.inheritStdio,
-      environment: {'TWK_DEBUG': debug.join(',')},
+      environment: {
+        'TWK_DEBUG': aids.join(','),
+        if (screenReader) 'TWK_SCREEN_READER': '1',
+        if (plain) 'TWK_PLAIN': '1',
+      },
     );
     final app = _App(process);
     unawaited(_connect(app, info));
@@ -353,10 +436,13 @@ final class HotRunner {
           unawaited(_reload());
         }
       case 'ext.twk.log':
+        final deps = _deps.isEmpty
+            ? ''
+            : ', and the lib/ of the path dependencies ${_deps.keys.join(', ')}';
         unawaited(
           app.log(
             'hot reload: watching ${_shown(p.join(package, 'lib'))} and '
-            '${_shown(entry)}; Ctrl+G h reloads, Ctrl+G H restarts',
+            '${_shown(entry)}$deps; Ctrl+G h reloads, Ctrl+G H restarts',
           ),
         );
     }
@@ -366,26 +452,77 @@ final class HotRunner {
   static String _shown(String path) =>
       p.isWithin(p.current, path) ? p.relative(path) : path;
 
-  /// Watches the `lib/` of [package], and [entry]: a change of a `.dart`
-  /// file reloads the sources [debounce] after the last one.
+  /// Watches the `lib/` of [package] and of its path dependencies, and
+  /// [entry]: a change of a `.dart` file reloads the sources [debounce]
+  /// after the last one.
   List<StreamSubscription<FileSystemEvent>> _watch() {
     final lib = Directory(p.join(package, 'lib'));
     bool dart(String path) => path.endsWith('.dart');
     bool isEntry(String path) => p.equals(path, entry);
     return [
-      if (lib.existsSync())
-        lib.watch(recursive: true).listen((e) {
+      for (final dir in [if (lib.existsSync()) lib.path, ..._deps.values])
+        _watching(dir, recursive: true, (e) {
           if (dart(e.path) || dart(_destination(e))) {
             _changed();
           }
         }),
       if (!lib.existsSync() || !p.isWithin(lib.path, entry))
-        Directory(p.dirname(entry)).watch().listen((e) {
+        _watching(p.dirname(entry), (e) {
           if (isEntry(e.path) || isEntry(_destination(e))) {
             _changed();
           }
         }),
     ];
+  }
+
+  /// Watches [dir], giving each event to [onEvent]. A directory that goes
+  /// while the app runs (a branch switch, `git clean`) ends the watch of
+  /// that one directory, as an error or as the end of its stream, said once
+  /// in the app's log, not the session. It is not watched again when it
+  /// comes back (that would take a watch of its parent for each one): the
+  /// log line says so.
+  StreamSubscription<FileSystemEvent> _watching(
+    String dir,
+    void Function(FileSystemEvent) onEvent, {
+    bool recursive = false,
+  }) {
+    late final StreamSubscription<FileSystemEvent> sub;
+    var said = false;
+    void gone(String why) {
+      if (said) {
+        return;
+      }
+      said = true;
+      unawaited(sub.cancel());
+      _warn(
+        'hot reload: no longer watching ${_shown(dir)} ($why); restart '
+        'twk run to watch it again',
+      );
+    }
+
+    return sub = Directory(dir)
+        .watch(recursive: recursive)
+        .listen(
+          onEvent,
+          onError: (Object error) => gone('$error'),
+          onDone: () => gone('the directory is gone'),
+        );
+  }
+
+  /// [text] in the app's log as a warning, when there is an app and its
+  /// connection takes it.
+  void _warn(String text) {
+    final app = _app;
+    if (app == null) {
+      return;
+    }
+    unawaited(() async {
+      try {
+        await app.log(text, level: 'warning');
+      } on Object {
+        // the connection is closed: the app is going
+      }
+    }());
   }
 
   static String _destination(FileSystemEvent e) =>

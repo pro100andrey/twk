@@ -13,7 +13,7 @@ const utf8 = (s: string) => Buffer.from(s, 'utf8');
 const shapes = (tokens: Token[]) => tokens.map((t) => `${t.kind}:${t.raw}`);
 
 const out = (s: string) => new SequenceReader(false).read(utf8(s)).map(describeOutput);
-const typed = (s: string, binary = false) => new SequenceReader(true).read(binary ? bytes(s) : utf8(s)).map(describeInput);
+const typed = (s: string, binary = false) => new SequenceReader(true).read(binary ? bytes(s) : utf8(s)).map((t) => describeInput(t));
 
 describe('the sequence decoder', () => {
   it('cuts text, controls and each kind of escape sequence', () => {

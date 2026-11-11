@@ -7,8 +7,10 @@
 // and its view answers and emulates as they say; what the app asks of the
 // editor through it (a notification, progress, the clipboard, a link) goes
 // to the [Desktop].
+import * as path from 'path';
+
 import { Answers, answersOf, declarationOf, describeChoice, environmentOf } from '../core/capabilities';
-import { TerminalRequest, isSafeLink } from '../core/emulation';
+import { TerminalRequest, fileLinkOf, isSafeLink } from '../core/emulation';
 import { Disposable, Emitter } from '../core/events';
 import { ShellOptions, TerminalPane, TerminalShell, Welcome } from '../core/shell';
 import { describeSwitches, switchEnvironment } from '../core/switches';
@@ -26,6 +28,19 @@ export interface TerminalDeps {
   readonly settings: Settings;
   readonly log: Log;
   readonly desktop: Desktop;
+}
+
+/**
+ * [text] without the sequences that begin and end a bracketed paste: one in
+ * the clipboard would end the app's paste early and hand the rest to it as keys.
+ */
+export function withoutPasteMarkers(text: string): string {
+  let t = text;
+  for (let before = ''; before !== t; ) {
+    before = t;
+    t = t.replace(/\x1b\[20[01]~/g, '');
+  }
+  return t;
 }
 
 export class TwkTerminal implements TerminalPane, Screen {
@@ -47,6 +62,9 @@ export class TwkTerminal implements TerminalPane, Screen {
   private readonly resizes = new Emitter<void>();
   /** Its view's size changed. */
   readonly onDidResize = this.resizes.event;
+  private readonly retitles = new Emitter<void>();
+  /** Its title (size, capabilities, switches, an app there or not) may have changed. */
+  readonly onDidRetitle = this.retitles.event;
   /** Whether a line written now is the extension's ([say]), not the app's. */
   private saying = false;
   /** Whether its session is recorded: its title says so. */
@@ -80,6 +98,7 @@ export class TwkTerminal implements TerminalPane, Screen {
       }),
       this.view.onRequest((r) => this.request(r)),
       this.view.onPick((cell) => this.picks.fire(cell)),
+      this.view.onPaste(() => void this.paste()),
       this.view.onReload(() => {
         // the new view knows neither the size fixed for it nor what it
         // showed, nor what to answer
@@ -122,11 +141,20 @@ export class TwkTerminal implements TerminalPane, Screen {
 
   /** The title for its view now. */
   title(): string {
-    const app = this.shell?.serving ? '' : ' (waiting)';
-    const switches = describeSwitches(this.deps.settings.switches());
+    const { size, choice, switches } = this.facts();
     const on = switches === '' ? '' : ` + ${switches}`;
+    const app = this.shell?.serving ? '' : ' (waiting)';
     const recording = this.recorded ? ' · ● recording' : '';
-    return `${this.name} · twk ${this.columns}x${this.lines} · ${describeChoice(this.deps.settings.capabilities())}${on}${app}${recording}`;
+    return `${this.name} · ${size} · ${choice}${on}${app}${recording}`;
+  }
+
+  /** What the title and the status bar both say: the size, the capabilities, the switches on ('' for none). */
+  private facts(): { size: string; choice: string; switches: string } {
+    return {
+      size: `twk ${this.columns}x${this.lines}`,
+      choice: describeChoice(this.deps.settings.capabilities()),
+      switches: describeSwitches(this.deps.settings.switches()),
+    };
   }
 
   /** Has its title say it is recorded, or not. */
@@ -138,6 +166,13 @@ export class TwkTerminal implements TerminalPane, Screen {
   /** Titles its view as it is now (the settings' capabilities and switches among it). */
   retitle(): void {
     this.view.setTitle(this.title());
+    this.retitles.fire();
+  }
+
+  /** What the status bar says of it: `twk 44x7 · xterm.js · overlay` (the size, the capabilities, the switches on). */
+  statusText(): string {
+    const { size, choice, switches } = this.facts();
+    return `${size} · ${choice}${switches === '' ? '' : ` · ${switches}`}`;
   }
 
   /** Starts serving, once the view told its size. */
@@ -181,7 +216,22 @@ export class TwkTerminal implements TerminalPane, Screen {
     };
   }
 
-  /** What the app asked of the editor, as its view passed it on; a link only of the kinds that may be opened, whatever the view says. */
+  /** Pastes the clipboard's text into the terminal, for the app to read as typed. */
+  private async paste(): Promise<void> {
+    let text: string;
+    try {
+      text = withoutPasteMarkers(await this.deps.desktop.readClipboard());
+    } catch (e) {
+      this.deps.log.appendLine(`twk terminal ${this.name}: the clipboard could not be read: ${e instanceof Error ? e.message : String(e)}`);
+      this.notes.fire('the clipboard could not be read');
+      return;
+    }
+    if (text && !this.view.isClosed) {
+      this.view.paste(text);
+    }
+  }
+
+  /** What the app asked of the editor, as its view passed it on; a link only of the kinds that may be opened (the web, mail, a file of a workspace folder), whatever the view says. */
   private request(r: TerminalRequest): void {
     const { desktop } = this.deps;
     switch (r.type) {
@@ -197,6 +247,11 @@ export class TwkTerminal implements TerminalPane, Screen {
       case 'openLink':
         if (isSafeLink(r.uri)) {
           desktop.openLink(r.uri);
+        } else {
+          const file = fileLinkOf(r.uri);
+          if (file && inFolders(file.path, desktop.workspaceFolders(), desktop)) {
+            desktop.openFile(file.path, file.line, file.column);
+          }
         }
         break;
     }
@@ -254,6 +309,26 @@ export class TwkTerminal implements TerminalPane, Screen {
     this.shell = undefined;
     this.disposed.fire();
     this.disposed.dispose();
-    [this.inputs, this.reloads, this.picks, this.outputs, this.notes, this.resizes].forEach((e) => e.dispose());
+    [this.inputs, this.reloads, this.picks, this.outputs, this.notes, this.resizes, this.retitles].forEach((e) => e.dispose());
   }
+}
+
+/**
+ * Whether [file], absolute, is in one of the [folders] (or is one): by the real
+ * paths of both (a link inside a folder to a place outside it is outside),
+ * their case ignored where [fs] says names fold it. A [file] with no real path
+ * is in none.
+ */
+export function inFolders(file: string, folders: readonly string[], fs: Pick<Desktop, 'realPath' | 'foldsCase'>): boolean {
+  const real = fs.realPath(path.resolve(file));
+  if (real === undefined) {
+    return false;
+  }
+  const norm = (p: string): string => (fs.foldsCase ? p.toLowerCase() : p);
+  const target = norm(real);
+  return folders.some((folder) => {
+    const resolved = path.resolve(folder);
+    const rel = path.relative(norm(fs.realPath(resolved) ?? resolved), target);
+    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+  });
 }

@@ -84,6 +84,24 @@ describe('where a widget was made', () => {
     assert.equal(code.split('\n').length, source.split('\n').length);
   });
 
+  it('ends an unclosed one-line string at its newline, which stays code', () => {
+    const code = codeOnly("a 'Text(\nvoid main() {}\n");
+    assert.equal(code, 'a       \nvoid main() {}\n');
+  });
+
+  it('does not end a string at a quote inside its interpolation', () => {
+    const source = [
+      "a '${m['k']} Text(' b",
+      '"x${xs.map((e) => \'y\').join()}Text(" c',
+      "'${f({'a': 1})}Text(' d",
+      "'''${g('''Text(''')}Text(''' e",
+    ].join(' ');
+    const code = codeOnly(source);
+    assert.equal(code.length, source.length);
+    assert.ok(!code.includes('Text'), code);
+    assert.deepEqual(code.match(/\b[a-e]\b/g), ['a', 'b', 'c', 'd', 'e']);
+  });
+
   it('finds the calls of a constructor in code, whatever their form, between two offsets', () => {
     const source = [
       'Widget build(BuildContext context) {', // 0

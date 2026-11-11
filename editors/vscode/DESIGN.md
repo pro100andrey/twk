@@ -35,11 +35,16 @@ says it was not.
   cell size, notifications, progress, pointer shapes, REP, links, the
   clipboard), for the apps that connect next; the screen reader and twk's
   debug aids switched on in them.
-- **The twk Inspector** (Run and Debug): the widget tree, followed as the
-  app changes; the pick mode, as Flutter's Select Widget Mode: while its
+- **The twk Inspector** (Run and Debug): the widget tree (or the render
+  tree, switched in its title), followed as the app changes; the pick mode, as Flutter's Select Widget Mode: while its
   button is pressed, each click on the terminal picks the widget under it
   and opens where it was made; where a widget was made, from the tree;
   the frame overlay, the repaint rainbow, the relayout highlight.
+- **The app's log** (the debug aid `logs`): the records the app serves
+  (`LogSink.serve()`, what `twk logs` tails in another terminal), in a
+  panel of the editor: time, level in its colour, message, error, and by
+  a click the stack, whose frames of code on the disk open in the editor;
+  the levels to show, a word to filter by, which app, pause, clear.
 - **The sequence log**: what the app wrote, decoded (each CSI, OSC, DCS,
   APC named, text runs, a synchronized update one frame), and what the
   terminal sent (keys, the mouse, the answers to the app's queries),
@@ -49,11 +54,33 @@ says it was not.
   `screenFrames`, and a recording (any of theirs too) played back in a
   terminal of its own, paused, a frame on or back.
 - **Copy the screen** as text.
+- **Golden screens**: the files of twk_test's `matchesScreenFile` in a
+  custom editor, the golden and the `<file>.actual` a failed test leaves
+  beside it (part 2g).
 
 ### Installing it
 
-Not on the Marketplace (`private`, no `vsce` package): it runs from the
-repository.
+Packaged, not published: `npm run package` in `editors/vscode` writes
+`twk-vscode-<version>.vsix` (vsce; the xtask task `vscode-package` builds it
+in the gate's copy and holds its file list), which VS Code installs with
+`code --install-extension`. It holds the compiled `out/` (no sources, tests
+or maps), the Marketplace page (README, CHANGELOG, LICENSE, icon) and of
+`node_modules` three files of xterm.js and its two addons, which the webview
+loads. No bundler: the extension host's code has no runtime dependency, so
+`tsc`'s `out/` is already self-contained, and the same files are what the
+tests and `--extensionDevelopmentPath` run.
+
+What a user outside this repository gets: the commands, the terminal with
+its switches, Run, Debug, F5, reload and restart, the sequence log,
+recording and replay work with any project that runs under `dart run` (the
+app finds the terminal by `TWK_SHELL`, which twk_core reads, in 0.2.0 too). The Inspector, the app's log and the debug aids need what the app's
+twk serves: the service extensions `ext.twk.tree`, `properties`, `layout`,
+`select`, `highlight`, `flags`, `reassemble`, `log` (twk's binding), the
+`logs` debug aid (`TwkApp.serveLogs`) and `TWK_EDITOR`; all of them are in
+the published twk 0.3.0 (checked against the `twk_core-v0.3.0` tag), so a
+project on pub.dev's twk >= 0.3.0 gets everything, and the extension needs
+no checkout of this repository. An older twk lacks some of them and those
+parts find nothing to ask. From the repository:
 
 ```sh
 cd editors/vscode
@@ -66,8 +93,17 @@ With Dart-Code installed for Debug and F5 (Run needs only the Dart SDK).
 `--user-data-dir` and `--extensions-dir` give it a profile of its own.
 After a change to the extension, `npm run compile`, then **Developer:
 Reload Window** in the window that runs it (the apps it runs end with
-it). The inspector and the debug aids take the twk of this repository in
-the app.
+it).
+
+**Publishing** is the person's, with their accounts and tokens; nothing in
+the repository does it. The `.vsix` is what both take: the Marketplace
+(`npx vsce publish`, a publisher created at marketplace.visualstudio.com
+and a personal access token with the Marketplace "Manage" scope; the
+`publisher` in `package.json` is `twk` and must be that publisher's id) and
+Open VSX (`npx ovsx publish twk-vscode-<version>.vsix -p <token>`, a
+namespace `twk` created with `npx ovsx create-namespace twk`). The version
+in `package.json` and the top of `CHANGELOG.md` move together; `preview` is
+set in `package.json`, drop it when the extension is no preview.
 
 ### Using it
 
@@ -82,13 +118,24 @@ Open a Dart file of a twk app and run a command (Ctrl+Shift+P, "twk"):
 | twk: Open twk Terminal for Any App | a terminal that shows the `TWK_SHELL=...` an app started anywhere takes it with |
 | twk: Choose twk Terminal Capabilities | a preset, or each switch; the next app gets them (a hot restart is offered) |
 | twk: Choose twk Terminal Switches | the screen reader and the debug aids, for the next app |
+| twk: Show the Log of the twk Apps (Levels, Filter, Pause; the Debug Aid logs) | the panel of the apps' logs (below) |
 | twk: Show the Sequence Log of the twk Terminal | the log of the terminal (title bar button) |
+| twk: Save the Sequence Log of the twk Terminal to a File | the log saved for a bug report: text rows, or a `.cast` (below, "The sequence log"); also the log panel's **Save…** button |
 | twk: Record the twk Terminal as asciicast (Start or Stop) | record the terminal to a `.cast` file; again to stop (title bar button) |
 | twk: Stop Recording the twk Terminals | stop every recording (also a click on `REC` in the status bar) |
 | twk: Play a Recording (asciicast) in a twk Terminal | play a `.cast` back (also the explorer's menu on a `.cast` file) |
+| twk: Leave a Marker in the Recording of the twk Terminal | while recording, an `m` event `marker <n>` at this time, a place for the replay's `]` and `[` to go to |
+| twk: Type a Recording's Keys into the App in the twk Terminal | the recording's keys (its answers left out) typed into the app of the active twk terminal, at their times or a step each time the status bar item is clicked (also the explorer's menu on a `.cast` file, the replay bar's Keys button) |
+| twk: New Project (twk create) | three picks (the template with its description, the folder, the files for coding agents) and `twk create <dir> --template ... --agents ...` with flags, never its prompts; offers to open the project |
+| twk: Install Agent Skill (twk agents) | `twk agents` in the active file's project (else the workspace's): what it wrote, removed and left (a file the person changed) is shown, the whole in the output |
 | twk: Copy the twk Terminal's Screen as Text | the screen on the clipboard (title bar button) |
 | twk: Show twk Output | the extension's log: the app's own output, reloads, errors |
+| twk: Show the Terminal Report (what the twk terminal tells and answers an app, and twk doctor's project part) | the panel of the report (below, "The terminal report") |
 | twk: Pick Widgets in the twk Terminal (the twk Inspector's $(inspect) button) | the pick mode on: each click on the app's terminal picks the widget under it, opens where it was made; the button pressed (filled) until twk: Stop Picking Widgets, or Escape in the terminal |
+
+The status bar shows the active twk terminal as `twk 44x7 · xterm.js · overlay`
+(its size, profile and switches on); a click opens twk: Choose twk Terminal
+Capabilities.
 
 "The twk terminal" of a command is the active one: the panel focused, or
 else the newest open (a replay among them, but recording takes an app's
@@ -98,6 +145,54 @@ panel. The settings are under `twk.` (`twk.terminal.profile`,
 `twk.terminal.debugAids`, `twk.terminal.columns` and `lines` for a fixed
 size, `twk.hotReloadOnSave`); keep Dart-Code's `dart.hotReloadOnSave` at
 `never`, or both reload.
+
+**The app's log.** Switch the debug aid `logs` on (twk: Choose twk
+Terminal Switches) and the next app the extension runs or debugs serves
+its log (`TWK_DEBUG=logs`, `LogSink.serve`, which writes the socket's
+address and token to the project's `.dart_tool/twk/logs`). The extension
+connects to it as `twk logs` does, once the app's VM service is up, and
+follows the terminal's apps one after another (a hot restart, a new
+run in the same terminal) until the terminal is closed. A project is followed
+once: the `logs` file names the latest app's address only, so two terminals
+of one project share one followed app (named for the first), shown once,
+which ends with the last of them. twk: Show the Log
+of the twk Apps opens one panel beside the editor for all the apps
+followed. A row: the time (`09:05:07.042`), the level (debug, info,
+warning, error: coloured), the app (when it is not the only one), the
+message and `: error`; a click opens its stack, and a frame that names a
+file (`file:` or `package:`, the latter by the project's
+`package_config.json`, looked for up the directories for a workspace's)
+opens that line in the editor. Notes (`connected to the log of the app`,
+`the app ended`, `the terminal of the app was closed`) are rows too. The
+bar: the levels to show, which app, a word (the message, the error or
+the stack), Pause (what comes meanwhile is held and counted, shown on
+Resume), Clear (the extension's rows too). The extension keeps the last
+5000 rows of all the apps, so a panel opened later shows them; a line
+that is no record of this version is a row of its own at the level info,
+as `twk logs` prints the line itself. Not done: an app started by a
+shell (not the extension's) is not followed, as the `logs` file is of the
+project and one app at a time; the aid is read when the app starts, so
+switching it on later takes a hot restart.
+
+**Opening code from the app.** The app's console (Ctrl+G c) opens a
+frame of a stack with twk's `editorCommand`, which reads `TWK_EDITOR`. The
+apps the extension runs or debugs get `TWK_EDITOR` set to VS Code's own
+command line (`"<bin>/code" -r -g {file}:{line}:{column}`, found from
+`vscode.env.appRoot` by platform: `<install>/bin/code` on Linux and
+`<install>\bin\code.cmd` on Windows, two directories above the
+`resources/app` that appRoot is, `<appRoot>/bin/code` on macOS; plain `code`
+for the `PATH` where the file is not there; `src/core/editor.ts`), unless the launch's `env` or the extension's environment already names one.
+It is the environment of the app's process, not a message of the shell's
+wire: the terminal does not name a command for the app to run
+(`Terminal.settingNames` leaves `TWK_EDITOR` out on purpose), so the wire and
+its golden are unchanged. An app started anywhere else (the "any app"
+terminal) sets its own `TWK_EDITOR`. Also, an OSC 8 `file:` link of the app
+(no host or `localhost`, `#L12` or `#L12C3` for the place) in a folder of the
+workspace opens at its line when clicked; one outside the folders, on
+another host, or of any other scheme than http, https and mailto stays
+refused. Not run in a real VS Code: the `bin/code` started from the
+extension host (`npm test` would need an app that opens a frame, and the
+CLI's window).
 
 **The sequence log.** A panel beside the terminal, a row each: the time
 (seconds since the terminal opened), the direction (`→` what the app
@@ -120,6 +215,29 @@ opened, even before the log was (its probe and modes; the last 4 MB of
 bytes, decoded when it is opened, the last 20000 entries, a frame's
 first 2000), one log per terminal, a replay's too.
 
+**Saving the log** (the bar's **Save…**, or twk: Save the Sequence Log): asks
+for a file and writes it by its extension. Any name but `.cast` gets the
+rows as text, laid out as `twk decode` prints them (`    0.012  out CUP
+cursor to row 3, column 5   ESC [3;5H`, a frame's own rows indented below
+it), only those the bar's filter shows now (directions, text runs, the word;
+a frame with the rows that match the word, all of them when its own row does).
+A `.cast` gets the bytes with their times as asciicast v2, `core/cast.ts`'s
+`CastWriter`, which `twk decode`, `twk play` and the replay here read: what the
+app wrote as `o` events, what the terminal sent as `i` events, and each note
+(an app came or went, a size, the extension's own lines) as an `m` event, which
+`twk decode` prints as `marker ...` and a player can go to. The header has the
+terminal's size now, its name, the log's beginning as the timestamp, `TERM`
+and `idle_time_limit` 2; the times are the log's real ones (not cut: a player
+applies the limit). The direction toggles of the bar apply to the bytes too
+(no `o` events when the app's rows are off, and so on); the word and the text
+runs do not, as a byte stream cut by what a decoder named in it would break its
+sequences. Both hold what the log holds: Clear forgets the bytes behind it too,
+and the last 4 MB of bytes and 20000 entries are all there is. The command
+takes the file as its argument and `{ format: 'text' | 'cast', filter }` as the
+second (a test passes them in place of the dialog); without a filter it uses
+the one the log's webview last told (`shown`), the whole log before it did.
+Code: `core/seqlog_save.ts` (`logText`, `logCast`), `LogPanel.text` and `.cast`.
+
 **Recording.** twk: Record asks where (`counter.cast` in the workspace
 folder by default) and records from then on: what was written to the
 terminal (`o`), what it sent (`i`: the keys, and the answers to the app's
@@ -139,28 +257,221 @@ twk_test's `screenFrames` over its `Cast.writes` makes a test of it.
 **Replay.** twk: Play a Recording opens a terminal of its own at the
 recording's size (`counter.cast · twk replay 80x24`) and plays what was
 written, each pause cut to the recording's idle limit; what the
-recording typed is not replayed, and what the replay's terminal answers
-goes nowhere. Its bar, under the terminal: from the start (Home or `r`),
+recording typed is not replayed in it, and what the replay's terminal answers
+goes nowhere (to type the keys into a live app, see "Replay input into an app"
+below). Its bar, under the terminal: from the start (Home or `r`),
 a frame back (Left or `,`), play or pause (Space), a frame on (Right or
-`.`), and where it is (`frame 3/42 · 1.25 s / 5.20 s`). A frame is what
+`.`), Test and Keys (below), and where it is (`frame 3/42 · 1.25 s / 5.20 s`). A frame is what
 `screenFrames` takes for one: an output event that leaves no synchronized
 update open. A frame back starts the terminal again (RIS) and writes the
 frames before it at once. Played to its end, Play starts it again.
 
+**Replay input into an app.** twk: Type a Recording's Keys into the App in
+the twk Terminal (the palette, a `.cast` file's menu in the explorer, or the
+**Keys** button of a replay's bar) types the keys of a recording into the app
+running in the active twk terminal (an error says so where no app is
+connected), to reproduce what the recording shows: bring the app to the state
+the recording began in, then replay. Asked, it offers **At their recorded
+times** (the first keys as long after the start as the recording had them after
+its first output, each next as long after the keys before, the pauses already
+cut to the idle limit) or **Step by step** (nothing is typed until the status
+bar item `$(keyboard) counter.cast 0/12` is clicked, or twk: Type the Next
+Keys of the Recording is run; its tooltip shows the keys to come). The item
+of a timed replay stops it when clicked (twk: Stop Typing a Recording's Keys).
+One replay at a time: starting another ends the one before. It ends after the
+last keys, when stopped, when its terminal is closed, and (timed) when the app
+has gone away, saying why in the status bar. Keys of the person typed meanwhile
+are not held back: they reach the app between the recorded ones.
+
+What is typed is the recording's `i` events with the terminal's answers to the
+app's queries (device attributes, mode reports, colours, the cursor position,
+the kitty flags...) taken out: an event holds both and nothing in it tells
+them apart, so they are told by their shape, as `twk record --replay` does
+(`core/replay_input.ts`; the rule is in `packages/twk_dev/doc/record-play.md`,
+and the unit test holds the same cases as twk_dev's `replay_test.dart`). The
+cutting of the bytes into sequences is the sequence log's `SequenceReader`
+(`core/sequences.ts`), not a third reader. `CSI row ; column R` is an answer
+only once the app's output had a `CSI 6 n` and none was answered since (else
+it is the modified F3), a paste is keys whatever it holds, a sequence cut
+between two events is put together and typed at the time it ends, and what
+still waits at the end (an Alt+`]`) is keys. The terminal in front of the app
+answers its queries itself, as it did when recording. Not done: the
+`--replay-speed=asap` of twk_dev (keys when the app has been quiet); a
+recording's resizes (`r`) are not replayed, the terminal keeps its size; a
+replay's own terminal takes no keys (any twk terminal with an app connected
+does, one started by a run or by "any app").
+
+**Selection, copy and paste.** xterm.js selects with a drag when the app
+does not take the mouse, and with Shift held when it does (Option on macOS
+only where `macOptionClickForcesSelection`, which is not set). Nothing copies
+by itself. The webview's key handler (`webview/clipboard_keys.ts`, before the
+kitty encodings) takes Ctrl+Shift+C or Ctrl+Insert (Cmd+C on macOS) as copy (told by the key's
+place, `KeyC`, so a Russian layout copies too):
+the selection goes to the extension as the `clipboard` request and onto VS
+Code's clipboard (`Desktop.writeClipboard`); nothing is sent when nothing is
+selected. Ctrl+Shift+V or Shift+Insert (Cmd+V) is paste: the webview sends
+`paste`, the extension reads VS Code's clipboard (`Desktop.readClipboard`) and
+answers `paste` with the text, which `Terminal.paste` of xterm.js types: lines
+ended by CR, between `ESC [ 200 ~` and `ESC [ 201 ~` where the app set mode
+2004; `ESC [ 200 ~` and `ESC [ 201 ~` in the clipboard's text are removed
+(`withoutPasteMarkers`), or an end marker in it would hand the rest to the app
+as keys; a clipboard that can not be read is logged and noted. The page's own clipboard (`navigator.clipboard`, the browser's paste
+event) is not used: it needs a permission and a focus the iframe may lack, and
+the browser's paste is stopped (`preventDefault`) so a text is not pasted
+twice. Ctrl+C and Ctrl+V are the app's (^C, ^V), as in terminals; a
+selection is not copied by Ctrl+C. Not run: the keys themselves (the test
+sends the messages the page would), a drag.
+
+**Keys VS Code would take.** A key typed in a webview reaches xterm.js, which
+sends it to the app, and is also handed to the workbench, which runs its
+command (Ctrl+P: quick open over the terminal; Ctrl+W: the editor closed, and
+with it the app). The extension cannot stop the page's key from going on, but
+it can put a binding of its own over VS Code's: `package.json` binds
+Ctrl+W, G, N, F, R, T, O and Ctrl+Shift+C to `twk.keyToApp` (declared, hidden
+from the palette), a command that does nothing, `when`
+`activeWebviewPanelId == 'twk.terminal'` (an extension's binding beats a
+default one for the same key); a user's own `keybindings.json` still wins.
+These are the keys VS Code's own integrated terminal sends to the shell (its
+`terminal.integrated.commandsToSkipShell` does not list their commands) and a
+terminal app needs. The keys it keeps for VS Code there are kept here:
+Ctrl+P and Ctrl+E (quick open), Ctrl+Shift+P and F1 (the palette), Ctrl+K
+(the chords), Ctrl+B and Ctrl+J (sidebar, panel): taking those is a choice for
+the person (a `-workbench.action.quickOpen`-style rule in `keybindings.json`,
+or a binding of `twk.keyToApp` to the key with that `when`). On macOS these
+Ctrl keys are not VS Code's (it uses Cmd), so there is no `mac` entry. Which
+keys can not be had: those of the window's menu, which Electron takes before
+any page (Ctrl+Q on Linux, Alt+F4, Ctrl+Shift+W, Ctrl+Shift+N, F11,
+Ctrl+Shift+I), the OS's, and Ctrl+Tab and Ctrl+PageUp/Down. Not run in VS
+Code: that a key reaches the app and not the command, which only a keyboard
+shows; the test holds the bindings and the command.
+
 **Copy the screen**: the rows the terminal shows now, without the blanks
 that end them or the blank rows at the bottom, as plain text (no colours).
 
+### New Project and Install Agent Skill
+
+`app/create.ts` runs `twk create` and `twk agents` through `runTwk` and
+`twk.command`, as every twk command here; `vscode/create.ts` is the picks and
+messages. They decide nothing: the templates and their descriptions are what
+`twk create --list` prints, the files for agents are `--agents` values the CLI
+validates, the folder is refused by the CLI when it is not empty (the editor
+asks for a subfolder name when the picked one is not), and what `twk agents`
+did is its own text.
+
+How twk_dev is run, where the workspace has none: `dart run twk_dev:twk` (the
+default of `twk.command`) needs a `pubspec.yaml` in the working directory that
+depends on twk_dev (it says "Could not find package `twk_dev`" or "Found no
+`pubspec.yaml`" otherwise). A new project is made where there is none, so, when
+`twk.command` is that default and the folder's own files say it has no twk_dev
+(`core/twk_dev.ts`: no `pubspec.yaml` above it, or neither its
+`.dart_tool/package_config.json`, nor the workspace's, holds twk_dev nor its
+`pubspec.yaml` names it), the command runs as
+`dart pub global run twk_dev:twk` (twk_dev activated on the machine) without
+a failing run first; dart's English words are read only as a last hint, for a
+folder whose files said nothing. The folder's name must be a package name as
+`twk create` derives and refuses it (lower case, other characters as `_`; a
+letter first; no reserved word, no package the app depends on), which the
+input box says before the third pick. Where
+that is not there either ("No active package twk_dev") the editor says so and
+offers **Activate twk_dev**, which opens a terminal with
+`dart pub global activate twk_dev` typed and not run: installing a package on the
+person's machine is theirs to confirm with Enter. The extension never installs
+anything, and never changes `twk.command` itself; a person who set it keeps what
+they set (no fallback then, only the message). Checked: `dart run twk_dev:twk`
+in a folder without a pubspec, and in one without twk_dev, fail with those words.
+
 ### Not done
 
-Packaging (`vsce`) and the Marketplace; macOS and Windows (written for,
+Publishing (below); macOS and Windows (written for,
 not run: TCP on the loopback interface on Windows); a person's use beyond
 the tests (keys VS Code takes before the webview: Ctrl+P, Ctrl+Shift+P
 while the panel is focused); kitty's graphics protocol (not in the image
 addon for xterm.js 6.0), ambiguous width 2 and bidi (part 3); the render
-tree in the inspector; the log saved to a file, or a recording's input
-replayed into an app; a recording's markers (`m`) shown as places to go
-to (they are read, and played over); a selection of the terminal copied
-(not tried).
+tree in the inspector; a recording's markers (`m`) shown as places to go
+to (they are read, and played over); keys of the window's own menu
+(below); the keys and the drag of the selection, and the paste, in a real
+person's hands (the tests drive what the page sends, not its keys).
+
+### `.tape` files
+
+The language `tape` (`.tape`; `syntaxes/tape.tmLanguage.json`,
+`language-configuration.json`, `#` the comment) with, over it:
+
+- hovers: the statement's documentation (`core/tape.ts`, the text of
+  `packages/twk_dev/doc/tape.md`; a `Set` tells its setting);
+- the lenses Run, Check and Preview over the first statement
+  (`vscode/tape.ts`), commands `twk.tape.run`, `twk.tape.check`,
+  `twk.tape.preview`;
+- `app/tape.ts`'s `Tapes` runs `<twk.command> tape [--check] <file>`
+  (default `dart run twk_dev:twk`) in the tape's project (the nearest
+  `pubspec.yaml`: the tape's paths are the current directory's), everything it
+  writes to the `twk` output, and reads the report with
+  `core/tape.ts`'s `parseCheck`: stdout's `<tape>:<line>: ok|FAIL <statement>`
+  and summary, the rest being stderr (`twk tape: <tape>:<line>: <message>` for
+  a tape that is wrong, `<tape>:<line>: Wait timed out ...` and the screen for
+  a failed check). The file is saved first, as what runs is the file. Both
+  this and the doctor start `twk` through `app/twk_command.ts`'s `runTwk`:
+  the process is a group of its own (`group`: a process group on POSIX,
+  `taskkill /T` on Windows), as `dart run` starts the VM as a child, and a
+  deadline (the doctor's 60 s) or a Cancel (the notification's, for Run and
+  Check) ends the group by SIGTERM, SIGKILL after 3 s. Once the leader has exited,
+`runTwk` polls the group (`AppProcess.groupAlive`: `kill(-pid, 0)`, every 50 ms);
+the moment it is empty the SIGKILL is dropped (an emptied group's id can be a
+new group's within the grace), and when the grace is over the group is
+SIGKILLed only if the last poll found it alive. The residual window, between
+that poll and the kill, is documented, not closed: it needs a group to empty
+and its id to be taken within one poll interval. On Windows nothing is
+signalled after the leader's exit (taskkill takes the pid alone, which may be
+someone else's), decided in one place, `core/process.ts`; and a failed group
+signal is not turned into a signal to the leader alone. A comment is told as
+  twk tape tells it (`commentStart`, a `#` or a quote only at the start of a
+  word);
+- diagnostics: a failed statement and the line stderr names, an error on that
+  line, from `twk tape` and from no parser of this extension. They come only
+  of a Run or a Check, as twk tape has no mode that only reads a tape (it
+  would run its program), and an edit of the file takes them away, as they
+  describe the text before it (a run that ends after an edit sets none: the
+  version of the text is compared); an error with no line puts its message on
+  line 1 of a run that failed;
+- Preview (`core/tape_preview.ts`): a webview with the stills of the
+  Screenshots, in the tape's order, then the SVG Outputs (the animated end), each
+  figure going to the line of its statement; a file not written yet says to Run.
+  It shows what Run wrote, and runs nothing itself. Its images are read from the
+  tape's project only (`localResourceRoots`).
+
+A tape's own tests are core's (`test/unit/core/tape.test.ts`: the statements,
+the report, the grammar's patterns compiled and tried) and app's (`Tapes`
+over a fake and over a real process); the language registered, the lenses, the
+diagnostics on a broken tape and the Check's result are in the real VS Code
+suite.
+
+### The terminal report
+
+`twk.showTerminalReport` opens one panel (`vscode/report.ts`): the terminal's
+part and the project's.
+
+- The terminal's part, `core/report.ts`'s `terminalReportOf`, is computed from
+  the functions an app is taken with (`environmentOf`, `switchEnvironment`,
+  `declarationOf`, `answersOf`), so it cannot say otherwise than the terminal
+  does; a unit test holds each preset's rows to `answersOf`. A row of the probe's
+  queries is `answered` (by xterm.js itself or by the extension), `not
+  recognised` (a DECRQM mode denied) or `no answer`. It reads the settings
+  at each render, and the panel renders again when a `twk.terminal.*` setting
+  changes.
+- The project's part is `twk doctor --json -C <project>` (`app/report.ts`'s
+  `Doctor`), run as the tape commands are, in the project of the active file
+  (else the first folder with a `pubspec.yaml`), with `twk.command` as
+  what `twk` is (a second setting would only repeat it); one ask at a time:
+  a new one ends the one running, and only the latest answer is shown. Exit 1 (the versions
+  disagree) is a report; output that is no report, a command that cannot
+  start and one that outlasts 60 s are `failed` in the page, with why.
+  `core/report.ts`'s `parseDoctor` checks each field and reads past a line
+  `dart run` wrote before the object. The doctor's own `terminal` section (the
+  probe of a tty) is null under a pipe and not used: this terminal is the
+  extension's, so the first part says it.
+- Refresh asks again; a setting's change does not (the project did not change).
+- The real VS Code suite opens the report from a file of `twk_dev`, and changes
+  the profile to see the panel follow.
 
 ## 1. Debugging a twk app
 
@@ -243,7 +554,7 @@ survives the app (restart, kill), and is the extension's to instrument.
 
 ## 2. The extension: `editors/vscode`
 
-A VS Code extension in TypeScript (no Marketplace publish, `private`),
+A VS Code extension in TypeScript (packaged as a `.vsix`, not published),
 whose terminals are xterm.js 6.0 in webviews, each served to its twk app
 by a port of `TerminalShell` to node. No node-pty: twk's socket terminal
 is the transport, so the app is started by anyone (the extension,
@@ -305,6 +616,14 @@ The code is in layers (part 2b); what each part does:
   terminal recorded), `src/app/player.ts` (a recording played back in a
   `TerminalView`), `src/app/screens.ts` (the screen a command takes, its
   text), `src/vscode/recording.ts` (the status bar's `REC`).
+- `src/core/app_log.ts`, `log_follow.ts`, `log_socket.ts`: the app's log
+  (part 2e'): the address file, a record, the frames of a stack and the
+  package configuration that makes them places of code, all pure;
+  following the log of a project's apps behind `LogEndpoints` (the file
+  and the socket), node's in `log_socket.ts`. `src/app/app_logs.ts`: the
+  apps followed and the rows kept (`AppLogs`), the panel over a
+  `WebviewPanelPort<ToAppLogs>` (`AppLogsPanel`, `AppLogsView`);
+  `src/webview/app_logs.ts`, `app_logs_protocol.ts` its webview.
 - `src/app/webview_view.ts` (the view, over a `WebviewPanelPort`),
   `src/vscode/panel.ts` (VS Code's panel as that port, and the page),
   `src/webview/main.ts`, `src/webview/protocol.ts`:
@@ -384,7 +703,8 @@ The code is in layers (part 2b); what each part does:
     Pick Widgets in the twk Terminal (Pick Mode On)** (pressed: **twk:
     Stop Picking Widgets (Pick Mode Off)**), **twk: Inspector Debug Aids
     (Frame Overlay, Repaint Rainbow, Relayout, Console)** and **twk:
-    Refresh the Widget Tree** in its title, **Go to Where the Widget Was
+    Refresh the Widget Tree** and **twk: Show the Render Tree** / **Show
+    the Widget Tree** (the switch) in its title, **Go to Where the Widget Was
     Made** on each node (inline and in its menu) and **Go to the Build
     Method** on a node that builds.
 
@@ -536,8 +856,44 @@ What the tests cover:
   image; with switches changed from `xterm.js`, 16 colours, no cell size,
   no progress (its OSC 9;4 dropped), no image addon, and the title saying
   so.
+- VS Code, the tooling features (without Dart-Code; `TWK_TEST_GREP=<mocha
+  pattern>` runs some tests only): the node view filled by a node
+  selected, the render tree switch (`twk.inspector.showRenderTree` and
+  back) with the counterpart of the node selected and shown in the node
+  view; `twk.showAppLogs` opening its panel and a warning logged by an
+  app run with the `logs` aid arriving in `appLogs` and in the panel's
+  `shown`; the `TWK_EDITOR` of an app run by the extension naming the
+  command line of this very VS Code, which exists and answers `--version`
+  (it is not run to open a file: the extension host has no
+  `VSCODE_IPC_HOOK_CLI`, so `code -r -g` from an app reaches the instance
+  of the default profile, which under a `--user-data-dir` of its own is
+  not the one that started the app); a `file:` link asked of a twk
+  terminal opening a workspace file at its line, one outside the
+  workspace and one through a symbolic link out of it refused (the
+  request is handed to the terminal as the webview hands it: the click on
+  a link is the page's); the code lenses (`vscode.executeCodeLensProvider`)
+  Run and Debug over a twk main, none over a plain Dart main or with
+  `twk.codeLens` off; a golden opened with `twk.openScreenFile` in a
+  custom editor of the `twk.screenFile` type (what the page draws, the
+  cell diff and Accept Actual are the webview's and not read).
+  The pick of a Box's border selects its `_DecoratedBox` (the render
+  object there is that widget's, made in `box.dart`): the inspector test
+  held the Box.
+- The packaged extension (`npm run test:installed`): the .vsix
+  (`dart run tool/xtask.dart vscode-package` writes
+  `.dart_tool/vscode/twk-vscode.vsix`, or `TWK_VSIX`) installed by
+  `code --install-extension` into an extensions directory of its own, VS
+  Code started on `packages/twk` with only that directory
+  (`src/test/runInstalled.ts`) and `suite/installed.test.ts` run against
+  the installed copy: it is in that directory with `out/` and the xterm
+  files and no `src/`, activates, registers every command of its
+  `package.json`, and runs the counter in a twk terminal (keys in, the
+  screen out), so a runtime file missing from the .vsix fails it (probed:
+  a .vsix without `xterm.js`). Packaging needs a path npm does not
+  redact: under a directory named like a session id, npm lists the
+  dependencies' paths with `***` and vsce packs no file.
 - Not done: a person using it (all of it is driven by the tests),
-  packaging (`vsce`), macOS and Windows, keys VS Code takes before the
+  publishing, macOS and Windows, keys VS Code takes before the
   webview gets them (Ctrl+P, Ctrl+Shift+P... while the panel is focused:
   not checked; nor that Ctrl+Alt+R typed in the panel reaches the key
   binding: the tests run the commands), kitty's encodings from a real
@@ -568,6 +924,7 @@ What the tests cover:
    kitty_keyboard.ts  switches.ts  vm.ts  hot.ts  runner.ts
    process.ts  events.ts  project.ts  inspect.ts  source_find.ts
    locator.ts  sequences.ts  seqlog.ts  cast.ts  cast_file.ts
+   tape.ts  tape_preview.ts  html.ts
 ```
 
 `webview/` is `main.ts` (xterm.js and its addons, the page's; a replay's
@@ -616,7 +973,7 @@ The ports (`src/app/ports.ts`), what the editor gives the use cases:
   switches changed), `HotContext` (the `twk.hotApp` key),
   `Clock` (`core/events.ts`: the save's debounce, the bounds of the waits
   for a VM service, the inspector's gap between askings of the tree).
-- `InspectorView` (`show` a tree or a message, `reveal` a node,
+- `InspectorView` (`show` a tree or a message, `showKind` the tree kind, `reveal` a node,
   `clearSelection`, `visible`, `onVisible`, `onSelect`), `SourceOpener`
   (`open` a place, the focus kept or not), `PickingIndicator` (the pick
   mode's button, `show` on or off) and `Notice` (`say` a line in the
@@ -918,6 +1275,40 @@ made in.
   among several calls says so in the status bar, for a pick too. **Go to
   the Build Method** opens the `build` of a node that has one, at its
   name (after `@override`).
+- **The node view** (**twk Node**, beneath the tree in Run and Debug,
+  `twk.node`): what `twk inspect`'s right pane shows of the node selected
+  in the tree or picked. `ext.twk.properties` (id, key, its render
+  object's id or, for a render object, its element's, the properties, the
+  flags) and `ext.twk.layout` (constraints as `w 0..40, h 0..5` (one
+  number for a tight axis, `inf` for no limit), size, offset in its
+  parent, place on the screen), asked by `Inspector.showDetails` for the
+  node selected by hand, the node a pick picked and again on each tree
+  asked, so a size that moved shows; none selected (the pick mode off, a
+  selection of none) or no app says so in the view. An element with no
+  render object has no layout: its properties are shown alone. It is a
+  TreeView of two sections (the node, named by its type; Layout), each
+  line a label with its value, and a line's value is copied by **Copy
+  Value** (`twk.node.copyValue`, inline and in the context menu), not a
+  webview: the lines are short pairs, and a TreeView has the theme, the
+  keyboard and the menu already. The tree's tooltip stays. Its port is
+  `NodeDetailsView`, the lines made by `core/inspect.ts`'s
+  `detailSections`.
+- **The render tree** (the title's switch, `twk.inspector.showRenderTree` /
+  `showWidgetTree`, the context key `twk.inspector.render`): the tree
+  view shows the widgets' elements (`ext.twk.tree`) or the app's render
+  objects (`tree=render`, whose nodes carry the `element` they are of,
+  where the elements' carry the `render` object), as `twk inspect`'s `t`.
+  The switch selects the counterpart of the node selected (`counterpartOf`:
+  an element's render object, the nearest below it where it has none of
+  its own; a render object's element), outlined and shown in the node view;
+  where there is none (the render root) nothing is selected. Following
+  (`twk.treeChanged`), selecting by hand, the outline and the node view
+  work as in the other tree. A pick selects the render object of the
+  widget picked (`ext.twk.properties` of the element `ext.twk.select`
+  gave) and opens the widget's code all the same, from the element tree
+  asked for it. A render object has no widget: **Go to** is not in its
+  menu, and the commands refuse, saying so. The tree shown is kept for
+  the next app (a restart); the view's description says `render tree`.
 - **Debug aids** (the view's title): the frame overlay, the repaint
   rainbow, the relayout highlight, the overflow marker and the log console, a pick of several
   as the app has them; kept for the terminal, and given again to the
@@ -939,9 +1330,12 @@ twk_core's frames, which the inspector does not change.
 
 Tests (unit, under node):
 
-- `core/inspect.test.ts` (5): the tree read, a node's fields, a version
+- `core/inspect.test.ts` (6): the tree read, the render tree and the
+  counterparts, a node's fields, a version
   or a shape it doesn't read refused, the select, flags and pick answers,
-  what a tree item says, the toggles' items. `core/source_find.test.ts`
+  what a tree item says, the toggles' items; and the node view's
+  answers (properties, layout: read, refused, constraints as text, the
+  lines laid out). `core/source_find.test.ts`
   (6): the builds above an element and its place among what each made
   (a child passed through a build, a build that makes none of the type,
   a component made by the build above it), comments (nested), strings
@@ -964,8 +1358,14 @@ Tests (unit, under node):
   ended with its app, armed again for a restart's once bound, forgotten
   with its terminal closed; a widget made in no build found: the build
   above opened and why said, none found said; a pick in another app's
-  terminal; the aids given again after a restart; an answer it can't
-  read said in the view. `core/hot.test.ts` also covers what the app posts
+  terminal; the aids given again after a restart; the render tree: the
+  switch selecting the counterpart each way (none for the render root),
+  followed, outlined, no code for a render object, a pick selecting the
+  render object and opening the widget's code; an answer it can't
+  read said in the view; the node view: a node selected or picked shown
+  with its layout, replaced, asked again on a tree, cleared with none
+  selected, with the pick mode off and with the app; an element with no
+  render object, a node gone. `core/hot.test.ts` also covers what the app posts
   and reloads passed on and the calls in the binding's isolate, and
   `app/hot_apps.test.ts` a run's, a debug session's and its restart's
   connections told.
@@ -1014,9 +1414,10 @@ Not done: a person using it; a real click in the webview (the tests
 type the SGR press the click would send; the webview's own pick, for
 the inline mode, is tested in its parts: the cell's and the cursor's
 arithmetic, the messages, the view's port, and against twk over a
-headless xterm.js, not clicked in a real webview); the render
-tree (`ext.twk.tree` `tree=render`) and `ext.twk.layout` in the view;
-a node's properties beyond the tooltip.
+headless xterm.js, not clicked in a real webview); the render tree
+in a real VS Code (its unit tests run over fakes, not against twk's
+answer); the node view in a real
+VS Code (`npm test`: `extension.test.ts` does not open it).
 
 ## 2e. The sequence log, recording and replay
 
@@ -1074,6 +1475,66 @@ decoder, a sequence cut between events too), a resize carried with the
 step after it; a step at its time on the `Clock`, the next once the view
 parsed it; back is RIS and the steps before at once.
 
+**Markers** (`castMarkers`, `markerLabel` in `core/cast.ts`; `twk.addMarker`):
+an `m` event is a place to go to, as in `twk play` (packages/twk_dev's
+play.dart, doc/record-play.md). Each step records `end`, how many events it
+has taken in; a marker is *at* the number of steps that end before it, so
+several can stand on one step, one at the start (at 0) and one after the
+last. `]` and `[` (and the bar's buttons, the player's `nextMarker` and
+`previousMarker` controls) go by marker *index*, each marker a stop: paused,
+`seek(at)`, with a pin on the index so that the markers on one step are told
+apart while the screen stays; any other move (a frame, play, restart) drops
+the pin, and the markers reached are those at or before the screen. None
+before the first or after the last leaves the screen where it is. A click on
+the track's tick is the `marker` message (its index from 1), `onMarker`, and
+`Player.goToMarker`. `PlayerState` carries `markers` (labels cut by
+`markerLabel` as the status line of `twk play` cuts them: control characters
+blanked, 40 characters) and `marker` (reached) only for a recording that has
+markers. The labels come from a file: the webview sets them as text and as
+a `title`, never as HTML. `twk.addMarker` (enabled while `twk.recording`)
+leaves `marker <n>` in the active terminal's recording
+(`Recording.mark()`, written after the preamble), as `twk record
+--marker-key` labels them.
+
+**Replay input** (`core/replay_input.ts`, `app/replay_input.ts`,
+`vscode/extension.ts`'s `twk.replayInput`): `replaySteps` makes of a recording's
+`i` events the keys to type, each at its time (`ReplayStep`, as twk_dev's), the
+answers told from keys by `InputSplitter`'s shapes over core's
+`SequenceReader`, the app's `CSI 6 n` queries counted from the `o` events. A
+control inside a CSI, which the reader puts before it, is typed with its CSI
+as the bytes were; the other tokens of the event are told as usual. The
+replay's listener is disposed at its end, at a new replay and at deactivate
+(no word to a closing window).
+`InputReplay` (app) types a step into an `InputTarget` (`TwkTerminal.type`: the
+sequence log and a recording of that terminal see the keys as typed ones, the
+app gets them through its shell) on the `Clock`, either each at its recorded
+time counted from the recording's first output and from the moment it began
+(so a late timer, or a `step()` taken ahead, moves no other step), or one on
+`step()`; it ends `done`, `stopped`, `the terminal was
+closed` or `the app went away`. The command takes the file and the mode as
+arguments (a test and the bar's button pass them), asks for them otherwise;
+the status bar item and the context `twk.replayingInput` follow its state.
+The bar's **Keys** is the player's `input` control, passed on as
+`onDidAskInput` like Test.
+
+**A test of a recording** (`app/cast_test.ts`, `twk.testFromCast`): the
+replay bar's **Test** button (the player's `test` control, which it only
+passes on as `onDidAskTest`) and the explorer's menu on a `.cast` run the
+one command, which asks `twk test-from-cast <file>` of `runTwk` (the same
+`twk.command`, process group, deadline of 2 minutes and Cancel as the tapes'
+and the doctor), in the recording's project (the nearest `pubspec.yaml`:
+the command copies the recording to that project's `test/` and writes
+`test/<name>_test.dart`). There is no generator in TypeScript: the checks
+are twk_dev's `castTestSource` (a line of the screen at each marker of the
+recording, the last screen where there are none), so a replay stopped at a
+frame does not choose the frame checked; the command has no option for one.
+`CastTests` reads `wrote <test> and <cast>` from its output, anything else
+it said (the notes) is shown as a warning, and the test is opened. Tests:
+`cast_test.test.ts` over a fake process (the arguments, the directory, the
+files, why none), the player's and the protocol's control; in the real VS
+Code suite "a test made of a recording" (the command, and the bar's
+control, in a project of its own; not run by the author).
+
 **The golden** `packages/twk_dev/test/cast.golden.json` (made by running
 cast.dart on its inputs): what a `CastWriter` writes for a header and
 events given as microseconds and hex bytes (a session with a pause cut,
@@ -1096,6 +1557,12 @@ Tests (unit):
   update begins and ends; the bytes shown.
 - `core/seqlog.test.ts` (3): entries, a frame of an update with its own
   and its summary, one across reads, the limits.
+- `core/seqlog_save.test.ts` (7): the text rows as `twk decode` lays them out,
+  the filter (direction, text runs, word, a frame's matching rows), controls
+  blanked; the asciicast (header, `o`/`i`/`m` at their times, read by
+  `parseCast`, decoded again into the same entries, a direction left out, a
+  character cut between reads); in `log_panel.test.ts` the panel's text and
+  cast, the webview's filter, Clear, the Save button.
 - `app/log_panel.test.ts` (6, with `screens`): nothing sent before
   `ready`, then all, then at most every 100 ms; the extension's lines and
   the sizes as notes; clear; a webview loaded again; the terminal's end;
@@ -1104,7 +1571,8 @@ Tests (unit):
 - `app/recording.test.ts` (5): the header, output, input and sizes at
   their times, a pause cut; begun on the alternate screen; one at a time,
   the title; ended by the terminal's end; a sink that fails.
-- `app/player.test.ts` (4): at its size, each frame at its time, the idle
+- `app/player.test.ts` (4 + 4 with markers: the labels, `]` and `[` through
+  every stop, the bar's and the track's moves, paused from playing): at its size, each frame at its time, the idle
   limit, the bar's state; pause, on, back, from the start by the bar and
   by keys, the replay's answers going nowhere; to its end and again; a
   view that came back empty.
@@ -1118,6 +1586,17 @@ Tests (unit):
   the log names the frames, the keys and the alternate screen left. The
   counter writes each frame in one event, so the golden is what holds that
   the steps follow synchronized updates.
+- `core/replay_input.test.ts` (9): a control inside a CSI with the answers of its event; the answers left out of an event that holds
+  both (DA1/DA2, DECRPM, kitty flags, DSR, size, OSC, DCS, APC); every key kept
+  (cursor, tilde, kitty, SS3, focus, the mouse, Alt); a cursor position told
+  from the modified F3 (asked or not, one answer for one query, a query cut
+  between writes, `CSI ? r;c R`, a key giving the queries up); a sequence cut
+  between events; what waits at the end is keys; a paste whole; which keys the
+  app reacted to; a recording without keys.
+- `app/replay_input.test.ts` (8, on a fake clock): the keys at their times
+  from the first output, no drift after a late timer or a step taken ahead, a step each time asked and none by
+  itself, a step taken early in a timed replay, stopped, ended by the terminal
+  closing and by the app going away, a recording without keys.
 - `protocol.test.ts` and `webview_view.test.ts`: the player's and the
   log's messages, the bar's controls, `isActive`.
 
@@ -1126,20 +1605,99 @@ replay, the screen copied"): the counter run; twk: Show the Sequence Log;
 its webview's rows (`shown`) with `key Up` and the app's `text "1"` after
 it; the log beginning with the app's start (`DECSET 1049`, a frame, the
 probe's DA1 and the webview's answer); twk: Copy the Screen, the
-clipboard's text the screen's (`│ Count: 1 │`); twk: Record to a file,
+clipboard's text the screen's (`│ Count: 1 │`); twk: Save the Sequence Log to a text file and to a `.cast` (the key and the app's output in them; not run by the author); twk: Record to a file,
 the title `● recording`, Up, twk: Stop Recording, the header as cast.dart
 writes it, the key in it; q; twk: Play: the replay's terminal at the
 recording's size, played to its end on the alternate screen
 (`Count: 2`), a frame back (`Count: 1`) and on; the screen of the replay
-copied.
+copied; "types the keys of that recording into a new run of the app" (not
+run by the author): the counter run again, `twk.replayInput` of the file in
+`steps` (nothing typed, `Count: 1` after `twk.replayInputStep`, ended `done`),
+in `timed` (`Count: 2` by itself), a stop, and ended by the terminal closing.
 
-Not done: a person using it; the log's filter, pause and frames opened
+Not done: a person using it; the Save… button clicked and the save dialog (the test passes the file); the log's filter, pause and frames opened
 are the webview's, run in VS Code but not driven by a test (the test
 reads what it shows); the bar's buttons clicked (the test sends their
 messages); a recording with Dart-Code's debug session (its redraw is
 `HotApp.redraw`, the same as a run's, run in the inspector's tests); a
 replay of `twk tape`'s or `twk record`'s files in VS Code (the golden and
 the counter's recording are of the same format).
+
+## 2e'. The app's log
+
+What `twk logs` does (twk_dev's `lib/src/logs.dart`), in the editor.
+
+**The protocol** is twk_core's, not the extension's (`LogSink.serve` in
+`lib/src/log.dart`, `LogServer` in `lib/src/platform/log_server.dart`):
+the address file `<project>/.dart_tool/twk/logs` holds the place
+(`unix:<path>` or `tcp:<host>:<port>`) and the token on two lines
+(`core/app_log.ts` `parseAddressFile`, as `address.ts` reads TWK_SHELL); a
+client sends the token and a line feed and gets the records kept, one
+line of JSON each (`LogRecord.toJson`: `time` in local time ISO 8601,
+`level`, `message`, and `error` and `stack` as text where there are),
+then each record as it is added. The aid `logs` is what makes an app
+serve it (`TwkApp.serveLogs`), and the extension's switches already set
+it in the welcome's `TWK_DEBUG` (part 4, item 2).
+
+**Choices.**
+
+- *Reuse.* twk_dev's `formatRecord` writes a record as ANSI text for a
+  terminal; the panel needs the parts (a coloured level, a stack that
+  can be clicked), so the extension reads the JSON itself
+  (`parseRecord`, `formatTime` as `LogRecord.formatTime`) and reuses
+  the shape of the sequence log's panel (the panel port, the 100 ms
+  batching, `ready` then everything, `shown` for the tests) rather than
+  its code.
+- *One panel for all apps*, with a choice of the app, not one per
+  terminal as the sequence log's: a log is read across a restart and
+  between a server and its client, and a panel for each would
+  have to be found again. Rows are kept in `AppLogs`, not the
+  webview, so a closed panel loses nothing.
+- *Followed per terminal, not per run.* The address file is the
+  project's and one app writes it at a time, so a follower
+  (`LogFollower`) per twk terminal polls it every 200 ms, as `twk logs`
+  does, connects to the address it holds, and on the app's end waits for
+  an address it has not used (a stale file left by an app that was killed
+  is tried and refused, then tried again each time the poll finds it). A
+  hot restart or a debug restart is the next app of the same terminal.
+- *Started by the VM service connection* (`HotApps.onApp`, the same
+  moment the inspector attaches), when the aid `logs` is on in the
+  settings; the project is the app's (`Hot.project`).
+- *Stack frames.* The VM's lines (`#0 f (file:///x.dart:3:4)`, `package:`
+  ones too) and package:stack_trace's (`package:a/b.dart 3:4  f`) are
+  parsed; a `package:` frame is resolved through the project's
+  `package_config.json` (the nearest above, a workspace's included) and
+  opens by `SourceOpener`, the inspector's. `dart:` frames and lines with
+  no place are shown, not links. The webview asks to open `(row, frame)`
+  and the extension holds the places, so a message from the page cannot
+  name a file.
+
+**Tests.** `core/app_log.test.ts` (the address file, the record and a line
+that is none, frames of both formats, the package configuration relative,
+absolute and unknown, the filter), `core/log_follow.test.ts` (the follower
+on fakes and a fake clock: wait, connect, lines, the next app, a refused
+address, dispose also while connecting; node's endpoints on a real file
+and a real Unix socket: the token first, lines cut between reads, a
+refused connection), `webview/app_logs_protocol.test.ts`,
+`app/app_logs.test.ts` (the aid, one follow per terminal, rows with
+levels, error, stack and notes, restart and close, two apps of one name,
+frames opened, a workspace's package configuration, the 5000 bound, the
+panel: nothing before `ready`, batching, apps, clear, a second `ready`)
+and `app/app_logs_twk.test.ts`, against a real Dart app serving its log
+with `LogSink.serve` in a project of its own (`dart` with the
+workspace's package configuration): its kept record, the ones added with
+error and stack, a `package:twk_core` frame opened at its file, the end,
+and the next app of the terminal.
+
+**In VS Code, not tested** (`npm test` is in no gate, and no test of it
+was added): that the page loads under the webview's content security
+policy and draws (the levels' colours, the stack's links), the filter,
+pause and clear buttons, a click on a frame opening the editor at the
+line, `twk.showAppLogs` from the palette, and the aid switched on in
+settings reaching a real run or debug session. The unit tests send the
+messages the page sends and check the extension's side; the page itself
+(`webview/app_logs.ts`) is DOM code run in no test, as the sequence
+log's is.
 
 ## 3. What a terminal can declare, and what the extension can emulate
 
@@ -1360,10 +1918,35 @@ What the repository offers for the wished features:
 ## 5. Scope
 
 - **The twk terminal**: one panel per debug session (`TWK_SHELL`), a
-  launch configuration (`"type": "twk"`, part 2). Left: a "Debug in twk
-  Terminal" code lens, a status bar with the size and profile, copy and
-  paste, focus and the keys VS Code would take, theme colors following
-  VS Code's, OSC 52 to the clipboard.
+  launch configuration (`"type": "twk"`, part 2), the code lenses "Run in
+  twk Terminal" and "Debug in twk Terminal" over a twk app's `main`
+  (`core/main_find.ts`: a top-level `main` in a file importing a twk
+  package that calls `runApp(` or names `TwkApp`, found in the text with
+  comments and strings blanked, no analysis server; a `main` that hands
+  over to another file is not found; `twk.codeLens` turns them off; they
+  stand beside Dart-Code's Run | Debug, which cannot tell a twk app).
+  Theme: the terminal's colours are VS Code's terminal colours
+  (`webview/theme.ts`: `terminal.background` and `foreground`, falling
+  back to the editor's, the cursor, the selection, and the 16
+  `terminal.ansi*`, read from the `--vscode-terminal-*` variables of the
+  page; a colour VS Code leaves unset is xterm.js's own), taken again
+  when VS Code sets the variables (a MutationObserver on the root
+  element's style and class), and xterm.js answers the apps' OSC 10 and 11
+  with that theme, so twk's light/dark detection sees the real background;
+  the extension answers nothing itself. Unit tests of the mapping
+  (`theme.test.ts`); the answer changing with the colour theme is a test in
+  VS Code (not run in the tests of the commit that added it).
+  The status bar item of the active terminal (`twk 44x7 · xterm.js ·
+  overlay`: the size, the profile with the switches changed, the switches
+  on; the panel focused, else the newest; hidden with no terminal open; a
+  click is twk: Choose twk Terminal Capabilities): `app/terminal_status.ts`
+  over a `TerminalStatusSink` port, `vscode/terminal_status.ts` its item,
+  refreshed when a terminal is made, closed, retitled (a resize, the
+  settings, an app coming or going) or its panel gains or loses the focus
+  (`onDidChangeActive` of the view, VS Code's `onDidChangeViewState`). Unit
+  tests over a fake sink; the item itself is in the real VS Code suite.
+  Left: copy and paste, focus and the keys VS Code would take, OSC 52 to
+  the clipboard.
 - **Capability switches** (part 3), but for ambiguous width 2 and bidi
   (part 3 says why) and kitty's graphics protocol (not in the image addon
   for xterm.js 6.0). The screen reader and the debug aids (part 2).
@@ -1378,3 +1961,47 @@ What the repository offers for the wished features:
 Left for later: kitty keyboard's flags beyond disambiguation (event
 types, all keys as escape codes, alternate keys, text), the
 external-terminal flavour of B (`twk shell` already is).
+
+## 2g. Golden screens
+
+twk_test's `matchesScreenFile` keeps a screen in a text file (a layer of
+text, a layer of styles of a character a cell, a legend:
+`packages/twk_test/lib/src/screen_file.dart`). The extension draws one as
+the screen it is.
+
+- **Where the actual screen is.** twk_test did not keep it: a failure
+  said the differing rows in its message only. It now writes the screen it
+  saw, as the file would hold it (the legend's characters kept, as
+  `TWK_UPDATE_GOLDENS=1` writes it), to `<file>.actual` on a mismatch and for
+  a missing file, and removes it on a match and on an update
+  (`actualScreenFilePath`, twk_test's CHANGELOG). Chosen over a message to
+  parse: the file is the same format, and the editor reads it by the same
+  code. It leaves a file in the test tree, so a project ignores
+  `*.txt.actual`.
+- **Staleness.** An `.actual` older than the golden (the golden changed
+  after the run) is ignored and said so (`stale`).
+- `src/core/screen_file.ts` (pure): the parse with twk_test's messages, the
+  cells of a row (a wide glyph in the cell it begins; the width is an
+  approximation of twk's, a row that does not add up to its width falls back
+  to a glyph a cell), `diffScreens` (the cells whose text or style differ, the
+  cursor, the size) and `parseStyle` (a style's name as CSS fields). Held to
+  `packages/twk_test/test/screen_file.golden.txt`, the file twk_test's
+  `screen_file_test.dart` makes `matchesScreenFile` match and write: a change
+  to the format on either side fails the other's test.
+- `src/app/goldens.ts`: `screenState` (golden, actual, diff), `acceptActual`
+  and `GoldenEditor`, over a `GoldenFiles` port and a
+  `WebviewPanelPort<ToScreen>`; `src/webview/screen.ts` and
+  `screen_protocol.ts` the page (the grids, Text and Styles, Golden / Actual
+  / Diff) and its checked messages; `src/vscode/screen_editor.ts` the custom
+  editor `twk.screenFile` (`priority: option`, for `**/goldens/**/*.txt`: a
+  golden stays text in a diff unless chosen), watching the file and its
+  `.actual`.
+- **Accept Actual** writes the `.actual` over the golden and removes it. The
+  brief was to rerun the test alone with `TWK_UPDATE_GOLDENS=1`; the result is
+  the same text, as the update writes what `.actual` holds, and a rerun needs
+  the test's id and a hook into Dart-Code's test runner (its API, not
+  checked). Not done: that rerun.
+- Not run: the editor in a real VS Code (the page and the custom editor are
+  checked by their parts: the protocol, the state and the editor over a fake
+  panel).
+

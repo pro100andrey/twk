@@ -24,8 +24,9 @@ What is here besides `packages/`:
   (`tool/doc_snippets/`, `tool/coverage/`) and the generator of the
   core's Unicode tables (`tool/gen_unicode.dart`);
 * `test/tool/`: the tests of those tools;
-* `editors/vscode/`: a VS Code extension, experimental: twk apps run and
-  debugged in a terminal of its own, with hot reload and an inspector;
+* `editors/vscode/`: a VS Code extension, a preview: twk apps run and
+  debugged in a terminal of its own, with hot reload and an inspector
+  (packaged as a `.vsix`, not published);
 * `doc/`: the documentation, its index `doc/README.md`; `doc/guides/`,
   the guides, their Dart the files of `packages/twk/example/guides/`
   (`packages/twk/test/example/guides_test.dart` holds them together).
@@ -108,8 +109,9 @@ dart run tool/xtask.dart bench              # when the frame path changed (below
   `log-follow` scenario under a minute's bound: a followed file's cancel
   under a clock nobody moves, which nothing else runs.
 - The VS Code extension (`editors/vscode`) is in `handover` too: its
-  `npm ci`, its compile (tsc) and its unit tests, run in a copy of their
-  own under `.dart_tool/vscode/`. They need node and npm on the `PATH`
+  `npm ci`, its compile (tsc), its unit tests and its `.vsix`
+  (`vscode-package`, vsce, the file list checked; nothing is published),
+  run in a copy of their own under `.dart_tool/vscode/`. They need node and npm on the `PATH`
   and are skipped, saying so, without them.
 - No test waits on the wall clock: apps and timers run on a fake clock
   the test moves (`t.pump`, `clock.elapse`, `clock.elapseUntil`), real

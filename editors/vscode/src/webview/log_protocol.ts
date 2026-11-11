@@ -1,7 +1,7 @@
 // The messages between the extension and the sequence log's webview
 // (log.ts), defined once for both ends and checked at each
 // ([isFromLog], [isToLog]): postMessage carries anything.
-import type { Direction, EntryKind, LogEntry } from '../core/seqlog.js';
+import type { Direction, EntryKind, LogEntry, LogFilter } from '../core/seqlog.js';
 
 /** What the extension tells the log. */
 export type ToLog =
@@ -18,8 +18,10 @@ export type FromLog =
   | { readonly type: 'ready' }
   /** Forget the entries kept. */
   | { readonly type: 'clear' }
-  /** What it shows now, told after each change: how many rows, how many entries held while paused, the names of the last rows (the last last). */
-  | { readonly type: 'shown'; readonly rows: number; readonly held: number; readonly last: readonly string[] };
+  /** What it shows now, told after each change: how many rows, how many entries held while paused, the names of the last rows (the last last), and the filter it applies. */
+  | { readonly type: 'shown'; readonly rows: number; readonly held: number; readonly last: readonly string[]; readonly filter?: LogFilter }
+  /** Save the log to a file (the extension asks where, and in which form): as filtered here, as last told in `shown`. */
+  | { readonly type: 'save' };
 
 type Fields = Record<string, unknown>;
 
@@ -41,6 +43,11 @@ export function isEntry(e: unknown): e is LogEntry {
     isNumber(e.bytes) &&
     (e.children === undefined || (Array.isArray(e.children) && e.children.every(isEntry)))
   );
+}
+
+/** Whether [f] is a [LogFilter]. */
+export function isFilter(f: unknown): f is LogFilter {
+  return isObject(f) && typeof f.out === 'boolean' && typeof f.in === 'boolean' && typeof f.note === 'boolean' && typeof f.text === 'boolean' && typeof f.word === 'string';
 }
 
 const isEntries = (v: unknown): v is readonly LogEntry[] => Array.isArray(v) && v.every(isEntry);
@@ -70,9 +77,10 @@ export function isFromLog(m: unknown): m is FromLog {
   switch (m.type) {
     case 'ready':
     case 'clear':
+    case 'save':
       return true;
     case 'shown':
-      return isNumber(m.rows) && isNumber(m.held) && Array.isArray(m.last) && m.last.every((n) => typeof n === 'string');
+      return isNumber(m.rows) && isNumber(m.held) && Array.isArray(m.last) && m.last.every((n) => typeof n === 'string') && (m.filter === undefined || isFilter(m.filter));
     default:
       return false;
   }

@@ -3,12 +3,13 @@
 import * as net from 'node:net';
 import * as os from 'node:os';
 
-import { fromVariable } from '../../core/address';
+import { ShellAddress, fromVariable } from '../../core/address';
 import { Answers, Choice, choiceOf } from '../../core/capabilities';
 import { TerminalRequest } from '../../core/emulation';
 import { Clock, Disposable, Emitter } from '../../core/events';
 import { HotStatus } from '../../core/hot';
-import { AppEvent, AppService, InspectTree } from '../../core/inspect';
+import { AppEvent, AppService, DetailSection, InspectTree, TreeKind } from '../../core/inspect';
+import { LogConnection, LogEndpoints } from '../../core/log_follow';
 import { SourceSpot } from '../../core/locator';
 import { Switches, noSwitches } from '../../core/switches';
 import { HotRunOptions } from '../../core/runner';
@@ -20,6 +21,7 @@ import { Vm, VmEvent } from '../../core/vm';
 import { AppFrame, FrameReader, Wire, jsonFrame } from '../../core/wire';
 import {
   InspectorView,
+  NodeDetailsView,
   Notice,
   PickingIndicator,
   SourceOpener,
@@ -56,12 +58,32 @@ export class FakeView implements TerminalView {
   private readonly picks = new Emitter<{ x: number; y: number; cursorY: number } | null>();
   /** Whether a click picks, as it was told last. */
   picking = false;
-  /** Whether it is the active one, as the test says. */
+  /** Whether it is the active one, as the test says ([setActive]). */
   isActive = false;
+  private readonly actives = new Emitter<void>();
+  readonly onDidChangeActive = this.actives.event;
+  /** The panel gained or lost the focus. */
+  setActive(on: boolean): void {
+    this.isActive = on;
+    this.actives.fire();
+  }
   /** The player's bar as it was told, each time. */
   readonly players: (PlayerState | null)[] = [];
   private readonly controls = new Emitter<PlayerControl>();
+  private readonly markerClicks = new Emitter<number>();
+  readonly onMarker = this.markerClicks.event;
   readonly onControl = this.controls.event;
+  private readonly pastes = new Emitter<void>();
+  readonly onPaste = this.pastes.event;
+  /** What was pasted into it, in order. */
+  readonly pasted: string[] = [];
+  paste(text: string): void {
+    this.pasted.push(text);
+  }
+  /** The paste key was pressed in it. */
+  pressPaste(): void {
+    this.pastes.fire();
+  }
   readonly onPick = this.picks.event;
   readonly onInput = this.inputs.event;
   readonly onRequest = this.requests.event;
@@ -138,6 +160,11 @@ export class FakeView implements TerminalView {
     this.controls.fire(c);
   }
 
+  /** The marker [n] (from 1) of its player's track is clicked. */
+  clickMarker(n: number): void {
+    this.markerClicks.fire(n);
+  }
+
   /** The app in it asks [r] of the editor. */
   request(r: TerminalRequest): void {
     this.requests.fire(r);
@@ -190,6 +217,13 @@ export class FakePanel<To = ToWebview> implements WebviewPanelPort<To> {
   readonly disposes = new Emitter<void>();
   readonly onMessage = this.messages.event;
   readonly onDispose = this.disposes.event;
+  private readonly actives = new Emitter<void>();
+  readonly onDidChangeActive = this.actives.event;
+  /** The panel gained or lost the focus. */
+  setActive(on: boolean): void {
+    this.active = on;
+    this.actives.fire();
+  }
   async post(message: To): Promise<boolean> {
     this.posted.push(message);
     return !this.disposed;
@@ -265,8 +299,30 @@ export class FakeDesktop implements Desktop {
   writeClipboard(text: string): void {
     this.done.push(`clipboard ${text}`);
   }
+  /** What the clipboard holds. */
+  clipboard = '';
+  /** Set: reading the clipboard fails with it. */
+  clipboardError: Error | undefined;
+  readClipboard(): Promise<string> {
+    return this.clipboardError ? Promise.reject(this.clipboardError) : Promise.resolve(this.clipboard);
+  }
   openLink(uri: string): void {
     this.done.push(`open ${uri}`);
+  }
+  /** What the workspace holds. */
+  folders: string[] = [];
+  workspaceFolders(): readonly string[] {
+    return this.folders;
+  }
+  /** Real paths of the links the test made; any other path is its own. A path in [missing] has none. */
+  links = new Map<string, string>();
+  missing = new Set<string>();
+  foldsCase = false;
+  realPath(path: string): string | undefined {
+    return this.missing.has(path) ? undefined : (this.links.get(path) ?? path);
+  }
+  openFile(path: string, line: number, column: number): void {
+    this.done.push(`file ${path}:${line}:${column}`);
   }
 }
 
@@ -527,6 +583,8 @@ export class FakeInspectorView implements InspectorView {
   message = '';
   readonly shown: (InspectTree | undefined)[] = [];
   readonly revealed: number[] = [];
+  /** The tree kind it was told to show, each time. */
+  readonly kinds: TreeKind[] = [];
   private readonly visibility = new Emitter<boolean>();
   private readonly selections = new Emitter<number | undefined>();
   readonly onVisible = this.visibility.event;
@@ -536,6 +594,10 @@ export class FakeInspectorView implements InspectorView {
     this.tree = tree;
     this.message = message;
     this.shown.push(tree);
+  }
+
+  showKind(kind: TreeKind): void {
+    this.kinds.push(kind);
   }
 
   reveal(id: number): void {
@@ -560,6 +622,25 @@ export class FakeInspectorView implements InspectorView {
 
   clearSelection(): void {
     this.selected = undefined;
+  }
+}
+
+/** The node view: what it was last told to show. */
+export class FakeNodeDetailsView implements NodeDetailsView {
+  sections: readonly DetailSection[] = [];
+  message = '';
+  /** How many times it was told to show. */
+  shows = 0;
+
+  show(sections: readonly DetailSection[], message: string): void {
+    this.shows++;
+    this.sections = sections;
+    this.message = message;
+  }
+
+  /** The lines shown, as `section: label value`. */
+  get lines(): string[] {
+    return this.sections.flatMap((s) => s.rows.map((r) => `${s.title}: ${r.label ? `${r.label} ` : ''}${r.value}`));
   }
 }
 
@@ -622,6 +703,77 @@ export const treeAnswer = {
             children: [{ id: 4, name: 'Text', properties: [{ value: '"n 0"' }], size: { width: 3, height: 1 }, flags: [], render: 11, children: [] }],
           },
         ],
+      },
+    ],
+  },
+};
+
+/** A connection to an app's log the test feeds ([line], [end]). */
+export class FakeLogConnection implements LogConnection {
+  closed = false;
+  private readonly lines = new Emitter<string>();
+  private readonly ends = new Emitter<void>();
+  readonly onLine = this.lines.event;
+  readonly onEnd = this.ends.event;
+  line(text: string): void {
+    this.lines.fire(text);
+  }
+  /** The app went away. */
+  end(): void {
+    this.ends.fire();
+  }
+  close(): void {
+    this.closed = true;
+  }
+}
+
+/** The address files and sockets of apps' logs: the test says what each project's file holds ([serve]) and what a connection is. */
+export class FakeLogEndpoints implements LogEndpoints {
+  private readonly files = new Map<string, ShellAddress>();
+  /** The addresses connected to, in order. */
+  readonly connected: ShellAddress[] = [];
+  /** The connections made, in order. */
+  readonly connections: FakeLogConnection[] = [];
+  /** Addresses nobody listens at. */
+  readonly refused = new Set<string>();
+  address(project: string): ShellAddress | undefined {
+    return this.files.get(project);
+  }
+  /** The file of [project] now holds an address [name] (its token). */
+  serve(project: string, name: string): void {
+    this.files.set(project, { where: `unix:/tmp/logs-${name}`, token: name });
+  }
+  forget(project: string): void {
+    this.files.delete(project);
+  }
+  async connect(address: ShellAddress): Promise<LogConnection> {
+    if (this.refused.has(address.token)) {
+      throw new Error('connection refused');
+    }
+    this.connected.push(address);
+    const connection = new FakeLogConnection();
+    this.connections.push(connection);
+    return connection;
+  }
+}
+
+/** An answer of `ext.twk.tree` `tree=render` for the app of [treeAnswer]: each render object with the id of its element. */
+export const renderAnswer = {
+  version: 1,
+  tree: 'render',
+  root: {
+    id: 9,
+    name: 'RenderRoot',
+    properties: [],
+    flags: [],
+    children: [
+      {
+        id: 10,
+        name: 'RenderPadding',
+        properties: [{ name: 'padding', value: 'left 2' }],
+        flags: [],
+        element: 3,
+        children: [{ id: 11, name: 'RenderText', properties: [{ value: '"n 0"' }], size: { width: 3, height: 1 }, flags: [], element: 4, children: [] }],
       },
     ],
   },

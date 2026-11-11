@@ -19,6 +19,7 @@ export class HeadlessView implements TerminalView {
   readonly ready = Promise.resolve();
   title = '';
   isActive = false;
+  readonly onDidChangeActive = new Emitter<void>().event;
   /** The player's bar as it was told, last. */
   playerState: PlayerState | null = null;
   private closed = false;
@@ -29,6 +30,8 @@ export class HeadlessView implements TerminalView {
   private readonly reloads = new Emitter<void>();
   private readonly picks = new Emitter<PickedCell | null>();
   private readonly controls = new Emitter<PlayerControl>();
+  private readonly markerClicks = new Emitter<number>();
+  readonly onMarker = this.markerClicks.event;
   readonly onInput = this.inputs.event;
   readonly onRequest = this.requests.event;
   readonly onResize = this.resizes.event;
@@ -36,6 +39,13 @@ export class HeadlessView implements TerminalView {
   readonly onReload = this.reloads.event;
   readonly onPick = this.picks.event;
   readonly onControl = this.controls.event;
+  private readonly pastes = new Emitter<void>();
+  readonly onPaste = this.pastes.event;
+  /** What was pasted into it, in order. */
+  readonly pasted: string[] = [];
+  paste(text: string): void {
+    this.pasted.push(text);
+  }
 
   constructor(columns = 60, lines = 12) {
     this.term = new Terminal({ cols: columns, rows: lines, allowProposedApi: true });
@@ -117,6 +127,11 @@ export class HeadlessView implements TerminalView {
   /** A button of its player's bar is pressed. */
   control(c: PlayerControl): void {
     this.controls.fire(c);
+  }
+
+  /** The marker [n] (from 1) of its player's track is clicked. */
+  clickMarker(n: number): void {
+    this.markerClicks.fire(n);
   }
 
   /** Comes back empty, as a webview that loaded again. */

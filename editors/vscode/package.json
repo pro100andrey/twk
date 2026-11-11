@@ -2,10 +2,32 @@
   "name": "twk-vscode",
   "displayName": "twk",
   "description": "Run and debug twk terminal apps in a terminal of the extension's own, with switches for what the terminal can do.",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.0",
+  "preview": true,
   "publisher": "twk",
   "license": "MIT",
+  "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pro100andrey/twk.git",
+    "directory": "editors/vscode"
+  },
+  "homepage": "https://github.com/pro100andrey/twk/tree/main/editors/vscode#readme",
+  "bugs": {
+    "url": "https://github.com/pro100andrey/twk/issues"
+  },
+  "keywords": [
+    "twk",
+    "dart",
+    "terminal",
+    "tui",
+    "hot reload",
+    "debug"
+  ],
+  "galleryBanner": {
+    "color": "#14213d",
+    "theme": "dark"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },
@@ -21,6 +43,18 @@
   ],
   "main": "./out/vscode/extension.js",
   "contributes": {
+    "customEditors": [
+      {
+        "viewType": "twk.screenFile",
+        "displayName": "twk Screen",
+        "selector": [
+          {
+            "filenamePattern": "**/goldens/**/*.txt"
+          }
+        ],
+        "priority": "option"
+      }
+    ],
     "commands": [
       {
         "command": "twk.openTerminal",
@@ -35,6 +69,11 @@
       {
         "command": "twk.debugFile",
         "title": "Debug Dart File in twk Terminal",
+        "category": "twk"
+      },
+      {
+        "command": "twk.openScreenFile",
+        "title": "Open Screen File as a twk Screen (Golden of matchesScreenFile)",
         "category": "twk"
       },
       {
@@ -71,6 +110,18 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "twk.inspector.showRenderTree",
+        "title": "Show the Render Tree (the Render Objects of the App)",
+        "category": "twk",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "twk.inspector.showWidgetTree",
+        "title": "Show the Widget Tree (the Elements of the App)",
+        "category": "twk",
+        "icon": "$(list-tree)"
+      },
+      {
         "command": "twk.inspector.pick",
         "title": "Pick Widgets in the twk Terminal (Pick Mode On)",
         "category": "twk",
@@ -89,6 +140,12 @@
         "icon": "$(eye)"
       },
       {
+        "command": "twk.node.copyValue",
+        "title": "Copy Value",
+        "category": "twk",
+        "icon": "$(copy)"
+      },
+      {
         "command": "twk.inspector.goToSource",
         "title": "Go to Where the Widget Was Made",
         "category": "twk",
@@ -101,10 +158,20 @@
         "icon": "$(symbol-method)"
       },
       {
+        "command": "twk.showAppLogs",
+        "title": "Show the Log of the twk Apps (Levels, Filter, Pause; the Debug Aid logs)",
+        "category": "twk"
+      },
+      {
         "command": "twk.showLog",
         "title": "Show the Sequence Log of the twk Terminal",
         "category": "twk",
         "icon": "$(list-flat)"
+      },
+      {
+        "command": "twk.saveLog",
+        "title": "Save the Sequence Log of the twk Terminal to a File (text, or asciicast with the bytes)",
+        "category": "twk"
       },
       {
         "command": "twk.copyScreen",
@@ -125,10 +192,73 @@
         "enablement": "twk.recording"
       },
       {
+        "command": "twk.addMarker",
+        "title": "Leave a Marker in the Recording of the twk Terminal",
+        "category": "twk",
+        "enablement": "twk.recording"
+      },
+      {
         "command": "twk.play",
         "title": "Play a Recording (asciicast) in a twk Terminal",
         "category": "twk",
         "icon": "$(play)"
+      },
+      {
+        "command": "twk.replayInput",
+        "title": "Type a Recording's Keys into the App in the twk Terminal",
+        "category": "twk"
+      },
+      {
+        "command": "twk.replayInputStep",
+        "title": "Type the Next Keys of the Recording",
+        "category": "twk",
+        "enablement": "twk.replayingInput"
+      },
+      {
+        "command": "twk.replayInputStop",
+        "title": "Stop Typing a Recording's Keys",
+        "category": "twk",
+        "enablement": "twk.replayingInput"
+      },
+      {
+        "command": "twk.testFromCast",
+        "title": "Create a Test from a Recording (twk test-from-cast)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.newProject",
+        "title": "New Project (twk create)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.installAgentSkill",
+        "title": "Install Agent Skill (twk agents)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.keyToApp",
+        "title": "Pass the Key to the twk Terminal's App",
+        "category": "twk"
+      },
+      {
+        "command": "twk.tape.run",
+        "title": "Run the Tape (twk tape: the .cast and SVGs it names)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.tape.check",
+        "title": "Check the Tape (twk tape --check: it as a test, nothing written)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.tape.preview",
+        "title": "Preview the Tape (the Screenshots and the SVG Output, a strip of frames)",
+        "category": "twk"
+      },
+      {
+        "command": "twk.showTerminalReport",
+        "title": "Show the Terminal Report (what the twk terminal tells and answers an app, and twk doctor's project part)",
+        "category": "twk"
       }
     ],
     "keybindings": [
@@ -143,6 +273,46 @@
         "key": "ctrl+alt+shift+r",
         "mac": "cmd+alt+shift+r",
         "when": "twk.hotApp && (editorLangId == dart || activeWebviewPanelId == 'twk.terminal')"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+w",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+g",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+n",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+f",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+r",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+t",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+o",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
+      },
+      {
+        "command": "twk.keyToApp",
+        "key": "ctrl+shift+c",
+        "when": "activeWebviewPanelId == 'twk.terminal'"
       }
     ],
     "configuration": {
@@ -270,10 +440,28 @@
           "default": null,
           "description": "A fixed number of rows for the twk terminal; null fits it to the panel."
         },
+        "twk.codeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether a Dart file whose main starts a twk app (it calls runApp or uses TwkApp) shows the lenses Run in twk Terminal and Debug in twk Terminal over it, beside the Dart extension's own."
+        },
         "twk.hotReloadOnSave": {
           "type": "boolean",
           "default": true,
           "description": "Whether saving a Dart file hot reloads the apps the extension runs or debugs in the twk terminal (their sources reloaded, every widget rebuilt, each State kept). Leave Dart-Code's dart.hotReloadOnSave at \"never\": it reloads without the rebuild."
+        },
+        "twk.command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "default": [
+            "dart",
+            "run",
+            "twk_dev:twk"
+          ],
+          "description": "The command that is twk, for Run and Check of a .tape (`tape [--check] <file>` after it) and for the project part of the terminal report (`doctor --json`): it runs in the Dart project (the nearest pubspec.yaml). A twk activated globally: [\"twk\"]."
         }
       }
     },
@@ -355,6 +543,11 @@
           "id": "twk.inspector",
           "name": "twk Inspector",
           "contextualTitle": "twk"
+        },
+        {
+          "id": "twk.node",
+          "name": "twk Node",
+          "contextualTitle": "twk"
         }
       ]
     },
@@ -371,6 +564,16 @@
           "group": "navigation@1"
         },
         {
+          "command": "twk.inspector.showRenderTree",
+          "when": "view == twk.inspector && !twk.inspector.render",
+          "group": "navigation@0"
+        },
+        {
+          "command": "twk.inspector.showWidgetTree",
+          "when": "view == twk.inspector && twk.inspector.render",
+          "group": "navigation@0"
+        },
+        {
           "command": "twk.inspector.toggles",
           "when": "view == twk.inspector",
           "group": "navigation@2"
@@ -384,21 +587,35 @@
       "view/item/context": [
         {
           "command": "twk.inspector.goToSource",
-          "when": "view == twk.inspector",
+          "when": "view == twk.inspector && viewItem != twkRenderNode",
           "group": "inline@1"
         },
         {
           "command": "twk.inspector.goToSource",
-          "when": "view == twk.inspector",
+          "when": "view == twk.inspector && viewItem != twkRenderNode",
           "group": "navigation@1"
         },
         {
           "command": "twk.inspector.goToBuild",
           "when": "view == twk.inspector && viewItem == twkBuilds",
           "group": "navigation@2"
+        },
+        {
+          "command": "twk.node.copyValue",
+          "when": "view == twk.node && viewItem == twkDetail",
+          "group": "inline@1"
+        },
+        {
+          "command": "twk.node.copyValue",
+          "when": "view == twk.node && viewItem == twkDetail",
+          "group": "navigation@1"
         }
       ],
       "commandPalette": [
+        {
+          "command": "twk.keyToApp",
+          "when": "false"
+        },
         {
           "command": "twk.inspector.pick",
           "when": "!twk.inspector.picking"
@@ -416,8 +633,28 @@
           "when": "focusedView == twk.inspector"
         },
         {
+          "command": "twk.node.copyValue",
+          "when": "false"
+        },
+        {
           "command": "twk.stopRecordings",
           "when": "twk.recording"
+        },
+        {
+          "command": "twk.addMarker",
+          "when": "twk.recording"
+        },
+        {
+          "command": "twk.tape.run",
+          "when": "editorLangId == tape"
+        },
+        {
+          "command": "twk.tape.check",
+          "when": "editorLangId == tape"
+        },
+        {
+          "command": "twk.tape.preview",
+          "when": "editorLangId == tape"
         }
       ],
       "editor/title": [
@@ -435,6 +672,16 @@
           "command": "twk.record",
           "when": "activeWebviewPanelId == 'twk.terminal'",
           "group": "navigation@3"
+        },
+        {
+          "command": "twk.tape.check",
+          "when": "editorLangId == tape",
+          "group": "navigation@4"
+        },
+        {
+          "command": "twk.tape.run",
+          "when": "editorLangId == tape",
+          "group": "navigation@5"
         }
       ],
       "explorer/context": [
@@ -442,15 +689,54 @@
           "command": "twk.play",
           "when": "resourceExtname == .cast",
           "group": "navigation"
+        },
+        {
+          "command": "twk.replayInput",
+          "when": "resourceExtname == .cast",
+          "group": "navigation"
+        },
+        {
+          "command": "twk.testFromCast",
+          "when": "resourceExtname == .cast",
+          "group": "navigation"
+        },
+        {
+          "command": "twk.openScreenFile",
+          "when": "resourcePath =~ /[\\\\/]goldens[\\\\/].*\\.txt$/",
+          "group": "navigation"
         }
       ]
-    }
+    },
+    "languages": [
+      {
+        "id": "tape",
+        "aliases": [
+          "Tape",
+          "twk tape"
+        ],
+        "extensions": [
+          ".tape"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tape",
+        "scopeName": "source.tape",
+        "path": "./syntaxes/tape.tmLanguage.json"
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p . && tsc -p tsconfig.webview.json",
     "watch": "tsc -watch -p . & tsc -watch -p tsconfig.webview.json",
     "test:unit": "npm run compile && mocha 'out/test/unit/**/*.test.js'",
-    "test": "npm run compile && node out/test/runTest.js"
+    "test": "npm run compile && node out/test/runTest.js",
+    "test:installed": "npm run compile && node out/test/runInstalled.js",
+    "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\"",
+    "vscode:prepublish": "npm run clean && npm run compile",
+    "package": "vsce package"
   },
   "dependencies": {
     "@xterm/addon-fit": "0.11.0",
@@ -462,6 +748,7 @@
     "@types/node": "^22.0.0",
     "@types/vscode": "~1.95.0",
     "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "^3.0.0",
     "@xterm/headless": "6.0.0",
     "mocha": "^11.0.0",
     "typescript": "^5.9.0"

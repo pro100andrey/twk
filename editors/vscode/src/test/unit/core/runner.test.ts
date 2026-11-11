@@ -16,6 +16,7 @@ import { FakeClock, FakeVm, until } from '../fakes';
 class FakeProcess implements AppProcess {
   readonly pid = 7;
   hasExited = false;
+  groupAlive = () => false;
   readonly exited: Promise<Exit>;
   private exit!: (e: Exit) => void;
   constructor(readonly args: readonly string[]) {

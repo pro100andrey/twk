@@ -13,15 +13,32 @@ while the app runs. The arguments after `<file>` are the app's (`twk run
 bin/main.dart --inline`). The app's debug keys are on: `keys` is added to the
 `TWK_DEBUG` it gets.
 
+Options go before `<file>`; what follows it is the app's. `--debug=<aids>`
+(comma-separated, or the option repeated) turns on twk's debug aids by name,
+added to the `TWK_DEBUG` of the environment `twk run` has and to `keys`: the
+names are those `DebugAids.known` lists (`keys`, `overlay`, `console`,
+`frames`, `timeline`, `logs`, `rainbow`, `relayout`, `overflow`), and any other
+is refused with exit code 64, no app started. `--screen-reader` runs the app in
+its screen-reader mode (`TWK_SCREEN_READER=1`) and `--plain` has it write
+plain text (`TWK_PLAIN=1`); the extension's switches (screen reader, debug
+aids) are the same set. `--no-asserts` is described above.
+
 `twk run` connects to the VM service (`package:vm_service`) and watches the
 `lib/` of the package `<file>` is in, the nearest directory from it up that
-holds a `pubspec.yaml`, and `<file>`. When a `.dart` file there changes, or is
+holds a `pubspec.yaml`, the `lib/` of every path dependency and workspace
+member in that package's `.dart_tool/package_config.json` (the packages
+outside the pub cache, so not hosted or git ones; `--no-watch-deps` leaves
+them out; always the `lib/`, whatever the package's `packageUri`), and
+`<file>`. A directory that goes while the app runs (a branch switch) ends its
+watch only, said in the app's log (`no longer watching ...`); it is not
+watched again when it comes back until `twk run` is started again. When a `.dart` file there changes, or is
 moved there as editors that save safely do, it reloads the sources 100 ms
 after the last change (`reloadSources`) and calls the binding's
 `ext.twk.reassemble` (twk's `AppBinding.reassemble`): every element is
 rebuilt, each State kept, every render object laid out and painted again and
 the whole screen written again, so the code changed shows. A file elsewhere, a
-sibling of `<file>` or one of another package, is reloaded by hand: Ctrl+G h
+sibling of `<file>` or one of a package that is not a path dependency, is
+reloaded by hand: Ctrl+G h
 in the app. What `main` built, and code that ran already, a reload leaves as
 it was: Ctrl+G H restarts the app — SIGTERM, on which the app puts the
 terminal back and exits, SIGKILL if it has not after 5 s — and starts it
@@ -56,3 +73,22 @@ number; Ctrl+C reaches `twk run` only while no app has the terminal in raw
 mode, as while one starts. On Windows, which has no SIGTERM, a restart kills
 the app without the terminal put back; `twk run` has not been run on Windows;
 on macOS its tests run it.
+
+## Recording a run
+
+To record what `twk run` shows, hot reloads and restarts included, record
+`twk run` itself:
+
+```bash
+dart run packages/twk_dev/bin/twk.dart record -o run.cast -- \
+    dart run packages/twk_dev/bin/twk.dart run packages/twk/example/counter.dart
+```
+
+`twk record` gives `twk run` a pseudo-terminal, and `twk run` gives the app
+its stdio, so the app has that pseudo-terminal: the recording is of the
+session, and a restart (Ctrl+G H) goes on in the same recording, as the app
+writes into the same terminal. There is no `--record` option on `twk run`:
+the recorder is built around one pseudo-terminal and one command (its raw
+mode, input, size and hang-up), and a restart starts a new process, so
+putting the app in a pseudo-terminal of its own would mean running that
+machinery inside `twk run` as well, for a result the command above gives.

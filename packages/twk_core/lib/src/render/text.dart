@@ -278,6 +278,10 @@ final class RenderParagraph extends RenderObject {
   /// next edit. Kept, it reads them again at each paint that is not of
   /// changed rows only, and finding a glyph is plain from the next edit
   /// (and waits twice as long, up to sixteen times, before it tries again).
+  /// Kept, it also turns plain when four paints in a row repainted seven
+  /// eighths of its rows or more, as a text that changes all over at each
+  /// edit does: keeping saves it nothing. It then waits up to sixty-four
+  /// times as long before it tries again.
   /// A plain one pays a comparison in a layout and one in an edit; a short
   /// or a still one never reads the cells. What is drawn is the same
   /// either way. Of no effect with [keepsPaint].
@@ -364,9 +368,22 @@ final class RenderParagraph extends RenderObject {
   // and a candidate that finds a glyph waits as long, so a text over text
   // reads the cells less and less; a turn asked for waits for its edit, and
   // no layout before it reads them again.
+  //
+  // A keeping one also turns plain by what it repaints, not only by what it
+  // finds under it: a paragraph of a fixed size whose rows all change at each
+  // edit (a text shifted by a word, a log's tail) repaints all of its rows at
+  // each paint, saves nothing and pays for the changed rows and the styles
+  // under it. A paint of _wideNum/_wideDen of its rows or more is wide;
+  // _wideRuns of them in a row set _flip to -1, as a glyph does, and the
+  // turn is wide, whose wait doubles up to _maxWideBackoff. A narrower
+  // paint of changed rows, and a paint of all of it, end the run.
   static const _minRows = 8;
   static const _need = 3;
   static const _maxBackoff = 16;
+  static const _maxWideBackoff = 64;
+  static const _wideNum = 7;
+  static const _wideDen = 8;
+  static const _wideRuns = 4;
   final bool _auto;
 
   /// Whether it turns to keeping its paint by itself ([RenderParagraph]'s
@@ -379,6 +396,9 @@ final class RenderParagraph extends RenderObject {
   var _candidate = false;
   var _backoff = 1;
   var _flip = 0;
+  // wide paints in a row (paint); _wideRuns of them is a turn asked for by
+  // them, not by a glyph
+  var _wideRun = 0;
 
   // counts a layout that held the size, in performLayout of a plain one
   void _noteLayout(int w, int h) {
@@ -393,13 +413,30 @@ final class RenderParagraph extends RenderObject {
     }
   }
 
+  // counts a paint of the changed rows [first], [end) of [h]: wide, or not
+  // Not inlined into paint: there it made typing into 40k characters of a
+  // plain paragraph 10 % slower, with no work added (where the compiler puts
+  // the code).
+  @pragma('vm:never-inline')
+  void _noteWide(int first, int end, int h) {
+    if ((end - first) * _wideDen >= h * _wideNum) {
+      if (++_wideRun >= _wideRuns) {
+        _flip = -1;
+      }
+    } else {
+      _wideRun = 0;
+    }
+  }
+
   // turns the mode at an edit, as the paint asked
   void _turn() {
     final on = _flip > 0;
+    final wide = _wideRun >= _wideRuns;
     _flip = 0;
+    _wideRun = 0;
     _streak = 0;
     _candidate = false;
-    if (!on && _backoff < _maxBackoff) {
+    if (!on && _backoff < (wide ? _maxWideBackoff : _maxBackoff)) {
       _backoff *= 2;
     }
     _setKeeps(on);
@@ -614,6 +651,7 @@ final class RenderParagraph extends RenderObject {
   set keepsPaint(bool on) {
     _forced = on;
     _flip = 0;
+    _wideRun = 0;
     _streak = 0;
     _candidate = false;
     if (on != _keeps) {
@@ -706,6 +744,9 @@ final class RenderParagraph extends RenderObject {
         return;
       }
       _keptPaints++;
+      if (!_forced) {
+        _noteWide(first, end, h);
+      }
     } else if (!_forced &&
         !identical(owner?._alone, this) &&
         _glyphsUnder(canvas, first, end)) {
@@ -715,6 +756,8 @@ final class RenderParagraph extends RenderObject {
       _flip = -1;
       _painter.draw(canvas, 0, 0);
       return;
+    } else {
+      _wideRun = 0;
     }
     canvas
       ..save()

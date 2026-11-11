@@ -2,8 +2,24 @@
 
 ## Unreleased
 
+Fixed:
+
+- `matchesScreenFile` writes `<file>.actual` only where a failure is
+  reported, not for `isNot` or a poll that expects a mismatch; a write that
+  fails is said in the message, which keeps the difference.
+
 Added:
 
+- `screenFrames(screens:)` keeps, for the frames whose numbers it is given
+  (and for no other, so a long recording costs one snapshot a frame
+  checked), the screen with its styles and cursor, and `matchesScreenFile`
+  accepts such a `ScreenFrame` as it accepts a `TwkTester`: the same file
+  format, update and `<file>.actual`. A frame whose screen was not kept
+  fails, saying so.
+- `matchesScreenFile` leaves the screen it did not match beside the file as
+  `<file>.actual` (the file as updating would write it), and removes it on a
+  match or an update; the VS Code extension shows it against the golden and
+  accepts it. Add `*.txt.actual` to a project's `.gitignore`.
 - `testTwk(failOnOverflow:)` fails the test when a row, column, wrap or
   grid of its app was overflowed by its children (the warning of the log
   that the debug marker of the screen shows), naming each with the widget

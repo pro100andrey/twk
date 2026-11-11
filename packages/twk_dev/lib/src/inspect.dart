@@ -12,6 +12,7 @@ import 'package:twk_core/twk_core.dart'
 import 'package:vm_service/vm_service.dart' show VmService;
 
 import 'app_client.dart';
+import 'completion.dart';
 import 'inspector_view.dart';
 import 'project.dart';
 import 'run.dart';
@@ -19,7 +20,7 @@ import 'run.dart';
 /// `twk inspect`: shows a running app's widget tree in this terminal
 /// ([InspectorView]), the app at a VM service address given, or the one
 /// `twk run` runs.
-final class InspectCommand extends Command<int> {
+final class InspectCommand extends Command<int> with Completes {
   /// Sets up `twk inspect`'s option: `--directory`.
   InspectCommand() {
     argParser.addOption(
@@ -31,6 +32,14 @@ final class InspectCommand extends Command<int> {
           'current one).',
     );
   }
+
+  @override
+  Positionals get positionals => const Positionals.none();
+
+  @override
+  Map<String, OptionPath> get optionPaths => const {
+    'directory': OptionPath.directory,
+  };
 
   @override
   String get name => 'inspect';

@@ -4,7 +4,10 @@ library;
 
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
+
 import '../vt.dart';
+import 'screen_file.dart';
 
 // Examples can assume:
 // import 'package:test/test.dart';
@@ -29,6 +32,7 @@ final class ScreenFrame {
     this.cursorY,
     this.cursorVisible,
     this.errors,
+    this.screenFile,
   );
 
   /// From 1, in the order shown.
@@ -59,6 +63,12 @@ final class ScreenFrame {
   /// unknown sequence, a raw control byte.
   final List<String> errors;
 
+  /// The screen as a golden file holds it, kept for the frames asked in
+  /// `screenFrames(screens:)`, null for the others. `matchesScreenFile`
+  /// holds a frame to a file with it. Not for use outside the package.
+  @internal
+  final ScreenFile? screenFile;
+
   /// `frame 3 at 1.250 s, 40×10:`, then the rows, numbered.
   @override
   String toString() => [
@@ -74,16 +84,30 @@ final class ScreenFrame {
 /// are taken (a shell's output has them); what the emulator doesn't know
 /// is no error, but each frame's [ScreenFrame.errors].
 ///
+/// [screens] are the numbers of the frames to be held to a screen file
+/// (`matchesScreenFile` takes such a frame as it takes a `TwkTester`): a
+/// snapshot of the screen, with its styles and cursor, is kept for each,
+/// and for no other, so that a long recording costs a snapshot only per
+/// frame checked. To check the frame shown at some time, find its number
+/// among the frames of a first call without [screens], and ask for it in a
+/// second.
+///
 /// ```dart
 /// final frames = screenFrames(40, 10, writes);
 /// expect(frames.last.lines[1], startsWith('│ › coffee     1 ■'));
 /// expect(frames.last.errors, isEmpty);
 /// ```
+///
+/// ```dart
+/// final kept = screenFrames(40, 10, writes, screens: {2});
+/// expect(kept[1], matchesScreenFile('test/goldens/second.txt'));
+/// ```
 List<ScreenFrame> screenFrames(
   int width,
   int height,
-  Iterable<TerminalWrite> writes,
-) {
+  Iterable<TerminalWrite> writes, {
+  Set<int> screens = const {},
+}) {
   final vt = Vt(width, height, strict: false, allowLineFeed: true);
   final frames = <ScreenFrame>[];
   var errors = const <String>[];
@@ -114,6 +138,9 @@ List<ScreenFrame> screenFrames(
         vt.cy,
         vt.cursorVisible,
         errors,
+        screens.contains(frames.length + 1)
+            ? ScreenFile.of(vt, vt.cursorVisible ? (vt.cx, vt.cy) : null)
+            : null,
       ),
     );
   }

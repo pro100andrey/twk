@@ -13,9 +13,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { HotApps, Hot } from '../app/hot_apps';
+import { AppLogs, AppLogsView } from '../app/app_logs';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
+import { InputReplay, ReplayMode } from '../app/replay_input';
+import { CastTests } from '../app/cast_test';
+import { Tapes } from '../app/tape';
 import { Recording, Recordings } from '../app/recording';
 import { activeScreen, screenText } from '../app/screens';
 import { Terminals } from '../app/terminals';
@@ -23,24 +27,36 @@ import { TwkTerminal } from '../app/terminal';
 import { WebviewTerminalView } from '../app/webview_view';
 import { parseCast } from '../core/cast';
 import { fileSink } from '../core/cast_file';
+import { nodeLogEndpoints } from '../core/log_socket';
 import { describeChoice, environmentOf } from '../core/capabilities';
 import { InspectNode, toggleItems, togglesPicked } from '../core/inspect';
-import { realClock } from '../core/events';
+import { editorCommandOf } from '../core/editor';
+import { Disposable, realClock } from '../core/events';
 import { HotStatus } from '../core/hot';
+import { LogFilter } from '../core/seqlog';
+import { isFilter } from '../webview/log_protocol';
 import { startNodeProcess } from '../core/process';
+import { projectOf } from '../core/project';
 import { describeSwitches, switchItems, switchesPicked } from '../core/switches';
 import { HotRun } from '../core/runner';
 import { TerminalShell } from '../core/shell';
 import { VmClient } from '../core/vm';
 import { chooseCapabilities } from './capabilities_pick';
+import { TwkMainLenses } from './code_lens';
+import { ScreenFileEditors, screenFileViewType } from './screen_editor';
 import { VsCodeDebugger } from './debugger';
 import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
-import { openLogPanel, openWebviewTerminal } from './panel';
+import { openAppLogsPanel, openLogPanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
-import { VsCodeInspectorView, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
+import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
+import { registerReport } from './report';
+import { registerCreate } from './create';
+import { cancellable, registerTape, twkCommand } from './tape';
 import { StatusBar } from './status_bar';
+import { TerminalStatus } from '../app/terminal_status';
+import { TerminalStatusItem } from './terminal_status';
 
 /** What the extension gives its tests (`activate`'s result). */
 export interface Api {
@@ -52,6 +68,8 @@ export interface Api {
   hots(): Hot[];
   /** The last status of a reload or restart, as the status bar shows it. */
   status(): { text: string; status: HotStatus | undefined };
+  /** What the status bar says of the active twk terminal (`twk 44x7 · xterm.js`); undefined while no terminal is open. */
+  terminalStatus(): string | undefined;
   /** An event for each status any app goes through. */
   onStatus: vscode.Event<HotStatus>;
   /** What the status bar says of the progress of the app in [terminal]. */
@@ -59,10 +77,19 @@ export interface Api {
   /** The inspector, and its tree view. */
   readonly inspector: Inspector;
   readonly inspectorView: VsCodeInspectorView;
+  readonly nodeView: VsCodeNodeDetailsView;
   /** The recordings played back now, the oldest first. */
   players(): Player[];
+  /** The last recording's keys typed into an app, running or ended. */
+  inputReplay(): InputReplay | undefined;
   /** The recordings being made. */
   readonly recordings: Recordings;
+  /** The apps' logs, and their panel. */
+  readonly appLogs: AppLogs;
+  readonly appLogsView: AppLogsView;
+  /** The .tape commands' use case, and the diagnostics it sets. */
+  readonly tapes: Tapes;
+  readonly tapeDiagnostics: vscode.DiagnosticCollection;
   /** The sequence log open of [screen], where one is. */
   logOf(screen: TwkTerminal | Player): LogPanel | undefined;
 }
@@ -85,6 +112,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     log,
     desktop,
   });
+  const terminalItem = new TerminalStatusItem();
+  const terminalStatus = new TerminalStatus(terminals, terminalItem);
   const debug = new VsCodeDebugger();
   context.subscriptions.push(debug);
   const connectVm = (uri: string) => VmClient.connect(uri, realClock);
@@ -111,6 +140,7 @@ export function activate(context: vscode.ExtensionContext): Api {
     settings,
     clock: realClock,
     env: process.env,
+    editor: editorCommandOf(vscode.env.appRoot, process.platform, fs.existsSync),
   });
   const statuses = new vscode.EventEmitter<HotStatus>();
   const forwarding = hot.onStatus((s) => statuses.fire(s));
@@ -123,16 +153,44 @@ export function activate(context: vscode.ExtensionContext): Api {
     ),
   );
   const inspectorView = new VsCodeInspectorView();
+  const nodeView = new VsCodeNodeDetailsView();
   const inspector = new Inspector({
     apps: hot.onApp,
     view: inspectorView,
+    details: nodeView,
     opener: vsCodeOpener,
     picking: vsCodePickingIndicator,
     notice: { say: (text) => void vscode.window.setStatusBarMessage(text, 5000) },
     clock: realClock,
     log,
   });
-  context.subscriptions.push(inspectorView, { dispose: () => inspector.dispose() });
+  context.subscriptions.push(inspectorView, nodeView, { dispose: () => inspector.dispose() });
+  // The log the apps serve (the debug aid `logs`): followed for each app
+  // the extension runs, once its VM service is connected
+  const appLogs = new AppLogs({
+    endpoints: nodeLogEndpoints,
+    clock: realClock,
+    settings,
+    opener: vsCodeOpener,
+    readText: (file) => {
+      try {
+        return fs.readFileSync(file, 'utf8');
+      } catch {
+        return undefined;
+      }
+    },
+  });
+  const appLogsView = new AppLogsView(appLogs, (title) => openAppLogsPanel(title, context.extensionUri), realClock);
+  context.subscriptions.push(
+    appLogsView,
+    { dispose: () => appLogs.dispose() },
+    hot.onApp(({ terminal, service }) => {
+      const app = service && hot.hots().find((h) => h.terminal === terminal);
+      if (app) {
+        appLogs.started(terminal, app.project);
+      }
+    }),
+  );
   const recordings = new Recordings({
     clock: realClock,
     epochSeconds: () => Date.now() / 1000,
@@ -148,6 +206,8 @@ export function activate(context: vscode.ExtensionContext): Api {
   context.subscriptions.push(
     terminals.onDidCreate((t) => logs.follow(t)),
     recordingStatus,
+    terminalStatus,
+    terminalItem,
     recordings.onDidChange(() => void vscode.commands.executeCommand('setContext', 'twk.recording', recordings.all().length > 0)),
     recordings.onDidEnd(({ terminal, end }) => {
       if (end.error) {
@@ -159,6 +219,9 @@ export function activate(context: vscode.ExtensionContext): Api {
     inspector.dispose();
     logs.dispose();
     players.forEach((p) => p.dispose());
+    // no word of it to a window that is closing
+    replayListener?.dispose();
+    inputReplay?.stop();
     await recordings.dispose();
     await hot.dispose();
     await terminals.dispose();
@@ -173,11 +236,11 @@ export function activate(context: vscode.ExtensionContext): Api {
     return file;
   }
 
-  const command = (name: string, f: (uri?: vscode.Uri) => Promise<unknown>) =>
+  const command = (name: string, f: (uri?: vscode.Uri, ...rest: unknown[]) => Promise<unknown>) =>
     context.subscriptions.push(
-      vscode.commands.registerCommand(name, async (uri?: vscode.Uri) => {
+      vscode.commands.registerCommand(name, async (uri?: vscode.Uri, ...rest: unknown[]) => {
         try {
-          return await f(uri);
+          return await f(uri, ...rest);
         } catch (e) {
           void vscode.window.showErrorMessage(`twk: ${e instanceof Error ? e.message : String(e)}`);
           return undefined;
@@ -190,6 +253,24 @@ export function activate(context: vscode.ExtensionContext): Api {
   command('twk.openTerminal', () => terminals.createForAnyApp());
   command('twk.runFile', (uri) => hot.runFile(dartFile(uri)));
   command('twk.debugFile', (uri) => hot.debugFile(dartFile(uri)));
+  const lenses = new TwkMainLenses();
+  context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
+  context.subscriptions.push(vscode.window.registerCustomEditorProvider(screenFileViewType, new ScreenFileEditors(context.extensionUri)));
+  registerCreate(context, log);
+  const tape = registerTape(context, log);
+  registerReport(context, settings, log);
+  command('twk.openScreenFile', async (uri) => {
+    const file = uri ?? vscode.window.activeTextEditor?.document.uri;
+    if (!file) {
+      throw new Error('no screen file open');
+    }
+    await vscode.commands.executeCommand('vscode.openWith', file, screenFileViewType);
+  });
+  // A key VS Code would take while a twk terminal is focused (Ctrl+W, G, N,
+  // F, R, T, O and Ctrl+Shift+C, the ones package.json binds; Ctrl+P and the
+  // Ctrl+K chords stay VS Code's): package.json binds it to this, which does nothing, in place of VS Code's
+  // command. The terminal's xterm.js has the key already, and sends it to the app.
+  command('twk.keyToApp', () => Promise.resolve());
   command('twk.hotReload', () => hot.reloadAll());
   command('twk.hotRestart', () => hot.restartAll());
   command('twk.showOutput', async () => log.show(true));
@@ -247,8 +328,18 @@ export function activate(context: vscode.ExtensionContext): Api {
         }
       }),
     );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('twk.node.copyValue', async (item?: DetailItem) => {
+      const text = item ? copyText(item) : undefined;
+      if (text !== undefined) {
+        await vscode.env.clipboard.writeText(text);
+      }
+    }),
+  );
   command('twk.inspector.refresh', () => inspector.refresh());
   // the pick mode's button, pressed (stopPicking) while it is on
+  command('twk.inspector.showRenderTree', () => inspector.showTree('render'));
+  command('twk.inspector.showWidgetTree', () => inspector.showTree('element'));
   command('twk.inspector.pick', () => inspector.pick());
   command('twk.inspector.stopPicking', () => inspector.stopPicking());
   nodeCommand('twk.inspector.goToSource', (node) => inspector.goToSource(node.id));
@@ -282,7 +373,39 @@ export function activate(context: vscode.ExtensionContext): Api {
     return t;
   };
 
+  command('twk.showAppLogs', async () => appLogsView.show());
   command('twk.showLog', async () => logs.show(theScreen()));
+  // Saves a sequence log to a file: the file given or picked (a `.cast` is the bytes with their times, as asciicast; any other
+  // the rows as text), the filter given or the one its webview applies; answers what it wrote
+  const saveLog = async (panel: LogPanel, uri?: vscode.Uri, options?: { readonly format?: unknown; readonly filter?: unknown }) => {
+    const folder = vscode.workspace.workspaceFolders?.[0]?.uri;
+    const base = `${path.basename(panel.screen.name, '.dart')}.sequence-log.txt`;
+    const file =
+      uri ??
+      (await vscode.window.showSaveDialog({
+        title: `Save the sequence log of ${panel.screen.name}`,
+        ...(folder ? { defaultUri: vscode.Uri.joinPath(folder, base) } : {}),
+        filters: { 'sequence log (text rows)': ['txt', 'log'], 'asciicast (bytes with times)': ['cast'] },
+      }));
+    if (!file) {
+      return undefined;
+    }
+    const format = options?.format === 'text' || options?.format === 'cast' ? options.format : file.fsPath.endsWith('.cast') ? 'cast' : 'text';
+    const filter: LogFilter | undefined = isFilter(options?.filter) ? options.filter : undefined;
+    const content = format === 'cast' ? panel.cast(Date.now() / 1000, environmentOf(settings.capabilities().capabilities).TERM, filter) : panel.text(filter);
+    fs.writeFileSync(file.fsPath, content);
+    vscode.window.setStatusBarMessage(`twk: the sequence log of ${panel.screen.name} saved to ${path.basename(file.fsPath)}`, 5000);
+    return { file: file.fsPath, format, bytes: Buffer.byteLength(content) };
+  };
+  command('twk.saveLog', async (uri, options) => {
+    const screen = theScreen();
+    return saveLog(logs.of(screen) ?? logs.show(screen), uri, options as { format?: unknown; filter?: unknown } | undefined);
+  });
+  context.subscriptions.push(
+    logs.onDidAskSave((panel) => {
+      saveLog(panel).catch((e: unknown) => void vscode.window.showErrorMessage(`twk: ${e instanceof Error ? e.message : String(e)}`));
+    }),
+  );
   command('twk.copyScreen', async () => {
     const screen = theScreen();
     const text = screenText(await screen.view.snapshot());
@@ -319,6 +442,23 @@ export function activate(context: vscode.ExtensionContext): Api {
     }
     return recording;
   };
+  // Leaves a marker in the recording of the twk terminal: a place for the
+  // player to go to; returns its label
+  command('twk.addMarker', async () => {
+    const terminal = theTerminal();
+    const made = recordings.of(terminal);
+    if (!made) {
+      void vscode.window.showInformationMessage(`twk: ${terminal.name} is not being recorded; start twk: Record first.`);
+      return undefined;
+    }
+    const label = made.mark();
+    if (label === undefined) {
+      void vscode.window.showInformationMessage(`twk: the recording of ${terminal.name} has ended; nothing was marked.`);
+      return undefined;
+    }
+    vscode.window.setStatusBarMessage(`twk: ${label} left in the recording of ${terminal.name}`, 3000);
+    return label;
+  });
   command('twk.stopRecordings', async () => {
     for (const r of recordings.all()) {
       stopped(r.screen.name, r, await r.stop());
@@ -343,10 +483,143 @@ export function activate(context: vscode.ExtensionContext): Api {
     const name = path.basename(file.fsPath);
     const player = new Player(name, cast, openWebviewTerminal(`${name} · twk replay`, context.extensionUri), realClock);
     players.add(player);
+    // the bar's Test button: the same command as the explorer's
+    player.onDidAskTest(() => void vscode.commands.executeCommand('twk.testFromCast', file));
+    // the bar's Keys button: the same command as the explorer's
+    player.onDidAskInput(() => void vscode.commands.executeCommand('twk.replayInput', file));
     logs.follow(player);
     player.onDidDispose(() => players.delete(player));
     await player.start();
     return player;
+  });
+
+  // A recording's keys typed into the app of the twk terminal: at their
+  // times, or a step each time asked (the status bar's item and
+  // twk.replayInputStep); one replay at a time
+  let inputReplay: InputReplay | undefined;
+  let replayListener: Disposable | undefined;
+  const replayItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 98);
+  context.subscriptions.push(replayItem);
+  /** The start of [keys] as the tooltip shows it: a step can hold a whole paste. */
+  const previewKeys = (keys: string | undefined) => {
+    const shown = JSON.stringify((keys ?? '').slice(0, 40));
+    return (keys ?? '').length > 40 ? `${shown}...` : shown;
+  };
+  const showReplay = (r: InputReplay) => {
+    const { typed, total, ended } = r.state;
+    void vscode.commands.executeCommand('setContext', 'twk.replayingInput', ended === undefined);
+    if (ended !== undefined) {
+      replayItem.hide();
+      vscode.window.setStatusBarMessage(`twk: keys of ${r.name} ${ended === 'done' ? `typed, ${total}` : `not all typed (${typed} of ${total}): ${ended}`}`, 5000);
+      return;
+    }
+    replayItem.text = `$(keyboard) ${r.name} ${typed}/${total}`;
+    replayItem.tooltip = r.mode === 'steps' ? `Type the next keys (${previewKeys(r.next)}); twk: Stop Typing a Recording's Keys ends it` : 'Click to stop typing the recording\'s keys';
+    replayItem.command = r.mode === 'steps' ? 'twk.replayInputStep' : 'twk.replayInputStop';
+    replayItem.show();
+  };
+  command('twk.replayInput', async (uri, mode) => {
+    const terminal = theTerminal();
+    if (!terminal.shell?.serving) {
+      throw new Error(`no app is connected to ${terminal.name}: run one in it first`);
+    }
+    const file =
+      uri ??
+      (
+        await vscode.window.showOpenDialog({
+          title: 'Type the keys of an asciicast recording into the app',
+          canSelectMany: false,
+          filters: { asciicast: ['cast'], 'all files': ['*'] },
+        })
+      )?.[0];
+    if (!file) {
+      return undefined;
+    }
+    const chosen =
+      mode === 'timed' || mode === 'steps'
+        ? mode
+        : (
+            await vscode.window.showQuickPick(
+              [
+                { label: 'At their recorded times', mode: 'timed' as ReplayMode },
+                { label: 'Step by step', description: 'a click on the status bar item types the next keys', mode: 'steps' as ReplayMode },
+              ],
+              { title: `Type the keys of ${path.basename(file.fsPath)} into ${terminal.name}` },
+            )
+          )?.mode;
+    if (!chosen) {
+      return undefined;
+    }
+    const name = path.basename(file.fsPath);
+    const cast = parseCast(fs.readFileSync(file.fsPath, 'utf8'));
+    // the old one's ending is not shown: the new one's item replaces it
+    replayListener?.dispose();
+    inputReplay?.stop();
+    const replay = new InputReplay(
+      name,
+      cast,
+      {
+        name: terminal.name,
+        type: (text) => terminal.type(text),
+        get hasApp() {
+          return terminal.shell?.serving === true;
+        },
+        onDidDispose: terminal.onDidDispose,
+      },
+      chosen,
+      realClock,
+    );
+    inputReplay = replay;
+    const listener = replay.onDidChange(() => {
+      showReplay(replay);
+      if (replay.isEnded) {
+        listener.dispose();
+      }
+    });
+    replayListener = listener;
+    replay.start();
+    if (!replay.isEnded) {
+      showReplay(replay);
+    }
+    return replay;
+  });
+  command('twk.replayInputStep', async () => inputReplay?.step());
+  command('twk.replayInputStop', async () => inputReplay?.stop());
+
+  // A test of a recording: `twk test-from-cast`, run in the recording's
+  // project; the test it wrote is opened
+  const castTests = new CastTests({ start: startNodeProcess, command: twkCommand, projectOf, env: process.env, log });
+  command('twk.testFromCast', async (uri) => {
+    const file =
+      uri ??
+      (
+        await vscode.window.showOpenDialog({
+          title: 'Create a test from an asciicast recording',
+          canSelectMany: false,
+          filters: { asciicast: ['cast'], 'all files': ['*'] },
+        })
+      )?.[0];
+    if (!file) {
+      return undefined;
+    }
+    const name = path.basename(file.fsPath);
+    // a busy one says so without a progress notification of its own (create keeps the guard for other callers)
+    const result = castTests.isRunning(file.fsPath)
+      ? await castTests.create(file.fsPath)
+      : await cancellable(`twk test-from-cast ${name}`, (cancel) => castTests.create(file.fsPath, cancel));
+    if (result.busy) {
+      void vscode.window.showInformationMessage(`twk: ${name}: already writing its test`);
+    } else if (result.cancelled) {
+      void vscode.window.showInformationMessage(`twk: ${name}: test cancelled`);
+    } else if (result.test === undefined) {
+      void vscode.window.showErrorMessage(`twk: ${name}: ${(result.error ?? '').split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
+    } else {
+      await vscode.window.showTextDocument(vscode.Uri.file(result.test), { preview: false });
+      if (result.said !== '') {
+        void vscode.window.showWarningMessage(`twk: ${name}: ${result.said.split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
+      }
+    }
+    return result;
   });
 
   context.subscriptions.push(
@@ -366,12 +639,19 @@ export function activate(context: vscode.ExtensionContext): Api {
     view: (terminal) => (terminal.view instanceof WebviewTerminalView ? terminal.view : undefined),
     hots: () => hot.hots(),
     status: () => ({ text: bar.text, status: hot.status }),
+    terminalStatus: () => terminalItem.text,
     onStatus: statuses.event,
     progressOf: (terminal) => desktop.progressOf(terminal),
     inspector,
     inspectorView,
+    nodeView,
     players: () => [...players],
+    inputReplay: () => inputReplay,
     recordings,
+    appLogs,
+    appLogsView,
+    tapes: tape.tapes,
+    tapeDiagnostics: tape.diagnostics.collection,
     logOf: (screen) => logs.of(screen),
   };
 }
