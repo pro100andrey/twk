@@ -8,34 +8,38 @@ it. It covers the half of testing that `testTwk` cannot reach: the real
 `main`, the real terminal, the exit code, and the terminal handed back
 when the app ends.
 
-This document was written by task `drv-design` (2026-11-12). It is based
-on a read of the code at `5e520a4`, with file:line references to that
-commit. It is the design the later slices build on (part 10). Nothing
-described here is built yet. The user made the decisions in part 1;
-everything else is this document's proposal, and a slice that finds it
-wrong says so and changes it here.
+This document was written by task `drv-design` (2026-11-12) and revised
+by `drv-design-fixes` after a review of it found 15 defects (part 13). It
+is based on a read of the code at `5e520a4`, with file:line references to
+that commit. Nothing described here is built yet. The user made the
+decisions in part 1; everything else is this document's proposal, and a
+slice that finds it wrong says so and changes it here. The plan of work
+lives in tm, not here (part 10).
 
 ## 1. Decisions
 
 Made with the user on 2026-11-12, after a review of precedents (part 11):
 
 1. **Time is a port of the core, and the driven clock lives in twk.**
-   twk_core gets a `Clock` interface: monotonic `elapsed`, one-shot and
-   periodic timers. This is the shape of .NET's `TimeProvider`, not of
+   twk_core gets a `Clock` interface: monotonic elapsed microseconds,
+   one-shot and periodic timers. This is the shape of .NET's `TimeProvider`, not of
    `java.time.Clock`, which only tells the time. twk_core also gets a
    system implementation. `TwkApp` and `AppBinding` take the clock
    explicitly, replacing today's `Stopwatch` and the timers they make
-   through a captured zone. The clock the driver moves, `DrivenClock`,
+   through a captured zone; it also replaces the `Cli`'s own time port,
+   `CliClock` (part 4.1). The clock the driver moves, `DrivenClock`,
    is a runtime capability of twk, because `runApp` uses it in the
    app's own process. That makes it like tokio's `time::pause` or Go's
    `synctest` rather than like a test fake. twk_test's `FakeClock` is
    rebuilt on `DrivenClock`, so there is one implementation of timer
    order and elapse.
-2. **Driven mode is turned on at start by `TWK_DRIVEN`.** `runApp`
-   reads it before it makes a timer. Its value is `1`, or an ISO-8601
-   instant that becomes the app's start time. There is no generated
-   entry point and no install over the VM service after start: every
-   precedent installs the clock before the app's code runs.
+2. **Driven mode is turned on at start by `TWK_DRIVEN`.** `runApp` and
+   the `Cli`'s system terminal read it before they make a timer. Its
+   value names the driving process, so a child the app starts does not
+   take it (part 4.3), and may carry an ISO-8601 instant that becomes
+   the app's start time. There is no generated entry point and no
+   install over the VM service after start: every precedent installs
+   the clock before the app's code runs.
 3. **Layers: `twk_test → twk_driver ← twk_dev`.** twk_driver does not
    depend on package:test. `driverTest` lives in
    `package:twk_test/driver.dart`. `twk mcp` is a thin layer in twk_dev.
@@ -75,19 +79,32 @@ for the core's unit tests, and the adapters are tested in process tests
 - **TerminalPort.** Owns the pty master: write bytes, resize (TIOCSWINSZ
   plus SIGWINCH, as `Pty.resize` does), and the stream of output. Its
   adapter is twk_term's `Pty` (`packages/twk_term/lib/src/pty/pty.dart`;
-  `Pty.start` at :192). It also reports the slave's output flags (part
-  3.4). Pty is POSIX only, so the driver runs on Linux and macOS.
-- **ScreenPort.** Takes the output bytes and keeps the screen's cells. It
-  encodes keys, the mouse and pastes in the modes the app has turned on,
-  and answers the app's queries: `TerminalEmulator.sendKey`, `sendMouse`,
-  `sendPaste` (`packages/twk_term/lib/src/emulator/emulator.dart:800-851`).
-  The emulator's answers are part of what the driver writes and count
-  as input bytes (part 3). A terminal profile (the extension's presets:
-  colours, answers, kitty keyboard, synchronized output) configures the
-  emulator for a session. `driverTest` feeds the same bytes to twk_test's
+  `Pty.start` at :192). Pty is POSIX only, so the driver runs on Linux
+  and macOS. Today `Pty.start` opens the slave, sets only IUTF8 on it
+  and spawns, all in one call (:255-271); nothing lets a caller set the
+  output flags before the program runs, and setting them after
+  `Pty.start` returns races the program's first output. So twk_term
+  changes, in `drv-core`: `Pty.start` takes the output flags to set on
+  the slave beside IUTF8, and `Pty` reports whether the slave maps NL to
+  CR NL, from the termios it already reads (`modes()`, :900) (part 3.4).
+- **ScreenPort.** Two emulators fed from one byte log (part 3.3):
+  - the **answering** emulator takes every byte as it arrives, as a real
+    terminal does. It answers the app's queries at once and keeps the
+    modes the app turned on, by which keys, the mouse and pastes are
+    encoded: `TerminalEmulator.sendKey`, `sendMouse`, `sendPaste`
+    (`packages/twk_term/lib/src/emulator/emulator.dart:800-851`). Its
+    answers are part of what the driver writes and count as input bytes
+    (part 3);
+  - the **frame** emulator answers nothing and is fed only up to the
+    boundary of the last frame the app has posted. Its screen is the
+    one `press`, `waitFor` and the trace see.
+
+  A terminal profile (the extension's presets: colours, answers, kitty
+  keyboard, synchronized output) configures the answering emulator for
+  a session. `driverTest` feeds the frame emulator's bytes to twk_test's
   strict `Vt` too, as a checker: an unknown sequence fails the test, as
-  the e2e checks do. The checker is an optional port, so twk_driver never
-  imports twk_test.
+  the e2e checks do. The checker is an optional port, so twk_driver
+  never imports twk_test.
 - **AppServicePort.** Calls `ext.twk.*` and streams the Extension
   events. Its adapter is `VmAppClient`, moved from
   `packages/twk_dev/lib/src/app_client.dart` into twk_driver. twk_dev's
@@ -122,14 +139,20 @@ of `SuspendableBackend` and the others in
 `packages/twk_core/lib/src/terminal/terminal.dart` (from :755). `Terminal`
 and `HeadlessTerminal` implement it.
 
-- **`bytesRead`.** Bytes taken from `link.input` whose events have been
-  delivered. Input has one subscription (`terminal.dart:1110`) and two
-  data handlers: the probe's (around :1309) and the session's `_onBytes`
-  (:1852). Both count. A byte the parser still holds (a lone ESC waiting
-  for its timeout, an open paste) is counted when the parse that
-  resolves it delivers. So the probe's answers are counted as well.
+- **`bytesRead`.** Every byte taken from `link.input`. Input has one
+  subscription (`terminal.dart:1110`) and two data handlers: the
+  probe's (around :1309) and the session's `_onBytes` (:1852). Both
+  count, at the end of the handler, once the read is parsed and its
+  events are added to `_events`. Bytes the Terminal keeps to itself
+  count too: the probe's answers, a cursor report a resume asked for
+  (`_deliver`, :1909-1916), a late reply it drops.
+- **`bytesReadAtOpen`.** What `bytesRead` was when `Terminal.open`
+  returned: the probe's bytes.
 - **`inputPending`.** True while the parser holds bytes
-  (`InputParser.hasPending`, `inPaste`).
+  (`InputParser.hasPending`, `inPaste`): a lone ESC waiting for its
+  timeout, an open paste.
+- **`onRead`.** Called at the end of each data handler, so that TwkApp
+  can acknowledge a read that gave it no event (part 3.2).
 - **`bytesWritten`.** Bytes accepted for the tty: the probe's direct
   `link.add` calls (:1421, :1432), plus everything given to the
   `Outbox`. They are counted when the Outbox accepts them (`add` and
@@ -140,7 +163,29 @@ and `HeadlessTerminal` implement it.
   without a further flush.
 
 Each counter costs one integer add per read or write call, not per
-byte. This is on the frame path, so `bench` is owed (part 10).
+byte. This is on the frame path, so `bench` is owed.
+
+**What TwkApp reports is not `bytesRead`.** The Terminal counts a read
+when its events are added to `_events`, an asynchronous
+`StreamController` (`terminal.dart:907`). TwkApp gets them later, and
+not at all while its subscription is paused: from `run` until the first
+frame's build is done (`app.dart:626`, resumed at :1255), and while the
+app is suspended. A key read during such a pause is counted by the
+Terminal but has not reached the app. So TwkApp keeps its own
+**`inputRead`**:
+
+- it is a sample of `bytesRead`, taken at the boundaries of the event
+  loop where it is read: the start of a frame, the acknowledgement's
+  timer, an extension's handler. While the subscription is live the
+  sample is exact there: the controller delivers its events in
+  microtasks, and the microtask queue is empty at a boundary;
+- while the subscription is paused, the sample is not taken, and
+  `inputRead` keeps the last one. Before the first frame it starts at
+  the bytes the Terminal read while it opened, the probe's, which the
+  Terminal reports apart (`bytesReadAtOpen`). A key read after the open
+  waits in `_events` until TwkApp's subscription is live, so it is not
+  in that number. After a resume, the sample catches up at the first
+  boundary, once the buffered events have been dispatched.
 
 ### 3.2 What the app posts (twk)
 
@@ -154,46 +199,60 @@ the flag.
 whose `screen.render()` wrote nothing (`app.dart:1277-1293`). Payload:
 
 ```json
-{"version": 1, "frame": 41, "drawn": true,
+{"version": 1, "frame": 41, "drawn": true, "size": {"width": 80, "height": 24},
  "inputRead": 1093, "outputWritten": 58211, "inputPending": false,
- "scheduled": false, "time": 3016000, "nextDue": null}
+ "scheduled": false, "frameDue": null, "time": 3016000, "nextDue": null}
 ```
 
 - `frame` counts the frames run, drawn or not.
-- `inputRead` is `bytesRead` as it was when this frame's build began
-  (`_beforeLayout`, `app_binding.dart:1223`). There is one exception:
-  in the first frame the input subscription is still paused
-  (`app.dart:626`, resumed at :1255 after the build), so the first frame
-  reports only the bytes the probe read.
+- `size` is the screen's size the frame was laid out at.
+- `inputRead` is TwkApp's `inputRead` (part 3.1) as it was when this
+  frame's build began (`_beforeLayout`, `app_binding.dart:1223`).
 - `outputWritten` is `bytesWritten` after this frame's write.
-- `scheduled` is true when another frame is already due: `_again`,
-  `owner.hasWork`, or a pending commit (`app.dart:1310`). TwkApp exposes
-  this as a public getter; today `_scheduled`, `_inFrame` and `_again`
-  are private (`app.dart:430-433`).
-- `time` is the app clock in µs. `nextDue` is the next timer of the
-  driven clock, and is null when the app is not driven.
+- `scheduled` is true when a frame is already asked for: `_scheduled`,
+  `_again`, `owner.hasWork`, or a pending commit (`app.dart:430-433`,
+  :1310). TwkApp exposes this as a public getter; today these fields
+  are private.
+- `frameDue` is when that frame is due, in µs of the app clock:
+  TwkApp's `_frameDue` (`app.dart:455`), made public. Null when no frame
+  is asked for.
+- `time` is the app clock in µs. `nextDue` is the earliest timer of the
+  driven clock, whatever it is for, and null when the app is not driven.
+  `nextDue` is never what the driver moves the clock to for a frame:
+  that is `frameDue`.
 
-**`twk.input`** acknowledges input that does not, or does not yet, lead
-to a frame. A key that changes nothing never calls `requestFrame`, so
-without this event the driver would wait forever. After a read's events
-are dispatched, TwkApp arms one root-zone `Timer.run`. It fires after
-the microtask queue has drained, so every event of every read so far has
-been dispatched. It then posts the same payload as `twk.frame`, with
+**`twk.input`** acknowledges what does not, or does not yet, lead to a
+frame. A key that changes nothing never calls `requestFrame`, and an
+answer the Terminal keeps to itself never reaches TwkApp, so without
+this event the driver would wait forever. TwkApp arms one root-zone
+`Timer.run` when the Terminal's `onRead` fires and when it dispatches an
+event, resize events included. The timer fires after the microtask
+queue has drained, and then posts the same payload as `twk.frame`, with
 `frame` set to the last frame run. Several reads in one turn of the
 event loop get one post.
 
-The `inputRead` in both events is exact for one reason: the input
-events reach TwkApp through an asynchronous `StreamController`
-(`terminal.dart:907`), so they are dispatched in microtasks. A frame
-starts from a timer, which runs only after the microtask queue has
-drained. So at a frame's start, every byte read has been dispatched,
-apart from what the parser holds or the first frame's pause keeps back.
+`scheduled: false` in a `twk.input` means only that no frame was asked
+for by the time the event loop drained. Work that a handler deferred
+with zero delay (`Future(...)`, `Timer.run`, `scheduleMicrotask`) has
+run by then: it was queued before the acknowledgement's timer, and
+timers of equal delay run in order. Work deferred longer, a timer with
+a delay or a wait on real I/O, may still draw. `press` does not wait for
+it; `waitFor` does.
 
-### 3.3 `press()`
+**`ext.twk.clock`** is registered in every app with a VM service,
+driven or not (part 4.5). Its `status` gives the same counters and
+`frame`, so a driver that attaches has a baseline. It sets
+`frameEvents` first and reads `status` after that, so no frame falls
+between the two.
 
-1. The driver writes the key's bytes, encoded by the ScreenPort. Its
-   running total of written bytes becomes `W`, and includes the
-   emulator's answers.
+### 3.3 Acting and waiting
+
+**Keys, text, pastes, the mouse.** `press`, `type`, `paste` and the
+clicks of `tap`:
+
+1. The driver writes the bytes, encoded by the answering emulator. Its
+   running total of written bytes becomes `W`. The total includes the
+   emulator's answers, written as soon as the queries arrive.
 2. It waits for a `twk.input` or `twk.frame` event with
    `inputRead >= W` and `!inputPending`. A lone ESC stays pending for
    the escape timeout (30 ms, or 500 ms for a sequence that was cut,
@@ -202,22 +261,60 @@ apart from what the parser holds or the first frame's pause keeps back.
 3. If that event is a `twk.frame`, it is the input's frame. If it is a
    `twk.input` with `scheduled`, the driver waits for the next
    `twk.frame` with `inputRead >= W`. When the app is driven, the driver
-   first moves the clock to `nextDue`: input frames are spaced by
-   `1/maxInputFps`, 8.3 ms of app time at most (`app.dart:1205-1231`).
-   This is the only time `press` moves the clock. If the event is a
-   `twk.input` without `scheduled`, nothing will be drawn for the input.
-4. The driver feeds the emulator until it has taken `outputWritten`
+   first moves the clock to the event's `frameDue`. Input frames are
+   spaced by `1/maxInputFps` (`app.dart:1205-1231`). That is 8.3 ms at
+   the default 120. It is `maxFps` (16.7 ms at the default 60) on a
+   remote terminal or below 60 frames a second (`_inputFps`,
+   :352-355). If the event is a `twk.input` without `scheduled`, no
+   frame was asked for (part 3.2).
+4. The driver feeds the frame emulator up to the frame's `outputWritten`
    bytes of the app's output (part 3.4). Then it returns the frame
    number and the screen.
 
-The output is buffered, so the driver can stop the emulator at any
-frame's `outputWritten`. It sees every frame's screen, including a state
-that lasts one frame, even when the app runs on real time. Nothing is
-polled, so nothing is missed between polls.
+**Actions that put no bytes in.** `resize`, the app's first frame, and
+a hot reload's `ext.twk.reassemble` do not move `inputRead`.
 
-A corrective frame that the input's frame requests is not part of
-`press`. One example is the focus settling a frame late (the KeyHintsBar
-lag recorded in tm). `waitFor` covers it, because it checks every frame.
+- **Resize.** It comes by SIGWINCH (`Terminal._checkSize`) as a
+  `ResizeEvent`. TwkApp dispatches it like any event, so `resize` waits
+  for a `twk.input` or `twk.frame` whose `size` is the new size, then
+  goes on from step 3.
+- **Start.** The first frame needs nothing: a driven clock runs timers
+  that are due at its current time without being moved (part 4.2), and
+  the first frame is due at once (`_lastFrameAt` starts a second back,
+  `app.dart:452`). `start` sets `frameEvents`, reads `status`, and when
+  no frame has run yet, waits for the first `twk.frame`.
+- **Reassemble.** `ext.twk.reassemble` answers with the last frame run
+  and the `frameDue` of the frame it asked for (two fields added to its
+  answer, which is `{version}` today, `app_binding.dart:969-971`). The driver moves a
+  driven clock there and waits for a `twk.frame` past that frame.
+
+**Every wait also ends on these:**
+
+- the process exits;
+- the pty reaches its end;
+- the VM service closes;
+- an error nothing caught in a frame: it ends the app through `_fail`
+  (`app.dart:1163`), and it is the exit that is seen. An error in a
+  widget's build, layout or paint is reported and the frame goes on, so
+  it posts as usual.
+
+A wait that ends so reports the exit code, the screen, and the log's
+last records. It is not a timeout. `press('q')` on an app that quits is
+answered "the app exited (0)", which a test can expect.
+
+**Every frame is seen.** The driver keeps a log of the bytes it
+received. The answering emulator takes them as they come, so a query in
+them is answered when a terminal would answer it, never held back
+behind a frame boundary. The frame emulator moves only from one posted
+frame's boundary to the next, and the boundaries only grow. So the
+driver has every frame's screen, including a state that lasts one frame,
+even when the app runs on real time. Nothing is polled, so nothing is
+missed between polls.
+
+A corrective frame that the input's frame asks for is not part of
+`press`. One example is the focus settling a frame late: the KeyHintsBar
+lag, tm reflection `01a19391-6c5d-796e-891d-aee1847aec20`. `waitFor`
+covers it, because it checks every frame.
 
 ### 3.4 Line discipline: why the driver counts LFs
 
@@ -229,12 +326,13 @@ master as CR LF. The presenter does write bare LFs: inline line feeds
 (`presenter.dart:1394`, :1123), and plain output (`app.dart:1029`).
 
 The driver therefore counts the app's bytes as
-`received - LFs received while ONLCR is set`. The inserted CR always
-comes right before its LF. The driver sets the slave's termios itself
-before it spawns the app: OPOST and ONLCR on (what a real terminal
-gives), TAB0, no OCRNL, ONOCR or ONLRET. Nothing in twk changes oflag.
-`drv-frame-event`'s process test holds the two counts equal over inline,
-fullscreen and plain apps.
+`received - LFs received while ONLCR is set`; the inserted CR always
+comes right before its LF. The slave's output flags are set by
+`Pty.start` before the program runs (the twk_term change of part 2):
+OPOST and ONLCR on, which is what a real terminal gives, TAB0, and no
+OCRNL, ONOCR or ONLRET. `Pty` reports ONLCR from the termios it
+reads. Nothing in twk changes oflag. `drv-frame-event`'s process test
+holds the two counts equal over inline, fullscreen and plain apps.
 
 Input needs no such correction. In non-canonical mode with ISIG, IXON
 and ICRNL cleared (by `enterRaw`), the line discipline passes bytes
@@ -248,13 +346,23 @@ so no key goes in while the tty is still cooked.
 
 ```dart
 abstract interface class Clock {
-  Duration get elapsed;                       // monotonic, since the clock began
+  int get elapsedMicroseconds;                 // monotonic, since the clock began
   Timer timer(Duration after, void Function() callback);
   Timer periodic(Duration every, void Function(Timer) callback);
 }
 final class SystemClock implements Clock { ... }  // Stopwatch + Zone timers
 ```
 
+- **An int, not a `Duration`.** The reads on the frame path are ints
+  today: `clock.elapsedMicroseconds` in `requestFrame` and `_frame`
+  (`app.dart:1223`, :1244), and in `AppBinding`'s frame callbacks and
+  `_dueTimer` (`app_binding.dart:1069`, :1198). `_beforeLayout` reads
+  `clock.elapsed` (:1225) and turns it into microseconds; it reads the
+  int instead. The port keeps them ints, and `elapsed` as a `Duration`
+  is an extension on it. The frame path
+  has paid for a call it did not inline before: `2a73619` measured 10 %
+  on typing into 40k characters. So `drv-clock-port`'s bench report
+  looks at `type-40k`, `wrap` and `ellipsis`.
 - `TwkApp({Clock? clock})` replaces `Stopwatch? clock` (`app.dart:223`,
   :258). `requestFrame` calls `clock.timer(wait, _zone.bindCallback(_runFrame))`
   instead of `_zone.createTimer` (:1227), so frames still run in the
@@ -263,8 +371,25 @@ final class SystemClock implements Clock { ... }  // Stopwatch + Zone timers
   (`app_binding.dart:416-422`) and `_dueTimer` (:1199) go through it.
   `now()` (:726) is `startTime + clock.elapsed`, and a driven app always
   has a `startTime`.
-- `_statsClock` (`app.dart:448`) stays a real `Stopwatch`: it measures
-  cost, not app time. Log records keep `DateTime.now()`.
+- **`CliClock` goes.** `CliClock` (`packages/twk/lib/src/cli/terminal.dart:18-37`)
+  is a second time port: `stopwatch()` and `run(body)`, with a fake in
+  twk_test (`_FakeCliClock` and `_ClockStopwatch`,
+  `packages/twk_test/lib/src/cli/fake_cli_terminal.dart:361-400`). The
+  `Cli`'s terminal carries a `Clock` instead. `CliSession.open`
+  (`packages/twk/lib/src/cli/session.dart:64-80`) gives it to
+  `AppBinding`, and the `Cli`'s progress (`cli/progress.dart:86`, :308)
+  takes it. `ProgressTracker(clock:)`
+  (`packages/twk/lib/src/animation/progress_list.dart:139-148`) takes a
+  `Clock` and defaults to the binding's when it is made inside an app
+  (its real `Stopwatch` leaked real time into tests: tm reflection
+  `01a16660-4ba6-7ea7-843c-cbd89fad290d`).
+  That removes the Stopwatch fakes, so timer order and elapse have one
+  implementation.
+- These stay real `Stopwatch`es: `_statsClock` (`app.dart:448`), the
+  frame overlay's cost watches (`frame_overlay.dart:250`, :366-367),
+  `doctor`'s probe timing (`packages/twk_dev/lib/src/doctor.dart:347`),
+  and the trace writer's (`terminal/trace.dart:228`). They measure cost
+  or real I/O, not app time. Log records keep `DateTime.now()`.
 - This is a breaking change to `clock:` and a change to the frame path.
   Early in the project, breaking is acceptable; `bench` is owed.
 
@@ -273,6 +398,13 @@ final class SystemClock implements Clock { ... }  // Stopwatch + Zone timers
 `DrivenClock implements Clock`:
 
 - a queue of timers ordered by due time, then by creation order;
+- **timers due now run without a move.** A timer due at or before the
+  clock's current time runs on its own: the clock wakes itself with a
+  zero timer in `Zone.root`. Time does not move, so this costs nothing
+  in determinism. It is what lets the first frame (due at once), a
+  `Future(...)` and a `Timer.run` happen without the driver. The driver
+  owns time, not the running of what is due now. Go's `synctest` runs
+  what is ready at the bubble's current time in the same way;
 - `advance(by)`, `advanceTo(t)` and `advanceToNext()`;
 - `pendingTimers` and `nextDue`;
 - `describeTimers()`, which gives each timer's due time, whether it is
@@ -284,88 +416,114 @@ final class SystemClock implements Clock { ... }  // Stopwatch + Zone timers
 It does not queue microtasks: in the app's process they run as they
 normally do. twk_test's `FakeClock` becomes `DrivenClock`, plus its
 zone, plus the microtask queue that tests need for a synchronous
-`elapse`. Its public API (`run`, `elapse`, `elapseUntil`,
-`pendingTimers`, `describeTimers`) stays. `stopwatch` gives way to
-`clock`. `TestFailure` stays in twk_test's wrapper.
+`elapse`. In a test, the due-now rule is FakeClock's: due timers run
+when the test flushes or elapses, as now. Its public API (`run`,
+`elapse`, `elapseUntil`, `pendingTimers`, `describeTimers`) stays.
+`stopwatch` gives way to `clock`. `TestFailure` stays in twk_test's
+wrapper.
 
-### 4.3 `TWK_DRIVEN` (runApp)
+### 4.3 `TWK_DRIVEN`
 
-When `runApp` is given no `clock:` and `TWK_DRIVEN` is set, it does the
-following:
+The variable is read by one function in twk. It is called by the two
+places that make a binding for the process when they are given no
+clock: `runApp`, and the `Cli`'s system terminal
+(`packages/twk/lib/src/cli/terminal.dart:115`, where it answers
+`CliClock.system()` today). `AppBinding`'s constructor never reads it,
+and an explicit `clock:` wins over it.
 
-1. Opens the terminal on real time, as today (`app_binding.dart:196-205`).
-2. Makes a `DrivenClock`. The start time is the variable's ISO-8601
-   instant, or the real time at start for `1`.
-3. Runs the binding and the app in a zone forked from the current one
+**The value names the driver.** It is `<pid>` or `<pid>@<ISO-8601
+instant>`. `<pid>` is the driving process, and the instant becomes the
+app's start time; without one, the start time is the real time at
+start. The variable is taken only when the process's parent is that
+pid (`getppid`, which twk_core's libc bindings already have,
+`posix_tty.dart`). A program the driven app starts (a nested twk app, a
+`twk run`, a shell in a `TerminalView`) inherits the environment, but
+its parent is the app, so it runs on real time. Without that rule it
+would wait forever for a driver that is not there. If `dart run` puts a
+process between the driver and the app, the app is not driven. The
+driver sees `driven: false` in `status` and fails at once, saying why;
+it never runs a test on real time thinking it is driven.
+
+When the variable is taken:
+
+1. The terminal opens on real time, as today (`app_binding.dart:196-205`).
+2. A `DrivenClock` is made.
+3. The binding and the app run in a zone forked from the current one
    whose `createTimer` and `createPeriodicTimer` go to that clock. This
    zone adapter is how a raw `Timer` or `Future.delayed` in the app's
-   own code is driven as well. The adapter is made from the clock that
-   `runApp` holds, and the binding is given the clock as an argument,
-   so no zone value carries it anywhere.
-4. Registers `ext.twk.clock` (part 4.5).
+   own code is driven as well. The adapter is made from the clock the
+   caller holds, and the binding is given the clock as an argument, so
+   no zone value carries it anywhere.
 
-In product mode the variable is ignored. Without a VM service,
-`runApp` throws at start: nothing could move the clock. The variable is
-read by `runApp` only, and `AppBinding`'s constructor never reads it. An
-explicit `clock:` wins over it.
+In product mode the variable is ignored. Without a VM service, it
+throws at start: nothing could move the clock.
 
 ### 4.4 What stays on real time
 
-All of it is I/O, not app time:
+The rule: **an I/O adapter makes its timers in a zone it captured when
+it was made, or in `Zone.root` when the app makes it.** Its timers are
+then never driven, whichever zone calls into it. The list below comes
+from a grep of `Timer(`, `Timer.periodic(`, `Timer.run(`, `.timeout(`,
+`Future.delayed(` and `Stopwatch()` in the `lib/` of twk_core, twk and
+twk_term at `5e520a4`. `drv-clock` turns it into a test, so that a new
+one cannot slip in unclassified.
 
-- the terminal's own timers: the probe's timeout (`terminal.dart:1424`),
-  the late probe (:1843), the late cursor (:2075), escape and paste
-  (:1858, :1872). The terminal is opened before the driven zone exists,
-  so they are made in its zone. The late cursor timer is the exception:
-  it is created on resume, in the app's zone. `drv-clock` moves it to
-  the terminal's own zone, captured at open;
-- `posix_output`'s drain retry (`posix_output.dart:141`), which today
-  is created in the writer's zone, that is, the frame's. Under the
-  driven zone it would wait for the clock while the frame waits on the
-  flush. `drv-clock` makes it use the zone captured when the link is
-  made;
-- `tailFile` (`packages/twk/lib/src/platform/io.dart:254`, :289, both
-  in `Zone.root`), the log server's token timeout, and the socket
-  terminal's hello timeout.
+| where | what | today made in | under the driven zone |
+|---|---|---|---|
+| `terminal.dart:1424`, :1843, :1858, :1872 | probe timeout, late probe, paste, escape | the zone `Terminal.open` ran in | real: the terminal opens before the zone exists |
+| `terminal.dart:2067`, :2075 | resume's cursor timeout, late cursor | the app's zone (resume) | **driven: move to the terminal's captured zone** |
+| `terminal.dart:2202`, :2208 | close's flush guards | the zone `TwkApp.run` awaits close in | **driven: same fix**. Unfixed, exit hangs on a terminal that stops reading |
+| `terminal.dart:1730` | terminal state refresh, 10 s periodic | the app's zone | driven, on purpose: the app's own refresh, and the app is not quiet while it runs |
+| `posix_output.dart:141` | drain retry | the writer's zone, the frame's | **driven: capture the link's zone** |
+| `socket.dart:255`, :493, :666, :717 | socket terminal: welcome, close, refusal, hello | open, or the caller's zone (close) | **:493 driven: same fix**; the others open before the zone |
+| `log_server.dart:83` | token timeout | the zone `serveLogs` runs in, inside `TwkApp.run` | **driven: capture at the server's start** |
+| `trace.dart:264` | `TWK_TRACE_*` writer's drain, `Timer.run` | the writer's zone | zero delay: runs as a due-now timer either way; captured too, for clarity |
+| `twk_term pty.dart:644`, :706, :870 | hosted `Pty`: hang-up grace, 10 ms reader polls | the app's zone (`TerminalView` makes it) | **driven: `Zone.root`**. Unfixed, a hosted shell's output waits for the clock and the app is never quiet |
+| `twk_term render_terminal.dart:172` | `TerminalView`'s synchronized-update timeout | the app's zone | driven, on purpose: a view's own timeout is app time |
+| `twk platform/io.dart:254`, :289 | `tailFile`'s looks and watch | `Zone.root` already | real |
 
 Known escapes that remain:
 
 - **Timers made in `main` before `runApp`.** The precedents agree on
   this one: install comes first or the clock is not in charge.
   Documented.
-- **`ProgressTracker`'s default `Stopwatch`**
-  (`packages/twk/lib/src/animation/progress_list.dart:141`; the tm
-  reflection on it). `drv-clock` gives it the binding's clock.
-- **The terminal status refresh** (`terminal.dart:1730`, a 10 s
-  periodic timer while progress shows). It is the app's timer and is
-  driven like any other.
+- **Other isolates.** The terminal's own input isolate is I/O
+  (`posix_input.dart:67`). An app's isolates are outside the clock
+  (part 12).
 
 ### 4.5 `ext.twk.clock`
+
+It is registered in every app with a VM service, beside the other
+`ext.twk.*` (`AppBinding.serviceExtensions`, `app_binding.dart:782-791`),
+driven or not. A client tells the two apart by `driven`.
 
 Params: `op=status|advance|advanceTo|next`, `by` / `to` in µs, and
 `describe=true`.
 
-Answer:
-
 ```json
 {"version": 1, "driven": true, "time": 3016000, "timers": 2,
- "nextDue": 3033333, "quiet": false, "frame": 41,
+ "nextDue": 3033333, "frameDue": 3024999, "scheduled": true, "quiet": false,
+ "frame": 41, "size": {"width": 80, "height": 24},
  "inputRead": 1093, "outputWritten": 58211, "inputPending": false,
  "describe": [{"due": 3033333, "periodic": false, "created": "lib/spinner.dart:40"}]}
 ```
 
-`advance` does the following:
+- **Not driven.** `status` answers the counters, `frame`, `scheduled`,
+  `frameDue` and `time` (the system clock), with `driven: false`, and
+  `timers`, `nextDue` and `quiet` null. The other ops are refused:
+  "the app is not driven".
+- **Driven.** `advance` does the following:
+  - fires the timers in due order up to the target;
+  - after each one, awaits a root-zone zero timer, so the microtasks
+    the timer started run to the end;
+  - waits for a frame that is running and awaiting its flush to end
+    (TwkApp exposes this as a future);
+  - leaves the app's time at the target.
 
-- fires the timers in due order up to the target;
-- after each one, awaits a root-zone zero timer, so the microtasks the
-  timer started run to the end;
-- waits for a frame that is running and awaiting its flush to end
-  (TwkApp exposes this as a future);
-- leaves the app's time at the target.
+  A second call while one runs is refused.
 
-A second call while one runs is refused. The handlers run in
-`Zone.root` (`app_binding.dart:892-897`). Each fired timer runs its
-callback in the zone where it was made.
+The handlers run in `Zone.root` (`app_binding.dart:892-897`). Each
+fired timer runs its callback in the zone where it was made.
 
 ### 4.6 Quiet, `waitFor` and "never"
 
@@ -377,7 +535,7 @@ these hold:
 - nothing is pending in the input parser;
 - no frame is scheduled or running;
 - on the driver's side, `inputRead` equals the bytes the driver wrote,
-  and the emulator has taken `outputWritten` bytes.
+  and the frame emulator has taken `outputWritten` bytes.
 
 An animation keeps a timer going: a `Ticker` asks for every frame
 (`ticker.dart:162-178`), and `Steps` arms `_dueTimer`. So an app that
@@ -395,6 +553,8 @@ animates is never quiet, and that is correct.
      and the closest line or node.
 3. When the app is not driven, it waits for frames on real time up to
    `io`, which is then required.
+4. Like every wait (part 3.3), it also ends when the app exits, the pty
+   ends or the service closes, and says so.
 
 Real I/O in flight (a socket, a file, a process) is invisible to the
 clock and to the zone; Dart has no API for it. A quiet app that is
@@ -422,14 +582,21 @@ keys only by `toString`.
 | `{"text": "Save"}` | a `Text` whose whole text (data or joined spans) is equal |
 | `{"textContaining": "Sav"}` | substring |
 | `{"textMatches": {"source": "^Sa", "caseSensitive": true}}` | RegExp |
-| `{"type": "Button"}` | `runtimeType` by name, type arguments ignored |
+| `{"type": "DropDown<String>"}` | `runtimeType.toString()` equal: exactly the type, with its type arguments, as `find.byType` (`finders.dart:46-47`) |
 | `{"key": {"value": "save"}}`, `{"key": {"value": 3}}` | `ValueKey<String>` / `ValueKey<int>` by `==` |
 | `{"node": 44}` | a node id from an earlier answer; refused if it left the tree |
-| `{"descendant": F, "of": G, "matchRoot": false}`, `{"ancestor": F, "of": G}` | as twk_test's |
+| `{"descendant": F, "of": G}`, `{"ancestor": F, "of": G}` | as twk_test's (`finders.dart:328-380`): strictly below or above, never the node itself |
 | `{"at": 2, "of": F}`, `{"first": F}`, `{"last": F}` | index |
 
 - Other keys (`ObjectKey`, `GlobalKey`, `UniqueKey`) cannot cross the
   wire. They are reached by `node`.
+- **One semantics, in and out of process.** In `testTwk`, `byType`
+  keeps comparing `Type`s. Over the wire it compares the type's name,
+  which is the same answer unless two classes of one name from two
+  libraries are in the tree. Then the name matches both, and strictness
+  fails the action, naming both matches. A Dart program cannot learn a
+  `Type`'s library without mirrors, so the name is as far as the wire
+  goes.
 - `byWidgetPredicate` stays in-process only. Its `toJson` throws an
   error that names it and suggests the data kinds.
 - **Strict by default.** An action on a finder that matches more than
@@ -446,9 +613,12 @@ Answer:
               "shown": {"x": 40, "y": 9, "width": 8, "height": 1}}]}
 ```
 
-`shown` is the rectangle clipped by every ancestor. It is the private
-`_shownOf` (`packages/twk/lib/src/debug/inspector.dart:303-324`) made
-public, and null when no cell shows. `ext.twk.layout` gets `shown` too.
+`shown` is the rectangle clipped by every ancestor, null when no cell
+shows. Two copies of that computation exist today: the inspector's
+private `_shownOf` (`packages/twk/lib/src/debug/inspector.dart:303-324`)
+and the loop in twk_test's `clickOn` (`finders.dart:286-309`). One
+public function in twk takes their place, and both call it.
+`ext.twk.layout` gets `shown` too.
 
 ## 6. The tap check (`ext.twk.hitTest`)
 
@@ -536,6 +706,13 @@ failure report gives its path.
   `CastWriter` and `Cast` move from twk_dev into twk_driver, and twk_dev
   re-exports them. `twk play`, the extension's player and twk_test's
   `screenFrames` already read the format.
+
+  The driver writes the output events from the frame emulator's feed,
+  one event for each posted frame's bytes (and one for what came
+  between two frames). So every frame boundary is an event boundary.
+  The bytes are as the pty gave them, the CRs of ONLCR included, which
+  is what a player needs. The app writes each frame whole, so a
+  boundary never falls inside a UTF-8 sequence.
 - **`<name>.trace.jsonl`.** A header line: `{version, program, size,
   profile, driven, start}`. Then one line per step:
   - `{step, action, args, finder, target (id, type, shown)}`;
@@ -544,9 +721,12 @@ failure report gives its path.
   - `{appTime, realTime, result: "ok"|"error", error,
     tree (a key into the trees), log (records since the last step)}`.
 
-  The trees are kept once per frame they changed in. A step's
-  screens before, at and after are cut from the cast at the frames'
-  `outputWritten`.
+  The trees are kept once per frame they changed in. The sidecar
+  holds a `frames` table, one line per frame: `{frame, castEvent,
+  outputWritten, raw}`, where `raw` counts the bytes as the pty gave
+  them and `outputWritten` the app's, without the CRs of part 3.4. A
+  step's screens before, at and after are the cast replayed to the end
+  of those frames' events. No offset into a chunk is ever needed.
 
 The VS Code extension reads both files. It needs nothing from Dart.
 
@@ -581,38 +761,13 @@ The VS Code extension reads both files. It needs nothing from Dart.
   - existing tapes keep working.
 - **VS Code:** the trace viewer reads the `.cast` file and the sidecar.
 
-## 10. Slices, in order
+## 10. The plan
 
-1. **`drv-clock-port`** (new):
-   - the `Clock` port in twk_core;
-   - TwkApp and AppBinding take it;
-   - DrivenClock in twk;
-   - twk_test's FakeClock rebuilt on DrivenClock, and every
-     `clock: fakeClock.stopwatch` call changed;
-   - frame path: `bench`.
-2. **`drv-frame-event`:**
-   - counters (3.1);
-   - the public `scheduled` getter and the frame-done future on TwkApp;
-   - `twk.frame`, `twk.input` and the `frameEvents` flag;
-   - the version checks of part 7;
-   - frame path: `bench`.
-3. **`drv-hittest`:** `MouseTracker.targetsAt`, `ext.twk.hitTest`, and
-   `layout.shown`.
-4. **`drv-find`** (new): the finder values in twk, `ext.twk.find`, and
-   twk_test's `find.*` on them.
-5. **`drv-clock`:**
-   - `TWK_DRIVEN` in `runApp`, with the zone adapter;
-   - `ext.twk.clock`;
-   - the real-time fixes of part 4.4;
-   - quiet.
-6. **`drv-core`:**
-   - the twk_driver package: ports, adapters, `press`, `waitFor`,
-     `tap`;
-   - `VmAppClient`, `compiledProgram` and the termios setting moved
-     into it.
-7. **`drv-test-api`**, **`drv-trace`**, **`drv-mcp`**, **`tape-on-driver`**,
-   **`vsx-trace-viewer`**: in that order, as the user's priorities
-   allow.
+The work is planned in tm, under the root task `driver`
+(`01a1c046-42c4-722e-91de-df45730de60f`). Its children are the slices,
+and its links are their order (`get_tree`, `get_graph`). This document
+gives no order of its own, so it cannot go stale against the tracker.
+Each slice's description names the parts of this document it builds.
 
 ## 11. Precedents
 
@@ -668,3 +823,26 @@ causally.
 - **Suspend.** While the app is suspended (`stopForShell`, an editor),
   the counters do not describe the screen. The driver refuses actions
   until the app resumes.
+
+## 13. The design review, and what changed
+
+A review of the first version (`19d8b15`) found 15 defects. Each was
+checked against the code, and each is fixed:
+
+| # | defect | fixed in |
+|---|---|---|
+| 1 | the first frame's `inputRead` contradicted `bytesRead`, counted while TwkApp's subscription is paused | 3.1: TwkApp's own `inputRead`, frozen while paused |
+| 2 | waits raced nothing: an app that exits or throws hangs the call | 3.3: every wait also ends on exit, pty end, service close |
+| 3 | the clock was moved to `nextDue`, any timer, not the frame's; the input gap is not always 8.3 ms | 3.2: `frameDue`; 3.3: the gap by `_inputFps` |
+| 4 | resize, the first frame, reassemble: no byte to acknowledge, and a zero-delay timer never fires on a driven clock | 3.2: `size`, acks on every event; 3.3: actions without bytes; 4.2: due-now timers run |
+| 5 | `TWK_DRIVEN` reaches the app's children, which freeze | 4.3: the value names the driver's pid, checked against `getppid` |
+| 6 | an emulator stopped at a frame's boundary cannot answer the queries past it | 2, 3.3: an answering emulator fed at once, a frame emulator fed by boundaries |
+| 7 | `CliClock` is a second time port; `Cli` builds its binding without `runApp` | 4.1: `CliClock` goes; 4.3: the `Cli`'s system terminal reads `TWK_DRIVEN` too |
+| 8 | `ext.twk.clock` registered in the driven path only, yet used for the baseline | 3.2, 4.5: in every app, `driven` tells which |
+| 9 | the finders' `type` dropped type arguments; `matchRoot` is not twk_test's; `shown` duplicated `clickOn`'s clipping | 5 |
+| 10 | the real-time inventory was by hand and missed the close guards, resume's timeout, the hosted `Pty` | 4.4: a rule and a table from a grep, turned into a test |
+| 11 | `Pty.start` gives no way to set the slave's output flags before spawn | 2, 3.4: a twk_term change in `drv-core` |
+| 12 | "`scheduled: false`, nothing will be drawn" overclaimed | 3.2: what zero-delay work it covers, and what only `waitFor` does |
+| 13 | trace frames by `outputWritten` against a cast of raw pty bytes | 8: one cast event per frame, a `frames` table with both counts |
+| 14 | the port's `Duration` would cost a call and an object per read on the frame path | 4.1: `int elapsedMicroseconds` |
+| 15 | part 10 kept a plan beside tm's; references to tm had no id | 10; ids in 3.3 and 4.1 |
