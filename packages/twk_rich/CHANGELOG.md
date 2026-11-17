@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Added:
+
+- `BlockMode.sextant`, `.octant`, `.braille` and `.ascii` beside `.half` and
+  `.quadrant`, for `Image` and `BlockImage` where the terminal shows no
+  images: 6, 8, 8 and 1 pixels a cell (`BlockMode.across` and `.down`). Sextants
+  and octants pick the cell's best two colours as quadrants do, braille shows
+  the bright pixels as dots in one colour, ascii a ramp of characters. The
+  glyphs are `Marker`'s (twk's charts), not tables of their own; the default
+  stays `.half`.
+
 Fixed:
 
 - A `MarkdownView` table answers its height to a parent that asks for

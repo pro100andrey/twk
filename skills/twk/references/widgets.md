@@ -243,7 +243,7 @@ Markdown, code, diffs, JSON, big text, QR codes and program output with its colo
 
 PNG and JPEG pictures, in the terminal’s graphics or in block characters. File: `widgets/images.md`.
 
-- Image (`twk_rich`): A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in half blocks or quadrants.
+- Image (`twk_rich`): A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in characters: half blocks, quadrants, sextants (Unicode 13), octants (Unicode 16), braille or plain ASCII.
 
 ## Terminal
 

@@ -207,29 +207,53 @@ void main() {
       expect(t.cell(4, 0).text, ' ', reason: 'past the image');
     });
 
-    testTwk('none: quadrants with BlockMode.quadrant, cell for cell as '
-        'BlockImage draws them', (t) async {
-      final b = picture(40, 40, left: red, splitX: 15, bottom: blue);
-      await t.pumpWidget(
-        topLeft(Image.bitmap(b, blockMode: BlockMode.quadrant)),
-      );
-      final blocks = BlockImage(b, columns: 4, rows: 2, mode: .quadrant);
-      expect(blocks.cellAt(1, 0).glyph, isNot(anyOf(' ', '█')));
-      for (var row = 0; row < 2; row++) {
-        for (var column = 0; column < 4; column++) {
-          final want = blocks.cellAt(column, row);
-          final got = t.cell(column, row);
-          expect(
-            (got.text, got.fg, got.bg),
-            (
-              want.glyph,
-              want.fg == null ? 0 : cellColor(want.fg! | 0xFF000000),
-              want.bg == null ? 0 : cellColor(want.bg! | 0xFF000000),
-            ),
-            reason: 'cell ($column, $row)',
-          );
+    for (final mode in [
+      BlockMode.quadrant,
+      BlockMode.sextant,
+      BlockMode.octant,
+      BlockMode.braille,
+      BlockMode.ascii,
+    ]) {
+      testTwk('none: ${mode.name}, cell for cell as '
+          'BlockImage draws them', (t) async {
+        final b = picture(40, 40, left: red, splitX: 15, bottom: blue);
+        await t.pumpWidget(
+          topLeft(Image.bitmap(b, blockMode: mode)),
+        );
+        final blocks = BlockImage(b, columns: 4, rows: 2, mode: mode);
+        for (var row = 0; row < blocks.rows; row++) {
+          for (var column = 0; column < blocks.columns; column++) {
+            final want = blocks.cellAt(column, row);
+            final got = t.cell(column, row);
+            expect(
+              (got.text, got.fg, got.bg),
+              (
+                want.glyph,
+                want.fg == null ? 0 : cellColor(want.fg! | 0xFF000000),
+                want.bg == null ? 0 : cellColor(want.bg! | 0xFF000000),
+              ),
+              reason: 'cell ($column, $row)',
+            );
+          }
+        }
+      });
+    }
+
+    testTwk('none: an octant past the Basic Multilingual Plane is one cell', (
+      t,
+    ) async {
+      // 2 × 4 pixels, one red among blue: an octant of U+1CD00
+      final b = Bitmap(2, 4);
+      for (var y = 0; y < 4; y++) {
+        for (var x = 0; x < 2; x++) {
+          b.setPixel(x, y, x == 0 && y == 2 ? 0xFFFF0000 : 0xFF0000FF);
         }
       }
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b, blockMode: BlockMode.octant)),
+      );
+      expect(t.cell(0, 0).text.runes.single, greaterThan(0xFFFF));
+      expect(t.cell(1, 0).text, ' ');
     });
 
     testTwk('none: a transparent pixel leaves the cell under it as it is', (

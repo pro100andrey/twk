@@ -479,7 +479,7 @@ final class RenderImage extends RenderObject {
             1,
             1,
             pens[i],
-            blocks.cells[i].glyph.codeUnitAt(0),
+            blocks.cells[i].glyph.runes.first,
           );
         }
       }

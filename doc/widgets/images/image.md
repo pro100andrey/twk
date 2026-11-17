@@ -2,14 +2,14 @@
 title: "Image"
 group: "Images"
 package: "twk_rich"
-about: "A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in half blocks or quadrants."
+about: "A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in characters: half blocks, quadrants, sextants (Unicode 13), octants (Unicode 16), braille or plain ASCII."
 image: "packages/gallery/doc/shots/images/image.dark.svg"
 image_light: "packages/gallery/doc/shots/images/image.light.svg"
 route: "#/images/image"
 ---
 # Image
 
-A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in half blocks or quadrants.
+A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in characters: half blocks, quadrants, sextants (Unicode 13), octants (Unicode 16), braille or plain ASCII.
 
 | Dark | Light |
 | --- | --- |
@@ -43,7 +43,7 @@ What the gallery lets you change, and what each starts at:
 | picture | lake.jpg, logo.png | lake.jpg |
 | fit | contain, cover, fill, scaleDown | contain |
 | alignment | center, topLeft, centerLeft, centerRight, bottomRight | center |
-| blocks | half, quadrant | half |
+| blocks | half, quadrant, sextant, octant, braille, ascii | half |
 | width | 8 cells to 80 cells | 44 |
 | height | 3 rows to 30 rows | 12 |
 

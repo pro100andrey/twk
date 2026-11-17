@@ -1,3 +1,7 @@
+import 'dart:typed_data';
+
+import 'package:twk/twk.dart' show Marker;
+
 import 'bitmap.dart';
 import 'scale.dart';
 
@@ -5,15 +9,47 @@ import 'scale.dart';
 // import 'dart:io';
 
 /// How the cells of a [BlockImage] draw its pixels.
+///
+/// The glyphs of [quadrant], [sextant], [octant] and [braille] are the ones
+/// of `Marker` (twk's charts), which says which Unicode they need.
 enum BlockMode {
   /// Two pixels a cell, one above the other: `▀` in the upper's colour on
   /// the lower's.
-  half,
+  half(1, 2),
 
   /// Four pixels a cell, two by two: the quadrant block that splits them
   /// best in two colours, in the mean of one part on the mean of the other.
   /// Finer than [half], its colours less exact.
-  quadrant,
+  quadrant(2, 2),
+
+  /// Six pixels a cell, two across and three down, drawn as the sextant
+  /// that splits them best in two colours, as [quadrant] does. Unicode 13:
+  /// a font without it shows a gap or a box.
+  sextant(2, 3),
+
+  /// Eight pixels a cell, two across and four down, drawn as the octant
+  /// that splits them best in two colours, as [quadrant] does. Unicode 16:
+  /// fewer fonts have it than the sextants.
+  octant(2, 4),
+
+  /// Eight pixels a cell, two across and four down, drawn as braille dots
+  /// in one colour on what is under the cell: a pixel at least half as
+  /// bright as white is a dot, in the mean of the colours of the dots. The
+  /// finest, and the one most fonts have, but one colour a cell.
+  braille(2, 4),
+
+  /// One pixel a cell, drawn as the character of ` .:-=+*#%@` that is as
+  /// dense as the pixel is bright, in the pixel's colour. For a terminal
+  /// of plain ASCII.
+  ascii(1, 1);
+
+  const BlockMode(this.across, this.down);
+
+  /// The pixels a cell holds across.
+  final int across;
+
+  /// The pixels a cell holds down.
+  final int down;
 }
 
 /// A cell of a [BlockImage]: [glyph] in [fg] on [bg], `0xRRGGBB` each, null
@@ -25,8 +61,8 @@ final class BlockCell {
   /// A cell no pixel of the image is drawn in.
   static const empty = BlockCell(' ');
 
-  /// The block character the cell shows: `▀`, `▄`, a quadrant block, or
-  /// a space.
+  /// The character the cell shows: `▀`, `▄`, a block, sextant, octant or
+  /// braille character, an ASCII one, or a space.
   final String glyph;
 
   /// The colour of [glyph]'s ink, `0xRRGGBB`; null for what is under the
@@ -93,13 +129,14 @@ final class BlockImage {
       cell: cell,
       fit: fit,
     );
-    final across = mode == BlockMode.half ? 1 : 2;
+    final across = mode.across;
+    final down = mode.down;
     var width = (fitted.width * across / cell.width).round();
-    var height = (fitted.height * 2 / cell.height).round();
+    var height = (fitted.height * down / cell.height).round();
     width = width < 1
         ? 1
         : (width > columns * across ? columns * across : width);
-    height = height < 1 ? 1 : (height > rows * 2 ? rows * 2 : height);
+    height = height < 1 ? 1 : (height > rows * down ? rows * down : height);
     final pixels = resize(
       image,
       width,
@@ -112,8 +149,8 @@ final class BlockImage {
     return BlockImage.fromPixels(pixels, mode: mode, background: background);
   }
 
-  /// The cells of [pixels] as they are, a cell for each 1 × 2 of them
-  /// ([BlockMode.half]) or 2 × 2 ([BlockMode.quadrant]); those past its
+  /// The cells of [pixels] as they are, a cell for each [BlockMode.across] ×
+  /// [BlockMode.down] of them; those past its
   /// right or bottom edge are not drawn.
   ///
   /// [background] as for the default constructor.
@@ -122,9 +159,10 @@ final class BlockImage {
     BlockMode mode = BlockMode.half,
     int? background,
   }) {
-    final across = mode == BlockMode.half ? 1 : 2;
+    final across = mode.across;
+    final down = mode.down;
     final columns = (pixels.width + across - 1) ~/ across;
-    final rows = (pixels.height + 1) ~/ 2;
+    final rows = (pixels.height + down - 1) ~/ down;
     // Each pixel as 0xRRGGBB, -1 where it is not drawn.
     int at(int x, int y) {
       if (x >= pixels.width || y >= pixels.height) {
@@ -147,15 +185,14 @@ final class BlockImage {
     final cells = <BlockCell>[];
     for (var row = 0; row < rows; row++) {
       for (var column = 0; column < columns; column++) {
-        final y = row * 2;
-        if (mode == BlockMode.half) {
-          cells.add(_half(at(column, y), at(column, y + 1)));
-        } else {
-          final x = column * 2;
-          cells.add(
-            _quadrant([at(x, y), at(x + 1, y), at(x, y + 1), at(x + 1, y + 1)]),
-          );
-        }
+        final x = column * across;
+        final y = row * down;
+        cells.add(
+          _blockCell(mode, [
+            for (var dy = 0; dy < down; dy++)
+              for (var dx = 0; dx < across; dx++) at(x + dx, y + dy),
+          ]),
+        );
       }
     }
     return BlockImage._(columns, rows, List.unmodifiable(cells));
@@ -218,21 +255,141 @@ BlockCell _half(int top, int bottom) {
   return BlockCell('▀', fg: top, bg: bottom < 0 ? null : bottom);
 }
 
-/// The quadrant blocks by the pixels they cover: bit 0 the top left, 1 the
-/// top right, 2 the bottom left, 3 the bottom right.
-const _quadrants = [
-  ' ', '▘', '▝', '▀', '▖', '▌', '▞', '▛', //
-  '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█',
-];
+/// The glyph strings of each of [marker]'s patterns.
+List<String> _glyphs(Marker marker) => List.unmodifiable([
+  for (var p = 0; p < marker.patterns; p++)
+    String.fromCharCode(marker.glyphOf(p)),
+]);
 
-/// The splits tried of four pixels drawn, by the pixels in the foreground:
-/// all alike first, then halves, then the rest; each with the top left in
-/// the foreground, the other way round being the same split.
-const _splits = [15, 3, 5, 1, 7, 9, 11, 13];
+final List<String> _quadrantGlyphs = _glyphs(Marker.quadrant);
+final List<String> _sextantGlyphs = _glyphs(Marker.sextant);
+final List<String> _octantGlyphs = _glyphs(Marker.octant);
+final List<String> _brailleGlyphs = _glyphs(Marker.braille);
 
-BlockCell _quadrant(List<int> pixels) {
+/// The glyphs a cell of [mode] shows by the pixels in its ink: bit `k` the
+/// pixel `k`, row by row from the top left.
+List<String> _glyphsOf(BlockMode mode) => switch (mode) {
+  BlockMode.quadrant => _quadrantGlyphs,
+  BlockMode.sextant => _sextantGlyphs,
+  BlockMode.octant => _octantGlyphs,
+  _ => _brailleGlyphs,
+};
+
+/// The splits of the quadrant's four pixels tried, by the pixels in the
+/// foreground: all alike first, then halves, then the rest; each with the
+/// top left in the foreground, the other way round being the same split.
+const _quadrantSplits = [15, 3, 5, 1, 7, 9, 11, 13];
+
+/// The splits of a cell of [n] pixels tried: all alike first, then every
+/// other with the first pixel in the foreground.
+List<int> _splitsOf(int n) => n == 4
+    ? _quadrantSplits
+    : [(1 << n) - 1, for (var m = 1; m < (1 << n) - 1; m += 2) m];
+
+final Map<int, List<int>> _splits = {
+  for (final n in const [4, 6, 8]) n: _splitsOf(n),
+};
+
+/// The ramp of the ascii mode, from the darkest to the brightest pixel.
+const _ramp = ' .:-=+*#%@';
+
+/// A pixel `0xRRGGBB` as bright as at least this (of 255) is ink in braille.
+const _brailleThreshold = 128;
+
+int _luma(int rgb) =>
+    (299 * (rgb >> 16) + 587 * (rgb >> 8 & 0xFF) + 114 * (rgb & 0xFF)) ~/ 1000;
+
+/// The sums over every subset of a cell's pixels, to tell the best split
+/// of its colours in two.
+final class _Sums {
+  _Sums(int pixels)
+    : n = Int32List(1 << pixels),
+      r = Int32List(1 << pixels),
+      g = Int32List(1 << pixels),
+      b = Int32List(1 << pixels),
+      squares = Int32List(1 << pixels);
+
+  final Int32List n;
+  final Int32List r;
+  final Int32List g;
+  final Int32List b;
+  final Int32List squares;
+
+  /// The sums of every subset of [pixels]; one not drawn (negative) counts
+  /// as black.
+  void fill(List<int> pixels) {
+    final all = (1 << pixels.length) - 1;
+    for (var mask = 1; mask <= all; mask++) {
+      final low = mask & -mask;
+      final rest = mask ^ low;
+      final p = pixels[low.bitLength - 1];
+      final c = p < 0 ? 0 : p;
+      final cr = c >> 16;
+      final cg = c >> 8 & 0xFF;
+      final cb = c & 0xFF;
+      n[mask] = n[rest] + 1;
+      r[mask] = r[rest] + cr;
+      g[mask] = g[rest] + cg;
+      b[mask] = b[rest] + cb;
+      squares[mask] = squares[rest] + cr * cr + cg * cg + cb * cb;
+    }
+  }
+
+  /// The mean colour of the pixels in [mask].
+  int mean(int mask) {
+    final count = n[mask];
+    final half = count >> 1;
+    return (r[mask] + half) ~/ count << 16 |
+        (g[mask] + half) ~/ count << 8 |
+        (b[mask] + half) ~/ count;
+  }
+
+  /// The sum of the squared distances of the pixels in [mask] from their
+  /// mean.
+  double error(int mask) {
+    if (mask == 0) {
+      return 0;
+    }
+    final count = n[mask];
+    return squares[mask] -
+        (r[mask] * r[mask] + g[mask] * g[mask] + b[mask] * b[mask]) / count;
+  }
+}
+
+final Map<int, _Sums> _sums = {
+  for (final n in const [4, 6, 8]) n: _Sums(n),
+};
+
+/// The cell of [mode] showing [pixels] (row by row, -1 for one not drawn).
+BlockCell _blockCell(BlockMode mode, List<int> pixels) {
+  switch (mode) {
+    case BlockMode.half:
+      return _half(pixels[0], pixels[1]);
+    case BlockMode.ascii:
+      final c = pixels[0];
+      return c < 0
+          ? BlockCell.empty
+          : BlockCell(_ramp[_luma(c) * _ramp.length ~/ 256], fg: c);
+    case BlockMode.braille:
+      var lit = 0;
+      for (var i = 0; i < pixels.length; i++) {
+        if (pixels[i] >= 0 && _luma(pixels[i]) >= _brailleThreshold) {
+          lit |= 1 << i;
+        }
+      }
+      if (lit == 0) {
+        return BlockCell.empty;
+      }
+      final sums = _sums[8]!..fill(pixels);
+      return BlockCell(_brailleGlyphs[lit], fg: sums.mean(lit));
+    case BlockMode.quadrant || BlockMode.sextant || BlockMode.octant:
+      break;
+  }
+  final n = pixels.length;
+  final full = (1 << n) - 1;
+  final glyphs = _glyphsOf(mode);
   var drawn = 0;
-  for (var i = 0; i < 4; i++) {
+  for (var i = 0; i < n; i++) {
     if (pixels[i] >= 0) {
       drawn |= 1 << i;
     }
@@ -240,70 +397,26 @@ BlockCell _quadrant(List<int> pixels) {
   if (drawn == 0) {
     return BlockCell.empty;
   }
-  if (drawn != 15) {
-    return BlockCell(_quadrants[drawn], fg: _mean(pixels, drawn));
+  final sums = _sums[n]!..fill(pixels);
+  if (drawn != full) {
+    return BlockCell(glyphs[drawn], fg: sums.mean(drawn));
   }
-  var best = 15;
+  var best = full;
   var bestError = double.infinity;
-  for (final split in _splits) {
-    final error = _error(pixels, split) + _error(pixels, 15 ^ split);
+  for (final split in _splits[n]!) {
+    final error = sums.error(split) + sums.error(full ^ split);
     if (error < bestError) {
       best = split;
       bestError = error;
     }
   }
-  if (best == 15) {
-    final c = _mean(pixels, 15);
+  if (best == full) {
+    final c = sums.mean(full);
     return BlockCell('▀', fg: c, bg: c);
   }
   return BlockCell(
-    _quadrants[best],
-    fg: _mean(pixels, best),
-    bg: _mean(pixels, 15 ^ best),
+    glyphs[best],
+    fg: sums.mean(best),
+    bg: sums.mean(full ^ best),
   );
-}
-
-/// The mean colour of the pixels in [mask].
-int _mean(List<int> pixels, int mask) {
-  var n = 0;
-  var r = 0;
-  var g = 0;
-  var b = 0;
-  for (var i = 0; i < 4; i++) {
-    if (mask & 1 << i != 0) {
-      final c = pixels[i];
-      n++;
-      r += c >> 16;
-      g += c >> 8 & 0xFF;
-      b += c & 0xFF;
-    }
-  }
-  final half = n >> 1;
-  return (r + half) ~/ n << 16 | (g + half) ~/ n << 8 | (b + half) ~/ n;
-}
-
-/// The sum of the squared distances of the pixels in [mask] from their
-/// mean.
-double _error(List<int> pixels, int mask) {
-  if (mask == 0) {
-    return 0;
-  }
-  var n = 0;
-  final sums = [0, 0, 0];
-  final squares = [0, 0, 0];
-  for (var i = 0; i < 4; i++) {
-    if (mask & 1 << i != 0) {
-      n++;
-      for (var c = 0; c < 3; c++) {
-        final v = pixels[i] >> (16 - c * 8) & 0xFF;
-        sums[c] += v;
-        squares[c] += v * v;
-      }
-    }
-  }
-  var error = 0.0;
-  for (var c = 0; c < 3; c++) {
-    error += squares[c] - sums[c] * sums[c] / n;
-  }
-  return error;
 }

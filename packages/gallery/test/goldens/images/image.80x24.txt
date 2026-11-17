@@ -19,10 +19,10 @@ text
 │                        fit         contain  cover  fill  scaleDown             │
 │   IMAGES         1     alignment   center  topLeft  centerLeft  centerRight    │
 │ ▎   Image                          bottomRight                                 │
-│                        blocks      half  quadrant                              │
-│   TERMINAL       1  ▐  width      ─────────────▌▌─────────────  44 cells       │
-│     TerminalView    ▐  height     ───────── ──────────────────  12 rows        │
-│                                                                                │
+│                        blocks      half  quadrant  sextant  octant  braille    │
+│   TERMINAL       1  ▐              ascii                                       │
+│     TerminalView    ▐  width      ─────────────▌▌─────────────  44 cells       │
+│                        height     ───────── ──────────────────  12 rows        │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeea××××××aaaaaadaddddaa│
@@ -44,10 +44,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggmmmggggggggþÿÿÿÿÿÿÿþhαααααhhααααhhαααααααααhgggggggggggg│
 │aaaddddddaaaaaaaaa×aaaggmmmmmmmmmggþÿÿÿÿÿÿþhαααααααhhααααααααααhhαααααααααααhggg│
 │aβþþþÿÿÿÿÿþþþþþþþþþþþaggggggggggggghαααααααααααhgggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggþÿÿÿÿþhααααααααhggggggggggggggggggggggggggggg│
-│aaaddddddddaaaaaaa×aadggmmmmmggggggγγγγγγγγγγγγγδγmmmmmmmmmmmmmggÜÜgÜÜÜÜÜggggggg│
-│aaaaannnnnnnnnnnnaaaadggmmmmmmgggggγγγγγγγγγδmmmmmmmmmmmmmmmmmmggÜÜgÜÜÜÜgggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggþÿÿÿÿþhααααααααhhαααααααhhααααααhhαααααααhggg│
+│aaaddddddddaaaaaaa×aadggggggggggggghαααααhgggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadggmmmmmggggggγγγγγγγγγγγγγδγmmmmmmmmmmmmmggÜÜgÜÜÜÜÜggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggγγγγγγγγγδmmmmmmmmmmmmmmmmmmggÜÜgÜÜÜÜgggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25

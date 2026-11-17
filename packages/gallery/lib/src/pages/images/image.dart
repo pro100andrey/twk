@@ -43,7 +43,7 @@ const _imageAlignment = ChoiceOption<String>(
 const _imageMode = ChoiceOption<String>(
   'mode',
   'blocks',
-  values: ['half', 'quadrant'],
+  values: ['half', 'quadrant', 'sextant', 'octant', 'braille', 'ascii'],
 );
 
 /// The Image page's `width` option.
@@ -72,8 +72,9 @@ final _image = GalleryPage(
   about:
       'A PNG or JPEG fitted to its cells. Where the terminal has a graphics '
       'protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; '
-      'where it has none, or with forceBlocks, as here, it is drawn in half '
-      'blocks or quadrants.',
+      'where it has none, or with forceBlocks, as here, it is drawn in '
+      'characters: half blocks, quadrants, sextants (Unicode 13), octants '
+      '(Unicode 16), braille or plain ASCII.',
   options: [
     _imagePicture,
     _imageFit,
@@ -107,7 +108,8 @@ final _image = GalleryPage(
       if (o.nameOf(_imageFit) != 'contain') '  fit: .${o.nameOf(_imageFit)},',
       if (o.nameOf(_imageAlignment) != 'center')
         '  alignment: .${o.nameOf(_imageAlignment)},',
-      if (o.nameOf(_imageMode) != 'half') '  blockMode: .quadrant,',
+      if (o.nameOf(_imageMode) != 'half')
+        '  blockMode: .${o.nameOf(_imageMode)},',
       "  // in blocks wherever it runs; without it the terminal's graphics",
       '  // protocol where it has one: kitty, sixel or iTerm2',
       '  forceBlocks: true,',
