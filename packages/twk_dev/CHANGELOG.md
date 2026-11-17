@@ -4,6 +4,11 @@
 
 Fixed:
 
+- `twk mcp`: `stop_app` forgets the app also when ending it fails (the
+  next `start_app` was refused as "running already"); a request whose
+  handling throws is answered with an internal error (-32603) and the server
+  goes on; "never" errors name `io_ms` from the driver's data, not by
+  rewriting its text.
 - `twk record --replay`: a paste that comes in more than one event of a
   recording is typed as it came, each part at its time (it was held back whole
   until its end, and a paste over 4096 bytes lost the protection of its

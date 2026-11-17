@@ -372,18 +372,21 @@ final class Session {
       driven,
       drivenValue,
     )..timeout = timeout;
-    if (trace != null) {
-      session._trace = TraceRecorder(
-        trace,
-        program: spec?.program ?? 'attached',
-        arguments: spec?.arguments ?? const [],
-        width: spec?.width ?? screen.frame.width,
-        height: spec?.height ?? screen.frame.height,
-        driven: driven,
-        now: () => Duration(microseconds: clock.elapsedMicroseconds - started),
-      );
-    }
     try {
+      if (trace != null) {
+        // inside the guard: a trace that cannot be opened ends the app
+        // that was launched
+        session._trace = TraceRecorder(
+          trace,
+          program: spec?.program ?? 'attached',
+          arguments: spec?.arguments ?? const [],
+          width: spec?.width ?? screen.frame.width,
+          height: spec?.height ?? screen.frame.height,
+          driven: driven,
+          now: () =>
+              Duration(microseconds: clock.elapsedMicroseconds - started),
+        );
+      }
       await session._init(connect, service);
     } on Object {
       await session._kill();
@@ -1132,7 +1135,14 @@ final class Session {
       }
       if (status.inputRead < _written) {
         // the app has not read what was written: its next event says more
-        await _eventWithin(seen.seq + 1, timeout, 'the app to read input');
+        if (await _eventWithin(
+              seen.seq + 1,
+              timeout,
+              'the app to read input',
+            ) ==
+            null) {
+          throw _stuck(what, 'the app to read what was written to it', seen);
+        }
         continue;
       }
       if (status.quiet ?? false) {
@@ -1152,7 +1162,7 @@ final class Session {
             continue;
           }
         }
-        throw DriverError(_never(what, seen, near, io));
+        throw _never(what, seen, near, io);
       }
       if (status.time - begun >= budget.inMicroseconds) {
         break;
@@ -1161,7 +1171,10 @@ final class Session {
       if (due == null) {
         // not quiet, yet no timer: something real, an escape that waits
         // out its timeout, a frame that is being written
-        await _eventWithin(seen.seq + 1, timeout, 'the app to settle');
+        if (await _eventWithin(seen.seq + 1, timeout, 'the app to settle') ==
+            null) {
+          throw _stuck(what, 'the app to settle', seen);
+        }
         continue;
       }
       await clock.advanceTo(
@@ -1197,18 +1210,30 @@ final class Session {
     }
   }
 
-  String _never(String what, Seen seen, String? near, Duration? io) {
+  /// The app did nothing for [timeout] of the driver's clock where [waited]
+  /// was to happen: the wait for [what] fails, with the screen.
+  DriverError _stuck(String what, String waited, Seen seen) => DriverError(
+    'no $what: $waited did not happen within ${_seconds(timeout)} of the '
+    "driver's clock, at frame ${seen.frame}.\n"
+    'Screen at frame ${seen.frame}:\n${seen.screen}',
+  );
+
+  DriverError _never(String what, Seen seen, String? near, Duration? io) {
     final lines = seen.screen.split('\n');
     final closest = near == null ? null : _closestLine(lines, near);
-    return 'never: no $what at frame ${seen.frame}, and nothing will change '
-        'it: the app is quiet (no timer waits, no frame is asked for, '
-        'nothing is held in its input parser)'
-        '${io == null ? '' : ' and nothing came in ${_seconds(io)}'}. '
-        'Real I/O in flight (a socket, a file, a process) is invisible to '
-        "the app's clock: "
-        "${io == null ? 'pass io: to wait for it' : 'give io: more'}."
-        '${closest == null ? '' : '\nClosest line: "${closest.trim()}"'}'
-        '\nScreen at frame ${seen.frame}:\n${seen.screen}';
+    return QuietApp(
+      before:
+          'never: no $what at frame ${seen.frame}, and nothing will change '
+          'it: the app is quiet (no timer waits, no frame is asked for, '
+          'nothing is held in its input parser)'
+          '${io == null ? '' : ' and nothing came in ${_seconds(io)}'}. '
+          'Real I/O in flight (a socket, a file, a process) is invisible to '
+          "the app's clock: ",
+      ioGiven: io != null,
+      after:
+          '.${closest == null ? '' : '\nClosest line: "${closest.trim()}"'}'
+          '\nScreen at frame ${seen.frame}:\n${seen.screen}',
+    );
   }
 
   static String _seconds(Duration d) {
@@ -1594,11 +1619,17 @@ final class _Waiter {
   final int from;
   final String what;
   final void Function(Seen) onSeen;
-  final void Function(AppEnded) onFail;
+  final void Function(Object) onFail;
 
   void offer(Seen seen) {
-    if (seen.seq >= from && test(seen)) {
-      onSeen(seen);
+    try {
+      if (seen.seq >= from && test(seen)) {
+        onSeen(seen);
+      }
+    } on Object catch (e) {
+      // the caller's predicate threw: this wait fails with it, the others
+      // are offered the event all the same
+      onFail(e);
     }
   }
 

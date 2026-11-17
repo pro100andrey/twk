@@ -221,20 +221,18 @@ final class _Tool implements McpTool {
   Future<McpResult> call(JsonMap arguments) async {
     try {
       return await _run(arguments);
+    } on QuietApp catch (e) {
+      // the driver's words are for a Dart caller: here the option is an
+      // argument of the tool
+      return McpResult.error(e.messageUsing('io_ms'));
     } on DriverError catch (e) {
-      // the driver's words are for a Dart caller: here the options are
-      // arguments of the tools
-      return McpResult.error(
-        e.message
-            .replaceAll('pass io:', 'pass io_ms:')
-            .replaceAll('give io: more', 'give io_ms: more'),
-      );
+      return McpResult.error(e.message);
     }
   }
 }
 
 /// How an app is started: a seam for a test's own ports.
-final class AppLauncher {
+class AppLauncher {
   /// The real one.
   const AppLauncher();
 
@@ -358,8 +356,13 @@ final class AppHost {
   /// Ends the app and reports what it left behind.
   Future<McpResult> stop() async {
     final session = _open();
-    final report = await session.close();
-    _forget();
+    final CloseReport report;
+    try {
+      report = await session.close();
+    } finally {
+      // a close that threw leaves nothing to stop again
+      _forget();
+    }
     final problems = report.problems.isEmpty
         ? ''
         : '\nleft behind: ${report.problems.join('; ')}';

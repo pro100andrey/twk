@@ -185,30 +185,23 @@ final class DriverTester {
     final traceName =
         '${File(program).uri.pathSegments.last}-$pid-${_traces++}';
     AppServicePort? service;
-    final Session session;
-    try {
-      session = await Session.start(
-        spec,
-        timeout: timeout,
-        driven: driven,
-        startTime: startTime,
-        trace: TraceOptions(
-          '.dart_tool/twk_test/traces/$traceName',
-          profile: named,
-        ),
-        ports: SessionPorts(
-          screen: (_, _) => checked,
-          connect: (uri) async {
-            final vm = await VmAppClient.connect(uri);
-            return service = await VmAppClient.attach(vm, '$uri');
-          },
-        ),
-      );
-    } on Object {
-      // no session to close: the app that did not start is gone with its
-      // process; what its terminal showed is lost with it
-      rethrow;
-    }
+    final session = await Session.start(
+      spec,
+      timeout: timeout,
+      driven: driven,
+      startTime: startTime,
+      trace: TraceOptions(
+        '.dart_tool/twk_test/traces/$traceName',
+        profile: named,
+      ),
+      ports: SessionPorts(
+        screen: (_, _) => checked,
+        connect: (uri) async {
+          final vm = await VmAppClient.connect(uri);
+          return service = await VmAppClient.attach(vm, '$uri');
+        },
+      ),
+    );
     final app = DriverApp._(session, service!, checked, _framesOnFailure);
     _apps.add(app);
     return app;

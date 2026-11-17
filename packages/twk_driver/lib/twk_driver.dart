@@ -17,7 +17,7 @@ export 'src/byte_log.dart' show ByteLog;
 export 'src/cast.dart' show Cast, CastEvent, CastHeader, CastWriter;
 export 'src/clock_control.dart' show ClockControl, ClockStatus, TimerInfo;
 export 'src/emulator_screen.dart' show EmulatorScreen;
-export 'src/errors.dart' show AppEnded, DriverError, ExitResult;
+export 'src/errors.dart' show AppEnded, DriverError, ExitResult, QuietApp;
 export 'src/found.dart' show Cells, Found, foundOf;
 export 'src/ports.dart'
     show

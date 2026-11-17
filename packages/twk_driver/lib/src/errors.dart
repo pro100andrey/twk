@@ -18,6 +18,42 @@ class DriverError implements Exception {
   String toString() => message;
 }
 
+/// A wait on an app that is quiet, so that nothing will change what is
+/// waited for: no timer, no frame asked for, nothing held in its input
+/// parser. The message advises the `io` option of the wait; a front end
+/// that names it otherwise says so with [messageUsing].
+final class QuietApp extends DriverError {
+  /// The message made of [before] (up to the advice), the advice (to pass
+  /// `io`, or to give more where [ioGiven]) and [after].
+  QuietApp({
+    required String before,
+    required this.ioGiven,
+    required String after,
+  }) : _before = before,
+       _after = after,
+       super(_text(before, ioGiven, 'io', after));
+
+  /// Whether the wait had an `io` time already.
+  final bool ioGiven;
+
+  final String _before;
+  final String _after;
+
+  /// The message with the advice naming the argument [option] instead of
+  /// `io`.
+  String messageUsing(String option) => _text(_before, ioGiven, option, _after);
+
+  static String _text(
+    String before,
+    bool ioGiven,
+    String option,
+    String after,
+  ) =>
+      '$before'
+      "${ioGiven ? 'give $option: more' : 'pass $option: to wait for it'}"
+      '$after';
+}
+
 /// How an app ended, and what was last seen of it.
 final class ExitResult {
   /// An end: the process's [code] (null where it is not known), the last

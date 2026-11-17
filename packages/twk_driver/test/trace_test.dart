@@ -242,4 +242,28 @@ void main() {
     expect(File(trace.castPath).existsSync(), isFalse);
     expect(File(trace.tracePath).existsSync(), isFalse);
   });
+
+  test(
+    'a trace that cannot be opened ends the app that was launched',
+    () async {
+      // the trace's directory would be below a file
+      final blocker = File('${dir.path}/blocker')..writeAsStringSync('x');
+      final process = FakeProcess();
+      final service = FakeService();
+      // the fake's kill ends its output, which a closing stream completes
+      // only once listened to
+      process.launched.terminal.output.listen((_) {});
+      final starting = Session.start(
+        const ProcessSpec('app.dart'),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => FakeScreen(),
+          connect: (_) async => service,
+        ),
+        trace: TraceOptions('${blocker.path}/t/run'),
+      );
+      await expectLater(starting, throwsA(isA<FileSystemException>()));
+      expect(process.launched.killed, isTrue);
+    },
+  );
 }

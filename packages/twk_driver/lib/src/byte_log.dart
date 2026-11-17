@@ -108,7 +108,22 @@ final class ByteLog {
   /// The bytes received from [from] to [to].
   Uint8List slice(int from, int to) {
     final out = Uint8List(to - from);
-    for (final chunk in _chunks) {
+    if (_chunks.isEmpty) {
+      return out;
+    }
+    // the last chunk that starts at or before [from]
+    var lo = 0;
+    var hi = _chunks.length - 1;
+    while (lo < hi) {
+      final mid = (lo + hi + 1) ~/ 2;
+      if (_chunks[mid].rawStart <= from) {
+        lo = mid;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    for (var i = lo; i < _chunks.length; i++) {
+      final chunk = _chunks[i];
       final start = chunk.rawStart;
       final end = start + chunk.bytes.length;
       if (end <= from) {

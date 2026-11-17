@@ -74,7 +74,7 @@ abstract final class RpcCode {
 }
 
 /// A server of tools, one client at a time.
-final class McpServer {
+class McpServer {
   /// A server that names itself [name] and [version] and tells the client
   /// [instructions].
   McpServer({
@@ -242,13 +242,35 @@ final class McpServer {
         continue;
       }
       chain = chain.then((_) async {
-        final reply = await handleLine(line);
+        String? reply;
+        try {
+          reply = await handleLine(line);
+        } on Object catch (e) {
+          // one request that breaks does not silence the ones after it
+          reply = _internalError(line, e);
+        }
         if (reply != null) {
           output(reply);
         }
       });
     }
     await chain;
+  }
+
+  /// The answer to a request [line] that [error] escaped from: an internal
+  /// error where it had an id, nothing where it was a notification.
+  static String? _internalError(String line, Object error) {
+    try {
+      final message = jsonDecode(line);
+      if (message is Map<String, Object?> &&
+          message.containsKey('id') &&
+          (message['id'] is int || message['id'] is String)) {
+        return _error(message['id'], RpcCode.internalError, '$error');
+      }
+    } on Object {
+      // not even JSON: nobody to answer
+    }
+    return null;
   }
 
   static String _error(Object? id, int code, String message) =>

@@ -353,6 +353,97 @@ void main() {
       await t.session.close();
     });
 
+    test('waitFor on an app that never reads what was written fails within '
+        'the timeout, on the driver clock, with the screen', () async {
+      final t = await started();
+      final press = t.session.press('a');
+      final pressed = expectLater(press, throwsA(isA<DriverError>()));
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 5));
+      await pressed;
+      // 1 byte written, 0 read: the app has not read its input
+      Object? result;
+      final wait = t.session
+          .waitFor((s) => s.contains('never'), what: 'the word')
+          .then<void>((_) {}, onError: (Object e) => result = e);
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 5));
+      await pumpEventQueue();
+      // a bound that fails, not hangs: the wait is over by the timeout
+      expect(
+        result,
+        isA<DriverError>().having(
+          (e) => e.message,
+          'message',
+          allOf(
+            contains('no the word'),
+            contains('read what was written'),
+            contains('within 5 s'),
+            contains('Screen at frame 1'),
+          ),
+        ),
+      );
+      await wait;
+      await t.session.close();
+    });
+
+    test('waitFor on an app that is neither quiet nor has a timer fails '
+        'within the timeout instead of waiting for ever', () async {
+      final t = await started();
+      // a frame is asked for that never comes: not quiet, no timer due
+      t.service.scheduled = true;
+      Object? result;
+      final wait = t.session
+          .waitFor((s) => s.contains('never'), what: 'the word')
+          .then<void>((_) {}, onError: (Object e) => result = e);
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 5));
+      await pumpEventQueue();
+      expect(
+        result,
+        isA<DriverError>().having(
+          (e) => e.message,
+          'message',
+          allOf(contains('the app to settle'), contains('Screen at frame 1')),
+        ),
+      );
+      await wait;
+      await t.session.close();
+    });
+
+    test('a waitFor predicate that throws on a later frame fails that wait '
+        'with its error, at once', () async {
+      final t = await started();
+      Object? result;
+      final wait = t.session
+          .waitFor(
+            (s) => s.contains('late') ? throw RangeError('short') : false,
+            io: const Duration(seconds: 1),
+          )
+          .then<void>((_) {}, onError: (Object e) => result = e);
+      await pumpEventQueue();
+      t.process.launched.terminal.app('late');
+      t.service.frame(frame: 2, inputRead: 0, outputWritten: 9);
+      await pumpEventQueue();
+      // bounded: a wait that is not over fails here, it does not hang
+      expect(result, isA<RangeError>());
+      await wait;
+      await t.session.close();
+    });
+
+    test('the quiet error names its option as data', () async {
+      final t = await started();
+      final error = await t.session
+          .waitFor((s) => s.contains('x'))
+          .then<Object?>((_) => null, onError: (Object e) => e);
+      expect(error, isA<QuietApp>());
+      final quiet = error! as QuietApp;
+      expect(quiet.message, contains('pass io: to wait for it'));
+      expect(quiet.messageUsing('io_ms'), contains('pass io_ms: to wait'));
+      expect(quiet.messageUsing('io_ms'), isNot(contains('pass io:')));
+      await t.session.close();
+    });
+
     test('a quiet app waited on with io is given real time for the frames '
         'that may still come, then is "never"', () async {
       final t = await started();

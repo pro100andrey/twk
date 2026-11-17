@@ -2,10 +2,14 @@
 // version, malformed requests, and the tools' failures as results.
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:test/test.dart';
 import 'package:twk_dev/src/mcp.dart';
+import 'package:twk_dev/src/mcp/app_tools.dart' show AppLauncher;
 import 'package:twk_dev/src/mcp/jsonrpc.dart';
+import 'package:twk_driver/twk_driver.dart';
 
 final class _Echo implements McpTool {
   _Echo(this.name, this._run);
@@ -56,6 +60,7 @@ Future<JsonMap> _ask(
 JsonMap _error(JsonMap reply) => reply['error']! as JsonMap;
 
 void main() {
+  _more();
   group('initialize', () {
     test('answers the version asked for when it speaks it', () async {
       for (final v in McpServer.protocolVersions) {
@@ -315,4 +320,155 @@ void main() {
       );
     });
   });
+}
+
+void _more() {
+  group('a server that keeps serving', () {
+    test('a request whose handling throws is answered -32603, and the ones '
+        'after it are served', () async {
+      final server = _ThrowingServer();
+      final out = <String>[];
+      final lines = [
+        '{"jsonrpc":"2.0","id":1,"method":"ping"}',
+        '{"jsonrpc":"2.0","id":2,"method":"ping"}',
+        '{"jsonrpc":"2.0","method":"ping"}',
+        '{"jsonrpc":"2.0","id":3,"method":"ping"}',
+      ];
+      await server.serve(
+        Stream.value(utf8.encode('${lines.join('\n')}\n')),
+        out.add,
+      );
+      final replies = [for (final l in out) jsonDecode(l) as JsonMap];
+      expect(replies.map((r) => r['id']), [1, 2, 3]);
+      expect(replies[0]['result'], isNotNull);
+      expect(_error(replies[1])['code'], RpcCode.internalError);
+      expect(replies[2]['result'], isNotNull);
+    });
+  });
+
+  group('stop_app', () {
+    test('a close that throws still lets the app go: the next start is not '
+        '"running already"', () async {
+      final file = File('test/mcp_protocol_test.dart').absolute.path;
+      final server = twkMcpServer(launcher: _StubbornLauncher());
+      Future<JsonMap> call(String tool) => _ask(server, 'tools/call', {
+        'name': tool,
+        'arguments': {if (tool == 'start_app') 'program': file},
+      });
+      expect((await call('start_app'))['result'], isNotNull);
+      final stopped = (await call('stop_app'))['result']! as JsonMap;
+      expect(stopped['isError'], isTrue);
+      final again = (await call('start_app'))['result']! as JsonMap;
+      expect(jsonEncode(again), isNot(contains('running already')));
+      await call('stop_app');
+    });
+  });
+}
+
+final class _ThrowingServer extends McpServer {
+  _ThrowingServer()
+    : super(name: 'x', version: '1', instructions: '', tools: const []);
+
+  @override
+  Future<String?> handleLine(String line) {
+    if (line.contains('"id":2')) {
+      throw StateError('escaped');
+    }
+    return super.handleLine(line);
+  }
+}
+
+/// A terminal that wrote one line and nothing after.
+final class _Terminal implements TerminalPort {
+  final _out = StreamController<Uint8List>();
+
+  @override
+  bool? nlToCrNl = true;
+
+  @override
+  Uint8List? modesAtEnd;
+
+  @override
+  Stream<Uint8List> get output => _out.stream;
+
+  void say(String text) => _out.add(Uint8List.fromList(text.codeUnits));
+
+  @override
+  void write(List<int> bytes) {}
+
+  @override
+  void resize(int width, int height) {}
+}
+
+/// A program whose kill fails, as a pseudo-terminal's can.
+final class _Stubborn implements Launched {
+  @override
+  // the type is the fake's, which the interface's would hide from a test
+  // ignore: omit_obvious_property_types
+  final _Terminal terminal = _Terminal();
+
+  @override
+  Future<int?> get exitCode => Completer<int?>().future;
+
+  @override
+  Future<Uri> get serviceUri async => Uri.parse('http://fake/');
+
+  @override
+  Future<void> kill() async => throw StateError('kill failed');
+}
+
+final class _StubbornProcess implements ProcessPort {
+  @override
+  Future<Launched> spawn(ProcessSpec spec) async {
+    final launched = _Stubborn();
+    scheduleMicrotask(() => launched.terminal.say('hello'));
+    return launched;
+  }
+}
+
+final class _StubbornLauncher extends AppLauncher {
+  @override
+  Future<Session> start(
+    ProcessSpec spec,
+    void Function(VmAppClient client) attached,
+  ) => Session.start(
+    spec,
+    driven: false,
+    timeout: const Duration(seconds: 5),
+    ports: SessionPorts(
+      process: _StubbornProcess(),
+      connect: (_) async => _Service(),
+    ),
+  );
+}
+
+/// An app service whose app is at its first frame.
+final class _Service implements AppServicePort {
+  @override
+  Future<Map<String, Object?>> call(
+    String method, [
+    Map<String, String> params = const {},
+  ]) async => {
+    'version': 1,
+    'frame': 1,
+    'drawn': true,
+    'size': {'width': 80, 'height': 24},
+    'inputRead': 0,
+    'outputWritten': 0,
+    'inputPending': false,
+    'scheduled': false,
+    'frameDue': null,
+    'time': 0,
+    'nextDue': null,
+    'quitting': false,
+  };
+
+  @override
+  Stream<AppEvent> get events => const Stream.empty();
+
+  @override
+  Future<void> get done => Completer<void>().future;
+
+  @override
+  Future<void> close() async {}
 }

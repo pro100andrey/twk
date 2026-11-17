@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+Fixed:
+
+- A wait on an app that never reads its input, or is not quiet yet has no
+  timer, failed never (`waitFor` looped for ever on the driver's clock);
+  it fails after the session's timeout, naming what did not happen, with the
+  screen.
+- A `waitFor` predicate that throws fails that wait with its error (it
+  escaped as an uncaught error and the wait ran to its budget); a trace that
+  cannot be opened ends the app that was launched; `ByteLog.slice` is
+  logarithmic to its start, not linear.
+
+Added:
+
+- `QuietApp`, the `DriverError` of a wait on a quiet app, with
+  `messageUsing(option)` naming the wait's `io` argument as a front end
+  calls it.
+
 Added:
 
 - The trace: `Session.start(trace: TraceOptions(path))` (also `compose`

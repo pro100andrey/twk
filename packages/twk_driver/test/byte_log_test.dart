@@ -49,4 +49,33 @@ void main() {
       ..add(b('def'), onlcr: false);
     expect(String.fromCharCodes(log.slice(2, 5)), 'cde');
   });
+
+  test('slice of many pieces: from inside a piece, on a boundary, past the '
+      'first ones, up to the end', () {
+    final log = ByteLog();
+    final all = StringBuffer();
+    for (var i = 0; i < 50; i++) {
+      final piece = 'p${i.toString().padLeft(2, '0')}-'; // 4 bytes
+      all.write(piece);
+      log.add(b(piece), onlcr: false);
+    }
+    final text = all.toString();
+    for (final (from, to) in [
+      (0, 4),
+      (3, 9),
+      (4, 8),
+      (4, 4),
+      (101, 150),
+      (196, 200),
+      (0, 200),
+      (199, 200),
+    ]) {
+      expect(
+        String.fromCharCodes(log.slice(from, to)),
+        text.substring(from, to),
+        reason: 'slice($from, $to)',
+      );
+    }
+    expect(log.slice(0, 0), isEmpty);
+  });
 }
