@@ -21,6 +21,7 @@ const subcommands = [
   'doctor',
   'inspect',
   'logs',
+  'mcp',
   'play',
   'record',
   'run',

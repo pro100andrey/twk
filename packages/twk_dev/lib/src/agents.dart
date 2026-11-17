@@ -64,6 +64,9 @@ using it.
   `dart run twk_dev:twk agents` writes this block and the skill again
   after twk is upgraded. The text between the two markers is rewritten by
   it: add your own notes outside them.
+- To see and drive the running app (screen, widget tree, keys, taps, hot
+  reload), register the MCP server `twk mcp`: for Claude Code
+  `claude mcp add twk -- dart run twk_dev:twk mcp`, run in the project.
 $agentsEnd
 ''';
 

@@ -28,6 +28,15 @@ Changed:
 
 Added:
 
+- `twk mcp`: an MCP server on stdio (JSON-RPC of its own, protocol versions
+  2025-06-18, 2025-03-26 and 2024-11-05) that lets a coding agent drive a
+  twk app through twk_driver: `start_app`, `screen`, `tree`, `find`, `press`,
+  `type`, `tap`, `wait_for`, `elapse`, `hot_reload`, `logs` and `stop_app`.
+  The app runs on time the server moves; each tool answers with the screen
+  after it and a line with the frame, the input read and whether the app is
+  quiet, and a failure is a result that says why (covered by, never, not
+  within budget, the app exited), not a timeout. The block `twk agents`
+  writes to `AGENTS.md` and the skill say how to register it. See `doc/mcp.md`.
 - `twk decode <file>...` names what a recording (`.cast`) or the files
   `TWK_TRACE_INPUT` and `TWK_TRACE_OUTPUT` write hold, a row for each text
   run, control character, escape sequence, key, mouse event and terminal

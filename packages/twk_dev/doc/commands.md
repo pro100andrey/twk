@@ -80,6 +80,12 @@ properties and layout, the node outlined on the app's screen, and selects the
 node under a cell clicked on the app's screen; the app at the address given,
 or the one `twk run` runs from the project
 
+### `twk mcp`
+
+serves the Model Context Protocol on stdin and stdout, so that a coding agent
+starts a twk app, looks at its screen and widget tree, presses keys, taps,
+moves its time, hot reloads it and reads its log (see [mcp.md](mcp.md))
+
 ### `twk record [--out=<file>] [--idle-limit=<s>] [--title=<text>] [--keys] -- <command>`
 
 runs `<command>` in a pseudo-terminal of this terminal's size, this terminal

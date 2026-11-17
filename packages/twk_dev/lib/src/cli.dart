@@ -13,6 +13,7 @@ import 'decode.dart';
 import 'doctor.dart';
 import 'inspect.dart';
 import 'logs.dart';
+import 'mcp.dart';
 import 'play.dart';
 import 'record.dart';
 import 'run.dart';
@@ -57,6 +58,7 @@ CommandRunner<int> twkRunner() =>
       ..addCommand(RunCommand())
       ..addCommand(InspectCommand())
       ..addCommand(LogsCommand())
+      ..addCommand(McpCommand())
       ..addCommand(ShellCommand())
       ..addCommand(RecordCommand())
       ..addCommand(PlayCommand())

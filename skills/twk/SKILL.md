@@ -232,6 +232,23 @@ space toggle   ctrl+q quit
   `t.logs.records` holds what the app printed. A test never sleeps: it pumps
   the clock, or `waitUntil`s a real event.
 
+## Driving the running app
+
+To see and operate the app while you build it, register the MCP server
+`twk mcp` (Claude Code: `claude mcp add twk -- dart run twk_dev:twk mcp`,
+run in the project). Its tools, one app at a time: `start_app` (the app's
+main file), `screen`, `tree`, `find`, `press`, `type`, `tap`, `wait_for`,
+`elapse`, `hot_reload`, `logs`, `stop_app`. Each answers with the screen
+after it and a line with the frame, the input the app has read and whether
+it is quiet.
+
+The app runs on time the server moves: nothing in it fires on its own, so
+there is nothing to sleep for. `wait_for` moves it until the screen has the
+text; a failure says why (`never`: the app is quiet and will not change,
+more waiting does not help; `not within` the budget, with the timers that
+wait; `covered by`, what is on top of a tap's target; the app exited). Read
+the reason, then fix the app or the finder.
+
 ## Pitfalls
 
 - A list (`ListView`, `Table`, `TreeView`, `SelectionList`, `Navigator`)

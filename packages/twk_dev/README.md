@@ -16,6 +16,8 @@ code while it runs, look inside it, read its log and record a session.
   app to pick a node.
 - **Logs:** `twk logs` tails the log of a running app, with levels and
   colours, while the app owns the screen.
+- **Drive:** `twk mcp` is an MCP server that lets a coding agent run your
+  app, read its screen, press keys, tap and reload it.
 - **Agents:** `twk agents` writes the twk skill and a block of `AGENTS.md`
   into a project, for coding agents.
 - **Debugger:** `twk shell` lends its terminal to an app started from the
@@ -110,6 +112,8 @@ cp -r /tmp/twk/skills/twk .agents/skills/twk
 - [twk logs](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/logs.md)
   and [twk shell](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/shell.md):
   the log, and the terminal for an app under a debugger.
+- [twk mcp](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/mcp.md):
+  the server for coding agents, its tools and how to register it.
 - [twk record and twk play](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/record-play.md):
   recordings, and a recording as a test.
 - [twk decode](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/decode.md):
