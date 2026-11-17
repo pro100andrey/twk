@@ -165,7 +165,7 @@ void main() {
       startsWith('✗ StateError: Bad state: the config has no "name"'),
     );
     expect(err, isNot(contains('… ')));
-    expect(err, contains(RegExp(r'\n  dart:async/[^\n]+ _rootRun')));
+    expect(err, contains(RegExp(r'\n  dart:async/[^\n]+ runZonedGuarded')));
     expect(err, contains(RegExp(r'\n  package:twk/src/cli/cli\.dart:\d+')));
     expect(result.exitCode, 3);
   });
