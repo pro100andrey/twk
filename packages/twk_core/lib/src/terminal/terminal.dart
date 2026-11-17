@@ -763,6 +763,34 @@ abstract interface class SuspendableBackend implements TerminalBackend {
   Future<void> resume();
 }
 
+/// A [TerminalBackend] that counts the bytes it reads and the bytes it is
+/// given to write ([Terminal], `HeadlessTerminal`), so that a program
+/// driving the app can tell which frame came after which input
+/// (`TwkApp.inputRead`, the `twk.frame` event).
+abstract interface class CountingBackend implements TerminalBackend {
+  /// Every byte taken from the terminal's input so far, counted when the
+  /// read is parsed and its events are queued for [events]: what the
+  /// terminal keeps to itself (the answers to its own queries) counts too.
+  int get bytesRead;
+
+  /// What [bytesRead] was when the terminal was open: the bytes of its
+  /// probe.
+  int get bytesReadAtOpen;
+
+  /// Whether the input parser holds bytes it has not resolved: a lone ESC
+  /// waiting for its timeout, an open paste.
+  bool get inputPending;
+
+  /// Called at the end of each read of input, after its events are queued.
+  /// Set by the one app that uses the terminal.
+  void Function()? onRead;
+
+  /// Every byte accepted for the terminal so far: counted when written,
+  /// not when it reaches the sink, which a write waits for while a flush
+  /// is pending.
+  int get bytesWritten;
+}
+
 /// A [TerminalBackend] that keeps state an app set on the terminal beyond
 /// its screen (the pointer's shape, the progress in its tab) and puts it
 /// back as it was on every way out, as it does the modes it opened with:
@@ -860,7 +888,8 @@ final class Terminal
         SuspendableBackend,
         MouseTrackingBackend,
         TerminalStateBackend,
-        WindowBackend {
+        WindowBackend,
+        CountingBackend {
   Terminal._(
     this.options,
     this.info,
@@ -868,10 +897,12 @@ final class Terminal
     this._link,
     this._input,
     this._signals,
-    this._ofProcess, [
+    this._ofProcess,
+    this._probed, [
     this._inputTrace,
     this._outputTrace,
-  ]) : _out = _outbox(_link, _outputTrace);
+  ]) : _out = _outbox(_link, _outputTrace),
+       _bytesRead = _probed.read;
 
   /// How long a sequence that has surely started (with the kitty protocol,
   /// ESC and any byte after it) may wait for the rest of its bytes.
@@ -905,6 +936,27 @@ final class Terminal
   final TraceWriter? _outputTrace;
 
   final _events = StreamController<InputEvent>();
+
+  /// What the probe read and wrote, before the session began.
+  final _ProbeCounts _probed;
+
+  int _bytesRead;
+
+  @override
+  int get bytesRead => _bytesRead;
+
+  @override
+  int get bytesReadAtOpen => _probed.read;
+
+  @override
+  bool get inputPending => _parser.hasPending || _parser.inPaste;
+
+  @override
+  void Function()? onRead;
+
+  @override
+  int get bytesWritten => _probed.written + _out.accepted;
+
   Timer? _escTimer;
   Timer? _pasteTimer;
   StreamSubscription<void>? _resizes;
@@ -1108,6 +1160,7 @@ final class Terminal
       // one subscription for the probe and the session: input that arrives
       // while switching from one to the other can't be lost
       sub = link.input.listen(null);
+      final probed = _ProbeCounts();
       final parser = InputParser()
         ..backspaceSendsCtrlH = link.eraseChar == 0x08;
       // a link of the program's own sets none of the app's settings
@@ -1125,6 +1178,7 @@ final class Terminal
               inputTrace,
               outputTrace,
               settings,
+              probed,
             );
       final term = t = Terminal._(
         options,
@@ -1134,6 +1188,7 @@ final class Terminal
         sub,
         signals,
         ofProcess,
+        probed,
         inputTrace,
         outputTrace,
       );
@@ -1282,6 +1337,7 @@ final class Terminal
     TraceWriter? inputTrace,
     TraceWriter? outputTrace,
     Map<String, String> settings,
+    _ProbeCounts counts,
   ) async {
     final modes = <int, ModeReport>{};
     int? fg;
@@ -1309,6 +1365,7 @@ final class Terminal
     input
       ..onData((bytes) {
         inputTrace?.add(bytes);
+        counts.read += bytes.length;
         final List<InputEvent> events;
         try {
           events = parser.feed(bytes);
@@ -1419,6 +1476,7 @@ final class Terminal
       '\x1b[c',
     );
     link.add(bytes);
+    counts.written += bytes.length;
     outputTrace?.add(bytes);
     await link.flush();
     final answered = await round.future.timeout(
@@ -1430,6 +1488,7 @@ final class Terminal
         _putBack(shown: shownTo != null && shownTo != column),
       );
       link.add(back);
+      counts.written += back.length;
       outputTrace?.add(back);
       await link.flush();
     }
@@ -1871,6 +1930,8 @@ final class Terminal
           : options.escapeTimeout;
       _escTimer = Timer(wait, () => _parse(_parser.flush));
     }
+    _bytesRead += bytes.length;
+    onRead?.call();
   }
 
   /// Delivers what one parser step produced. Input is read outside the
@@ -2284,4 +2345,10 @@ bool konsoleLinesFor(Map<String, String> env, {String version = ''}) {
     return version.startsWith('Konsole');
   }
   return env.containsKey('KONSOLE_VERSION');
+}
+
+/// What the probe of a [Terminal] read and wrote ([CountingBackend]).
+final class _ProbeCounts {
+  var read = 0;
+  var written = 0;
 }

@@ -28,6 +28,11 @@ final class Outbox {
   final void Function(List<int> bytes) _add;
   final Future<void> Function() _flush;
 
+  /// Bytes accepted by [add] and [frame] so far, whether they reached the
+  /// sink or wait for a flush: what the app has written, as a count.
+  int get accepted => _accepted;
+  var _accepted = 0;
+
   var _flushing = false;
   final _queued = <List<int>>[];
   var _flushed = Future<void>.value();
@@ -45,6 +50,7 @@ final class Outbox {
     if (bytes.isEmpty) {
       return;
     }
+    _accepted += bytes.length;
     if (_flushing) {
       _queued.add(bytes);
     } else {
@@ -63,6 +69,7 @@ final class Outbox {
       return;
     }
     final n = bytes.length;
+    _accepted += n;
     if (_staging.length < n) {
       _staging = Uint8List(n * 2);
       _stagingView = Uint8List(0);

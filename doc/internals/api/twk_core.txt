@@ -34,6 +34,7 @@ terminal.dart class ByteSink
 terminal.dart class ClusterScan
 terminal.dart class ColorReport
 terminal.dart class ColorSchemeReport
+terminal.dart class CountingBackend
 terminal.dart class CursorReport
 terminal.dart class DeclaringLink
 terminal.dart class DeviceAttributes
@@ -121,6 +122,7 @@ twk_core.dart class CellKeeper
 twk_core.dart class ClusterScan
 twk_core.dart class ColorReport
 twk_core.dart class ColorSchemeReport
+twk_core.dart class CountingBackend
 twk_core.dart class CursorReport
 twk_core.dart class DeclaringLink
 twk_core.dart class DeviceAttributes

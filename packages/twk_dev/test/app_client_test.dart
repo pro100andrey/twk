@@ -196,6 +196,8 @@ void main() {
       ..post('isolates/1', 'twk.select', {'version': 1, 'x': 1, 'y': 1})
       ..post('isolates/2', 'twk.other', {'version': 1, 'x': 2, 'y': 2})
       ..post('isolates/2', 'twk.select', {'version': 1, 'x': 3, 'y': 4})
+      ..post('isolates/2', 'twk.select', {'version': 2, 'x': 9, 'y': 9})
+      ..post('isolates/2', 'twk.select', {'x': 8, 'y': 8})
       ..post('isolates/2', 'twk.select', {'version': 1, 'x': null, 'y': null});
     expect(await waitFor(picks, 'the picks'), [(3, 4), null]);
     await vm.close();

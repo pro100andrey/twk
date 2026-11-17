@@ -4,6 +4,11 @@
 
 Added:
 
+- `ext.twk.flags` `frameEvents`: the events `twk.frame` (after every frame,
+  drawn or not) and `twk.input` (after a read of the terminal or an event) with
+  the bytes of input the app took in, the bytes it wrote, and whether a frame
+  is asked for, for a program that drives the app. The inspector's version
+  stays 1.
 - `editorCommand` is exported (it was hidden): the command that opens a file
   at a line, from `TWK_EDITOR`, `VISUAL` or `EDITOR`.
 

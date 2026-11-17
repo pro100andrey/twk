@@ -113,6 +113,10 @@ final class VmAppClient implements AppClient, VmQueries {
     service.onExtensionEvent.listen((event) {
       if (event.extensionKind == 'twk.select') {
         final data = event.extensionData?.data;
+        // an event of a version this does not read is not misread
+        if (data?['version'] != AppBinding.serviceExtensionsVersion) {
+          return;
+        }
         final x = data?['x'];
         final y = data?['y'];
         picks.add((

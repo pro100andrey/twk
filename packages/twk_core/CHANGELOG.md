@@ -4,6 +4,13 @@
 
 Added:
 
+- `CountingBackend`, which `Terminal` and `HeadlessTerminal` implement: the
+  bytes read (`bytesRead`, `bytesReadAtOpen`), whether the parser holds some
+  (`inputPending`), a call at the end of each read (`onRead`) and the bytes
+  accepted for writing (`bytesWritten`). `TwkApp` has `inputRead` (a sample of
+  the bytes read, taken at the boundaries of the event loop), `scheduled`,
+  `frameDue`, `framesRun`, `frameEnd`, `inputPending` and `onInputSettled`:
+  what a program that drives the app syncs on.
 - `TerminalInfo.terminalVersion`: the name and version the terminal told by
   XTVERSION (`kitty(0.39.1)`), empty where it did not tell.
 

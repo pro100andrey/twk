@@ -531,6 +531,7 @@ void main() {
         'select': false,
         'selectMany': false,
         'treeEvents': false,
+        'frameEvents': false,
         'framesInRow': false,
       };
       expect(await call(t, 'ext.twk.flags'), off);
@@ -554,6 +555,7 @@ void main() {
         'select': false,
         'selectMany': false,
         'treeEvents': true,
+        'frameEvents': false,
         'framesInRow': false,
       });
       final debug = t.binding.debug;

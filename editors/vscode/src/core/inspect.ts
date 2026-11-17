@@ -188,6 +188,11 @@ export function parsePicked(data: unknown): { readonly x: number; readonly y: nu
   return isCount(data.x) && isCount(data.y) ? { x: data.x, y: data.y } : undefined;
 }
 
+/** Whether [data] is what `twk.treeChanged` carries, of a version this reads: an event of another is not taken for one. */
+export function isTreeChanged(data: unknown): boolean {
+  return isRecord(data) && data.version === inspectorVersion;
+}
+
 /** The nodes from [root] down to the one [id] names, root first; undefined where none is. */
 export function pathTo(root: InspectNode | null, id: number): InspectNode[] | undefined {
   if (!root) {

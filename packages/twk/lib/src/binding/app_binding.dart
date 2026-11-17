@@ -23,6 +23,7 @@ import 'package:twk_core/twk_core.dart'
         Color,
         ColorReport,
         ColorSchemeReport,
+        CountingBackend,
         CursorShape,
         HeadlessTerminal,
         InputEvent,
@@ -851,7 +852,9 @@ final class AppBinding implements FrameClock {
   ///   `selectMany` (the pick going on after a cell picked,
   ///   [DebugAids.selectMany]) and `treeEvents` (the event
   ///   `twk.treeChanged` after each frame that built,
-  ///   [DebugAids.treeEvents]), and `framesInRow` (`TwkApp.framesInRow`,
+  ///   [DebugAids.treeEvents]), `frameEvents` (the events `twk.frame` and
+  ///   `twk.input` a driver syncs on, [DebugAids.frameEvents]), and
+  ///   `framesInRow` (`TwkApp.framesInRow`,
   ///   which the app is built with), each true or false; any of the first
   ///   eight passed as a parameter, `true` or `false`, is set first.
   /// * `ext.twk.reassemble`: [reassemble]s the app, after a hot reload of
@@ -1224,6 +1227,9 @@ final class AppBinding implements FrameClock {
     _zone = Zone.current;
     final now = twkApp.clock.elapsed;
     _framing = true;
+    if (debug._frameEvents) {
+      debug._frameBegins();
+    }
     _frameTime = now;
     _framesBegun++;
     if (_callbacks.isNotEmpty) {
@@ -1315,6 +1321,9 @@ final class AppBinding implements FrameClock {
       _callPostFrameCallbacks();
     } finally {
       _framing = false;
+      if (debug._frameEvents) {
+        debug._postFrame();
+      }
     }
   }
 
@@ -1851,6 +1860,70 @@ final class DebugAids {
   /// nothing while no client listens to that stream.
   var treeEvents = false;
 
+  /// Whether the binding tells a driver what each frame did with the input
+  /// it was given (`ext.twk.flags` `frameEvents` sets it): `twk.frame`
+  /// after every frame, drawn or not, and `twk.input` after a read of the
+  /// terminal or an event that led to no frame yet, both with `version`,
+  /// `frame` (the frames run), `drawn`, `size`, `inputRead` (the bytes of
+  /// input the app had taken in when the frame's build began, see
+  /// `TwkApp.inputRead`), `outputWritten` (the bytes accepted for the
+  /// terminal), `inputPending`, `scheduled` and `frameDue` (a frame is
+  /// asked for, and when it is due, in microseconds of the app's clock),
+  /// `time` (the app's clock) and `nextDue`, null: no timer of the app's
+  /// clock is known. Off by default; off, a frame's work gains a test of
+  /// this flag and the app arms no timer for input; on, a post, which does
+  /// nothing while no client listens to the `Extension` stream.
+  bool get frameEvents => _frameEvents;
+  var _frameEvents = false;
+  set frameEvents(bool on) {
+    _frameEvents = on;
+    _framesDrawn = _binding.twkApp.stats.frames;
+    _binding.twkApp.onInputSettled = on ? _postInput : null;
+  }
+
+  var _framesDrawn = 0;
+  var _frameInputRead = 0;
+
+  /// Notes what the build of a frame that begins now finds.
+  void _frameBegins() {
+    _frameInputRead = _binding.twkApp.inputRead;
+  }
+
+  /// Posts `twk.frame` for the frame that ends now.
+  void _postFrame() {
+    final app = _binding.twkApp;
+    final drawn = app.stats.frames != _framesDrawn;
+    _framesDrawn = app.stats.frames;
+    AppBinding.postEvent('twk.frame', _frameData(drawn, _frameInputRead));
+  }
+
+  /// Posts `twk.input`: what was read or dispatched did not, or does not
+  /// yet, lead to a frame.
+  void _postInput() {
+    final app = _binding.twkApp;
+    AppBinding.postEvent('twk.input', _frameData(false, app.inputRead));
+  }
+
+  Map<String, Object?> _frameData(bool drawn, int inputRead) {
+    final app = _binding.twkApp;
+    final terminal = app.terminal;
+    return {
+      'version': AppBinding.serviceExtensionsVersion,
+      'frame': app.framesRun,
+      'drawn': drawn,
+      'size': {'width': app.screen.width, 'height': app.screen.height},
+      'inputRead': inputRead,
+      'outputWritten': terminal is CountingBackend
+          ? terminal.bytesWritten
+          : null,
+      'inputPending': app.inputPending,
+      'scheduled': app.scheduled,
+      'frameDue': app.frameDue,
+      'time': app.clock.elapsedMicroseconds,
+      'nextDue': null,
+    };
+  }
+
   /// Whether what was laid out since the last frame is outlined
   /// (`PipelineOwner.debugRelayoutHighlight`).
   bool get relayout => _binding.twkApp.owner.debugRelayoutHighlight;
@@ -1989,6 +2062,7 @@ final class DebugAids {
     final select = asked('select');
     final selectMany = asked('selectMany');
     final treeEvents = asked('treeEvents');
+    final frameEvents = asked('frameEvents');
     if (overlay != null) {
       this.overlay = overlay;
     }
@@ -2020,6 +2094,9 @@ final class DebugAids {
     if (treeEvents != null) {
       this.treeEvents = treeEvents;
     }
+    if (frameEvents != null) {
+      this.frameEvents = frameEvents;
+    }
     return {
       'overlay': this.overlay,
       'console': _console?.isOpen ?? false,
@@ -2030,6 +2107,7 @@ final class DebugAids {
       'select': this.select,
       'selectMany': this.selectMany,
       'treeEvents': this.treeEvents,
+      'frameEvents': this.frameEvents,
       'framesInRow': _binding.twkApp.framesInRow,
     };
   }

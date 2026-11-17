@@ -14,6 +14,7 @@ import {
   parseFlags,
   parseLayout,
   parseProperties,
+  isTreeChanged,
   parsePicked,
   parseSelect,
   parseTree,
@@ -80,6 +81,10 @@ describe("twk's inspector answers", () => {
     assert.equal(parsePicked({ version: 2, x: 3, y: 2 }), undefined);
     assert.equal(parsePicked({ version: 1, x: -1, y: 2 }), undefined);
     assert.equal(parsePicked('twk'), undefined);
+    assert.equal(isTreeChanged({ version: 1, rebuilds: 2 }), true);
+    assert.equal(isTreeChanged({ version: 2, rebuilds: 2 }), false);
+    assert.equal(isTreeChanged({ rebuilds: 2 }), false);
+    assert.equal(isTreeChanged(undefined), false);
   });
 
   it("says of a node its key, first property and size beside its name, and all of it in the tooltip", () => {

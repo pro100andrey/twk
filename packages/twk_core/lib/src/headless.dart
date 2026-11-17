@@ -73,7 +73,8 @@ final class HeadlessTerminal
         SuspendableBackend,
         MouseTrackingBackend,
         TerminalStateBackend,
-        WindowBackend {
+        WindowBackend,
+        CountingBackend {
   /// A terminal [width] x [height] cells, 80 x 24 by default, that tells
   /// an app what the other parameters say: [TerminalInfo.caps] (`caps`),
   /// how it measures text (`textMode`, `ambiguousWidth`), its colors
@@ -175,7 +176,35 @@ final class HeadlessTerminal
   void input(List<int> bytes) {
     if (!_suspended) {
       _deliver(_parser.feed(bytes));
+      _bytesRead += bytes.length;
+      onRead?.call();
     }
+  }
+
+  var _bytesRead = 0;
+  var _bytesWritten = 0;
+
+  @override
+  int get bytesRead => _bytesRead;
+
+  /// Nothing is read while a headless terminal opens.
+  @override
+  int get bytesReadAtOpen => 0;
+
+  @override
+  bool get inputPending => _parser.hasPending || _parser.inPaste;
+
+  @override
+  void Function()? onRead;
+
+  /// Every byte written, [frames] and the sequences it holds as well; it
+  /// does not go back when [frames] is cleared.
+  @override
+  int get bytesWritten => _bytesWritten;
+
+  void _emit(Uint8List bytes) {
+    _bytesWritten += bytes.length;
+    frames.add(bytes);
   }
 
   /// Delivers [text], UTF-8 encoded, as the terminal's input.
@@ -246,14 +275,14 @@ final class HeadlessTerminal
       return;
     }
     _mouseTracking = tracking;
-    frames.add(ascii.encode(mouseTrackingSequence(from, tracking)));
+    _emit(ascii.encode(mouseTrackingSequence(from, tracking)));
   }
 
   /// Keeps a copy of [bytes] in [frames]; dropped once closed.
   @override
   void write(Uint8List bytes) {
     if (!closed) {
-      frames.add(Uint8List.fromList(bytes));
+      _emit(Uint8List.fromList(bytes));
     }
   }
 
@@ -263,7 +292,7 @@ final class HeadlessTerminal
   @override
   void setTitle(String title) {
     if (!closed) {
-      frames.add(utf8.encode(titleSequence(title)));
+      _emit(utf8.encode(titleSequence(title)));
     }
   }
 
@@ -288,7 +317,7 @@ final class HeadlessTerminal
       id: '${++_notifications}',
     );
     if (s.isNotEmpty) {
-      frames.add(utf8.encode(s));
+      _emit(utf8.encode(s));
     }
   }
 
@@ -315,7 +344,7 @@ final class HeadlessTerminal
     }
     _states[key] = (sequence, restore);
     if (!_suspended) {
-      frames.add(ascii.encode(sequence));
+      _emit(ascii.encode(sequence));
     }
   }
 
@@ -326,7 +355,7 @@ final class HeadlessTerminal
   void restoreTerminalState(Object key) {
     final state = _states.remove(key);
     if (state != null && !closed && !_suspended) {
-      frames.add(ascii.encode(state.$2));
+      _emit(ascii.encode(state.$2));
     }
   }
 
@@ -363,7 +392,7 @@ final class HeadlessTerminal
       return;
     }
     if (_restores() case final restores?) {
-      frames.add(restores);
+      _emit(restores);
     }
     _suspended = true;
     suspends++;
@@ -380,7 +409,7 @@ final class HeadlessTerminal
     }
     _suspended = false;
     if (_states.isNotEmpty) {
-      frames.add(ascii.encode(_states.values.map((s) => s.$1).join()));
+      _emit(ascii.encode(_states.values.map((s) => s.$1).join()));
     }
     if (!options.alternateScreen && resumeColumn != 0) {
       write(Uint8List.fromList(const [0x0D, 0x0A]));
@@ -396,7 +425,7 @@ final class HeadlessTerminal
     }
     if (!_suspended) {
       if (_restores() case final restores?) {
-        frames.add(restores);
+        _emit(restores);
       }
     }
     closed = true;

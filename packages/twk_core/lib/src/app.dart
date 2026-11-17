@@ -432,6 +432,94 @@ final class TwkApp {
   var _inFrame = false;
   var _again = false;
 
+  /// Whether a frame is asked for: one waits for its time, or one follows
+  /// the running frame, or the render tree or a commit has work for one.
+  /// What a driver of the app (`twk_driver`) reads to tell whether input
+  /// led to a frame.
+  bool get scheduled =>
+      _scheduled ||
+      _again ||
+      owner.hasWork ||
+      _committing != null ||
+      _commits.isNotEmpty;
+
+  /// When the frame asked for is due, in microseconds of [clock]; null
+  /// when none is ([scheduled]). For a frame that follows the running one
+  /// it is when [requestFrame] will have it run.
+  int? get frameDue {
+    if (_scheduled) {
+      return _frameDue;
+    }
+    if (!scheduled) {
+      return null;
+    }
+    final gap = 1000000 ~/ (_inputFrame ? maxInputFps : maxFps);
+    final now = clock.elapsedMicroseconds;
+    final next = _lastFrameAt + gap;
+    return next > now ? next : now;
+  }
+
+  var _framesRun = 0;
+
+  /// How many frames have run, drawn or not; the running one included.
+  int get framesRun => _framesRun;
+
+  Completer<void>? _frameEnd;
+
+  /// Completes when the running frame ends, flush included; already
+  /// completed when none runs.
+  Future<void> get frameEnd =>
+      _inFrame ? (_frameEnd ??= Completer<void>()).future : Future.value();
+
+  /// The bytes of the terminal's input the app has taken in so far: a
+  /// sample of [CountingBackend.bytesRead], taken where the event loop is at
+  /// a boundary ([sampleInput]), so that every event of those bytes has
+  /// reached the app. It starts at the bytes the terminal read while it
+  /// opened, and is not taken while the app's input waits for the first
+  /// frame, nor while the terminal is handed over ([suspend]).
+  int get inputRead => _inputRead;
+  var _inputRead = 0;
+
+  /// Takes the sample [inputRead] is: call it only from an event-loop task
+  /// (a frame, a timer, an extension's handler), never from a microtask,
+  /// where events of what was read may still be on their way. Returns it.
+  int sampleInput() {
+    final counting = terminal;
+    if (counting is CountingBackend &&
+        !_suspended &&
+        (_input?.isPaused == false)) {
+      _inputRead = counting.bytesRead;
+    }
+    return _inputRead;
+  }
+
+  /// Whether the terminal's input parser holds bytes it has not resolved (a
+  /// lone ESC waiting for its timeout, an open paste).
+  bool get inputPending {
+    final counting = terminal;
+    return counting is CountingBackend && counting.inputPending;
+  }
+
+  /// Called, from a root-zone timer after the microtasks of what was read
+  /// or dispatched have run, once per turn of the event loop in which the
+  /// terminal was read or an event dispatched, with [inputRead] sampled.
+  /// While null the app arms no timer.
+  void Function()? onInputSettled;
+  Timer? _settleTimer;
+
+  void _settleSoon() {
+    if (onInputSettled != null) {
+      // armed again by what is dispatched: after the zero-delay work the
+      // handler queued, which is run by then
+      _settleTimer?.cancel();
+      _settleTimer = Zone.root.createTimer(Duration.zero, () {
+        _settleTimer = null;
+        sampleInput();
+        onInputSettled?.call();
+      });
+    }
+  }
+
   /// Input is being dispatched: a frame asked for now is the input's.
   var _inInput = false;
 
@@ -614,6 +702,11 @@ final class TwkApp {
           onEvent(event);
         }
 
+        final counting = terminal;
+        if (counting is CountingBackend) {
+          _inputRead = counting.bytesReadAtOpen;
+          counting.onRead = _settleSoon;
+        }
         _input = terminal.events.listen((e) {
           // the line that makes a frame input's: what asks for one while
           // the event is dispatched is spaced by the input gap
@@ -623,6 +716,7 @@ final class TwkApp {
           } finally {
             _inInput = false;
           }
+          _settleSoon();
         })..pause();
         requestFrame();
       },
@@ -1236,6 +1330,7 @@ final class TwkApp {
       return;
     }
     _inFrame = true;
+    _framesRun++;
     try {
       // Frames keep to a grid of gaps: the next is due a gap after when
       // this one was due, so a timer's lateness does not add up. One late
@@ -1247,6 +1342,7 @@ final class TwkApp {
       final t0 = _statsClock.elapsedMicroseconds;
       _begin('Frame');
       _begin('Build');
+      sampleInput();
       _beforeLayout?.call();
       _end();
       final input = _input;
@@ -1301,6 +1397,8 @@ final class TwkApp {
       }
     } finally {
       _inFrame = false;
+      _frameEnd?.complete();
+      _frameEnd = null;
       // slices an error cut short end here: none may outlive the frame
       while (_slices > 0) {
         Timeline.finishSync();
