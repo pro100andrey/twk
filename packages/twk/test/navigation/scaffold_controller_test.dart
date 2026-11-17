@@ -60,7 +60,7 @@ Matcher shows(int width, {bool divider = false}) =>
 void main() {
   testTwk('the app shows, hides and toggles the sidebar; the focus leaves '
       'it hidden', (t) async {
-    final c = ScaffoldController();
+    final c = disposing(ScaffoldController());
     var told = 0;
     c.addListener(() => told++);
     await t.pumpWidget(app(controller: c), size: (120, 36));
@@ -92,7 +92,7 @@ void main() {
 
   testTwk('hidden with the focus it had first, the sidebar leaves it to the '
       'body', (t) async {
-    final c = ScaffoldController();
+    final c = disposing(ScaffoldController());
     await t.pumpWidget(
       Scaffold(
         controller: c,
@@ -110,7 +110,7 @@ void main() {
 
   testTwk("the header's toggle and Ctrl+B tell the controller; Ctrl+B's way "
       'back hides again a sidebar the user hid', (t) async {
-    final c = ScaffoldController();
+    final c = disposing(ScaffoldController());
     final open = <bool>[];
     c.addListener(() => open.add(c.sidebarOpen));
     await t.pumpWidget(app(controller: c), size: (120, 36));
@@ -134,7 +134,7 @@ void main() {
   testTwk('with collapsedBelow: closed while narrow, opened by the app, and '
       'put back as the width has it when it crosses the threshold, which '
       'the listeners are told', (t) async {
-    final c = ScaffoldController();
+    final c = disposing(ScaffoldController());
     final open = <bool>[];
     c.addListener(() => open.add(c.sidebarOpen));
     await t.pumpWidget(app(controller: c, collapsedBelow: 100), size: (80, 24));
@@ -160,7 +160,9 @@ void main() {
 
   testTwk('a controller made open shows the sidebar on a narrow screen '
       'from the first frame', (t) async {
-    final c = ScaffoldController(sidebarOpen: true, sidebarWidth: 12);
+    final c = disposing(
+      ScaffoldController(sidebarOpen: true, sidebarWidth: 12),
+    );
     await t.pumpWidget(app(controller: c, collapsedBelow: 100), size: (80, 24));
     await t.pump();
     expect(c.sidebarOpen, isTrue);
@@ -169,7 +171,7 @@ void main() {
 
   testTwk("the controller's width is the sidebar's: set by the app, and by a "
       'drag, for the app to keep', (t) async {
-    final c = ScaffoldController(sidebarWidth: 10);
+    final c = disposing(ScaffoldController(sidebarWidth: 10));
     final widths = <int>[];
     c.addListener(() => widths.add(c.sidebarWidth));
     await t.pumpWidget(
@@ -217,8 +219,8 @@ void main() {
   testTwk('a controller swapped for another: the new one is the one obeyed', (
     t,
   ) async {
-    final a = ScaffoldController(sidebarWidth: 10);
-    final b = ScaffoldController(sidebarWidth: 14);
+    final a = disposing(ScaffoldController(sidebarWidth: 10));
+    final b = disposing(ScaffoldController(sidebarWidth: 14));
     await t.pumpWidget(app(controller: a), size: (80, 24));
     await t.pump();
     await t.pumpWidget(app(controller: b));
@@ -235,7 +237,7 @@ void main() {
 
   testTwk('focusZone focuses a zone, showing a hidden sidebar as Ctrl+B '
       'does; focusedZone says which has the focus', (t) async {
-    final c = ScaffoldController();
+    final c = disposing(ScaffoldController());
     expect(c.focusZone(ScaffoldZone.body), isFalse);
     expect(c.focusedZone, isNull);
     await t.pumpWidget(app(controller: c, collapsedBelow: 100), size: (80, 24));
@@ -306,7 +308,7 @@ void main() {
   testTwk('on the right, Alt+, widens the sidebar and Alt+. narrows it', (
     t,
   ) async {
-    final c = ScaffoldController(sidebarWidth: 20);
+    final c = disposing(ScaffoldController(sidebarWidth: 20));
     await t.pumpWidget(
       app(controller: c, resizable: true, side: SidebarSide.right),
       size: (80, 24),
@@ -370,7 +372,7 @@ void main() {
 
   testTwk('a controller taken away leaves the scaffold one of its own, of '
       'its sidebarWidth; focusZone(body) focuses the body', (t) async {
-    final c = ScaffoldController(sidebarWidth: 10);
+    final c = disposing(ScaffoldController(sidebarWidth: 10));
     await t.pumpWidget(app(controller: c), size: (80, 24));
     await t.pump();
     expect(t.lines[1], shows(10));
@@ -387,7 +389,7 @@ void main() {
 
   testTwk('a sidebar Ctrl+B showed on a narrow screen, taken away, leaves '
       'the controller as it was before Ctrl+B', (t) async {
-    final c = ScaffoldController();
+    final c = disposing(ScaffoldController());
     await t.pumpWidget(app(controller: c, collapsedBelow: 100), size: (80, 24));
     await t.pump();
     expect(c.sidebarOpen, isFalse);

@@ -142,7 +142,7 @@ void main() {
         t,
         Stepper(
           linear: false,
-          controller: StepperController(),
+          controller: disposing(StepperController()),
           steps: const [
             Step(title: 'One', content: Text('a')),
             Step(title: 'Two', content: Text('b')),

@@ -497,7 +497,7 @@ void main() {
 
   testTwk('rect and clickOn are a StateError on a widget not laid out yet, '
       'though it has a render object', (t) async {
-    final items = ValueNotifier<List<int>>([]);
+    final items = disposing(ValueNotifier<List<int>>([]));
     await t.pumpWidget(
       ListenableBuilder(
         listenable: items,

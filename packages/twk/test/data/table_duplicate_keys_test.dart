@@ -29,7 +29,7 @@ void main() {
   ) async {
     await t.pumpWidget(table(['a', 'b', 'a']));
     expect(errors(t), isNotEmpty);
-  }, trackDisposables: true);
+  });
 
   testTwk('a new list with a duplicate asserts; equal rows without a '
       'rowKey do not', (t) async {

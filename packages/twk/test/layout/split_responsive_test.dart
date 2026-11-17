@@ -33,7 +33,7 @@ void main() {
   group('SplitView in a LayoutBuilder', () {
     testTwk('lies down under a width, keeping its shares and the state of '
         'its panes', (t) async {
-      final c = SplitController(fractions: [1, 3]);
+      final c = disposing(SplitController(fractions: [1, 3]));
       var created = 0;
       void count() => created++;
       await t.pumpWidget(

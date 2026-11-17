@@ -413,7 +413,7 @@ void main() {
     unawaited(state.push(page('e')));
     state.removeRoute(d);
     await t.pump();
-  }, trackDisposables: true);
+  });
 
   testTwk('a route no frame hosted makes no focus node, even when covered '
       'and removed', (t) async {
@@ -431,7 +431,7 @@ void main() {
       ..removeRoute(d)
       ..popUntil((r) => r.isFirst);
     await t.pump();
-  }, trackDisposables: true);
+  });
 }
 
 /// Writes down the name of each route pushed, and nothing else.

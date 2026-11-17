@@ -19,7 +19,7 @@ void main() {
     await t.pumpWidget(
       Table<File>(
         rows: files,
-        controller: TableController(sortColumn: 1),
+        controller: disposing(TableController(sortColumn: 1)),
         columns: [
           TableColumn(title: 'Name', cell: (f) => TableCell(f.name)),
           TableColumn(

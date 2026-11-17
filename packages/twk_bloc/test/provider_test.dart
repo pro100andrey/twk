@@ -95,7 +95,7 @@ void main() {
         'by its states', (t) async {
       final log = <String>[];
       final counter = Counter();
-      final watch = ValueNotifier(true);
+      final watch = disposing(ValueNotifier(true));
       await t.pumpWidget(
         BlocProvider.value(
           value: counter,

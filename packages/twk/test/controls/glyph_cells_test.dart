@@ -382,9 +382,11 @@ void main() {
             windows: [
               Window(
                 title: 'A long title cut off here',
-                controller: WindowController(
-                  width: 16,
-                  height: 3,
+                controller: disposing(
+                  WindowController(
+                    width: 16,
+                    height: 3,
+                  ),
                 ),
                 onClose: () {},
                 minimisable: false,

@@ -81,7 +81,7 @@ void main() {
         'commands filtered by it; isOpen and query say so, and its '
         'listeners are told', (t) async {
       final log = <String>[];
-      final controller = CommandPaletteController();
+      final controller = disposing(CommandPaletteController());
       var told = 0;
       controller.addListener(() => told++);
       await t.pumpWidget(
@@ -127,7 +127,7 @@ editor
     testTwk('open on the open palette sets its query; close closes it, '
         'running nothing, and gives the focus back', (t) async {
       final log = <String>[];
-      final controller = CommandPaletteController();
+      final controller = disposing(CommandPaletteController());
       await t.pumpWidget(
         Theme.terminal(child: app(log, controller: controller)),
         size: (40, 9),
@@ -168,7 +168,7 @@ editor
     testTwk('open then close before a frame shows nothing; open twice '
         'before a frame types the last query', (t) async {
       final log = <String>[];
-      final controller = CommandPaletteController();
+      final controller = disposing(CommandPaletteController());
       await t.pumpWidget(
         Theme.terminal(child: app(log, controller: controller)),
         size: (40, 9),
@@ -197,7 +197,7 @@ editor
     testTwk('Ctrl+P, Escape and a click outside open and close it as the '
         'controller says', (t) async {
       final log = <String>[];
-      final controller = CommandPaletteController();
+      final controller = disposing(CommandPaletteController());
       await t.pumpWidget(
         Theme.terminal(child: app(log, controller: controller)),
         size: (40, 9),
@@ -221,7 +221,7 @@ editor
     testTwk('a controller given to a palette that is open says it is open, '
         'and tells its listeners after the build', (t) async {
       final log = <String>[];
-      final controller = CommandPaletteController();
+      final controller = disposing(CommandPaletteController());
       var told = 0;
       controller.addListener(() => told++);
       await t.pumpWidget(Theme.terminal(child: app(log)), size: (40, 9));
@@ -241,7 +241,7 @@ editor
       t,
     ) async {
       final log = <String>[];
-      final controller = CommandPaletteController();
+      final controller = disposing(CommandPaletteController());
       expect(
         controller.open,
         throwsA(
@@ -252,7 +252,7 @@ editor
           ),
         ),
       );
-      final other = CommandPaletteController();
+      final other = disposing(CommandPaletteController());
       await t.pumpWidget(
         Theme.terminal(child: app(log, controller: controller)),
         size: (40, 9),

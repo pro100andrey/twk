@@ -11,7 +11,6 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../data/shot.dart' show Counted, PaintCount;
-import '../disposing.dart';
 
 /// A focused field of [c], [width] columns wide.
 Widget field(
@@ -194,7 +193,7 @@ void main() {
       t,
     ) async {
       const theme = ThemeData.dark;
-      final c = TableController(selectedKey: 1);
+      final c = disposing(TableController(selectedKey: 1));
       await t.pumpWidget(
         Theme(
           data: theme,

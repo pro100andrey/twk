@@ -120,7 +120,7 @@ void main() {
     test('toggle expands a node collapsed and collapses one expanded, '
         'notifying each time', () {
       var notified = 0;
-      final c = TreeController()
+      final c = disposing(TreeController())
         ..addListener(() => notified++)
         ..toggle('a');
       expect((c.isExpanded('a'), notified), (true, 1));
@@ -131,7 +131,7 @@ void main() {
     test('collapseAll collapses the nodes given, or every node, notifying '
         'only when one was expanded', () {
       var notified = 0;
-      final c = TreeController(expanded: ['a', 'b', 'c'])
+      final c = disposing(TreeController(expanded: ['a', 'b', 'c']))
         ..addListener(() => notified++)
         ..collapseAll(['a', 'x']);
       expect(c.expanded, {'b', 'c'});
@@ -155,7 +155,9 @@ void main() {
         Theme.terminal(
           child: tree(
             files,
-            controller: TreeController(expanded: ['src', 'data', 'widgets']),
+            controller: disposing(
+              TreeController(expanded: ['src', 'data', 'widgets']),
+            ),
           ),
         ),
         size: (24, 9),
@@ -179,7 +181,7 @@ void main() {
           child: tree(
             files,
             showGuides: false,
-            controller: TreeController(expanded: ['src', 'data']),
+            controller: disposing(TreeController(expanded: ['src', 'data'])),
           ),
         ),
         size: (24, 6),
@@ -198,7 +200,10 @@ void main() {
       'the guides are ASCII where box drawing is two columns wide',
       () async {
         final app = await WideApp.start(
-          tree(files, controller: TreeController(expanded: ['src', 'data'])),
+          tree(
+            files,
+            controller: disposing(TreeController(expanded: ['src', 'data'])),
+          ),
           width: 20,
           height: 4,
         );
@@ -223,7 +228,9 @@ void main() {
         Theme.terminal(
           child: tree(
             files,
-            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            controller: disposing(
+              TreeController(selectedKey: 'data', expanded: ['src']),
+            ),
             label: (context, e) => Text(
               '${e.key} ${e.depth}'
               '${e.hasChildren ? ' has' : ''}'
@@ -249,7 +256,9 @@ void main() {
         Theme.terminal(
           child: tree(
             files,
-            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            controller: disposing(
+              TreeController(selectedKey: 'data', expanded: ['src']),
+            ),
             selectedStyle: const Style(bg: red),
           ),
         ),
@@ -264,7 +273,9 @@ void main() {
         Theme.terminal(
           child: tree(
             files,
-            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            controller: disposing(
+              TreeController(selectedKey: 'data', expanded: ['src']),
+            ),
           ),
         ),
       );
@@ -284,7 +295,9 @@ void main() {
         data: theme,
         child: tree(
           files,
-          controller: TreeController(selectedKey: 'data', expanded: ['src']),
+          controller: disposing(
+            TreeController(selectedKey: 'data', expanded: ['src']),
+          ),
           focusNode: node,
           unfocusedSelectedStyle: unfocused,
         ),
@@ -312,7 +325,7 @@ void main() {
     testTwk('reload of a node asks again for its children alone, reload '
         'without one for those of every node', (t) async {
       final asked = <String>[];
-      final controller = TreeController(expanded: ['a', 'b']);
+      final controller = disposing(TreeController(expanded: ['a', 'b']));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(
@@ -345,7 +358,7 @@ void main() {
         'until it ends, which the keys pass over; they are kept until '
         'reloaded', (t) async {
       final asked = <String>[];
-      final controller = TreeController(selectedKey: 'remote');
+      final controller = disposing(TreeController(selectedKey: 'remote'));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(
@@ -399,7 +412,7 @@ void main() {
     testTwk('a load that fails shows its error below the node; collapsed '
         'and expanded again, the node asks again', (t) async {
       var fail = true;
-      final controller = TreeController(expanded: ['remote']);
+      final controller = disposing(TreeController(expanded: ['remote']));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(
@@ -456,7 +469,7 @@ void main() {
 
     testTwk('* expands the node selected and every node below it, those '
         'whose children come in a future as they come', (t) async {
-      final controller = TreeController(selectedKey: 'r');
+      final controller = disposing(TreeController(selectedKey: 'r'));
       const later = {
         'r': [N('a'), N('b')],
         'a': [N('a1')],
@@ -500,7 +513,7 @@ void main() {
         'and End the first and the last; a key that does nothing goes on', (
       t,
     ) async {
-      final controller = TreeController();
+      final controller = disposing(TreeController());
       final passed = <String>[];
       final activated = <String>[];
       await t.pumpWidget(
@@ -590,7 +603,7 @@ void main() {
 
     testTwk('Enter expands and collapses the node selected without '
         'onActivated', (t) async {
-      final controller = TreeController(selectedKey: 'test');
+      final controller = disposing(TreeController(selectedKey: 'test'));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(files, controller: controller, autofocus: true),
@@ -605,7 +618,7 @@ void main() {
 
     testTwk('the keys do nothing while it does not have the focus, nor in '
         'one that takes none, where the keys start at it', (t) async {
-      final controller = TreeController();
+      final controller = disposing(TreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -634,7 +647,7 @@ void main() {
 
     testTwk('Page Up and Page Down select a window of rows away, the view '
         'scrolled the least that shows the node selected', (t) async {
-      final controller = TreeController(expanded: ['r']);
+      final controller = disposing(TreeController(expanded: ['r']));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(
@@ -677,7 +690,7 @@ void main() {
         Theme.terminal(
           child: tree(
             [for (var i = 0; i < 21; i++) N('n$i')],
-            controller: TreeController(selectedKey: 'n18'),
+            controller: disposing(TreeController(selectedKey: 'n18')),
             selectedStyle: const Style(bg: red),
           ),
         ),
@@ -697,7 +710,9 @@ void main() {
         Theme.terminal(
           child: tree(
             files,
-            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            controller: disposing(
+              TreeController(selectedKey: 'data', expanded: ['src']),
+            ),
             focusNode: node,
           ),
         ),
@@ -724,7 +739,7 @@ void main() {
         'elsewhere selects the node and gives the view the focus', (
       t,
     ) async {
-      final controller = TreeController();
+      final controller = disposing(TreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -771,7 +786,7 @@ void main() {
     testTwk('a new tree keeps the nodes expanded and the labels State by '
         'key', (t) async {
       final log = <String>[];
-      final controller = TreeController(expanded: ['src', 'data']);
+      final controller = disposing(TreeController(expanded: ['src', 'data']));
       Widget view(List<N> roots) => tree(
         roots,
         controller: controller,
@@ -818,7 +833,7 @@ void main() {
         Theme.terminal(
           child: tree(
             roots,
-            controller: TreeController(expanded: ['r']),
+            controller: disposing(TreeController(expanded: ['r'])),
             autofocus: true,
             label: (context, e) {
               built++;
@@ -840,9 +855,11 @@ void main() {
   group('separateRoots', () {
     testTwk('an empty row comes between roots, after the subtree of each; '
         'the keys and the mouse skip it', (t) async {
-      final controller = TreeController(
-        expanded: ['src', 'widgets'],
-        selectedKey: 'button.dart',
+      final controller = disposing(
+        TreeController(
+          expanded: ['src', 'widgets'],
+          selectedKey: 'button.dart',
+        ),
       );
       await t.pumpWidget(
         Theme.terminal(
@@ -885,7 +902,7 @@ void main() {
     testTwk('a root collapsed or expanded moves the empty rows with it', (
       t,
     ) async {
-      final controller = TreeController();
+      final controller = disposing(TreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: tree(files, separateRoots: true, controller: controller),
@@ -924,7 +941,9 @@ void main() {
           child: tree(
             deep,
             maxIndent: 4,
-            controller: TreeController(expanded: ['a', 'b', 'c', 'd']),
+            controller: disposing(
+              TreeController(expanded: ['a', 'b', 'c', 'd']),
+            ),
           ),
         ),
         size: (12, 5),
@@ -940,7 +959,7 @@ void main() {
 
     testTwk('a click on the expander of a node past the limit is on its '
         'column there', (t) async {
-      final controller = TreeController(expanded: ['a', 'b', 'c']);
+      final controller = disposing(TreeController(expanded: ['a', 'b', 'c']));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(deep, maxIndent: 4, controller: controller),
@@ -958,7 +977,9 @@ void main() {
         Theme.terminal(
           child: tree(
             deep,
-            controller: TreeController(expanded: ['a', 'b', 'c', 'd']),
+            controller: disposing(
+              TreeController(expanded: ['a', 'b', 'c', 'd']),
+            ),
           ),
         ),
         size: (16, 5),
@@ -981,9 +1002,11 @@ void main() {
             gutter: mark,
             separateRoots: true,
             canRequestFocus: false,
-            controller: TreeController(
-              expanded: ['src'],
-              selectedKey: 'data',
+            controller: disposing(
+              TreeController(
+                expanded: ['src'],
+                selectedKey: 'data',
+              ),
             ),
           ),
         ),
@@ -1001,7 +1024,7 @@ void main() {
 
     testTwk('gutterWidth sets the cells it takes, and the expander is '
         'clicked after them', (t) async {
-      final controller = TreeController(expanded: ['src']);
+      final controller = disposing(TreeController(expanded: ['src']));
       await t.pumpWidget(
         Theme.terminal(
           child: tree(
@@ -1032,7 +1055,7 @@ void main() {
             files,
             gutter: mark,
             canRequestFocus: false,
-            controller: TreeController(selectedKey: 'src'),
+            controller: disposing(TreeController(selectedKey: 'src')),
             selectedStyle: const Style(bg: red),
           ),
         ),
@@ -1047,7 +1070,7 @@ void main() {
     testTwk('with canRequestFocus false the view takes no keys and the '
         'focus; the app moves the selection through the controller and '
         'styles it with selectedStyle', (t) async {
-      final controller = TreeController(expanded: ['src']);
+      final controller = disposing(TreeController(expanded: ['src']));
       final keys = <String>[];
       await t.pumpWidget(
         Theme.terminal(

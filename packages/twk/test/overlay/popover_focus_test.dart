@@ -7,8 +7,6 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
-
 /// A page: a popover by an anchor, under a focus node [field] and a
 /// focus node [outside].
 Widget page(

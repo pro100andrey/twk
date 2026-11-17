@@ -212,7 +212,9 @@ void main() {
     await t.pumpWidget(
       top(
         Calendar(
-          controller: CalendarController(cursor: DateTime(2026, 10, 7)),
+          controller: disposing(
+            CalendarController(cursor: DateTime(2026, 10, 7)),
+          ),
           monthNames: names,
           weekdayNames: days,
         ),

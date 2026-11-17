@@ -134,7 +134,7 @@ void main() {
   group('TabBar', () {
     testTwk('shows the labels in a row, the selected one in the primary '
         'color, bold; a tab clicked is selected', (t) async {
-      final c = TabController(length: 3, initialIndex: 1);
+      final c = disposing(TabController(length: 3, initialIndex: 1));
       await t.pumpWidget(
         Theme.terminal(
           child: TabBar(controller: c, tabs: const ['One', 'Two', 'Three']),
@@ -160,7 +160,7 @@ void main() {
     testTwk('while it has the focus, Left and Right select the tab before and '
         'after, round, Home and End the first and the last; hinted, and '
         'the selected tab reversed', (t) async {
-      final c = TabController(length: 3);
+      final c = disposing(TabController(length: 3));
       final node = FocusNode(debugLabel: 'bar');
       addTearDown(node.dispose);
       final seen = <String>[];
@@ -209,7 +209,7 @@ void main() {
 
     testTwk('its keys from the moment it has the focus: Right typed right '
         'after the Tab that focuses it, in one read', (t) async {
-      final c = TabController(length: 3);
+      final c = disposing(TabController(length: 3));
       final a = FocusNode();
       addTearDown(a.dispose);
       await t.pumpWidget(
@@ -233,7 +233,7 @@ void main() {
 
     testTwk('the hidden cursor rests on the selected tab as it moves and '
         'the row scrolls', (t) async {
-      final c = TabController(length: 4);
+      final c = disposing(TabController(length: 4));
       final node = FocusNode(debugLabel: 'bar');
       addTearDown(node.dispose);
       await t.pumpWidget(
@@ -270,7 +270,7 @@ void main() {
 
     testTwk('scrolls to show the selected tab whole when the labels do not '
         'fit, marking the edges where tabs are cut off', (t) async {
-      final c = TabController(length: 4);
+      final c = disposing(TabController(length: 4));
       await t.pumpWidget(
         Theme.terminal(
           child: Row(
@@ -301,7 +301,7 @@ void main() {
 
     testTwk('a mark clicked scrolls the tab it is over into view, and the '
         'wheel scrolls the row; neither selects', (t) async {
-      final c = TabController(length: 4);
+      final c = disposing(TabController(length: 4));
       await t.pumpWidget(
         Theme.terminal(
           child: Row(
@@ -350,7 +350,7 @@ void main() {
   group('TabBarView', () {
     testTwk("shows the selected tab's child and keeps the state of the "
         'others', (t) async {
-      final c = TabController(length: 2);
+      final c = disposing(TabController(length: 2));
       final first = GlobalKey<CounterState>();
       final second = GlobalKey<CounterState>();
       await t.pumpWidget(
@@ -387,7 +387,7 @@ void main() {
         'what changes in it lay out or paint the tab shown; the mouse does '
         'not hit it, and hits the tab shown', (t) async {
       final view = GlobalKey();
-      final c = TabController(length: 2);
+      final c = disposing(TabController(length: 2));
       final downs = <String>[];
       final entered = <String>[];
       layouts.clear();
@@ -459,7 +459,7 @@ void main() {
     testTwk("Tab passes by the hidden tabs' nodes; selecting another tab "
         'while the focus is in the one shown moves it to the node the new '
         'one had it on, or its first', (t) async {
-      final c = TabController(length: 3);
+      final c = disposing(TabController(length: 3));
       final b2 = FocusNode();
       addTearDown(b2.dispose);
       await t.pumpWidget(
@@ -523,7 +523,7 @@ void main() {
     testTwk('with a TabBar: its keys switch the tabs the view shows', (
       t,
     ) async {
-      final c = TabController(length: 2);
+      final c = disposing(TabController(length: 2));
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -557,8 +557,7 @@ void main() {
     t,
   ) async {
     const dark = ThemeData.dark;
-    final c = TabController(length: 2);
-    addTearDown(c.dispose);
+    final c = disposing(TabController(length: 2));
     await t.pumpWidget(
       Theme.terminal(
         child: Theme(

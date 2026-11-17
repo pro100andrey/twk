@@ -9,8 +9,6 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
-
 /// `item <from>` down to `item <to + 1>`, as a reverse list shows them.
 List<String> down(int from, int to) => [
   for (var i = from; i > to; i--) 'item $i',

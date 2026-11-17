@@ -35,7 +35,7 @@ void main() {
     group('Table, rowKey $byKey', () {
       testTwk('a filter taking the rows below the selected one, scrolled '
           'down and focused', (t) async {
-        final c = TableController();
+        final c = disposing(TableController());
         final data = [for (var i = 0; i < 100; i++) i * 10];
         await t.pumpWidget(
           flat([for (var i = 0; i < 100; i++) i], c, data: data, byKey: byKey),
@@ -66,7 +66,7 @@ void main() {
       testTwk('a new key and a shrunk list with a shared controller', (
         t,
       ) async {
-        final c = TableController();
+        final c = disposing(TableController());
         final data = [for (var i = 0; i < 100; i++) i];
         await t.pumpWidget(
           flat([for (var i = 0; i < 50; i++) i], c, data: data, byKey: byKey),
@@ -94,7 +94,7 @@ void main() {
   group('a selection moved as the rows shrink', () {
     testTwk('the row left is not built again from the rows it was built in, '
         'by a cell builder reading what has shrunk since', (t) async {
-      final c = TableController();
+      final c = disposing(TableController());
       var live = [for (var i = 0; i < 20; i++) 'v$i'];
       Widget build(List<int> rows) => Table<int>(
         rows: rows,
@@ -121,8 +121,8 @@ void main() {
   group('TreeTable', () {
     testTwk('roots shrinking under a selected, scrolled row, in a '
         'LayoutBuilder', (t) async {
-      final c = TreeController();
-      final tc = TableController();
+      final c = disposing(TreeController());
+      final tc = disposing(TableController());
       Widget build(int n, {Key? key}) => LayoutBuilder(
         builder: (context, box) => SizedBox(
           key: key,
@@ -146,7 +146,7 @@ void main() {
     });
 
     testTwk('expanded children removed with the selection in them', (t) async {
-      final c = TreeController(expanded: ['a'], selectedKey: 'a9');
+      final c = disposing(TreeController(expanded: ['a'], selectedKey: 'a9'));
       final big = [
         N('a', 0, [for (var i = 0; i < 20; i++) N('a$i', i)]),
         const N('b', 1),
@@ -173,7 +173,7 @@ void main() {
     });
 
     testTwk('a TreeTable given a new key is not empty', (t) async {
-      final c = TreeController(selectedKey: 'r40');
+      final c = disposing(TreeController(selectedKey: 'r40'));
       Widget build(List<N> roots, Key key) => SizedBox(
         key: key,
         child: table(roots, controller: c),

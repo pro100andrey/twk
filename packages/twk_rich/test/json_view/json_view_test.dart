@@ -80,7 +80,7 @@ void main() {
       await t.pumpWidget(
         JsonView(
           value: doc,
-          controller: JsonViewController(expandedDepth: 2),
+          controller: disposing(JsonViewController(expandedDepth: 2)),
         ),
         size: (40, 14),
       );
@@ -103,7 +103,7 @@ void main() {
       await t.pumpWidget(
         JsonView(
           value: doc,
-          controller: JsonViewController(expandedDepth: 0),
+          controller: disposing(JsonViewController(expandedDepth: 0)),
         ),
         size: (40, 14),
       );
@@ -175,7 +175,10 @@ void main() {
       final map = <String, Object?>{'at': const Point(1, 2)};
       map['self'] = map;
       await t.pumpWidget(
-        JsonView(value: map, controller: JsonViewController(expandedDepth: 9)),
+        JsonView(
+          value: map,
+          controller: disposing(JsonViewController(expandedDepth: 9)),
+        ),
         size: (30, 7),
       );
       expect(shown(t), [
@@ -192,7 +195,7 @@ void main() {
 
   group('folding', () {
     testTwk('Enter and Space fold the object or array selected', (t) async {
-      final c = JsonViewController()..reveal(r'$.scripts');
+      final c = disposing(JsonViewController())..reveal(r'$.scripts');
       await t.pumpWidget(
         JsonView(value: doc, controller: c, autofocus: true),
         size: (40, 9),
@@ -213,7 +216,8 @@ void main() {
     testTwk('Enter on the row that closes an array folds it and selects it', (
       t,
     ) async {
-      final c = JsonViewController(expandedDepth: 2)..reveal(r'$.scripts');
+      final c = disposing(JsonViewController(expandedDepth: 2))
+        ..reveal(r'$.scripts');
       await t.pumpWidget(
         JsonView(value: doc, controller: c, autofocus: true),
         size: (40, 14),
@@ -230,7 +234,7 @@ void main() {
 
     testTwk('a string longer than maxStringLength is cut with … until Enter '
         'shows it whole, and Enter cuts it again', (t) async {
-      final c = JsonViewController()..reveal(r'$[0]');
+      final c = disposing(JsonViewController())..reveal(r'$[0]');
       await t.pumpWidget(
         JsonView(
           value: const ['abcdefgh', 'abc'],
@@ -256,7 +260,7 @@ void main() {
         },
         'd': [1],
       };
-      final c = JsonViewController()..reveal(r'$.a');
+      final c = disposing(JsonViewController())..reveal(r'$.a');
       await t.pumpWidget(
         JsonView(value: nested, controller: c, autofocus: true),
         size: (30, 10),
@@ -276,7 +280,7 @@ void main() {
 
     testTwk('expandAll expands every object and array, collapseAll every '
         'one, selecting the top where the selection was below', (t) async {
-      final c = JsonViewController()..reveal(r'$.scripts[1]');
+      final c = disposing(JsonViewController())..reveal(r'$.scripts[1]');
       await t.pumpWidget(
         JsonView(value: doc, controller: c),
         size: (40, 16),
@@ -292,7 +296,7 @@ void main() {
 
     testTwk('what is expanded and selected stays by path as the value '
         'changes', (t) async {
-      final c = JsonViewController()..reveal(r'$.scripts[1]');
+      final c = disposing(JsonViewController())..reveal(r'$.scripts[1]');
       await t.pumpWidget(
         JsonView(value: doc, controller: c),
         size: (40, 9),
@@ -319,7 +323,7 @@ void main() {
     });
 
     testTwk('expandAll before a view waits for one', (t) async {
-      final c = JsonViewController(expandedDepth: 0)..expandAll();
+      final c = disposing(JsonViewController(expandedDepth: 0))..expandAll();
       await t.pumpWidget(
         JsonView(value: doc, controller: c),
         size: (40, 16),
@@ -330,7 +334,7 @@ void main() {
     testTwk('reveal expands what is above a value and selects it, which '
         'selectedPath and selectedValue tell', (t) async {
       const point = Point(3, 4);
-      final c = JsonViewController(expandedDepth: 0);
+      final c = disposing(JsonViewController(expandedDepth: 0));
       await t.pumpWidget(
         JsonView(
           value: const {
@@ -366,7 +370,8 @@ void main() {
     testTwk('c copies the path of the value selected and calls onPathCopied '
         'with it', (t) async {
       final paths = <String>[];
-      final c = JsonViewController(expandedDepth: 2)..reveal(r'$["a key"][1]');
+      final c = disposing(JsonViewController(expandedDepth: 2))
+        ..reveal(r'$["a key"][1]');
       await t.pumpWidget(
         JsonView(
           value: const {
@@ -386,7 +391,7 @@ void main() {
     });
 
     testTwk('y copies the value selected as JSON, indented', (t) async {
-      final c = JsonViewController()..reveal(r'$.scripts');
+      final c = disposing(JsonViewController())..reveal(r'$.scripts');
       await t.pumpWidget(
         JsonView(value: doc, controller: c, autofocus: true),
         size: (40, 8),
@@ -403,7 +408,7 @@ void main() {
     testTwk('y copies a cycle and an object as their JSON', (t) async {
       final list = <Object?>[const Point(1, 2)];
       list.add(list);
-      final c = JsonViewController();
+      final c = disposing(JsonViewController());
       await t.pumpWidget(
         JsonView(value: list, controller: c, autofocus: true),
         size: (30, 5),
@@ -416,7 +421,7 @@ void main() {
     });
 
     testTwk('the keys are hinted while the view has the focus', (t) async {
-      final c = JsonViewController();
+      final c = disposing(JsonViewController());
       await t.pumpWidget(
         JsonView(value: doc, controller: c, autofocus: true),
         size: (40, 8),
@@ -444,7 +449,7 @@ void main() {
           'proxy': {'port': 8080},
         },
       };
-      final c = JsonViewController();
+      final c = disposing(JsonViewController());
       await t.pumpWidget(
         JsonView(value: config, controller: c, autofocus: true),
         size: (40, 12),
@@ -520,7 +525,7 @@ void main() {
       await t.pumpWidget(
         JsonView(
           value: config,
-          controller: JsonViewController(expandedDepth: 2),
+          controller: disposing(JsonViewController(expandedDepth: 2)),
           autofocus: true,
         ),
         size: (40, 8),
@@ -542,7 +547,7 @@ void main() {
 
     testTwk('Enter goes back to the tree with the filter kept, Escape clears '
         'it and puts back what was expanded', (t) async {
-      final c = JsonViewController();
+      final c = disposing(JsonViewController());
       await t.pumpWidget(
         JsonView(value: doc, controller: c, autofocus: true),
         size: (40, 9),
@@ -585,7 +590,7 @@ void main() {
     testTwk('Escape in the field clears the filter, the tree back as it was', (
       t,
     ) async {
-      final c = JsonViewController();
+      final c = disposing(JsonViewController());
       await t.pumpWidget(
         JsonView(value: doc, controller: c, autofocus: true),
         size: (40, 8),

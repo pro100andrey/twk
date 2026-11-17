@@ -316,7 +316,7 @@ void main() {
 
     testTwk('rows scrolled out of view and back are laid out by the widths '
         'of the columns as they are now', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       Widget table(String last) => Table(
         rows: [...numbered(30), (name: last, size: 0, kind: 'k')],
         controller: controller,
@@ -343,7 +343,7 @@ void main() {
         'the view they show in', (t) async {
       // one in a hundred sampled: 0, 100, 200 and on
       final source = Numbered(1000, name: (i) => {150: 'x' * 12}[i]);
-      final controller = TableController();
+      final controller = disposing(TableController());
       Widget table() => Table.source(
         source: source,
         controller: controller,
@@ -375,7 +375,7 @@ void main() {
     testTwk('a drag from the gap after a title makes its column as wide as '
         'the drag says, at least a cell, the rows laid out by it; a click '
         'on a title sorts', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -430,7 +430,9 @@ void main() {
     testTwk('Shift+Left and Shift+Right narrow and widen the column of the '
         'cell selected, or the one sorted by, within its bounds; a key at a '
         'bound goes on', (t) async {
-      final controller = TableController(sortColumn: 2, columnWidths: {1: 3});
+      final controller = disposing(
+        TableController(sortColumn: 2, columnWidths: {1: 3}),
+      );
       final passed = <String>[];
       Widget table(TableSelection selection) => Focus(
         canRequestFocus: false,
@@ -479,7 +481,7 @@ void main() {
         Theme.terminal(
           child: Table(
             rows: numbered(100),
-            controller: TableController(selectedKey: 0),
+            controller: disposing(TableController(selectedKey: 0)),
             autofocus: true,
             columns: [nameColumn(), sizeColumn()],
           ),
@@ -598,7 +600,7 @@ void main() {
   group('sorting', () {
     testTwk('a click on the title of a column that sorts sorts the rows by '
         'it, again the other way, marking the title', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -654,7 +656,7 @@ void main() {
     testTwk('rows that compare equal keep their order, sorted either way', (
       t,
     ) async {
-      final controller = TableController(sortColumn: 1);
+      final controller = disposing(TableController(sortColumn: 1));
       Widget table() => Table(
         rows: numbered(100, size: (i) => i % 3),
         controller: controller,
@@ -693,7 +695,7 @@ void main() {
         'way; < and > by the column before and after the one sorted by', (
       t,
     ) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -743,7 +745,7 @@ void main() {
 
     testTwk('with sortKeys false, s, < and > go on to the bindings above '
         'it and sort nothing; a click on a title still sorts', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       final heard = <String>[];
       await t.pumpWidget(
         Theme.terminal(
@@ -774,7 +776,7 @@ void main() {
 
     testTwk('s in a table that selects rows sorts the other way by the '
         'column sorted by, or by the first that sorts', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -796,7 +798,7 @@ void main() {
   group('selection', () {
     testTwk('stays on its row, by its key, as the rows are sorted, the view '
         'following it', (t) async {
-      final controller = TableController(selectedKey: 'n3');
+      final controller = disposing(TableController(selectedKey: 'n3'));
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -842,7 +844,7 @@ void main() {
 
     testTwk('a row selected by its index stays on it as the rows are '
         'sorted', (t) async {
-      final controller = TableController(selectedKey: 3);
+      final controller = disposing(TableController(selectedKey: 3));
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -877,7 +879,7 @@ void main() {
         Theme.terminal(
           child: Table(
             rows: numbered(21),
-            controller: TableController(selectedKey: 18),
+            controller: disposing(TableController(selectedKey: 18)),
             selectedStyle: const Style(bg: red),
             columns: [nameColumn(), sizeColumn()],
           ),
@@ -899,10 +901,12 @@ void main() {
           child: Table(
             rows: numbered(50, size: (i) => i * 7 % 50),
             rowKey: (f) => f.name,
-            controller: TableController(
-              selectedKey: 'n3',
-              sortColumn: 1,
-              sortAscending: false,
+            controller: disposing(
+              TableController(
+                selectedKey: 'n3',
+                sortColumn: 1,
+                sortAscending: false,
+              ),
             ),
             selectedStyle: const Style(bg: red),
             columns: [
@@ -931,10 +935,10 @@ void main() {
         selectedStyle: const Style(bg: red),
         columns: [nameColumn(), sizeColumn()],
       );
-      final first = TableController(selectedKey: 2);
+      final first = disposing(TableController(selectedKey: 2));
       await t.pumpWidget(Theme.terminal(child: table(first)), size: (20, 6));
       expect(rowsOn(t, red), ['n2      2']);
-      final second = TableController(selectedKey: 18);
+      final second = disposing(TableController(selectedKey: 18));
       await t.pumpWidget(Theme.terminal(child: table(second)));
       expect(t.lines.last, 'n18    18');
       expect(rowsOn(t, red), ['n18    18']);
@@ -952,7 +956,7 @@ void main() {
         'it has the focus, the view scrolled the least that shows them, a '
         'key that selects no other row going on; Enter activates the row '
         'selected', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       final activated = <String>[];
       // the keys that go on from the table
       final passed = <KeyCode>[];
@@ -1018,7 +1022,7 @@ void main() {
 
     testTwk('the keys select nothing while it does not have the focus, nor '
         'in one that takes none, where the keys start at it', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       for (final focusable in [true, false]) {
         await t.pumpWidget(
           Theme.terminal(
@@ -1037,7 +1041,7 @@ void main() {
     });
 
     testTwk('a click selects a row and gives the table the focus', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -1073,7 +1077,7 @@ void main() {
     testTwk('a click selects a cell, Left and Right the cell before and '
         'after; the cell selected in the cursor style while the table has '
         'the focus', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -1132,7 +1136,7 @@ other'''),
         Theme.terminal(
           child: Table(
             rows: files,
-            controller: TableController(selectedKey: 1),
+            controller: disposing(TableController(selectedKey: 1)),
             selection: TableSelection.cell,
             autofocus: true,
             style: const Style(bg: blue),
@@ -1163,9 +1167,11 @@ other'''),
               Expanded(
                 child: Table<File>(
                   rows: files,
-                  controller: TableController(
-                    selectedKey: 1,
-                    selectedColumn: 1,
+                  controller: disposing(
+                    TableController(
+                      selectedKey: 1,
+                      selectedColumn: 1,
+                    ),
                   ),
                   selection: TableSelection.cell,
                   autofocus: true,
@@ -1223,7 +1229,7 @@ other'''),
 
     testTwk('with TableSelection.none, the keys scroll the rows and a click '
         'selects nothing', (t) async {
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -1264,7 +1270,7 @@ other'''),
             Expanded(
               child: Table<File>(
                 rows: files,
-                controller: TableController(selectedKey: 1),
+                controller: disposing(TableController(selectedKey: 1)),
                 focusNode: node,
                 unfocusedSelectedStyle: unfocused,
                 columns: [nameColumn(), kindColumn()],
@@ -1303,7 +1309,9 @@ other'''),
             data: theme,
             child: Table<File>(
               rows: files,
-              controller: TableController(selectedKey: 1, selectedColumn: 1),
+              controller: disposing(
+                TableController(selectedKey: 1, selectedColumn: 1),
+              ),
               selection: TableSelection.cell,
               columns: [
                 nameColumn(),
@@ -1346,7 +1354,7 @@ other'''),
         'again, not the rows in view around them, a row scrolled in as it '
         'comes', (t) async {
       final built = <String>[];
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table(
@@ -1402,7 +1410,7 @@ other'''),
     testTwk('the cursor moved along the row selected builds that row again '
         'only; the focus leaving, all of them', (t) async {
       final built = <String>[];
-      final controller = TableController(selectedKey: 1);
+      final controller = disposing(TableController(selectedKey: 1));
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -1585,7 +1593,7 @@ other'''),
     testTwk('a key is looked for out from where the selection was, few of '
         'a million rows read', (t) async {
       final source = Numbered(1000000);
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table.source(
@@ -1626,7 +1634,7 @@ other'''),
         Theme.terminal(
           child: Table.source(
             source: source,
-            controller: TableController(selectedKey: 500000),
+            controller: disposing(TableController(selectedKey: 500000)),
             selectedStyle: const Style(bg: red),
             columns: [
               nameColumn(width: const GridTrack.fixed(7)),
@@ -1692,7 +1700,9 @@ other'''),
         'selection found on its row', (t) async {
       final names = ['b', 'c', 'a'];
       final source = Numbered(3, name: (i) => names[i]);
-      final controller = TableController(sortColumn: 0, selectedKey: 'b');
+      final controller = disposing(
+        TableController(sortColumn: 0, selectedKey: 'b'),
+      );
       await t.pumpWidget(
         Theme.terminal(
           child: Table.source(
@@ -1764,7 +1774,7 @@ other'''),
         Theme.terminal(
           child: Table(
             rows: numbered(100),
-            controller: TableController(selectedKey: 4),
+            controller: disposing(TableController(selectedKey: 4)),
             selectedStyle: const Style(bg: red),
             autofocus: true,
             columns: [nameColumn(), sizeColumn()],
@@ -1803,7 +1813,7 @@ other'''),
           Theme.terminal(
             child: Table(
               rows: numbered(10),
-              controller: TableController(selectedKey: 2),
+              controller: disposing(TableController(selectedKey: 2)),
               selection: selection,
               autofocus: true,
               columns: [nameColumn(), sizeColumn()],
@@ -1831,7 +1841,7 @@ other'''),
     testTwk('widget cells keep their State as the rows are sorted, by the '
         "rows' keys", (t) async {
       final log = <String>[];
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: Table<File>(

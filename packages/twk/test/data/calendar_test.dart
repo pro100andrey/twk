@@ -332,13 +332,14 @@ void main() {
         DateTime.utc(2026, 10, 19),
         DateTime.utc(2026, 10, 19, 23, 59),
       ]) {
-        final c = CalendarController(selected: date);
+        final c = disposing(CalendarController(selected: date));
         expect(c.selected, DateTime(2026, 10, 19), reason: '$date');
         expect(c.cursor, DateTime(2026, 10, 19), reason: '$date');
         expect(c.month, DateTime(2026, 10), reason: '$date');
       }
       expect(
-        CalendarController(cursor: DateTime(1969, 12, 31, 23, 30)).cursor,
+        disposing(CalendarController(cursor: DateTime(1969, 12, 31, 23, 30)))
+            .cursor,
         DateTime(1969, 12, 31),
       );
     });
@@ -346,8 +347,10 @@ void main() {
     test('moves the cursor a number of months, to the same day or the last '
         'day of a shorter month, then a number of days', () {
       DateTime moved(DateTime from, {int days = 0, int months = 0}) =>
-          (CalendarController(
-            cursor: from,
+          (disposing(
+            CalendarController(
+              cursor: from,
+            ),
           )..moveCursor(days: days, months: months)).cursor;
       expect(moved(DateTime(2026, 1, 31), months: 1), DateTime(2026, 2, 28));
       expect(moved(DateTime(2028, 1, 31), months: 1), DateTime(2028, 2, 29));
@@ -365,7 +368,7 @@ void main() {
     });
 
     test('shows another month by moving the cursor to it', () {
-      final c = CalendarController(cursor: DateTime(2026, 1, 31))
+      final c = disposing(CalendarController(cursor: DateTime(2026, 1, 31)))
         ..month = DateTime(2026, 4, 15);
       expect(c.cursor, DateTime(2026, 4, 30));
       expect(c.month, DateTime(2026, 4));
@@ -375,10 +378,12 @@ void main() {
 
     test('keeps the cursor within its bounds, the selected date as it is '
         'given', () {
-      final c = CalendarController(
-        cursor: DateTime(2020),
-        firstDate: DateTime(2026, 9, 28),
-        lastDate: DateTime(2026, 11, 3),
+      final c = disposing(
+        CalendarController(
+          cursor: DateTime(2020),
+          firstDate: DateTime(2026, 9, 28),
+          lastDate: DateTime(2026, 11, 3),
+        ),
       );
       expect(c.cursor, DateTime(2026, 9, 28));
       c.moveCursor(months: 2);
@@ -404,7 +409,7 @@ void main() {
 
     test('notifies its listeners of each change, and of nothing else', () {
       var told = 0;
-      final c = CalendarController(cursor: DateTime(2026, 10, 19))
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)))
         ..addListener(() => told++)
         ..cursor = DateTime(2026, 10, 19, 8)
         ..moveCursor()
@@ -460,7 +465,7 @@ void main() {
 
     testTwk('the arrows move the cursor a day or a week while it has the '
         'focus, into the months around, which it shows', (t) async {
-      final c = CalendarController(cursor: DateTime(2026, 10));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10)));
       await t.pumpWidget(
         Theme.terminal(
           child: Calendar(controller: c, today: DateTime(2026, 10, 19)),
@@ -499,7 +504,7 @@ void main() {
     testTwk('Page Up and Page Down move the cursor a month, to the last day '
         'of a shorter one, Shift a year; Home and End to the ends of the '
         'month', (t) async {
-      final c = CalendarController(cursor: DateTime(2028, 1, 31));
+      final c = disposing(CalendarController(cursor: DateTime(2028, 1, 31)));
       await t.pumpWidget(
         Theme.terminal(child: Calendar(controller: c, autofocus: true)),
         size: (20, 8),
@@ -530,7 +535,7 @@ void main() {
 
     testTwk('moves across the end of a year and shows the next year from '
         'Sunday', (t) async {
-      final c = CalendarController(cursor: DateTime(2026, 12, 31));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 12, 31)));
       await t.pumpWidget(
         Theme.terminal(
           child: Calendar(
@@ -559,7 +564,7 @@ void main() {
 
     testTwk("Enter and Space select the cursor's date and call onSelected "
         'with it', (t) async {
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       final selected = <DateTime>[];
       await t.pumpWidget(
         Theme.terminal(
@@ -591,7 +596,7 @@ void main() {
     testTwk('the keys it does not take go up to the nodes above it', (
       t,
     ) async {
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       final above = <String>[];
       await t.pumpWidget(
         Theme.terminal(
@@ -618,9 +623,11 @@ void main() {
     testTwk('a click on a day, on either of its columns, picks it as Enter '
         'does and focuses the calendar; on no day, or one outside the '
         'bounds, nothing', (t) async {
-      final c = CalendarController(
-        cursor: DateTime(2026, 10, 19),
-        firstDate: DateTime(2026, 10, 2),
+      final c = disposing(
+        CalendarController(
+          cursor: DateTime(2026, 10, 19),
+          firstDate: DateTime(2026, 10, 2),
+        ),
       );
       final selected = <DateTime>[];
       await t.pumpWidget(
@@ -652,7 +659,7 @@ void main() {
 
     testTwk('with the days of the months around, a click on one picks it and '
         'shows its month; one that takes no focus takes no click', (t) async {
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       await t.pumpWidget(
         Theme.terminal(child: Calendar(controller: c, showOutsideDays: true)),
         size: (20, 8),
@@ -678,7 +685,7 @@ void main() {
     testTwk('one that takes no focus shows its month without a cursor', (
       t,
     ) async {
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       await t.pumpWidget(
         Theme.terminal(
           child: Calendar(
@@ -723,9 +730,11 @@ void main() {
           child: Theme(
             data: theme,
             child: Calendar(
-              controller: CalendarController(
-                cursor: DateTime(2026, 10, 19),
-                selected: DateTime(2026, 10, 21),
+              controller: disposing(
+                CalendarController(
+                  cursor: DateTime(2026, 10, 19),
+                  selected: DateTime(2026, 10, 21),
+                ),
               ),
               today: DateTime(2026, 10, 20),
               showOutsideDays: true,
@@ -793,7 +802,7 @@ void main() {
 
     testTwk('rebuilt with other names and settings, shows them in the same '
         'month', (t) async {
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       await t.pumpWidget(
         Theme.terminal(
           child: Calendar(controller: c, today: DateTime(2026, 10, 20)),
@@ -881,7 +890,7 @@ void main() {
 
     testTwk('moving the cursor repaints nothing else', (t) async {
       final count = PaintCount();
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -903,7 +912,7 @@ void main() {
 
     testTwk("the hidden cursor rests on the cursor's day, on its first "
         'digit, as it moves, into the next month', (t) async {
-      final c = CalendarController(cursor: DateTime(2026, 10, 19));
+      final c = disposing(CalendarController(cursor: DateTime(2026, 10, 19)));
       final node = FocusNode();
       addTearDown(node.dispose);
       await t.pumpWidget(

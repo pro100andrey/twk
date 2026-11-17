@@ -8,8 +8,6 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
-
 /// Writes each pop and removal down as `didX route previous`, a route by
 /// its name, `?` for one without.
 final class Log extends NavigatorObserver {

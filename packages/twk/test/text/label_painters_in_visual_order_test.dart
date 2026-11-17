@@ -105,7 +105,7 @@ void main() {
   testTwk('a TabBar label reads as a Text does and a click finds its tab', (
     t,
   ) async {
-    final c = TabController(length: 2);
+    final c = disposing(TabController(length: 2));
     await t.pumpWidget(
       TabBar(controller: c, tabs: const [hebrew, 'two']),
       size: (30, 1),

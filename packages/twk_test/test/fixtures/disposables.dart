@@ -34,7 +34,7 @@ final class _OwnerState extends State<Owner> {
 }
 
 void main() {
-  testTwk('a controller left undisposed', trackDisposables: true, (t) async {
+  testTwk('a controller left undisposed', (t) async {
     await t.pumpWidget(const Owner(leak: true));
   });
 
@@ -42,17 +42,17 @@ void main() {
     await t.pumpWidget(const Owner(leak: true));
   });
 
-  testTwk('every controller disposed', trackDisposables: true, (t) async {
+  testTwk('every controller disposed', (t) async {
     await t.pumpWidget(const Owner(leak: false));
   });
 
-  testTwk('disposed by a tear-down', trackDisposables: true, (t) async {
+  testTwk('disposed by a tear-down', (t) async {
     final controller = ScrollController();
     addTearDown(controller.dispose);
     await t.pumpWidget(const Owner(leak: false));
   });
 
-  testTwk('a test that fails', trackDisposables: true, (t) async {
+  testTwk('a test that fails', (t) async {
     await t.pumpWidget(const Owner(leak: true));
     fail('its own');
   });

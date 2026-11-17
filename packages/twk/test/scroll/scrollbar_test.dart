@@ -914,5 +914,5 @@ void main() {
       size: (20, 10),
     );
     await t.pumpWidget(const SizedBox());
-  }, trackDisposables: true);
+  });
 }
