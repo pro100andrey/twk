@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show TerminalImage;
 
+import 'animated.dart';
 import 'bitmap.dart';
 import 'blocks.dart';
 import 'files_io.dart' if (dart.library.js_interop) 'files_web.dart';
@@ -20,10 +21,11 @@ import 'sixel.dart';
 sealed class ImageSource {
   const ImageSource();
 
-  /// A PNG or JPEG file's [bytes].
+  /// A PNG, JPEG or GIF file's [bytes].
   const factory ImageSource.memory(Uint8List bytes) = _Memory;
 
-  /// The PNG or JPEG file at [path], read when the image is first laid out.
+  /// The PNG, JPEG or GIF file at [path], read when the image is first laid
+  /// out.
   const factory ImageSource.file(String path) = _File;
 
   /// Pixels made in memory.
@@ -80,8 +82,15 @@ final class _Pixels extends ImageSource {
 /// An image in a box of cells, shown with the terminal's graphics protocol
 /// (`TerminalCaps.graphics`: kitty, sixel or iTerm2) and drawn in block
 /// characters ([blockMode]) where it has none, or always with
-/// [forceBlocks]. Still images only: an animated GIF is not read, and an
-/// APNG shows its default image.
+/// [forceBlocks].
+///
+/// An animated GIF or APNG plays, from its first paint, on the clock of the
+/// app ([AppBinding.frameTime], so a test's fake clock moves it): each
+/// frame shows for its delay, the plays its file asks for are made and the
+/// last frame stays. A frame is drawn as a still image is, in blocks or
+/// sent to the terminal again as the protocol takes it, each time the frame
+/// changes (the terminal's own animation, kitty's, is not used). Outside an
+/// app, an animation shows its first frame.
 ///
 /// The box is [width] × [height] cells where given, within the
 /// constraints; along an axis left out it follows from the other by the
@@ -127,7 +136,7 @@ final class Image extends LeafRenderObjectWidget {
     this.forceBlocks = false,
   });
 
-  /// The PNG or JPEG file [bytes].
+  /// The PNG, JPEG or GIF file [bytes].
   Image.memory(
     Uint8List bytes, {
     super.key,
@@ -139,7 +148,7 @@ final class Image extends LeafRenderObjectWidget {
     this.forceBlocks = false,
   }) : source = ImageSource.memory(bytes);
 
-  /// The PNG or JPEG file at [path], read when first laid out.
+  /// The PNG, JPEG or GIF file at [path], read when first laid out.
   Image.file(
     String path, {
     super.key,
@@ -199,6 +208,7 @@ final class Image extends LeafRenderObjectWidget {
     blockMode: blockMode,
     forceBlocks: forceBlocks,
     cell: _cellOf(context),
+    binding: AppBinding.maybeOf(context),
   );
 
   @override
@@ -228,8 +238,11 @@ final class Image extends LeafRenderObjectWidget {
 /// in block characters where that is none or with [forceBlocks]. The file
 /// is read and its size taken from its header when first laid out, its
 /// pixels decoded when first painted; what is drawn, scaled to the box and
-/// encoded, is kept until the box, the protocol or a property changes, so
-/// that the presenter places the same image again without sending it.
+/// encoded, is kept (of each frame of an animation) until the box, the
+/// protocol or a property changes, so that the presenter places the same
+/// image again without sending it. An animation steps on [binding]'s clock
+/// from its first paint, a frame callback asked for at the next frame's
+/// start while it is attached.
 final class RenderImage extends RenderObject {
   /// Lays out and paints the image of [_source]; the others are as
   /// [Image]'s properties of the same names, [_cell] the size of the
@@ -243,7 +256,12 @@ final class RenderImage extends RenderObject {
     this._blockMode = BlockMode.half,
     this._forceBlocks = false,
     this._cell = CellSize.fallback,
+    this.binding,
   });
+
+  /// The app whose clock steps an animation; without one, it shows its
+  /// first frame.
+  final AppBinding? binding;
 
   ImageSource _source;
 
@@ -255,8 +273,10 @@ final class RenderImage extends RenderObject {
       _source = s;
       _bytes = null;
       _size = null;
-      _bitmap = null;
+      _animation = null;
       _drawn = null;
+      _startedAt = null;
+      _cancelStep();
       markNeedsLayout();
     }
   }
@@ -345,8 +365,14 @@ final class RenderImage extends RenderObject {
 
   Uint8List? _bytes;
   ({int width, int height})? _size;
-  Bitmap? _bitmap;
-  _Drawn? _drawn;
+  AnimatedImage? _animation;
+
+  /// What each frame drew last, by its index; null where not yet.
+  List<_Drawn?>? _drawn;
+
+  /// The app's time at the first paint of an animation.
+  Duration? _startedAt;
+  int? _stepCallback;
 
   /// The file's bytes, read once.
   Uint8List get _file => _bytes ??= switch (_source) {
@@ -361,11 +387,51 @@ final class RenderImage extends RenderObject {
     _ => imageSize(_file),
   };
 
-  /// The image's pixels, decoded once.
-  Bitmap get _pixels => _bitmap ??= switch (_source) {
-    _Pixels(:final bitmap) => bitmap,
-    _ => decodeImage(_file),
+  /// The image's frames, decoded once.
+  AnimatedImage get _frames => _animation ??= switch (_source) {
+    _Pixels(:final bitmap) => AnimatedImage([
+      ImageFrame(bitmap, Duration.zero),
+    ]),
+    _ => decodeAnimation(_file),
   };
+
+  /// The frame of the animation showing in the frame being painted, as the
+  /// app's clock says; the first without an app, and 0 for a still image.
+  int _frameIndex() {
+    final animation = _frames;
+    final b = binding;
+    if (!animation.isAnimated || b == null) {
+      return 0;
+    }
+    final started = _startedAt ??= b.frameTime;
+    final elapsed = b.frameTime - started;
+    _cancelStep();
+    if (animation.nextChangeAfter(elapsed) case final next?) {
+      _stepCallback = b.scheduleFrameCallback(
+        (_) {
+          _stepCallback = null;
+          markNeedsPaint();
+        },
+        at: started + next,
+      );
+    }
+    return animation.indexAt(elapsed);
+  }
+
+  void _cancelStep() {
+    if (_stepCallback case final id?) {
+      _stepCallback = null;
+      binding?.cancelFrameCallback(id);
+    }
+  }
+
+  @override
+  void detach() {
+    _cancelStep();
+    // starts again from its first frame when attached again
+    _startedAt = null;
+    super.detach();
+  }
 
   @override
   int computeMinIntrinsicWidth(int height) =>
@@ -453,12 +519,14 @@ final class RenderImage extends RenderObject {
     final protocol = _forceBlocks
         ? GraphicsProtocol.none
         : ctx.presenter.caps.graphics;
-    var d = _drawn;
+    final index = _frameIndex();
+    final drawn = _drawn ??= List.filled(_frames.frames.length, null);
+    var d = drawn[index];
     if (d == null ||
         d.protocol != protocol ||
         d.boxWidth != width ||
         d.boxHeight != height) {
-      d = _drawn = _draw(protocol);
+      d = drawn[index] = _draw(protocol, index);
     }
     final canvas = ctx.canvas;
     final x = _alignment.dx(width - d.columns);
@@ -486,9 +554,10 @@ final class RenderImage extends RenderObject {
     }
   }
 
-  /// The image scaled to the box and encoded for [protocol], or in blocks.
-  _Drawn _draw(GraphicsProtocol protocol) {
-    final pixels = _pixels;
+  /// The frame [index] scaled to the box and encoded for [protocol], or in
+  /// blocks.
+  _Drawn _draw(GraphicsProtocol protocol, int index) {
+    final pixels = _frames.frames[index].bitmap;
     final cell = _cell;
     CellFit fitted({int bandHeight = 1}) => CellFit(
       pixels.width,

@@ -11,8 +11,10 @@
 /// README.ijg carry for an executable that imports this library.
 library;
 
+export 'src/image/animated.dart' show AnimatedImage, ImageFrame;
 export 'src/image/bitmap.dart';
 export 'src/image/blocks.dart';
+export 'src/image/gif.dart';
 export 'src/image/image_file.dart';
 export 'src/image/jpeg.dart';
 export 'src/image/png.dart';

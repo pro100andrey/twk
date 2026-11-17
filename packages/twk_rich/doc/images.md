@@ -3,7 +3,7 @@
 Images for apps on twk_core and twk, in a library of their own that
 `package:twk_rich/twk_rich.dart` does not export, so that an app which shows
 no image compiles none of it, nor carries the licences the
-[README](../README.md#license) names: PNG and JPEG
+[README](../README.md#license) names: PNG, JPEG and GIF
 files decoded, scaled to a box of cells, and encoded for the terminal's
 graphics protocol — PNG for kitty and iTerm2, sixel — or drawn with block
 characters in coloured cells where there is none; the `Image` widget shows one
@@ -14,8 +14,9 @@ decodes in a browser too, where `Image.memory` takes the bytes and
 `Image.file` throws); the widget depends on twk_core and twk, and its tests on
 twk_test, as the rest of twk_rich does. The core places what it encodes: its
 `TerminalImage` takes an `EncodedImage`'s `data`, `pixelWidth` and
-`pixelHeight` for the protocol it was encoded for. Still images only: an
-animated GIF is not read, and an APNG shows its default image.
+`pixelHeight` for the protocol it was encoded for. An animated GIF or APNG
+plays in the `Image` widget on the app's clock, each frame drawn as a still
+image is; the terminal's own animation (kitty's `a=f`, `a=a`) is not used yet.
 
 `lib/image.dart` exports one library per part, `lib/src/image/<part>.dart`;
 its tests are in `test/image/`, its examples in `example/image/`.
@@ -34,12 +35,32 @@ and 16), interlaced (Adam7) or not, with a tRNS chunk's transparency (alpha
 for palette entries, a grey or RGB colour key compared at the full depth); a
 16-bit sample keeps its high byte. Gamma and colour space chunks (gAMA, cHRM,
 sRGB, iCCP) are ignored, the samples taken as they are, and so are the other
-ancillary chunks: an APNG decodes to its default image. Each chunk's CRC is
+ancillary chunks: an APNG decodes to its default image. `decodeApng(bytes)`
+reads an APNG's frames, composed on the canvas by each frame's dispose
+(none, background, previous) and blend (source, over) operations, a default
+image that no `fcTL` precedes being no frame. Each chunk's CRC is
 checked; an unknown critical chunk, a file cut short or one that is not a PNG
 is a `FormatException`. `encodePng(image, level: 1)`: 8-bit RGB where the
 image is opaque, else RGBA, each row filtered with the filter whose bytes sum
 the least (libpng's choice), deflated at zlib `level`, by default 1, the
 fastest, since a terminal decodes the file at once. `isPng(bytes)`
+
+## `gif`
+
+`decodeGif(bytes)`: GIF87a and GIF89a, each frame composed on the logical
+screen as its disposal method says (leave, background to transparent,
+previous), a transparent index leaving what is under it, interlaced frames
+and local colour tables read, the delay of each (one of 10 ms or less shows
+for 100 ms, as browsers show it) and the plays of a NETSCAPE2.0 extension. A
+file that goes wrong after its first frame has the frames before. `isGif(bytes)`
+
+## `animated`
+
+`AnimatedImage(frames, loops:)`: the `ImageFrame`s (`bitmap`, the whole canvas
+at that frame, and `delay`) of a GIF or APNG, one for a still image;
+`loops`, the plays (0 for ever), `duration` of one, `indexAt(elapsed)` and
+`frameAt` the frame showing that long after the start, `nextChangeAfter` when
+the next frame starts
 
 ## `jpeg`
 
@@ -57,9 +78,11 @@ decodes as zeros. `isJpeg(bytes)`
 
 ## `image_file`
 
-`decodeImage(bytes)`, a PNG or JPEG file by its first bytes
-(`ImageFormat.of`); `imageSize(bytes)`, its `(width:, height:)` from its
-header (IHDR, the frame's SOF) without decoding it
+`decodeImage(bytes)`, a PNG, JPEG or GIF file by its first bytes
+(`ImageFormat.of`), the first frame of a GIF; `decodeAnimation(bytes)`, the
+frames of a GIF or an APNG as an `AnimatedImage`, one frame for any other;
+`imageSize(bytes)`, its `(width:, height:)` from its header (IHDR, the
+frame's SOF, the GIF's screen) without decoding it
 
 ## `scale`
 
@@ -107,7 +130,7 @@ they are; `cells`, `cellAt(column, row)`; `toAnsi()`, the rows as text with
 
 `EncodedImage(data, pixelWidth:, pixelHeight:)`, what the core's
 `TerminalImage` takes. `kittyImage(file)`: a PNG file as it is, a JPEG one
-decoded and encoded as PNG. `iterm2Image(file)`: a PNG or JPEG file as it is,
+decoded and encoded as PNG. `iterm2Image(file)`: a PNG, JPEG or GIF file as it is,
 which iTerm2 decodes, its size read from its header. `pngImage(bitmap)`: a
 bitmap made or cut in memory, for either. `sixelImage(image, columns:, rows:,
 cell:, fit:, colors:, dither:, background:)`: scaled to the box, no taller

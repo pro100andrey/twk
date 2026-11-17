@@ -20,8 +20,9 @@ it.
   with a filter and the path of a value to copy.
 - **Big text:** `BigText` for splash screens, clocks and dashboards.
 - **QR codes:** `QrCode`, drawn in cells, for a phone to read.
-- **Images:** `Image` shows PNG and JPEG files over kitty, iTerm2 or sixel,
-  and in block characters where the terminal has no graphics. It is a library
+- **Images:** `Image` shows PNG, JPEG and GIF files, animated GIFs and APNGs
+  playing, over kitty, iTerm2 or sixel, and in block characters where the
+  terminal has no graphics. It is a library
   of its own, `package:twk_rich/image.dart`.
 
 ## Getting started

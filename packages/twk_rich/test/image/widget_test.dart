@@ -503,7 +503,7 @@ void main() {
       await t.pumpWidget(
         topLeft(Image.memory(Uint8List.fromList(utf8.encode('not an image')))),
       );
-      expect(t.lines.first, contains('Neither a PNG nor a JPEG file'));
+      expect(t.lines.first, contains('Not a PNG, JPEG or GIF file'));
       await t.pumpWidget(topLeft(Image.file('/no/such/file.png')));
       expect(t.lines.first, contains('/no/such/file.png'));
       expect(t.takeErrors(), hasLength(2));

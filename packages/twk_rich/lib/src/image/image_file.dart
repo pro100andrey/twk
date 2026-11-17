@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
+import 'animated.dart';
 import 'bitmap.dart';
+import 'gif.dart';
 import 'jpeg.dart';
 import 'png.dart';
 
@@ -13,21 +15,27 @@ enum ImageFormat {
   png,
 
   /// JPEG ([decodeJpeg]).
-  jpeg;
+  jpeg,
+
+  /// GIF ([decodeGif]); [decodeImage] reads its first frame.
+  gif;
 
   /// The format of the file [bytes] by its first bytes; null for neither.
   static ImageFormat? of(List<int> bytes) => isPng(bytes)
       ? png
       : isJpeg(bytes)
       ? jpeg
+      : isGif(bytes)
+      ? gif
       : null;
 }
 
-/// Decodes a PNG or JPEG file, the format told by its first bytes
-/// ([decodePng], [decodeJpeg]).
+/// Decodes a PNG, JPEG or GIF file, the format told by its first bytes
+/// ([decodePng], [decodeJpeg], [decodeGif]): the first frame of an
+/// animation ([decodeAnimation] reads them all).
 ///
-/// Throws a [FormatException] for a file of neither format, or one that
-/// does not decode.
+/// Throws a [FormatException] for a file of none of the formats, or one
+/// that does not decode.
 ///
 /// ```dart
 /// final image = decodeImage(File('photo.jpg').readAsBytesSync());
@@ -36,14 +44,37 @@ enum ImageFormat {
 Bitmap decodeImage(Uint8List bytes) => switch (ImageFormat.of(bytes)) {
   ImageFormat.png => decodePng(bytes),
   ImageFormat.jpeg => decodeJpeg(bytes),
-  null => throw const FormatException('Neither a PNG nor a JPEG file'),
+  ImageFormat.gif => decodeGif(bytes).frames.first.bitmap,
+  null => throw const FormatException('Not a PNG, JPEG or GIF file'),
 };
 
-/// The size in pixels of the PNG or JPEG file [bytes], read from its
-/// header (IHDR, or the first frame's SOF) without decoding it.
+/// The frames of the PNG, JPEG or GIF file [bytes]: those of an animated
+/// GIF ([decodeGif]) or APNG ([decodeApng]), one frame for any other
+/// image, with no delay.
 ///
-/// Throws a [FormatException] for a file of neither format, or one whose
-/// header is cut short.
+/// Throws a [FormatException] for a file of none of the formats, or one
+/// that does not decode.
+///
+/// ```dart
+/// final image = decodeAnimation(File('spinner.gif').readAsBytesSync());
+/// print(image.isAnimated ? 'plays ${image.duration}' : 'still');
+/// ```
+AnimatedImage decodeAnimation(Uint8List bytes) =>
+    switch (ImageFormat.of(bytes)) {
+      ImageFormat.png => decodeApng(bytes),
+      ImageFormat.gif => decodeGif(bytes),
+      ImageFormat.jpeg => AnimatedImage([
+        ImageFrame(decodeJpeg(bytes), Duration.zero),
+      ]),
+      null => throw const FormatException('Not a PNG, JPEG or GIF file'),
+    };
+
+/// The size in pixels of the PNG, JPEG or GIF file [bytes], read from its
+/// header (IHDR, the first frame's SOF, or the logical screen) without
+/// decoding it.
+///
+/// Throws a [FormatException] for a file of none of the formats, or one
+/// whose header is cut short.
 ({int width, int height}) imageSize(Uint8List bytes) {
   final data = ByteData.sublistView(bytes);
   switch (ImageFormat.of(bytes)) {
@@ -86,7 +117,15 @@ Bitmap decodeImage(Uint8List bytes) => switch (ImageFormat.of(bytes)) {
         pos += 2 + data.getUint16(pos + 2);
       }
       throw const FormatException('JPEG file without a frame');
+    case ImageFormat.gif:
+      if (bytes.length < 10) {
+        throw const FormatException('GIF header cut short');
+      }
+      return (
+        width: data.getUint16(6, Endian.little),
+        height: data.getUint16(8, Endian.little),
+      );
     case null:
-      throw const FormatException('Neither a PNG nor a JPEG file');
+      throw const FormatException('Not a PNG, JPEG or GIF file');
   }
 }

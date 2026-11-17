@@ -4,6 +4,16 @@
 
 Added:
 
+- Animated images: `decodeGif` (LZW, interlace, local palettes,
+  transparency, disposal, delays and the NETSCAPE2.0 plays), `decodeApng`
+  (frames composed by the dispose and blend operations; `decodePng` still
+  reads the default image) and `decodeAnimation` for any file, giving an
+  `AnimatedImage` of `ImageFrame`s; `decodeImage`, `imageSize` and
+  `ImageFormat` read GIF. `Image` plays an animated GIF or APNG on the app's
+  clock (a fake clock moves it in tests), in blocks and with every protocol
+  by drawing and sending the current frame as it changes; it shows the first
+  frame outside an app. Not yet: kitty's own animation (`a=f`, `a=a`), which
+  the terminal would play without the app resending each frame.
 - `BlockMode.sextant`, `.octant`, `.braille` and `.ascii` beside `.half` and
   `.quadrant`, for `Image` and `BlockImage` where the terminal shows no
   images: 6, 8, 8 and 1 pixels a cell (`BlockMode.across` and `.down`). Sextants
