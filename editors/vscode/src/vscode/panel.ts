@@ -8,6 +8,7 @@ import { WebviewPanelPort, WebviewTerminalView } from '../app/webview_view';
 import { ToAppLogs } from '../webview/app_logs_protocol';
 import { ToLog } from '../webview/log_protocol';
 import { ToScreen } from '../webview/screen_protocol';
+import { ToTrace } from '../webview/trace_protocol';
 import { ToWebview } from '../webview/protocol';
 
 /** A webview panel of [viewType] titled [title], beside the editor, its page [page], as the port its view speaks over. */
@@ -69,6 +70,56 @@ export function openLogPanel(title: string, extensionUri: vscode.Uri): WebviewPa
 /** A new panel titled [title] for the apps' log (webview/app_logs.ts). */
 export function openAppLogsPanel(title: string, extensionUri: vscode.Uri): WebviewPanelPort<ToAppLogs> {
   return openPanel<ToAppLogs>('twk.appLogs', title, extensionUri, (w) => logPage(w, extensionUri, 'app_logs.js'));
+}
+
+/** A new panel titled [title] for a driver trace (webview/trace.ts): its page loads xterm.js to draw the screens. */
+export function openTracePanel(title: string, extensionUri: vscode.Uri): WebviewPanelPort<ToTrace> {
+  return openPanel<ToTrace>('twk.trace', title, extensionUri, (w) => tracePage(w, extensionUri));
+}
+
+const traceStyle = `
+html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+body { display: grid; grid-template-columns: minmax(14em, 22em) auto minmax(18em, 1fr); font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); color: var(--vscode-foreground); background: var(--vscode-editor-background); }
+#steps { overflow: auto; border-right: 1px solid var(--vscode-panel-border, transparent); }
+#steps button { display: block; width: 100%; text-align: left; border: none; background: transparent; color: inherit; padding: 2px 8px; cursor: pointer; font-family: var(--vscode-editor-font-family, monospace); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#steps button:hover { background: var(--vscode-list-hoverBackground); }
+#steps button.selected { background: var(--vscode-list-activeSelectionBackground); color: var(--vscode-list-activeSelectionForeground); }
+#steps button.failed { color: var(--vscode-editorError-foreground, red); }
+#steps button.passed::before { content: '\\2713 '; opacity: 0.6; }
+#steps button.failed::before { content: '\\2717 '; }
+#screen { padding: 8px; overflow: auto; }
+#screenbar { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+#screenbar button, #tabs button { color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)); background: var(--vscode-button-secondaryBackground, transparent); border: 1px solid var(--vscode-panel-border, transparent); padding: 2px 8px; cursor: pointer; }
+#screenbar button.on, #tabs button.on { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+#terminalbox { position: relative; display: inline-block; padding: 4px; background: var(--vscode-terminal-background, var(--vscode-editor-background)); }
+#outline { position: absolute; pointer-events: none; outline: 2px solid var(--vscode-editorError-foreground, red); outline-offset: -1px; }
+#side { display: flex; flex-direction: column; min-width: 0; border-left: 1px solid var(--vscode-panel-border, transparent); }
+#tabs { display: flex; gap: 4px; padding: 6px 8px; }
+#detail { flex: 1; margin: 0; padding: 0 8px 8px; overflow: auto; white-space: pre; font-family: var(--vscode-editor-font-family, monospace); font-size: var(--vscode-editor-font-size); }
+.error { color: var(--vscode-editorError-foreground, red); }
+`;
+
+/** The trace page: xterm.js, then the webview's module. */
+function tracePage(w: vscode.Webview, extensionUri: vscode.Uri): string {
+  const uri = (...p: string[]) => w.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...p)).toString();
+  const nonce = nonceOf();
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${w.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' ${w.cspSource}; font-src ${w.cspSource};">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="${uri('node_modules', '@xterm', 'xterm', 'css', 'xterm.css')}">
+<style>${traceStyle}</style>
+</head>
+<body>
+<nav id="steps"></nav>
+<section id="screen"><div id="screenbar"></div><div id="terminalbox"><div id="terminal"></div><div id="outline" hidden></div></div></section>
+<aside id="side"><div id="tabs"></div><pre id="detail"></pre></aside>
+<script nonce="${nonce}" src="${uri('node_modules', '@xterm', 'xterm', 'lib', 'xterm.js')}"></script>
+<script nonce="${nonce}" type="module" src="${uri('out', 'media', 'webview', 'trace.js')}"></script>
+</body>
+</html>`;
 }
 
 /**

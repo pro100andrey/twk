@@ -1629,6 +1629,48 @@ messages); a recording with Dart-Code's debug session (its redraw is
 replay of `twk tape`'s or `twk record`'s files in VS Code (the golden and
 the counter's recording are of the same format).
 
+### The trace viewer
+
+twk_driver's trace (`packages/twk_driver/DESIGN.md` part 8) is read here from
+the two files it writes beside each other: `<name>.cast` (asciicast v2: one
+output event for each frame's bytes, a marker for each step) and
+`<name>.trace.jsonl` (header, frame, step and tree lines). twk: Open a Driver
+Trace (`twk.openTrace`) opens one in an editor tab beside the editor, from
+the explorer's menu on a `.trace.jsonl`, from an Open Trace lens over each
+`driverTest(` of a `*_test.dart` file (a pick of the traces kept under
+`.dart_tool/twk_test/traces`, the newest first: the trace is named by the
+program and the process, not by the test, so a lens cannot tell which is its
+test's), or from a click on a path in a terminal's output (the failure report
+of twk_test's `driverTest` names both files; a path in Dart-Code's test
+results is not a terminal link, so there the explorer or the pick serves).
+
+- **Layers.** `core/trace.ts` (pure) reads the lines and makes of them the
+  rows of the list, the cast events each screen is replayed to
+  (`eventOfFrame`: a frame ends in the cast event the frames table names;
+  one the table lacks is the last before it), the facts of a step, the tree
+  it ended with (a step that kept none saw the last kept) and the sequences
+  it wrote (core/seqlog.ts's `SequenceLog` over the output events from its
+  marker to its last frame, laid out as `twk decode`). `app/trace_viewer.ts`
+  sends them over a `WebviewPanelPort` once the page is up, and the detail of
+  a step when it is selected; `webview/trace.ts` is the page.
+- **The page** has the steps in a list (passed, failed; the first that failed
+  selected), the screen of the step drawn by xterm.js (reset, and the cast's
+  output and resizes up to the event) as before it, after it or at one of the
+  frames it drew, the step's target cells outlined over it (the `shown`
+  rectangle of the step's `target`), and the tabs facts, tree, log and
+  sequences. It does not use the replay player: that one plays a recording in
+  a terminal of its own with a bar, where here a place in the cast is chosen
+  by a step, and the screens of before and after are one click apart.
+- **Tests** (`core/trace.test.ts`, `app/trace_viewer.test.ts`,
+  `webview/trace_protocol.test.ts`, over a trace written by hand in
+  `trace_fixture.ts`, the shape of `TraceRecorder`'s): the lines by type and
+  a file with no header refused saying the line; the cast event of each frame;
+  the screens of a step replayed in a headless xterm (`Count: 0` before,
+  `Count: 1` after); the facts, tree and sequences of a failed step; the
+  viewer's messages over a fake panel; the protocol's checks. Not done: the
+  page in VS Code, the outline's place over the cells (it is measured from
+  xterm.js's `.xterm-screen`), a terminal link clicked.
+
 ## 2e'. The app's log
 
 What `twk logs` does (twk_dev's `lib/src/logs.dart`), in the editor.

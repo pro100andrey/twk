@@ -5,6 +5,7 @@
 import * as vscode from 'vscode';
 
 import { findTwkMain } from '../core/main_find';
+import { driverTestLines } from '../core/trace';
 
 export class TwkMainLenses implements vscode.CodeLensProvider, vscode.Disposable {
   private readonly changed = new vscode.EventEmitter<void>();
@@ -37,5 +38,17 @@ export class TwkMainLenses implements vscode.CodeLensProvider, vscode.Disposable
   dispose(): void {
     this.listener.dispose();
     this.changed.dispose();
+  }
+}
+
+/** Open Trace over each `driverTest(` of a test file: the traces a failed driver test kept (`twk.openTrace`). */
+export class DriverTestLenses implements vscode.CodeLensProvider {
+  provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
+    if (!vscode.workspace.getConfiguration('twk').get<boolean>('codeLens', true)) {
+      return [];
+    }
+    return driverTestLines(document.getText()).map(
+      (line) => new vscode.CodeLens(new vscode.Range(line, 0, line, 0), { title: 'Open Trace', command: 'twk.openTrace', arguments: [undefined, document.uri] }),
+    );
   }
 }

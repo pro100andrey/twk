@@ -209,6 +209,11 @@
         "icon": "$(play)"
       },
       {
+        "command": "twk.openTrace",
+        "title": "Open a Driver Trace (a Failed driverTest's)",
+        "category": "twk"
+      },
+      {
         "command": "twk.replayInput",
         "title": "Type a Recording's Keys into the App in the twk Terminal",
         "category": "twk"
@@ -707,6 +712,11 @@
         }
       ],
       "explorer/context": [
+        {
+          "command": "twk.openTrace",
+          "when": "resourceFilename =~ /\\.trace\\.jsonl$/",
+          "group": "navigation"
+        },
         {
           "command": "twk.play",
           "when": "resourceExtname == .cast",

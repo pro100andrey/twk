@@ -18,6 +18,8 @@ import { Frames } from '../app/frames';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
+import { TraceViewer } from '../app/trace_viewer';
+import { parseTrace, siblingOf, traceLinks } from '../core/trace';
 import { InputReplay, ReplayMode } from '../app/replay_input';
 import { CastTests } from '../app/cast_test';
 import { Tapes } from '../app/tape';
@@ -43,13 +45,13 @@ import { HotRun } from '../core/runner';
 import { TerminalShell } from '../core/shell';
 import { VmClient } from '../core/vm';
 import { chooseCapabilities } from './capabilities_pick';
-import { TwkMainLenses } from './code_lens';
+import { DriverTestLenses, TwkMainLenses } from './code_lens';
 import { ScreenFileEditors, screenFileViewType } from './screen_editor';
 import { VsCodeDebugger } from './debugger';
 import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
 import { VsCodeFramesView } from './frames_view';
-import { openAppLogsPanel, openLogPanel, openWebviewTerminal } from './panel';
+import { openAppLogsPanel, openLogPanel, openTracePanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
 import { Configuration } from './settings';
@@ -267,6 +269,54 @@ export function activate(context: vscode.ExtensionContext): Api {
   command('twk.debugFile', (uri) => hot.debugFile(dartFile(uri)));
   const lenses = new TwkMainLenses();
   context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
+  context.subscriptions.push(vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file', pattern: '**/*_test.dart' }, new DriverTestLenses()));
+  // A driver trace opened in a viewer of its own: the file given (the
+  // explorer's menu, a link in a terminal's output), else one of those a
+  // failed driverTest kept under .dart_tool/twk_test/traces, the newest first
+  const traceViewers = new Map<string, TraceViewer>();
+  const openTrace = (file: string) => {
+    const sibling = siblingOf(file);
+    if (!sibling) {
+      throw new Error(`${file} is neither a .trace.jsonl nor a .cast`);
+    }
+    const shown = traceViewers.get(sibling.trace);
+    if (shown) {
+      shown.reveal();
+      return shown;
+    }
+    const name = path.basename(sibling.trace).replace(/\.trace\.jsonl$/, '');
+    const viewer = new TraceViewer(name, parseTrace(fs.readFileSync(sibling.trace, 'utf8')), parseCast(fs.readFileSync(sibling.cast, 'utf8')), openTracePanel(name, context.extensionUri));
+    traceViewers.set(sibling.trace, viewer);
+    context.subscriptions.push({ dispose: () => viewer.dispose() });
+    return viewer;
+  };
+  command('twk.openTrace', async (uri) => {
+    let file = uri?.fsPath;
+    if (!file) {
+      const found = await vscode.workspace.findFiles('**/.dart_tool/twk_test/traces/*.trace.jsonl', null, 200);
+      const kept = found
+        .map((f) => ({ f, time: fs.statSync(f.fsPath).mtimeMs }))
+        .sort((a, b) => b.time - a.time)
+        .map(({ f, time }) => ({ label: path.basename(f.fsPath).replace(/\.trace\.jsonl$/, ''), description: new Date(time).toLocaleString(), detail: vscode.workspace.asRelativePath(f), file: f.fsPath }));
+      if (kept.length === 0) {
+        void vscode.window.showInformationMessage('twk: no trace kept: a failed driverTest keeps one under .dart_tool/twk_test/traces');
+        return undefined;
+      }
+      file = (await vscode.window.showQuickPick(kept, { title: 'Open a driver trace', matchOnDetail: true }))?.file;
+    }
+    return file ? openTrace(file) : undefined;
+  });
+  context.subscriptions.push(
+    vscode.window.registerTerminalLinkProvider({
+      provideTerminalLinks: (ctx) =>
+        traceLinks(ctx.line).map((l) => ({ startIndex: l.startIndex, length: l.length, tooltip: 'Open the trace in twk', data: l.path })),
+      handleTerminalLink: (link: vscode.TerminalLink & { data?: string }) => {
+        const p = link.data ?? '';
+        const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd();
+        void vscode.commands.executeCommand('twk.openTrace', vscode.Uri.file(path.isAbsolute(p) ? p : path.resolve(root, p)));
+      },
+    }),
+  );
   context.subscriptions.push(vscode.window.registerCustomEditorProvider(screenFileViewType, new ScreenFileEditors(context.extensionUri)));
   registerCreate(context, log);
   const tape = registerTape(context, log);
