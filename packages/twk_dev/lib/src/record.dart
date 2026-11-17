@@ -279,7 +279,8 @@ final class Recorder {
   static const settle = Duration(milliseconds: 100);
 
   /// How long a replay as soon as possible waits for the command to
-  /// answer a key that it answered when it was recorded.
+  /// write what the recording had before its first key, and to answer a
+  /// key that it answered when it was recorded.
   static const reactionLimit = Duration(seconds: 2);
 
   /// How long the command writes nothing before a replay that ends hangs
@@ -302,6 +303,9 @@ final class Recorder {
   var _replaying = false;
   Duration _lastOutput = Duration.zero;
   var _outputs = 0;
+
+  /// How many characters the command has written.
+  var _written = 0;
   var _markers = 0;
 
   // the exit code a signal set, and what went wrong
@@ -466,6 +470,7 @@ final class Recorder {
         _lastOutput = _clock.elapsed;
         _outputs++;
         final text = _cast.output(_lastOutput, bytes);
+        _written += text.length;
         live?.sawOutput(text);
         if (!_firstOutput.isCompleted) {
           _firstOutput.complete();
@@ -538,7 +543,14 @@ final class Recorder {
         final step = steps[k];
         final speed = replaySpeed;
         if (speed == null) {
-          if (reaction) {
+          if (k == 0) {
+            // the screen the first key was typed at: a command slow to
+            // start is quiet between its queries and its first frame for
+            // longer than [settle]. Only before the first key: an app that
+            // animates wrote more in the recording than it does replayed
+            // fast, and would hold every key for the whole limit.
+            await _wait(() => _written >= step.written, reactionLimit);
+          } else if (reaction) {
             // the command answered the last key when it was recorded
             await _wait(() => _outputs > sent.$1, reactionLimit);
           }
