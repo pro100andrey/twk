@@ -143,6 +143,11 @@ const _table = <String, List<Entry>>{
       Kind.real,
       'twk.scheduled: once per turn of the event loop, not a time of the app',
     ),
+    Entry(
+      '_logTimer ??= Zone.root.createTimer',
+      Kind.real,
+      'twk.log: once per turn of the event loop, not a time of the app',
+    ),
   ],
 };
 

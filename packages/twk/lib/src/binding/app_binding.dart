@@ -2112,6 +2112,12 @@ final class DebugAids {
   /// `paint` and `present` (the microseconds the frame and its stages took)
   /// and `bytes` (what it wrote), from `TwkApp.stats`; null for a frame
   /// that wrote nothing. `twk.input` and `ext.twk.status` do not carry it.
+  /// `twk.log`, with `version` and `records` (`LogRecord.toJson` each:
+  /// `time`, `level`, `message`, and `error` and `stack` where there are),
+  /// carries what `TwkApp.logs` took in, the records the console and `twk
+  /// logs` show, once per turn of the event loop and before the next
+  /// `twk.frame`, `twk.input` or `twk.scheduled`, so the event a driver
+  /// syncs on has the records before it behind it.
   /// Off by default; off, a frame's work gains a test of this flag and the
   /// app arms no timer for input; on, a post, which does nothing while no
   /// client listens to the `Extension` stream.
@@ -2125,10 +2131,44 @@ final class DebugAids {
     if (clock is DrivenClock) {
       clock.onChange = on ? _scheduleChanged : null;
     }
-    if (!on) {
+    final logs = _binding.twkApp.logs..removeListener(_logListener);
+    if (on) {
+      logs.addListener(_logListener);
+    } else {
       _scheduledTimer?.cancel();
       _scheduledTimer = null;
+      _logTimer?.cancel();
+      _logTimer = null;
+      _logPending.clear();
     }
+  }
+
+  late final void Function(LogRecord) _logListener = _onLog;
+  final _logPending = <Map<String, Object?>>[];
+  Timer? _logTimer;
+
+  /// Keeps [record] for `twk.log`, posted before the next event of the
+  /// frames or, failing one, from a root-zone timer once the turn of the
+  /// event loop has run: the records of a turn go in one event.
+  void _onLog(LogRecord record) {
+    _logPending.add(record.toJson());
+    _logTimer ??= Zone.root.createTimer(Duration.zero, _flushLog);
+  }
+
+  /// Posts `twk.log` with the records kept since the last, `version` and
+  /// `records` (`LogRecord.toJson` each), oldest first; nothing for none.
+  void _flushLog() {
+    _logTimer?.cancel();
+    _logTimer = null;
+    if (_logPending.isEmpty) {
+      return;
+    }
+    final records = List<Map<String, Object?>>.of(_logPending);
+    _logPending.clear();
+    AppBinding.postEvent('twk.log', {
+      'version': AppBinding.serviceExtensionsVersion,
+      'records': records,
+    });
   }
 
   Timer? _scheduledTimer;
@@ -2157,6 +2197,7 @@ final class DebugAids {
     if (_binding._clockMoving || app.sampleInput() != _postedInputRead) {
       return;
     }
+    _flushLog();
     AppBinding.postEvent('twk.scheduled', _frameData(false, app.inputRead));
   }
 
@@ -2177,6 +2218,7 @@ final class DebugAids {
     final drawn = app.stats.frames != _framesDrawn;
     _framesDrawn = app.stats.frames;
     final stats = app.stats;
+    _flushLog();
     AppBinding.postEvent('twk.frame', {
       ..._frameData(drawn, _frameInputRead),
       'stats': drawn
@@ -2196,6 +2238,7 @@ final class DebugAids {
   /// yet, lead to a frame.
   void _postInput() {
     final app = _binding.twkApp;
+    _flushLog();
     AppBinding.postEvent('twk.input', _frameData(false, app.inputRead));
   }
 

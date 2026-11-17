@@ -521,6 +521,12 @@ final class DriverApp {
         out.writeln('not read: $e');
       }
     }
+    final log = session.log;
+    if (log.isNotEmpty) {
+      out
+        ..writeln('last log records:')
+        ..writeln(log.join('\n'));
+    }
     if (session.trace case final trace?) {
       out
         ..writeln('trace, the cast with a marker for each step:')

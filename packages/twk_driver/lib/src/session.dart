@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart' show ElementFinder, KeyCombo;
+import 'package:twk_core/terminal.dart' show LogRecord;
 import 'package:twk_core/twk_core.dart'
     show Clock, KeyEvent, MouseEvent, MouseKind, SystemClock;
 
@@ -421,6 +422,9 @@ final class Session {
   var _seq = 0;
   final _waiters = <_Waiter>[];
   ExitResult? _ended;
+  static const _logKept = 50;
+  final _tail = <String>[];
+  final _stepLog = <String>[];
   var _quitting = false;
   final _ending = Completer<int?>();
   var _outputDone = false;
@@ -456,6 +460,10 @@ final class Session {
   /// The trace this session writes, null where none was asked for
   /// ([start]'s `trace`).
   Trace? get trace => _trace;
+
+  /// The last records of the app's log (`twk.log`), as text lines, oldest
+  /// first: at most [_logKept] of them.
+  List<String> get log => List.unmodifiable(_tail);
 
   /// What the app wrote, as the terminal gave it.
   Uint8List get output => _log.slice(0, _log.rawLength);
@@ -614,11 +622,43 @@ final class Session {
   }
 
   void _onEvent(AppEvent event) {
+    if (event.kind == 'twk.log') {
+      _onLog(event.data);
+      return;
+    }
     if (event.kind == 'twk.frame' ||
         event.kind == 'twk.input' ||
         event.kind == 'twk.scheduled') {
       _queue.add(event);
       _drain();
+    }
+  }
+
+  /// Keeps the records of a `twk.log` as text lines: the tail of the log,
+  /// and what the step now running adds to its line of the trace.
+  void _onLog(Json data) {
+    final records = data['records'];
+    if (records is! List<Object?>) {
+      return;
+    }
+    for (final r in records) {
+      if (r is! Map<String, Object?>) {
+        continue;
+      }
+      String line;
+      try {
+        line = LogRecord.fromJson(r).toString();
+      } on Object {
+        line = '$r';
+      }
+      _tail.add(line);
+      if (_tail.length > _logKept) {
+        _tail.removeAt(0);
+      }
+      _stepLog.add(line);
+      if (_stepLog.length > 200) {
+        _stepLog.removeAt(0);
+      }
     }
   }
 
@@ -747,7 +787,7 @@ final class Session {
     final ended = _ended = ExitResult(
       code: _exit,
       screen: _screen.frame.text,
-      log: const [],
+      log: List.unmodifiable(_tail),
       expected: _quitting || _closing,
       reason: reason,
     );
@@ -1518,11 +1558,14 @@ final class Session {
       }
     }
     final target = step.target;
-    List<String> log;
+    // what the app logged during the step, and what the options' own
+    // source adds
+    final log = [..._stepLog];
+    _stepLog.clear();
     try {
-      log = trace.options.log?.call() ?? const [];
+      log.addAll(trace.options.log?.call() ?? const []);
     } on Object {
-      log = const [];
+      // no records of that source
     }
     trace.step({
       'step': step.n,

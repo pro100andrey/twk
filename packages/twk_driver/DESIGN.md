@@ -798,9 +798,10 @@ a passing one, and its failure report names the path.
     one is not kept again). The tree is read at the end of each step, within
     2 s of the driver's clock; none is kept for an app that ended.
 
-  `log` is what `TraceOptions.log` returns at the end of the step (the
-  records since its last call); the app service has no way to read the
-  app's log, so without it the lists are empty.
+  `log` is the records the app logged during the step, as text lines (the
+  app posts them as `twk.log` with `frameEvents`, before the frame the
+  step waits for), then what `TraceOptions.log` returns, where given. The
+  last 50 are `Session.log`, `ExitResult.log` and the failure report's.
 
   A step's screens before, at and after are the cast replayed to the end of
   `frameBefore`'s and `frame`'s `castEvent`. No offset into a chunk is

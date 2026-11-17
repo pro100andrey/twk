@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Added:
+
+- `twk.log` (`frameEvents` on): the records of `TwkApp.logs` (what the
+  console and `twk logs` show) as one event per turn of the event loop,
+  posted before the next `twk.frame`, `twk.input` or `twk.scheduled`:
+  `{version, records: [LogRecord.toJson]}`. Off, nothing is kept or posted.
+
 Changed:
 
 - `PointerEvent` keeps its button and modifiers in one field and its

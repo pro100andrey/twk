@@ -264,6 +264,32 @@ void main() {
       });
     });
 
+    test('the report names the last log records of the app', () async {
+      await runDriverTest((d) async {
+        final a = await d.start(app);
+        await a.press('up l');
+        await a.press('l');
+        final report = await a.describeState();
+        expect(report, contains('last log records:'));
+        expect(report, contains('warning logged at 1'));
+        expect(
+          File(a.session.trace!.tracePath).readAsStringSync(),
+          contains('warning logged at 1'),
+        );
+      });
+    });
+
+    test('the app that ended leaves its log in the exit', () async {
+      await runDriverTest((d) async {
+        // inline: a fullscreen app prints the log it leaves on the normal
+        // screen, which the strict emulator takes for a stray line feed
+        final a = await d.start(app, arguments: ['--inline'], inline: true);
+        await a.press('l');
+        final step = await a.press('q');
+        expect(step.exit!.log, [contains('warning logged at 0')]);
+      });
+    });
+
     test('a passing test deletes its trace, a failing one keeps it', () async {
       late DriverApp kept;
       await expectLater(

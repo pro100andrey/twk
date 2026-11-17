@@ -36,10 +36,10 @@ final class TraceOptions {
   /// The terminal profile the app ran under, for the header.
   final String? profile;
 
-  /// Where the app's log is read from: called at the end of each step, it
-  /// returns the records written since its last call, as text lines. None
-  /// given, the steps have an empty log: the app service has no way to
-  /// read it.
+  /// A source of log lines besides the app's own: called at the end of each
+  /// step, it returns the records written since its last call, as text
+  /// lines, added after the ones the app posted (`twk.log`) during the step.
+  /// A step's `log` has the app's records without it.
   final List<String> Function()? log;
 }
 

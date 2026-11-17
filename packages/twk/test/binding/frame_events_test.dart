@@ -5,6 +5,8 @@
 import 'dart:convert';
 
 import 'package:test/test.dart';
+import 'package:twk/log.dart' hide log;
+import 'package:twk/log.dart' as twk show log;
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
@@ -37,6 +39,32 @@ final class _KeysState extends State<_Keys> {
   );
 }
 
+/// A key changes the screen; building it logs, in the frame.
+final class _Logs extends StatefulWidget {
+  const _Logs();
+
+  @override
+  State<_Logs> createState() => _LogsState();
+}
+
+final class _LogsState extends State<_Logs> {
+  var _n = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    twk.log('built $_n', level: LogLevel.debug);
+    return InputListener(
+      onEvent: (event) {
+        if (event is KeyEvent) {
+          setState(() => _n++);
+        }
+        return true;
+      },
+      child: Text('logs $_n'),
+    );
+  }
+}
+
 void main() {
   late List<(String, Json)> posted;
   setUp(() {
@@ -67,6 +95,67 @@ void main() {
     expect(t.lines.first, startsWith('n 1'));
     expect(posted, isEmpty);
     expect((await call(t, 'ext.twk.flags'))['frameEvents'], isFalse);
+  });
+
+  testTwk('twk.log: the records of the log, batched, before the next '
+      'event; none while off', (t) async {
+    await t.pumpWidget(const _Keys(counts: true), size: (10, 2));
+    final logs = t.binding.twkApp.logs;
+    void log(String m, {LogLevel level = LogLevel.info, Object? error}) =>
+        logs.run(() => twk.log(m, level: level, error: error));
+    log('before');
+    expect(posted, isEmpty);
+    await on(t);
+    log('one');
+    log('two', level: LogLevel.warning, error: 'boom');
+    expect(posted, isEmpty, reason: 'posted from a timer or the next event');
+    await t.press('a');
+    await t.pump();
+    final kinds = [for (final (k, _) in posted) k];
+    expect(kinds.first, 'twk.log');
+    expect(kinds.where((k) => k == 'twk.log'), hasLength(1));
+    final batch = of('twk.log').single;
+    expect(batch['version'], 1);
+    final records = (batch['records']! as List).cast<Json>();
+    expect([for (final r in records) r['message']], ['one', 'two']);
+    expect(records[1], containsPair('level', 'warning'));
+    expect(records[1], containsPair('error', 'boom'));
+    expect(jsonDecode(jsonEncode(batch)), batch);
+    // nothing twice
+    posted.clear();
+    await t.pump();
+    expect(of('twk.log'), isEmpty);
+  });
+
+  testTwk('twk.log: what a frame logged comes before its twk.frame', (t) async {
+    await t.pumpWidget(const _Logs(), size: (10, 2));
+    await on(t);
+    await t.press('a');
+    await t.pump();
+    final kinds = [for (final (k, _) in posted) k];
+    expect(kinds, contains('twk.frame'));
+    expect(kinds.indexOf('twk.log'), lessThan(kinds.indexOf('twk.frame')));
+    expect(kinds.where((k) => k == 'twk.log'), hasLength(1));
+  });
+
+  testTwk('twk.log: a record outside a frame goes from a timer; off again, '
+      'none', (t) async {
+    await t.pumpWidget(const _Keys(counts: true), size: (10, 2));
+    final logs = t.binding.twkApp.logs;
+    void log(String m) => logs.run(() => twk.log(m));
+    await on(t);
+    log('late');
+    await waitUntil(() => of('twk.log').isNotEmpty, 'the log event');
+    expect(
+      [for (final r in of('twk.log').single['records']! as List) r],
+      [containsPair('message', 'late')],
+    );
+    posted.clear();
+    await call(t, 'ext.twk.flags', {'frameEvents': 'false'});
+    log('quiet');
+    await t.press('a');
+    await t.pump();
+    expect(posted, isEmpty);
   });
 
   testTwk('on, a frame posts twk.frame, with the counters of the terminal '

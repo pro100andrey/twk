@@ -103,6 +103,37 @@ void main() {
     expect(screens.last.lines.first, startsWith('startX'));
   });
 
+  test("the records the app posts (twk.log) are the step's log and the "
+      'tail of the session', () async {
+    final t = await started();
+    final term = t.process.launched.terminal;
+    final press = t.session.press('a');
+    await pumpEventQueue();
+    t.service.post('twk.log', {
+      'version': 1,
+      'records': [
+        {
+          'time': '2026-01-01T09:05:07.042',
+          'level': 'warning',
+          'message': 'low disk',
+        },
+      ],
+    });
+    term.app('X');
+    t.service.frame(frame: 2, inputRead: 3, outputWritten: 6);
+    await press;
+    final other = t.session.press('b');
+    await pumpEventQueue();
+    term.app('Y');
+    t.service.frame(frame: 3, inputRead: 6, outputWritten: 7);
+    await other;
+    await t.session.close();
+    final steps = lines(t.session).where((l) => l['type'] == 'step').toList();
+    expect(steps[0]['log'], ['09:05:07.042 warning low disk']);
+    expect(steps[1]['log'], isEmpty);
+    expect(t.session.log, ['09:05:07.042 warning low disk']);
+  });
+
   test('the trace of a failing tap holds the covered target and the '
       'screens around it', () async {
     final t = await started();

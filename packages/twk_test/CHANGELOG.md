@@ -4,6 +4,11 @@
 
 Added:
 
+- The report of a failed `driverTest` names the last log records of each
+  app.
+
+Added:
+
 - `driverTest` writes the trace of each app (the cast with a marker per
   step, and the steps as JSON lines) under `.dart_tool/twk_test/traces/`,
   names its path in the report of a failed test and deletes it for a passing

@@ -272,6 +272,10 @@ final class FakeService implements AppServicePort {
     'time': time,
   });
 
+  /// The app posts [kind] with [data] as given.
+  void post(String kind, Map<String, Object?> data) =>
+      _events.add(AppEvent(kind, data));
+
   void _post(String kind, Map<String, Object?> d) => _events.add(
     AppEvent(kind, {
       'version': 1,

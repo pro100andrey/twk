@@ -1,12 +1,13 @@
 // The app the driver tests of twk_test run: `up` counts, a button "Save"
-// saves, `d` shows "Done" two seconds (of the app's time) later, `x` writes
-// a sequence no terminal takes before the next frame, `q` quits (`--inline`:
-// in the normal screen). A red
+// saves, `d` shows "Done" two seconds (of the app's time) later, `l` logs a
+// warning, `x` writes a sequence no terminal takes before the next frame, `q`
+// quits (`--inline`: in the normal screen). A red
 // word shows what colors the terminal profile gives it.
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:twk/log.dart';
 import 'package:twk/twk.dart';
 
 Future<void> main(List<String> args) => runApp(
@@ -49,6 +50,7 @@ final class _DemoState extends State<_Demo> {
         );
         setState(() => _n++);
       },
+      'l': () => log('logged at $_n', level: LogLevel.warning),
       'q': () => AppBinding.of(context).quit(),
     },
     child: Column(
