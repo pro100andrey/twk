@@ -29,9 +29,7 @@ static const _downloads = [
 ];
 
 /// On the app's clock, which a test's fake clock moves too.
-late final _tracker = ProgressTracker(
-  clock: AppBinding.of(context).twkApp.clock,
-);
+late final _tracker = ProgressTracker.of(context);
 late final Timer _timer;
 var _ticks = 0;
 

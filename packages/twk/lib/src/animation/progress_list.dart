@@ -116,9 +116,11 @@ enum ProgressColumn {
 /// left — are read on [clock], for the tracker's whole life: the one it
 /// is constructed with, else a stopwatch of its own started with it, the
 /// wall clock. Nothing replaces it, a [ProgressList] showing it neither.
-/// So that a test's fake clock moves them, an app hands its tracker the
-/// app's clock, as the State that keeps it does from its `initState`:
-/// `ProgressTracker(clock: AppBinding.of(context).twkApp.clock)`.
+/// Inside an app, make it with [ProgressTracker.of], which hands it the
+/// app's clock: a test's fake clock, and a driven app's time
+/// (`twk_driver`), then move the times, and the screen is the same each
+/// run. The constructor's own default, the wall clock, is for what is not
+/// in an app, the `Cli`'s progress.
 ///
 /// Two downloads at once, a task each:
 ///
@@ -142,6 +144,20 @@ final class ProgressTracker extends ChangeNotifier {
     Clock? clock,
   }) : assert(rateWindow > Duration.zero, 'a window of no time'),
        clock = clock ?? SystemClock();
+
+  /// A tracker on the clock of the app [context] is in
+  /// (`AppBinding.of(context).twkApp.clock`), so that the times of its tasks
+  /// move with the app's time: a test's fake clock, a driven app's time,
+  /// not the wall clock, which a [ProgressTracker] constructed without a
+  /// `clock` reads. Called where the element is mounted: from `initState` or
+  /// later, or a `late final` field first read there.
+  factory ProgressTracker.of(
+    BuildContext context, {
+    Duration rateWindow = const Duration(seconds: 5),
+  }) => ProgressTracker(
+    rateWindow: rateWindow,
+    clock: AppBinding.of(context).twkApp.clock,
+  );
 
   /// How far back a task's [ProgressTask.rate] looks.
   final Duration rateWindow;

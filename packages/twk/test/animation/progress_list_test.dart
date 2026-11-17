@@ -470,6 +470,41 @@ void main() {
       expect(kept.clock, same(given));
     });
 
+    testTwk("ProgressTracker.of(context) is on the app's clock: the same "
+        'elapsed text after the same advance, run twice', (t) async {
+      Future<String> run() async {
+        late ProgressTracker tracker;
+        await t.pumpWidget(
+          Builder(
+            builder: (context) {
+              tracker = ProgressTracker.of(context);
+              return ProgressList(
+                tracker: tracker,
+                columns: const [ProgressColumn.label, ProgressColumn.elapsed],
+              );
+            },
+          ),
+          size: (20, 1),
+        );
+        addTearDown(tracker.dispose);
+        expect(tracker.clock, same(t.binding.twkApp.clock));
+        final task = tracker.add('job')..start();
+        await t.pump(const Duration(seconds: 3));
+        expect(task.elapsed, const Duration(seconds: 3));
+        return rows(t).first;
+      }
+
+      final first = await run();
+      final second = await run();
+      expect(second, first);
+    });
+
+    test('the constructor without a clock stays on a SystemClock', () {
+      final tracker = ProgressTracker();
+      addTearDown(tracker.dispose);
+      expect(tracker.clock, isA<SystemClock>());
+    });
+
     testTwk('hideFinished leaves the tasks done and skipped out, not the '
         'failed', (t) async {
       final tracker = ProgressTracker();

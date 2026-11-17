@@ -189,9 +189,11 @@ ByteUnits.binary)` counts the bytes by 1024, `3.2/3.2 MiB`). The tracker's liste
 told when a task comes, goes, starts or ends, or its label or total changes,
 not at each `advance`; `onTaskFinished` streams each task as it ends; its
 times are read on the `clock` it is constructed with, else on a stopwatch of
-its own, for its whole life, nothing replacing it: an app hands it the
-app's, `ProgressTracker(clock: AppBinding.of(context).twkApp.clock)`, so a
-test's fake clock moves them.
+its own, for its whole life, nothing replacing it: inside an app make it with
+`ProgressTracker.of(context, rateWindow:)`, which takes the app's clock
+(`AppBinding.of(context).twkApp.clock`), so a test's fake clock and a driven
+app's time move them and a driven screen is the same each run; the
+constructor, on the wall clock, is for code outside an app, the `Cli`'s.
 
 ## `ProgressList`
 

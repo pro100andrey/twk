@@ -4,6 +4,9 @@
 
 Added:
 
+- `ProgressTracker.of(context)`: a tracker on the app's clock
+  (`AppBinding.of(context).twkApp.clock`), so a driven or fake clock moves
+  its times; the constructor keeps the wall clock by default, for the `Cli`.
 - `twk.scheduled` (`frameEvents` on, a driven clock): the payload of
   `twk.input`, posted once per turn of the event loop when a timer of the
   clock is started or cancelled outside a move of the clock and outside input
