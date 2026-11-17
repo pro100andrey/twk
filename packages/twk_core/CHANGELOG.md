@@ -11,6 +11,14 @@ Breaking:
 
 Added:
 
+- The presenter writes the cell under a visible block cursor
+  (`CursorShape.block`, `blinkingBlock`, `terminalDefault`) in its own
+  foreground when it is a blank: Konsole paints the block in the foreground
+  of the cell under it, and a blank was written in whatever style looks the
+  same on a space, so the cursor changed color after a Backspace. One space
+  in the cell's style, written when the cursor reaches a blank (or the blank
+  appears under it) and not again while nothing writes that row; a bar or an
+  underline, and no cursor, change nothing.
 - `TerminalInfo.cursorRgb`, the terminal's cursor color (OSC 12), null where
   it did not answer: the probe asks `OSC 12 ; ?` with the default colors,
   and again after a `ColorSchemeReport` where it was answered. The input

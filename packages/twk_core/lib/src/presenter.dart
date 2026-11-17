@@ -521,6 +521,15 @@ final class Presenter {
   CursorShape? _shapeSent = CursorShape.terminalDefault; // null: unknown
   var _cursorShown = true; // assume the terminal shows it until we hide it
 
+  // The cell under a visible block cursor, as an index of the surface,
+  // that the cursor stage wrote as a space in the cell's own style: the
+  // terminal's foreground there is the cell's own (-1: no such cell, or
+  // not known any more) and _ownStyle is the style it was written in.
+  // Konsole paints a block cursor in the foreground of the cell under it,
+  // and the diff writes a blank in a style that only *looks* the same.
+  var _ownIdx = -1;
+  var _ownStyle = 0;
+
   /// The color of the visible cursor (`OSC 12`); null leaves it to the
   /// terminal (`OSC 112` puts that back after a color was set).
   ///
@@ -898,6 +907,27 @@ final class Presenter {
     final rowSame = _rowSame;
     final dirtyLo = back.dirtyLo;
     final dirtyHi = back.dirtyHi;
+    // A block cursor is painted in the foreground of the cell under it
+    // (Konsole): where the cell is a blank, the cursor stage writes it in
+    // its own style, unless that was done already and the frame left it be.
+    final blockCursor =
+        cursorVisible &&
+        w > 0 &&
+        h > 0 &&
+        (cursorShape == CursorShape.block ||
+            cursorShape == CursorShape.blinkingBlock ||
+            cursorShape == CursorShape.terminalDefault);
+    final curX = blockCursor ? cursorX.clamp(0, w - 1) : 0;
+    final curY = blockCursor ? cursorY.clamp(0, h - 1) : -1;
+    if (cleared ||
+        lost ||
+        imagesWritten ||
+        stats.scrolledRows > 0 ||
+        moves.isNotEmpty) {
+      _ownIdx = -1;
+    }
+    final ownRow = _ownIdx < 0 ? -1 : _ownIdx ~/ w;
+    var curRowEmitted = false;
     for (var y = 0; y < h; y++) {
       int lo;
       int hi;
@@ -938,6 +968,12 @@ final class Presenter {
       _diffRow(bc, bs, back.cells64, back.styles64, y, lo, hi);
       if (out.length > before) {
         rowsEmitted++;
+        if (y == ownRow) {
+          _ownIdx = -1;
+        }
+        if (y == curY) {
+          curRowEmitted = true;
+        }
       }
       fc.setRange(row + lo, row + hi, bc, row + lo);
       fs.setRange(row + lo, row + hi, bs, row + lo);
@@ -965,6 +1001,27 @@ final class Presenter {
       !_hfValid || _frontHashesCorrect(),
       'cached front row hashes must match the front buffer',
     );
+
+    // ---- cell under a block cursor -----------------------------------------
+    if (curY >= 0) {
+      final i = curY * w + curX;
+      if (bc[i] != kBlank) {
+        _ownIdx = -1;
+      } else if (_ownIdx != i || _ownStyle != bs[i]) {
+        _moveTo(curX, curY);
+        _setStyle(bs[i]);
+        out.byte(0x20);
+        stats.cellsWritten++;
+        _cx = curX + 1 >= w ? -1 : curX + 1;
+        _ownIdx = i;
+        _ownStyle = bs[i];
+        if (!curRowEmitted) {
+          rowsEmitted++;
+        }
+      }
+    } else {
+      _ownIdx = -1;
+    }
 
     // ---- cursor ------------------------------------------------------------
     final bodyChanged = out.length > bodyStart;
