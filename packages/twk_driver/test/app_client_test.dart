@@ -7,9 +7,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:test/test.dart';
+import 'package:twk/twk.dart' show AppBinding;
 import 'package:twk_driver/twk_driver.dart';
 import 'package:twk_test/twk_test.dart' show waitFor, waitUntil;
 import 'package:vm_service/vm_service.dart';
+
+import 'fakes.dart' show FakeProcess, FakeScreen;
 
 /// A VM service of isolates whose `ext.twk.*` extensions [answer] answers.
 final class FakeVm {
@@ -181,7 +184,9 @@ void main() {
     await pumpEventQueue();
     expect(attached, isFalse);
 
-    vm.register('isolates/2', 'ext.twk.tree');
+    for (final rpc in AppBinding.serviceExtensions) {
+      vm.register('isolates/2', rpc);
+    }
     final app = await waitFor(attaching, 'the client to attach');
     expect(app.name, 'the app');
 
@@ -209,10 +214,32 @@ void main() {
     await vm.close();
   });
 
+  test('attach waits for every extension of the binding, not the first '
+      'one named: ext.twk.flags is there when the client is', () async {
+    final vm = FakeVm({'isolates/1': <String>[]});
+    var attached = false;
+    final attaching = VmAppClient.attach(vm.service, 'the app');
+    unawaited(attaching.then((_) => attached = true));
+    // registered one after the other, the last not yet
+    for (final rpc in AppBinding.serviceExtensions.take(
+      AppBinding.serviceExtensions.length - 1,
+    )) {
+      vm.register('isolates/1', rpc);
+    }
+    await pumpEventQueue();
+    expect(attached, isFalse);
+
+    vm.register('isolates/1', AppBinding.serviceExtensions.last);
+    final app = await waitFor(attaching, 'the client to attach');
+    await app.call('flags');
+    expect(vm.calls, ['ext.twk.flags isolates/1']);
+    await vm.close();
+  });
+
   test('an isolate that registered ext.twk.tree before is taken at '
       'once', () async {
     final vm = FakeVm({
-      'isolates/3': ['ext.twk.tree', 'ext.twk.flags'],
+      'isolates/3': AppBinding.serviceExtensions.toList(),
     });
     final app = await waitFor(
       VmAppClient.attach(vm.service, 'the app'),
@@ -226,7 +253,7 @@ void main() {
   test('an isolate that never answers getIsolate does not keep the app '
       'from being found', () async {
     final vm = FakeVm({
-      'isolates/1': ['ext.twk.tree'],
+      'isolates/1': AppBinding.serviceExtensions.toList(),
       'isolates/2': <String>[],
     });
     vm.silent.add('isolates/2');
@@ -235,7 +262,7 @@ void main() {
       ..clear()
       ..addAll({
         'isolates/2': <String>[],
-        'isolates/1': ['ext.twk.tree'],
+        'isolates/1': AppBinding.serviceExtensions.toList(),
       });
     final app = await waitFor(
       VmAppClient.attach(vm.service, 'the app'),
@@ -248,8 +275,8 @@ void main() {
   test("events: the twk events of the app's isolate, of the version read, "
       'and no other', () async {
     final vm = FakeVm({
-      'isolates/1': ['ext.twk.tree'],
-      'isolates/2': ['ext.twk.tree'],
+      'isolates/1': AppBinding.serviceExtensions.toList(),
+      'isolates/2': AppBinding.serviceExtensions.toList(),
     });
     final app = await VmAppClient.attach(vm.service, 'the app');
     final seen = <String>[];
@@ -269,7 +296,7 @@ void main() {
   test("an error is the app's message, another version is said, and an app "
       'gone is said so', () async {
     final vm = FakeVm({
-      'isolates/1': ['ext.twk.tree'],
+      'isolates/1': AppBinding.serviceExtensions.toList(),
     });
     final app = await VmAppClient.attach(vm.service, 'the app');
 
@@ -338,7 +365,7 @@ void main() {
 
   test('a client closed is done', () async {
     final vm = FakeVm({
-      'isolates/1': ['ext.twk.tree'],
+      'isolates/1': AppBinding.serviceExtensions.toList(),
     });
     final app = await VmAppClient.attach(vm.service, 'the app');
     await app.close();
@@ -362,5 +389,61 @@ void main() {
         ),
       ),
     );
+  });
+
+  group('a session start over the real client', () {
+    // The first extensions registered, the others not yet: what a start
+    // under load sees.
+    Future<
+      ({
+        FakeVm vm,
+        FakeProcess process,
+        Future<Session> starting,
+      })
+    >
+    startOn() async {
+      final vm = FakeVm({'isolates/1': <String>[]});
+      final process = FakeProcess();
+      final starting = Session.start(
+        const ProcessSpec('app.dart'),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => FakeScreen(),
+          connect: (_) => VmAppClient.attach(vm.service, 'the app'),
+        ),
+        timeout: const Duration(seconds: 5),
+        driven: false,
+      );
+      // the failure is checked by the test; not unhandled while it waits
+      unawaited(starting.then((_) {}, onError: (Object _) {}));
+      await pumpEventQueue();
+      vm.register('isolates/1', 'ext.twk.tree');
+      await pumpEventQueue();
+      return (vm: vm, process: process, starting: starting);
+    }
+
+    test('calls nothing before the app has registered ext.twk.flags, and '
+        'then does', () async {
+      final t = await startOn();
+      expect(t.vm.calls, isEmpty);
+      for (final rpc in AppBinding.serviceExtensions.skip(1)) {
+        t.vm.register('isolates/1', rpc);
+      }
+      await waitUntil(
+        () => t.vm.calls.isNotEmpty,
+        'ext.twk.flags to be called',
+      );
+      expect(t.vm.calls.first, 'ext.twk.flags isolates/1');
+      await t.process.launched.kill();
+      await t.vm.close();
+    });
+
+    test('the app ending first is AppEnded, not a timeout', () async {
+      final t = await startOn();
+      await t.process.launched.exit(3);
+      await expectLater(t.starting, throwsA(isA<AppEnded>()));
+      expect(t.vm.calls, isEmpty);
+      await t.vm.close();
+    });
   });
 }

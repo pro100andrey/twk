@@ -122,8 +122,12 @@ final class VmAppClient implements AppClient, VmQueries, AppServicePort {
     '${convertToWebSocketUrl(serviceProtocolUrl: uri)}',
   );
 
-  /// The app of [service], once an isolate of it has registered the
-  /// binding's extensions (its first `runApp`), [name] for where it is.
+  /// The app of [service], once an isolate of it has registered all of the
+  /// binding's extensions ([AppBinding.serviceExtensions], at its first
+  /// `runApp`: they are registered one after the other, and the service
+  /// names them one by one, so the first seen is not the last), [name] for
+  /// where it is, so that no call to one of them reaches an isolate that
+  /// does not know it yet.
   /// An [AppError] when the service goes away first.
   static Future<VmAppClient> attach(VmService service, String name) async {
     final found = Completer<String>();
@@ -178,10 +182,13 @@ final class VmAppClient implements AppClient, VmQueries, AppServicePort {
     VmService service,
     Completer<String> found,
   ) async {
+    final registered = <String, Set<String>>{};
     try {
       await service.streamListen(EventStreams.kExtension);
       return await watchExtensions(service, (id, rpc) {
-        if (rpc == 'ext.twk.tree' && !found.isCompleted) {
+        final rpcs = registered.putIfAbsent(id, () => {})..add(rpc);
+        if (!found.isCompleted &&
+            rpcs.containsAll(AppBinding.serviceExtensions)) {
           found.complete(id);
         }
       });
