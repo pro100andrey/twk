@@ -18,6 +18,11 @@ Changed:
 
 Added:
 
+- The probe asks the tertiary device attributes (DA3, `CSI = c`, after DA2,
+  not of the Linux console) and reads the unit id it answers
+  (`DCS ! | hex ST`): a terminal that answers Terminology's (`~~TY`) is shown
+  256 colors, over ssh or under sudo as well, where its `TERM` is not its
+  own. `colorModeFor` gives 256 colors to `TERM=terminology` and `fbterm`.
 - `KeyEvent.baseChar`: the key a kitty keyboard protocol terminal reports
   with the alternate keys flag (`CSI 1089::99;5u`), the character of the
   same key on a US layout: Ctrl and the key that types `с` is `c`.

@@ -474,7 +474,10 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
       windows) {
     return ColorMode.trueColor;
   }
-  if (term.contains('256color') || program == 'Apple_Terminal') {
+  if (term.contains('256color') ||
+      term == 'terminology' ||
+      term == 'fbterm' ||
+      program == 'Apple_Terminal') {
     return ColorMode.ansi256; // Terminal.app has no 24-bit color
   }
   return ColorMode.ansi16;
@@ -1370,6 +1373,7 @@ final class Terminal
     var cellHeight = 0;
     int? bidiMode;
     var secondary = const <int>[];
+    var unitId = '';
     // the queries, all in one write, which the device attributes end
     final round = Completer<bool>()..future.ignore();
     void fail(Object e, StackTrace st) {
@@ -1422,6 +1426,8 @@ final class Terminal
                 kittyGraphics = s.contains(';OK');
               } else if (s.startsWith('\x1bP>|')) {
                 version = s.substring(4).replaceFirst(_stringEnd, '');
+              } else if (_unitIdReply.firstMatch(s) case final m?) {
+                unitId = _unitIdOf(m[1]!);
               } else if (_bidiModeReply.firstMatch(s) case final m?) {
                 bidiMode = int.parse(m[1]!);
               } else if (_secondaryReply.firstMatch(s) case final m?) {
@@ -1459,7 +1465,9 @@ final class Terminal
     // GNU screen, whose alternate screen may be off, is asked no DECRQM,
     // which it prints. Among the queries
     // are a cell's size in pixels, the secondary device attributes (DA2,
-    // by which Terminal.app is told over ssh too: `1;95;0`) and, unless the
+    // by which Terminal.app is told over ssh too: `1;95;0`), the tertiary
+    // (DA3, `CSI = c`, answered with a unit id: Terminology's `~~TY`,
+    // VTE's `~VTE`, foot's `FOOT`) and, unless the
     // protocol images are shown with is given, the graphics query and the
     // terminal's name and version (XTVERSION), not in a multiplexer, which
     // answers them itself; sixel comes with the device attributes (DA1,
@@ -1486,7 +1494,7 @@ final class Terminal
         '\x1b[16t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
         // the Linux console may take it for DA1
-        '${term == 'linux' ? '' : '\x1b[>c'}';
+        '${term == 'linux' ? '' : '\x1b[>c\x1b[=c'}';
     // inline, where the cursor is before the queries and after them
     parser.cursorReportsExpected = o.alternateScreen ? 1 : 2;
     final bytes = utf8.encode(
@@ -1518,7 +1526,15 @@ final class Terminal
     bool supported(int mode) => modes[mode]?.supported ?? false;
     final program = env['TERM_PROGRAM'] ?? '';
 
-    final color = colorModeFor(env, windows: link.windows);
+    var color = colorModeFor(env, windows: link.windows);
+    // Terminology names itself by DA3 where its TERM does not (over ssh,
+    // under sudo): it shows 256 colors. Not through a multiplexer, which
+    // answers DA3 itself.
+    if (color == ColorMode.ansi16 &&
+        unitId == _terminologyUnit &&
+        multiplexerFor(env) == Multiplexer.none) {
+      color = ColorMode.ansi256;
+    }
 
     // Grapheme clustering: announced via mode 2027, or known terminals that
     // cluster without it.
@@ -1668,12 +1684,39 @@ final class Terminal
   /// terminal's kind, version and keyboard.
   static final _secondaryReply = RegExp(r'^\x1b\[>([\d;]*)c$');
 
+  /// `DCS ! | hex ST`: the tertiary device attributes (DA3), the terminal's
+  /// unit id as hexadecimal digits of ASCII.
+  static final _unitIdReply = RegExp(
+    r'^\x1bP!\|([0-9A-Fa-f]*)(?:\x1b\\|\x07)$',
+  );
+
+  /// Terminology's unit id (`~~TY`), tildes dropped ([_unitIdOf]).
+  static const _terminologyUnit = 'TY';
+
+  /// [hex] (the digits of a DA3 reply) as the ASCII text they spell, without
+  /// the leading tildes some terminals put before their name (`~VTE`);
+  /// empty where the digits are odd in number or not text.
+  static String _unitIdOf(String hex) {
+    if (hex.length.isOdd) {
+      return '';
+    }
+    final out = StringBuffer();
+    for (var i = 0; i < hex.length; i += 2) {
+      final c = int.parse(hex.substring(i, i + 2), radix: 16);
+      if (c < 0x20 || c > 0x7e) {
+        return '';
+      }
+      out.writeCharCode(c);
+    }
+    return out.toString().replaceFirst(RegExp('^~+'), '');
+  }
+
   /// What [_states] keeps BDSM under.
   static final _bidiMode = Object();
 
   /// A reply to one of the probe's queries the input parser doesn't know:
   /// kitty's graphics query, XTVERSION (`DCS > | name ST`), the cell size,
-  /// BDSM.
+  /// BDSM, DA2, DA3.
   /// [env] as the terminal's secondary device attributes, [secondary]
   /// (none for no answer), tell it: Terminal.app's `TERM_PROGRAM` where
   /// they are Terminal.app's, without it where they are another's.
@@ -1706,7 +1749,8 @@ final class Terminal
         s.startsWith('\x1bP>|') ||
         _cellSizeReply.hasMatch(s) ||
         _bidiModeReply.hasMatch(s) ||
-        _secondaryReply.hasMatch(s);
+        _secondaryReply.hasMatch(s) ||
+        _unitIdReply.hasMatch(s);
   }
 
   // --------------------------------------------------------------- modes --

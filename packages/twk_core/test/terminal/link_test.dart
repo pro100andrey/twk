@@ -167,7 +167,9 @@ void main() {
       );
       expect(
         link.text,
-        contains('\x1b[>c\x1b[?1049l\x1b[?2026l\x1b[6n\x1b[c\x1b8\x1b[?25l'),
+        contains(
+          '\x1b[>c\x1b[=c\x1b[?1049l\x1b[?2026l\x1b[6n\x1b[c\x1b8\x1b[?25l',
+        ),
       );
       expect('\x1b[c'.allMatches(link.text), hasLength(1), reason: 'one round');
       expect(link.text, isNot(contains('\x1b[J')));
