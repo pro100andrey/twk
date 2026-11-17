@@ -4,6 +4,10 @@
 
 Added:
 
+- `driverTest` writes the trace of each app (the cast with a marker per
+  step, and the steps as JSON lines) under `.dart_tool/twk_test/traces/`,
+  names its path in the report of a failed test and deletes it for a passing
+  one.
 - `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
   process in a pseudo-terminal on driven time. `d.start(program, size:,
   profile:, env:, driven:, inline:)` returns a `DriverApp`: `press`, `type`,

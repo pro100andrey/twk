@@ -4,6 +4,13 @@
 
 Added:
 
+- The trace: `Session.start(trace: TraceOptions(path))` (also `compose`
+  and `attach`) writes `<path>.cast`, the app's output as asciicast with a
+  marker for each step and an event boundary at each frame, and
+  `<path>.trace.jsonl`, a line for each step (action, finder, target, the
+  tap's hit test, frames, times, result, tree, log) and each frame
+  (`Session.trace`, `Trace.delete`). `Cast`, `CastEvent`, `CastHeader` and
+  `CastWriter` (from twk_dev, which re-exports them).
 - `treeText`: the `ext.twk.tree` answer as indented text, as `twk mcp`'s
   `tree` tool writes it, for the front ends that show a tree.
 - A quiet app waited on with `io` waits for the app's `twk.scheduled` event

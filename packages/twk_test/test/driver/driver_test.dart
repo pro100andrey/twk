@@ -5,6 +5,8 @@
 @TestOn('linux || mac-os')
 library;
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:twk/twk.dart' show Text;
 import 'package:twk_test/driver.dart';
@@ -254,7 +256,32 @@ void main() {
         expect(report, contains('Count: 1'));
         expect(report, contains('widget tree:'));
         expect(report, contains('Column #'));
+        // the trace is named, and has the steps so far
+        final trace = a.session.trace!;
+        expect(report, contains(trace.castPath));
+        expect(report, contains(trace.tracePath));
+        expect(File(trace.castPath).readAsStringSync(), contains('"m"'));
       });
+    });
+
+    test('a passing test deletes its trace, a failing one keeps it', () async {
+      late DriverApp kept;
+      await expectLater(
+        runDriverTest((d) async {
+          kept = await d.start(app);
+          await kept.press('up');
+          throw StateError('no');
+        }),
+        throwsA(isA<StateError>()),
+      );
+      expect(File(kept.session.trace!.tracePath).existsSync(), isTrue);
+      kept.session.trace!.delete();
+      late DriverApp gone;
+      await runDriverTest((d) async {
+        gone = await d.start(app);
+        await gone.press('up');
+      });
+      expect(File(gone.session.trace!.tracePath).existsSync(), isFalse);
     });
 
     test('an unknown profile is named', () {

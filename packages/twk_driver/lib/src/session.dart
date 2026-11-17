@@ -20,6 +20,8 @@ import 'errors.dart';
 import 'found.dart';
 import 'ports.dart';
 import 'pty_terminal.dart';
+import 'trace.dart';
+import 'tree_text.dart';
 
 /// What the app posted at a frame or after an input, with the screen the
 /// frame emulator had once it took the app's bytes up to it.
@@ -201,15 +203,18 @@ final class Session {
   /// moves it, `press` moves it only to the frame the input asked for, and
   /// [waitFor] moves it on until the screen is what it waits for. [startTime]
   /// is what the app's `AppBinding.now` reads when its clock is at zero;
-  /// null, the real time at its start. The start fails at once, naming the
-  /// cause, where the app did not take the variable. Without [driven] the
-  /// app runs on real time, and only the waits that take `io` are of use.
+  /// null, the real time at its start. [trace] makes the session write a
+  /// trace ([Session.trace], part 8 of DESIGN.md). The start fails at once,
+  /// naming the cause, where the app did not take the variable. Without
+  /// [driven] the app runs on real time, and only the waits that take `io`
+  /// are of use.
   static Future<Session> start(
     ProcessSpec spec, {
     SessionPorts? ports,
     Duration timeout = const Duration(seconds: 20),
     bool driven = true,
     DateTime? startTime,
+    TraceOptions? trace,
   }) {
     final p = ports ?? SessionPorts();
     return compose(
@@ -225,6 +230,7 @@ final class Session {
       startTime: startTime,
       macos: p.macos,
       driverPid: p.driverPid,
+      trace: trace,
     );
   }
 
@@ -267,6 +273,7 @@ final class Session {
     DateTime? startTime,
     bool macos = false,
     int? driverPid,
+    TraceOptions? trace,
   }) async {
     if (driven && connect == null) {
       throw ArgumentError.value(
@@ -299,6 +306,8 @@ final class Session {
       connect: connect,
       driven: driven,
       drivenValue: value,
+      trace: trace,
+      spec: spec,
     );
   }
 
@@ -316,6 +325,7 @@ final class Session {
     Duration timeout = const Duration(seconds: 20),
     bool driven = false,
     bool macos = false,
+    TraceOptions? trace,
   }) {
     if (driven && service == null) {
       throw ArgumentError.value(
@@ -333,6 +343,7 @@ final class Session {
       pid,
       service: service,
       driven: driven,
+      trace: trace,
     );
   }
 
@@ -347,7 +358,10 @@ final class Session {
     Future<AppServicePort> Function(Uri uri)? connect,
     AppServicePort? service,
     String? drivenValue,
+    TraceOptions? trace,
+    ProcessSpec? spec,
   }) async {
+    final started = clock.elapsedMicroseconds;
     final session = Session._(
       launched,
       screen,
@@ -358,6 +372,17 @@ final class Session {
       driven,
       drivenValue,
     )..timeout = timeout;
+    if (trace != null) {
+      session._trace = TraceRecorder(
+        trace,
+        program: spec?.program ?? 'attached',
+        arguments: spec?.arguments ?? const [],
+        width: spec?.width ?? screen.frame.width,
+        height: spec?.height ?? screen.frame.height,
+        driven: driven,
+        now: () => Duration(microseconds: clock.elapsedMicroseconds - started),
+      );
+    }
     try {
       await session._init(connect, service);
     } on Object {
@@ -380,6 +405,10 @@ final class Session {
   /// How long a wait of this session may last before it is reported.
   late Duration timeout;
 
+  TraceRecorder? _trace;
+  _TraceStep? _current;
+  var _steps = 0;
+  var _chunks = 0;
   var _frameSize = (0, 0);
   final _log = ByteLog();
   var _fed = 0;
@@ -420,6 +449,10 @@ final class Session {
   /// Whether the app has ended: exited, its terminal closed or its VM
   /// service gone.
   bool get ended => _ended != null;
+
+  /// The trace this session writes, null where none was asked for
+  /// ([start]'s `trace`).
+  Trace? get trace => _trace;
 
   /// What the app wrote, as the terminal gave it.
   Uint8List get output => _log.slice(0, _log.rawLength);
@@ -497,9 +530,11 @@ final class Session {
 
   /// The hold on the app's time (`ext.twk.clock`): where it stands, and
   /// the moves of a driven app's clock.
-  late final clock = ClockControl(
-    (params) => _call(_app('ext.twk.clock'), 'clock', params),
-  );
+  late final clock = ClockControl((params) {
+    final op = params['op'] ?? 'status';
+    Future<Json> call() => _call(_app('ext.twk.clock'), 'clock', params);
+    return op == 'status' ? call() : _traced('clock.$op', {...params}, call);
+  });
 
   /// The app's service, or the error of a session that has none.
   AppServicePort _app(String what) =>
@@ -531,8 +566,7 @@ final class Session {
     _screen.feedAnswering(raw);
     if (!_withService) {
       // no frames to wait for: the screen is what the bytes made of it
-      _screen.feedFrame(raw);
-      _fed = _log.rawLength;
+      _feed(_log.rawLength);
       if (!_screen.frame.updating) {
         _noteOutput();
       }
@@ -544,6 +578,13 @@ final class Session {
   /// Notes the screen as it is after a chunk of output, which a session
   /// without an app service waits on as one on an app waits on a frame.
   void _noteOutput() {
+    _chunks++;
+    _trace?.frame(
+      _chunks,
+      _trace!.lastOutput,
+      _log.appLength,
+      _log.rawLength,
+    );
     final seen = Seen(
       seq: _seq++,
       kind: 'output',
@@ -578,6 +619,18 @@ final class Session {
     }
   }
 
+  /// Feeds the frame emulator the bytes received up to [offset], and the
+  /// trace's cast the same, in one event.
+  void _feed(int offset) {
+    if (offset <= _fed) {
+      return;
+    }
+    final bytes = _log.slice(_fed, offset);
+    _screen.feedFrame(bytes);
+    _trace?.output(bytes);
+    _fed = offset;
+  }
+
   /// Feeds the frame emulator up to the boundary of each event whose bytes
   /// have arrived, in order.
   void _drain() {
@@ -602,12 +655,16 @@ final class Session {
       final w = size['width']! as int;
       final h = size['height']! as int;
       if ((w, h) != _frameSize) {
+        final first = _frameSize == (0, 0);
         _frameSize = (w, h);
         _screen.resizeFrame(w, h);
+        if (!first || (w, h) != _trace?.size) {
+          _trace?.resize(w, h);
+        }
       }
-      if (offset > _fed) {
-        _screen.feedFrame(_log.slice(_fed, offset));
-        _fed = offset;
+      _feed(offset);
+      if (e.kind == 'twk.frame') {
+        _trace?.frame(d['frame']! as int, _trace!.lastOutput, written, offset);
       }
       final seen = Seen(
         seq: _seq++,
@@ -675,11 +732,7 @@ final class Session {
 
   void _finishExited() {
     // everything the app wrote is on the screen it leaves
-    final rest = _log.rawLength;
-    if (rest > _fed) {
-      _screen.feedFrame(_log.slice(_fed, rest));
-      _fed = rest;
-    }
+    _feed(_log.rawLength);
     _finish(_closing ? 'the app was closed' : 'the app exited');
   }
 
@@ -901,7 +954,7 @@ final class Session {
   /// bytes for. Where the app says it is quitting (`press('q')`), the step
   /// waits for its exit and has it as `exit`: the app exited (0); an
   /// [AppEnded] where the app ended without having said so.
-  Future<Step> press(String keys) {
+  Future<Step> press(String keys) => _traced('press', {'keys': keys}, () {
     final writes = <List<int>>[];
     for (final combo in KeyCombo.parseSequence(keys)) {
       final bytes = _screen.encodeKey(
@@ -913,17 +966,28 @@ final class Session {
       writes.add(bytes);
     }
     return _act(writes);
-  }
+  });
 
   /// Types [text], as the bytes of its characters in one write.
-  Future<Step> type(String text) => _act([_screen.encodeText(text)]);
+  Future<Step> type(String text) =>
+      _traced('type', {'text': text}, () => _act([_screen.encodeText(text)]));
 
   /// Pastes [text], bracketed when the app asked for it.
-  Future<Step> paste(String text) => _act([_screen.encodePaste(text)]);
+  Future<Step> paste(String text) => _traced(
+    'paste',
+    {'text': text},
+    () => _act([_screen.encodePaste(text)]),
+  );
 
   /// Sets the terminal's size and returns once the app has drawn a frame at
   /// it.
-  Future<Step> resize(int width, int height) async {
+  Future<Step> resize(int width, int height) => _traced(
+    'resize',
+    {'width': width, 'height': height},
+    () => _resize(width, height),
+  );
+
+  Future<Step> _resize(int width, int height) async {
     if (_afterEnd() case final step?) {
       return step;
     }
@@ -974,6 +1038,19 @@ final class Session {
     Duration? io,
     String what = 'the screen',
     String? near,
+  }) => _traced('waitFor', {
+    'what': what,
+    'budget': budget.inMicroseconds,
+    'io': ?io?.inMicroseconds,
+    'near': ?near,
+  }, () => _waitFor(test, budget: budget, io: io, what: what, near: near));
+
+  Future<Step> _waitFor(
+    bool Function(String screen) test, {
+    required Duration budget,
+    required Duration? io,
+    required String what,
+    required String? near,
   }) async {
     if (_afterEnd() case final step?) {
       return step;
@@ -1167,6 +1244,16 @@ final class Session {
     bool Function(String screen) test, {
     required Duration timeout,
     String what = 'the screen',
+  }) => _traced(
+    'waitForScreen',
+    {'what': what, 'timeout': timeout.inMicroseconds},
+    () => _waitForScreen(test, timeout: timeout, what: what),
+  );
+
+  Future<Step> _waitForScreen(
+    bool Function(String screen) test, {
+    required Duration timeout,
+    required String what,
   }) async {
     final saved = this.timeout;
     this.timeout = timeout;
@@ -1186,7 +1273,10 @@ final class Session {
   // ---------------------------------------------------------------- tree --
 
   /// The nodes [finder] matches, as the app's widgets see it.
-  Future<List<Found>> find(ElementFinder finder) async {
+  Future<List<Found>> find(ElementFinder finder) =>
+      _traced('find', const {}, () => _find(finder), finder: finder);
+
+  Future<List<Found>> _find(ElementFinder finder) async {
     final service = _app('find');
     _checkOpen();
     final answer = await _call(service, 'find', {
@@ -1198,13 +1288,19 @@ final class Session {
   /// The one node [finder] matches. Strict: a [DriverError] with the count
   /// and the first five matches when it matches none or more than one;
   /// `first`, `last` and `at` of the finder pick on purpose.
-  Future<Found> findOne(ElementFinder finder) async {
-    final found = await find(finder);
-    if (found.length == 1) {
-      return found.single;
-    }
-    throw DriverError(_notOne(found));
-  }
+  Future<Found> findOne(ElementFinder finder) => _traced(
+    'findOne',
+    const {},
+    () async {
+      final found = await find(finder);
+      if (found.length == 1) {
+        _current?.target = found.single;
+        return found.single;
+      }
+      throw DriverError(_notOne(found));
+    },
+    finder: finder,
+  );
 
   static String _node(Json n) => '${n['type']} (node ${n['id']})';
 
@@ -1219,7 +1315,10 @@ final class Session {
   /// Clicks the one node [finder] matches, after checking that a click
   /// there reaches it (part 6 of DESIGN.md): its middle cell, down and up,
   /// the app's frame awaited as for a key.
-  Future<Step> tap(ElementFinder finder) async {
+  Future<Step> tap(ElementFinder finder) =>
+      _traced('tap', const {}, () => _tap(finder), finder: finder);
+
+  Future<Step> _tap(ElementFinder finder) async {
     _app('tap');
     if (_afterEnd() case final step?) {
       return step;
@@ -1241,6 +1340,7 @@ final class Session {
       x--;
     }
     final hit = await _call(_app('tap'), 'hitTest', {'x': '$x', 'y': '$y'});
+    _current?.hit = hit;
     final path = [for (final n in hit['path']! as List<Object?>) n! as Json];
     final listeners = [
       for (final l in hit['listeners']! as List<Object?>) l! as Json,
@@ -1328,7 +1428,156 @@ final class Session {
     for (final s in _subs) {
       await s.cancel();
     }
+    // what the app wrote since the last boundary, in the cast
+    _trace
+      ?..output(_log.slice(_fed, _log.rawLength))
+      ..close();
   }
+
+  // --------------------------------------------------------------- trace --
+
+  /// How long the trace waits for the widget tree at the end of a step.
+  static const _treeWait = Duration(seconds: 2);
+
+  /// Runs [body] as a step of the trace: a marker in the cast before it,
+  /// a line of the trace after it. A step inside a step (a tap's finder
+  /// search, a wait's moves of the clock) is part of the outer one.
+  Future<T> _traced<T>(
+    String action,
+    Map<String, Object?> args,
+    Future<T> Function() body, {
+    ElementFinder? finder,
+  }) async {
+    final trace = _trace;
+    if (trace == null || _current != null) {
+      return body();
+    }
+    final n = ++_steps;
+    final step = _current = _TraceStep(
+      n,
+      action,
+      args,
+      finder?.toJson(),
+      frameBefore: _traceFrame,
+      castEvent: trace.marker(
+        '$n $action${args.isEmpty ? '' : ' ${jsonEncode(args)}'}',
+      ),
+    );
+    try {
+      return await body();
+    } on Object catch (e) {
+      step.error = '$e';
+      rethrow;
+    } finally {
+      try {
+        await _endStep(trace, step);
+      } finally {
+        _current = null;
+      }
+    }
+  }
+
+  /// The frame the trace counts: the app's, or for a program without an
+  /// app service each chunk of output.
+  int get _traceFrame => _withService ? frame : _chunks;
+
+  Future<void> _endStep(TraceRecorder trace, _TraceStep step) async {
+    String? tree;
+    final service = _service;
+    if (service != null && _ended == null) {
+      try {
+        final answer = await _within(service.call('tree'), _treeWait);
+        tree = trace.tree(_traceFrame, treeText(answer));
+      } on Object {
+        // no tree to keep: the app is gone or does not answer
+      }
+    }
+    final target = step.target;
+    List<String> log;
+    try {
+      log = trace.options.log?.call() ?? const [];
+    } on Object {
+      log = const [];
+    }
+    trace.step({
+      'step': step.n,
+      'action': step.action,
+      'args': step.args,
+      'finder': step.finder,
+      'target': target == null
+          ? null
+          : {
+              'id': target.id,
+              'type': target.type,
+              'shown': target.shown == null
+                  ? null
+                  : {
+                      'x': target.shown!.x,
+                      'y': target.shown!.y,
+                      'width': target.shown!.width,
+                      'height': target.shown!.height,
+                    },
+            },
+      'hit': step.hit,
+      'frameBefore': step.frameBefore,
+      'frame': _traceFrame,
+      'castEvent': step.castEvent,
+      'appTime': _history.isEmpty ? null : _history.last.time,
+      'realTime': _clock.elapsedMicroseconds,
+      'result': step.error == null ? 'ok' : 'error',
+      'error': step.error,
+      'tree': tree,
+      'log': log,
+    });
+  }
+
+  /// [future], or a [DriverError] once [wait] has passed on the driver's
+  /// clock.
+  Future<T> _within<T>(Future<T> future, Duration wait) {
+    final done = Completer<T>();
+    final timer = _clock.timer(wait, () {
+      if (!done.isCompleted) {
+        done.completeError(const DriverError('no answer'));
+      }
+    });
+    unawaited(
+      future.then(
+        (v) {
+          if (!done.isCompleted) {
+            done.complete(v);
+          }
+        },
+        onError: (Object e, StackTrace s) {
+          if (!done.isCompleted) {
+            done.completeError(e, s);
+          }
+        },
+      ),
+    );
+    return done.future.whenComplete(timer.cancel);
+  }
+}
+
+/// A step of the trace under way.
+final class _TraceStep {
+  _TraceStep(
+    this.n,
+    this.action,
+    this.args,
+    this.finder, {
+    required this.frameBefore,
+    required this.castEvent,
+  });
+
+  final int n;
+  final String action;
+  final Map<String, Object?> args;
+  final Object? finder;
+  final int frameBefore;
+  final int castEvent;
+  Found? target;
+  Json? hit;
+  String? error;
 }
 
 /// A wait for an event seen that [test] accepts.

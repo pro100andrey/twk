@@ -14,6 +14,7 @@ library;
 export 'src/app_client.dart'
     show AppClient, AppError, Json, VmAppClient, VmQueries, watchExtensions;
 export 'src/byte_log.dart' show ByteLog;
+export 'src/cast.dart' show Cast, CastEvent, CastHeader, CastWriter;
 export 'src/clock_control.dart' show ClockControl, ClockStatus, TimerInfo;
 export 'src/emulator_screen.dart' show EmulatorScreen;
 export 'src/errors.dart' show AppEnded, DriverError, ExitResult;
@@ -31,4 +32,5 @@ export 'src/ports.dart'
 export 'src/program.dart' show compiledProgram;
 export 'src/pty_terminal.dart' show PtyCommandPort, PtyProcessPort;
 export 'src/session.dart' show CloseReport, Seen, Session, SessionPorts, Step;
+export 'src/trace.dart' show Trace, TraceOptions;
 export 'src/tree_text.dart' show treeText;

@@ -755,35 +755,56 @@ check is made at the last frame the driver saw.
 
 ## 8. The trace
 
-A session can write a trace. A failed test keeps it by default, and the
-failure report gives its path.
+A session writes a trace when it is given `trace: TraceOptions(path)`
+(`Session.start`, `compose`, `attach`; `Session.trace` says where the files
+are). twk_test's `driverTest` gives every app one under
+`.dart_tool/twk_test/traces/`, keeps it for a failed test and deletes it for
+a passing one, and its failure report names the path.
 
-- **`<name>.cast`.** The pty's output as asciicast v2, with a marker for
-  each step (`CastWriter.marker`, `packages/twk_dev/lib/src/cast.dart:293`).
-  `CastWriter` and `Cast` move from twk_dev into twk_driver, and twk_dev
-  re-exports them. `twk play`, the extension's player and twk_test's
-  `screenFrames` already read the format.
+- **`<name>.cast`.** The pty's output as asciicast v2 (`CastWriter`, in
+  `src/cast.dart`; `CastWriter` and `Cast` moved from twk_dev into
+  twk_driver, and twk_dev re-exports them: one implementation), with a
+  marker for each step, written when the step starts. `twk play`, the
+  extension's player and twk_test's `screenFrames` already read the format.
 
-  The driver writes the output events from the frame emulator's feed,
-  one event for each posted frame's bytes (and one for what came
-  between two frames). So every frame boundary is an event boundary.
-  The bytes are as the pty gave them, the CRs of ONLCR included, which
-  is what a player needs. The app writes each frame whole, so a
-  boundary never falls inside a UTF-8 sequence.
-- **`<name>.trace.jsonl`.** A header line: `{version, program, size,
-  profile, driven, start}`. Then one line per step:
-  - `{step, action, args, finder, target (id, type, shown)}`;
-  - `{hit (the hitTest answer, for a tap), frameBefore, frame,
-    castEvent (index of the step's marker)}`;
-  - `{appTime, realTime, result: "ok"|"error", error,
-    tree (a key into the trees), log (records since the last step)}`.
+  The driver writes the output events from the frame emulator's feed: one
+  event for the bytes up to each posted event's boundary (`twk.frame`, and
+  the `twk.input` and `twk.scheduled` that carry bytes: what came between
+  two frames). So every frame boundary is an event boundary. The bytes
+  are as the pty gave them, the CRs of ONLCR included, which is what a
+  player needs. The app writes each frame whole, so a boundary never falls
+  inside a UTF-8 sequence. A resize of the frame emulator is an `r` event.
+  What the app wrote after the last boundary is written when the session
+  ends.
+- **`<name>.trace.jsonl`.** One JSON line each, told by `type`:
+  - `header`: `{version, program, size, profile, driven, start}`;
+  - `frame`, the frames table, a line for each frame posted:
+    `{frame, castEvent, outputWritten, raw}`, where `castEvent` is the
+    index of the cast event the frame's bytes ended in, `raw` counts the
+    bytes as the pty gave them and `outputWritten` the app's, without the
+    CRs of part 3.4. (Without an app service each chunk of output is a
+    frame, numbered from 1; the screen before any output is frame 1.)
+  - `step`, one for each action (`press`, `type`, `paste`, `resize`,
+    `tap`, `find`, `findOne`, `waitFor`, `waitForScreen`, the moves of
+    the clock `clock.advance`, `clock.advanceTo`, `clock.next`; one
+    inside another is part of it): `{step, action, args, finder, target
+    (id, type, shown), hit (the hitTest answer, for a tap, kept when the
+    tap fails), frameBefore, frame, castEvent (index of the step's
+    marker), appTime (microseconds of the app's clock), realTime
+    (microseconds of the driver's clock since the start), result: "ok" |
+    "error", error, tree (a key into the trees), log}`;
+  - `tree`: `{key, frame, text}`, the widget tree as `treeText` writes it,
+    kept once, in the step that first saw it (a tree the same as the last
+    one is not kept again). The tree is read at the end of each step, within
+    2 s of the driver's clock; none is kept for an app that ended.
 
-  The trees are kept once per frame they changed in. The sidecar
-  holds a `frames` table, one line per frame: `{frame, castEvent,
-  outputWritten, raw}`, where `raw` counts the bytes as the pty gave
-  them and `outputWritten` the app's, without the CRs of part 3.4. A
-  step's screens before, at and after are the cast replayed to the end
-  of those frames' events. No offset into a chunk is ever needed.
+  `log` is what `TraceOptions.log` returns at the end of the step (the
+  records since its last call); the app service has no way to read the
+  app's log, so without it the lists are empty.
+
+  A step's screens before, at and after are the cast replayed to the end of
+  `frameBefore`'s and `frame`'s `castEvent`. No offset into a chunk is
+  ever needed.
 
 The VS Code extension reads both files. It needs nothing from Dart.
 

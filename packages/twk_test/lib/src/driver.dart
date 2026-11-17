@@ -72,7 +72,11 @@ Map<String, String> profileEnvironment(String name) =>
 ///
 /// A test that fails prints, for each app, its screen, its last
 /// [framesOnFailure] frames that changed it, its widget tree and what the
-/// strict emulator could not take.
+/// strict emulator could not take, and the path of its trace: the app's
+/// output as an asciicast with a marker for each step (`.cast`, which
+/// `twk play` plays) and a line for each step (`.trace.jsonl`: the action,
+/// the covered target of a tap, the frames, the tree), under
+/// `.dart_tool/twk_test/traces/`. A test that passes deletes them.
 ///
 /// With [profiles], the test runs once for each name of
 /// the keys of [terminalProfiles] given, `description [name]`, `start` taking
@@ -123,6 +127,7 @@ Future<void> runDriverTest(
     await d._report();
     fail(problems.join('\n'));
   }
+  d._deleteTraces();
 }
 
 /// What a [driverTest]'s body starts apps with.
@@ -177,6 +182,8 @@ final class DriverTester {
       height: size.$2,
     );
     final checked = CheckedScreen(size.$1, size.$2, inline: inline);
+    final traceName =
+        '${File(program).uri.pathSegments.last}-$pid-${_traces++}';
     AppServicePort? service;
     final Session session;
     try {
@@ -185,6 +192,10 @@ final class DriverTester {
         timeout: timeout,
         driven: driven,
         startTime: startTime,
+        trace: TraceOptions(
+          '.dart_tool/twk_test/traces/$traceName',
+          profile: named,
+        ),
         ports: SessionPorts(
           screen: (_, _) => checked,
           connect: (uri) async {
@@ -209,6 +220,12 @@ final class DriverTester {
     }
   }
 
+  void _deleteTraces() {
+    for (final app in _apps) {
+      app.session.trace?.delete();
+    }
+  }
+
   /// Ends every app; the problems of what they left behind when [check].
   Future<List<String>> _end({required bool check}) async {
     final problems = <String>[];
@@ -225,6 +242,8 @@ final class DriverTester {
 }
 
 final _kernels = <String, Future<String>>{};
+
+var _traces = 0;
 
 /// The kernel of [program] where it is a Dart file, compiled once per
 /// process; [program] as it is otherwise.
@@ -508,6 +527,12 @@ final class DriverApp {
       } on Object catch (e) {
         out.writeln('not read: $e');
       }
+    }
+    if (session.trace case final trace?) {
+      out
+        ..writeln('trace, the cast with a marker for each step:')
+        ..writeln('  ${trace.castPath}')
+        ..writeln('  ${trace.tracePath}');
     }
     final problems = _checked.problems(ended: ended);
     if (problems.isNotEmpty) {
