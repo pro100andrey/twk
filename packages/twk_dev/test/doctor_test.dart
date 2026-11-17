@@ -101,7 +101,9 @@ void main() {
   test('the terminal in the JSON', () async {
     final (_, out) = await doctor(
       ['--json'],
-      terminal: FakeCliTerminal.interactive(),
+      // a fake clock: the wall clock would count the milliseconds of a
+      // loaded machine into probeMilliseconds
+      terminal: FakeCliTerminal.interactive(fakeClock: FakeClock()),
     );
     final terminal =
         (jsonDecode(out) as Map<String, Object?>)['terminal']!
