@@ -314,6 +314,21 @@ void main() {
       expect(KeyCombo.parse('shift+я').accepts(shifted), isTrue);
     });
 
+    test('a Latin layout keeps what it types: Dvorak Ctrl+C is not ctrl+j', () {
+      const dvorakC = KeyEvent(
+        KeyCode.char,
+        char: 'c',
+        modifiers: ctrl,
+        baseChar: 'j',
+      );
+      expect(KeyCombo.parse('ctrl+c').accepts(dvorakC), isTrue);
+      expect(KeyCombo.parse('ctrl+j').accepts(dvorakC), isFalse);
+      expect(KeyCombo.layoutOf(dvorakC), isNull);
+      expect(KeyCombo.charFor(dvorakC, 'cj'), 'c');
+      expect(KeyCombo.charFor(ruCtrlC, 'cz'), 'c');
+      expect(KeyCombo.charFor(ruCtrlC, 'z'), 'с');
+    });
+
     test('a release is no press', () {
       const up = KeyEvent(
         KeyCode.char,

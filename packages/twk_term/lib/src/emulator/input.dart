@@ -33,7 +33,7 @@ String? keySequence(
   String ss3(String finalChar) =>
       m == 1 ? '\x1bO$finalChar' : '\x1b[1;$m$finalChar';
   return switch (key.code) {
-    KeyCode.char => '$alt${key.ctrl ? _ctrl(key.char) : _shifted(key)}',
+    KeyCode.char => '$alt${key.ctrl ? _ctrl(_ctrlChar(key)) : _shifted(key)}',
     KeyCode.enter => '$alt${newLine ? '\r\n' : '\r'}',
     KeyCode.tab => key.shift ? '\x1b[Z' : '$alt\t',
     KeyCode.backspace => '$alt${key.ctrl ? '\x08' : '\x7f'}',
@@ -246,6 +246,17 @@ String? kittyKeySequence(KeyEvent key, int flags) {
       return csi(key.kittyCode, 'u');
   }
 }
+
+/// The character Ctrl makes a control character of: the one [key] types, or,
+/// when that is not ASCII (a Russian layout's `с`), the
+/// one the key is on a US layout (`c`), as the terminal tells it
+/// ([KeyEvent.baseChar]).
+String _ctrlChar(KeyEvent key) =>
+    key.baseChar.isNotEmpty &&
+        key.char.isNotEmpty &&
+        key.char.codeUnitAt(0) > 0x7f
+    ? key.baseChar
+    : key.char;
 
 /// Ctrl with [char]: the control character xterm sends, or [char] as is.
 String _ctrl(String char) {

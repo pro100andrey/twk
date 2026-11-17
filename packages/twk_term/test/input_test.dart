@@ -34,6 +34,17 @@ void main() {
       expect(key(KeyCode.char, char: '1', mods: Mod.shift), '1');
     });
 
+    test('Ctrl and a letter of another layout is the control character of '
+        'the key on a US layout', () {
+      String? ctrl(String char, String base) => keySequence(
+        KeyEvent(KeyCode.char, char: char, modifiers: Mod.ctrl, baseChar: base),
+      );
+      expect(ctrl('с', 'c'), '\x03');
+      expect(ctrl('я', 'z'), '\x1a');
+      // a Latin layout keeps what it types, wherever the key is
+      expect(ctrl('c', 'j'), '\x03');
+    });
+
     test('Enter, Tab, Backspace and Escape', () {
       expect(key(KeyCode.enter), '\r');
       expect(key(KeyCode.enter, newLine: true), '\r\n');

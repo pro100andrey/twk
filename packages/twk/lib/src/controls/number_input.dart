@@ -5,6 +5,7 @@ library;
 import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 
 import '../binding/app_binding.dart' show AppBinding;
+import '../editing/editing_keys.dart' show editingLetters;
 import '../editing/text_editing.dart';
 import '../editing/text_field.dart';
 import '../focus/focus.dart';
@@ -520,6 +521,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   static bool _editsText(KeyEvent event) {
     final mods = event.modifiers;
     final rest = mods & ~Mod.shift;
+    final key = KeyCombo.charFor(event, editingLetters);
     return switch (event.code) {
       KeyCode.left ||
       KeyCode.right ||
@@ -529,8 +531,8 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       KeyCode.delete => rest == 0 || rest == Mod.ctrl || rest == Mod.alt,
       KeyCode.char =>
         rest == 0 ||
-            (rest == Mod.alt && 'bfd'.contains(event.char)) ||
-            (rest == Mod.ctrl && 'aedwukzy'.contains(event.char)),
+            (rest == Mod.alt && 'bfd'.contains(key)) ||
+            (rest == Mod.ctrl && 'aedwukzy'.contains(key)),
       _ => false,
     };
   }

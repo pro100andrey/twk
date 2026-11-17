@@ -4,6 +4,9 @@
 
 Added:
 
+- Ctrl and a letter of another layout (`с` of a Russian one, with the key
+  it is on a US layout told) sends the control character of that key
+  (`^C`), not the letter.
 - SGR-Pixels (mode 1016): `TerminalMode.mousePixels`, answered by DECRQM;
   with it set and a cell size known, `sendMouse` and `mouseSequence`
   (`cellWidth:`, `cellHeight:`) report pixels: the cell's origin plus the

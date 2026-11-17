@@ -1766,13 +1766,11 @@ final class AppBinding implements FrameClock {
       } else {
         from.previousFocus();
       }
-    } else if (event
-        case KeyEvent(char: 'c', modifiers: Mod.ctrl, kind: KeyKind.press)
-        when exitOnCtrlC) {
+    } else if (event case KeyEvent(modifiers: Mod.ctrl, kind: KeyKind.press)
+        when exitOnCtrlC && KeyCombo.charFor(event, 'cz') == 'c') {
       quit();
-    } else if (event
-        case KeyEvent(char: 'z', modifiers: Mod.ctrl, kind: KeyKind.press)
-        when stopOnCtrlZ) {
+    } else if (event case KeyEvent(modifiers: Mod.ctrl, kind: KeyKind.press)
+        when stopOnCtrlZ && KeyCombo.charFor(event, 'cz') == 'z') {
       if (twkApp.terminal case final Terminal terminal
           when terminal.stopsForShell) {
         unawaited(twkApp.suspendToShell());

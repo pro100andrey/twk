@@ -9,7 +9,12 @@ Added:
   the key it is on a US layout too (`KeyEvent.baseChar`), so `ctrl+c` fires
   on Ctrl and `с` of a Russian layout, and `KeyBindings` and `Shortcuts`
   match by it when what the key types is bound to nothing there. Plain
-  typing keeps the layout's character. `KeyCombo.layoutOf`.
+  typing keeps the layout's character. `KeyCombo.layoutOf`. The place is
+  used only where the layout cannot type the key: on Dvorak, Colemak or
+  AZERTY (a Latin letter or digit typed) what is typed counts, so Ctrl+C
+  is never `ctrl+j`. The built-ins follow it (`KeyCombo.charFor`): Ctrl+C
+  quits, Ctrl+Z suspends, the text fields' copy, cut, undo and caret keys,
+  `NumberInput`, the prompts' Ctrl+C and Ctrl+D work on a Russian layout.
 - `ProgressTracker.of(context)`: a tracker on the app's clock
   (`AppBinding.of(context).twkApp.clock`), so a driven or fake clock moves
   its times; the constructor keeps the wall clock by default, for the `Cli`.
