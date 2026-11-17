@@ -88,8 +88,11 @@ final class FakeService implements AppServicePort {
   /// The calls, `method params` each.
   final calls = <String>[];
 
-  /// The frames the app has run, as `find` says.
+  /// The frames the app has run, as `status` says.
   var frames = 0;
+
+  /// The bytes the app has written, as `status` says.
+  var statusWritten = 0;
 
   /// What a method answers.
   final answers = <String, Json Function(Map<String, String>)>{};
@@ -105,6 +108,19 @@ final class FakeService implements AppServicePort {
       return answer(params);
     }
     return switch (method) {
+      'status' => {
+        'version': 1,
+        'frame': frames,
+        'quitting': false,
+        'size': {'width': 80, 'height': 24},
+        'inputRead': 0,
+        'outputWritten': statusWritten,
+        'inputPending': false,
+        'scheduled': false,
+        'frameDue': null,
+        'time': 0,
+        'nextDue': null,
+      },
       'find' => {
         'version': 1,
         'frame': frames,
@@ -138,7 +154,9 @@ final class FakeService implements AppServicePort {
     int height = 24,
     bool inputPending = false,
     bool scheduled = false,
+    bool quitting = false,
   }) => _post('twk.frame', {
+    'quitting': quitting,
     'frame': frame,
     'drawn': drawn,
     'inputRead': inputRead,
@@ -158,7 +176,9 @@ final class FakeService implements AppServicePort {
     int height = 24,
     bool inputPending = false,
     bool scheduled = false,
+    bool quitting = false,
   }) => _post('twk.input', {
+    'quitting': quitting,
     'frame': frame,
     'drawn': false,
     'inputRead': inputRead,
@@ -182,6 +202,7 @@ final class FakeService implements AppServicePort {
       'frameDue': null,
       'time': 0,
       'nextDue': null,
+      'quitting': d['quitting'] ?? false,
     }),
   );
 }

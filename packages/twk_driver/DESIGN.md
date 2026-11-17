@@ -281,7 +281,8 @@ a hot reload's `ext.twk.reassemble` do not move `inputRead`.
 - **Start.** The first frame needs nothing: a driven clock runs timers
   that are due at its current time without being moved (part 4.2), and
   the first frame is due at once (`_lastFrameAt` starts a second back,
-  `app.dart:452`). `start` sets `frameEvents`, reads `status`, and when
+  `app.dart:452`). `start` sets `frameEvents`, reads `ext.twk.status` (the same fields
+  as `twk.frame`, nothing changed; `ext.twk.clock` adds the clock later), and when
   no frame has run yet, waits for the first `twk.frame`.
 - **Reassemble.** `ext.twk.reassemble` answers with the last frame run
   and the `frameDue` of the frame it asked for (two fields added to its
@@ -299,8 +300,15 @@ a hot reload's `ext.twk.reassemble` do not move `inputRead`.
   it posts as usual.
 
 A wait that ends so reports the exit code, the screen, and the log's
-last records. It is not a timeout. `press('q')` on an app that quits is
-answered "the app exited (0)", which a test can expect.
+last records. It is not a timeout. An app that quits says so: `quitting`
+in `twk.input`, `twk.frame` and `ext.twk.status` (`TwkApp.quitting`, set
+by `quit`, and posted before the terminal is handed back). A step whose
+acknowledgement says `quitting` waits for the process to exit, the VM
+service closing meanwhile being no error, and returns it as `Step.exit`
+(code, last screen): `press('q')` is answered "the app exited (0)", and
+every call after it returns the same result. An exit with no such
+acknowledgement is "exited unexpectedly (N)", an `AppEnded` with the
+screen and log, thrown by every call after it.
 
 **Every frame is seen.** The driver keeps a log of the bytes it
 received. The answering emulator takes them as they come, so a query in

@@ -11,6 +11,9 @@ Breaking:
 
 Added:
 
+- `TwkApp.quitting`: whether `quit` was called. `quit` has the settled
+  acknowledgement (`onInputSettled`) go out, and `run` waits for one armed,
+  before it hands the terminal back: a driver is told the app is quitting.
 - The presenter writes the cell under a visible block cursor
   (`CursorShape.block`, `blinkingBlock`, `terminalDefault`) in its own
   foreground when it is a blank: Konsole paints the block in the foreground

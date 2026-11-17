@@ -24,7 +24,10 @@ Future<
 >
 started({int framesBefore = 0}) async {
   final process = FakeProcess();
-  final service = FakeService()..frames = framesBefore;
+  final service = FakeService()
+    ..frames = framesBefore
+    // the app ran frames before the driver came: status says where it is
+    ..statusWritten = framesBefore == 0 ? 0 : 5;
   final screen = FakeScreen();
   final clock = DrivenClock();
   final starting = Session.start(
@@ -38,13 +41,9 @@ started({int framesBefore = 0}) async {
     timeout: const Duration(seconds: 5),
   );
   await pumpEventQueue();
+  process.launched.terminal.app('start');
   if (framesBefore == 0) {
-    process.launched.terminal.app('start');
     service.frame(frame: 1, inputRead: 0, outputWritten: 5);
-  } else {
-    process.launched.terminal.app('start');
-    await pumpEventQueue();
-    service.frame(frame: framesBefore + 1, inputRead: 0, outputWritten: 5);
   }
   final session = await starting;
   return (
@@ -66,11 +65,13 @@ void main() {
     await t.session.close();
   });
 
-  test("a frame ran before the events: another is asked for, the app's "
-      'boundary taken from it', () async {
+  test('a frame ran before the events: status is the baseline, and it asks '
+      'nothing of the app', () async {
     final t = await started(framesBefore: 3);
-    expect(t.service.calls.any((c) => c.startsWith('reassemble')), isTrue);
-    expect(t.session.frame, 4);
+    expect(t.service.calls.any((c) => c.startsWith('status')), isTrue);
+    expect(t.service.calls.any((c) => c.startsWith('reassemble')), isFalse);
+    expect(t.session.frame, 3);
+    expect(t.session.screenText, 'start');
     await t.session.close();
   });
 
@@ -183,41 +184,105 @@ void main() {
     await t.session.close();
   });
 
-  test('the app quitting on a key is the end, with its exit code', () async {
+  test('a key the app answers as quitting: the step waits for the exit '
+      'and returns it, the service closing first is no error', () async {
     final t = await started();
-    final press = t.session.press('q');
-    // the matcher is attached before the app ends
-    final expectation = expectLater(
-      press,
-      throwsA(
-        isA<AppEnded>()
-            .having((e) => e.exitCode, 'exitCode', 0)
-            .having((e) => e.message, 'message', contains('exited (0)'))
-            .having((e) => e.screen, 'screen', contains('bye')),
-      ),
-    );
+    final term = t.process.launched.terminal;
+    var done = false;
+    final press = t.session.press('q').then((s) {
+      done = true;
+      return s;
+    });
     await pumpEventQueue();
-    t.process.launched.terminal.app('bye');
+    t.service.input(frame: 1, inputRead: 3, outputWritten: 5, quitting: true);
+    await t.service.close();
+    await pumpEventQueue();
+    // the acknowledgement is not the answer: the exit is
+    expect(done, isFalse);
+    // no clock moved: it waits for the process as long as it takes
+    t.clock.advance(const Duration(seconds: 3));
+    await pumpEventQueue();
+    expect(done, isFalse);
+    term.app('bye');
     await t.process.launched.exit(0);
-    await expectation;
+    final step = await press;
+    expect(step.exit!.code, 0);
+    expect(step.exit!.expected, isTrue);
+    expect(step.exit!.message, 'the app exited (0)');
+    expect(step.screen, contains('bye'));
+    // every call after it is the same result, not an error
+    final again = await t.session.press('up');
+    expect(identical(again.exit, step.exit), isTrue);
+    expect(identical((await t.session.type('x')).exit, step.exit), isTrue);
+    expect(identical((await t.session.resize(5, 5)).exit, step.exit), isTrue);
+    expect(await t.session.exitCode, 0);
     final report = await t.session.close();
     expect(report.exitCode, 0);
-    expect(report.exitedByItself, isTrue);
   });
 
-  test('the VM service closing is an end, not a timeout', () async {
+  test('the process ending before the quitting acknowledgement is read is '
+      'still the app that said it', () async {
+    final t = await started();
+    final press = t.session.press('q');
+    await pumpEventQueue();
+    await t.process.launched.exit(0);
+    await pumpEventQueue();
+    t.service.input(frame: 1, inputRead: 3, outputWritten: 5, quitting: true);
+    await t.service.close();
+    expect((await press).exit!.expected, isTrue);
+  });
+
+  test('an exit with no quitting acknowledgement is unexpected, with the '
+      'screen, and every call after it says the same', () async {
     final t = await started();
     final press = t.session.press('a');
     final expectation = expectLater(
       press,
       throwsA(
-        isA<AppEnded>().having((e) => e.message, 'm', contains('VM service')),
+        isA<AppEnded>()
+            .having((e) => e.exitCode, 'exitCode', 1)
+            .having((e) => e.expected, 'expected', isFalse)
+            .having(
+              (e) => e.message,
+              'message',
+              contains('exited unexpectedly (1)'),
+            )
+            .having((e) => e.screen, 'screen', contains('boom')),
+      ),
+    );
+    await pumpEventQueue();
+    t.process.launched.terminal.app('boom');
+    await t.process.launched.exit(1);
+    await t.service.close();
+    await expectation;
+    await expectLater(
+      t.session.press('b'),
+      throwsA(isA<AppEnded>().having((e) => e.exitCode, 'code', 1)),
+    );
+    await expectLater(
+      t.session.tap(const ElementFinder.text('x')),
+      throwsA(isA<AppEnded>()),
+    );
+    expect(await t.session.exitCode, 1);
+  });
+
+  test('the VM service closing, the process alive, is an end that is no '
+      'timeout, once the process is given a moment', () async {
+    final t = await started();
+    final press = t.session.press('a');
+    final expectation = expectLater(
+      press,
+      throwsA(
+        isA<AppEnded>().having(
+          (e) => e.message,
+          'm',
+          contains('VM service closed unexpectedly'),
+        ),
       ),
     );
     await pumpEventQueue();
     await t.service.close();
     await pumpEventQueue();
-    // the process is given a moment to exit, for its code
     t.clock.advance(const Duration(seconds: 2));
     await expectation;
     await t.session.close();

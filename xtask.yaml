@@ -125,6 +125,7 @@ sets:
       - packages/twk/pubspec.yaml
       - packages/twk_core/pubspec.yaml
       - packages/twk_dev/pubspec.yaml
+      - packages/twk_driver/pubspec.yaml
       - packages/twk_ssh/pubspec.yaml
       - packages/twk_term/pubspec.yaml
       - packages/twk_test/pubspec.yaml

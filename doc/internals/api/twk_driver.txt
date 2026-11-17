@@ -8,6 +8,7 @@ twk_driver.dart class Cells
 twk_driver.dart class CloseReport
 twk_driver.dart class DriverError
 twk_driver.dart class EmulatorScreen
+twk_driver.dart class ExitResult
 twk_driver.dart class Found
 twk_driver.dart class Launched
 twk_driver.dart class ProcessPort

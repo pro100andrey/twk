@@ -86,6 +86,7 @@ void main() {
       'version',
       'frame',
       'drawn',
+      'quitting',
       'size',
       'inputRead',
       'outputWritten',
@@ -101,6 +102,7 @@ void main() {
     expect(frame['size'], {'width': 10, 'height': 2});
     expect(frame['inputRead'], 1, reason: 'the key was read before the frame');
     expect(frame['outputWritten'], t.terminal.bytesWritten);
+    expect(frame['quitting'], isFalse);
     expect(frame['inputPending'], isFalse);
     expect(frame['scheduled'], isFalse);
     expect(frame['frameDue'], isNull);
@@ -166,5 +168,47 @@ void main() {
     await t.press('a');
     await t.pump();
     expect(posted, isEmpty);
+  });
+
+  testTwk('ext.twk.status answers what twk.frame carries, changes nothing '
+      'and posts nothing', (t) async {
+    await t.pumpWidget(const _Keys(counts: true), size: (10, 2));
+    final app = t.binding.twkApp;
+    final frames = app.framesRun;
+    final status = await call(t, 'ext.twk.status');
+    expect(status.keys, [
+      'version',
+      'frame',
+      'quitting',
+      'size',
+      'inputRead',
+      'outputWritten',
+      'inputPending',
+      'scheduled',
+      'frameDue',
+      'time',
+      'nextDue',
+    ]);
+    expect(status['version'], 1);
+    expect(status['frame'], frames);
+    expect(status['size'], {'width': 10, 'height': 2});
+    expect(status['outputWritten'], t.terminal.bytesWritten);
+    expect(status['quitting'], isFalse);
+    expect(status['nextDue'], isNull);
+    // asked again: the same, no frame run, nothing posted, the flag as it was
+    expect(await call(t, 'ext.twk.status'), status);
+    expect(app.framesRun, frames);
+    expect(posted, isEmpty);
+    expect(t.binding.debug.frameEvents, isFalse);
+    expect(AppBinding.serviceExtensions, contains('ext.twk.status'));
+  });
+
+  testTwk('ext.twk.status samples the input read afresh, with no event '
+      'posted', (t) async {
+    await t.pumpWidget(const _Keys(counts: false), size: (10, 2));
+    final before = (await call(t, 'ext.twk.status'))['inputRead']! as int;
+    await t.press('a');
+    final after = (await call(t, 'ext.twk.status'))['inputRead']! as int;
+    expect(after, before + 1);
   });
 }

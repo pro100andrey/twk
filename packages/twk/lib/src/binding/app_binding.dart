@@ -797,6 +797,7 @@ final class AppBinding implements FrameClock {
     'ext.twk.flags',
     'ext.twk.reassemble',
     'ext.twk.log',
+    'ext.twk.status',
   ];
 
   /// The version of the shape of what [callServiceExtension] answers: an
@@ -891,6 +892,12 @@ final class AppBinding implements FrameClock {
   ///   `framesInRow` (`TwkApp.framesInRow`,
   ///   which the app is built with), each true or false; any of the first
   ///   eight passed as a parameter, `true` or `false`, is set first.
+  /// * `ext.twk.status`: where the app is, as `twk.frame` says it
+  ///   ([DebugAids.frameEvents]) without `drawn`: `frame`, `size`,
+  ///   `inputRead` (sampled now), `outputWritten`, `inputPending`,
+  ///   `scheduled`, `frameDue`, `time`, `nextDue` (null) and `quitting`
+  ///   (`TwkApp.quitting`). It changes nothing, and answers whether
+  ///   `frameEvents` is on or not: the baseline a driver starts from.
   /// * `ext.twk.reassemble`: [reassemble]s the app, after a hot reload of
   ///   its code; nothing else.
   /// * `ext.twk.log`, `message`, `level` (`debug`, `info`, the default,
@@ -1007,6 +1014,8 @@ final class AppBinding implements FrameClock {
         };
       case 'ext.twk.flags':
         return debug._flags(params);
+      case 'ext.twk.status':
+        return debug._status();
       case 'ext.twk.reassemble':
         reassemble();
         return const {};
@@ -1966,10 +1975,11 @@ final class DebugAids {
   /// `TwkApp.inputRead`), `outputWritten` (the bytes accepted for the
   /// terminal), `inputPending`, `scheduled` and `frameDue` (a frame is
   /// asked for, and when it is due, in microseconds of the app's clock),
-  /// `time` (the app's clock) and `nextDue`, null: no timer of the app's
-  /// clock is known. Off by default; off, a frame's work gains a test of
-  /// this flag and the app arms no timer for input; on, a post, which does
-  /// nothing while no client listens to the `Extension` stream.
+  /// `time` (the app's clock), `nextDue`, null: no timer of the app's
+  /// clock is known, and `quitting` (`TwkApp.quitting`). Off by default;
+  /// off, a frame's work gains a test of this flag and the app arms no
+  /// timer for input; on, a post, which does nothing while no client
+  /// listens to the `Extension` stream.
   bool get frameEvents => _frameEvents;
   var _frameEvents = false;
   set frameEvents(bool on) {
@@ -2001,6 +2011,11 @@ final class DebugAids {
     AppBinding.postEvent('twk.input', _frameData(false, app.inputRead));
   }
 
+  /// What `ext.twk.status` answers: what `twk.frame` carries, now, with
+  /// [TwkApp.inputRead] sampled afresh; nothing is changed.
+  Map<String, Object?> _status() =>
+      _frameData(false, _binding.twkApp.sampleInput())..remove('drawn');
+
   Map<String, Object?> _frameData(bool drawn, int inputRead) {
     final app = _binding.twkApp;
     final terminal = app.terminal;
@@ -2008,6 +2023,7 @@ final class DebugAids {
       'version': AppBinding.serviceExtensionsVersion,
       'frame': app.framesRun,
       'drawn': drawn,
+      'quitting': app.quitting,
       'size': {'width': app.screen.width, 'height': app.screen.height},
       'inputRead': inputRead,
       'outputWritten': terminal is CountingBackend

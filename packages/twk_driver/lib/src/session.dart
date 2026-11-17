@@ -35,6 +35,7 @@ final class Seen {
     required this.scheduled,
     required this.frameDue,
     required this.time,
+    required this.quitting,
     required this.screen,
   });
 
@@ -74,6 +75,9 @@ final class Seen {
   /// The app's clock, in microseconds.
   final int time;
 
+  /// Whether the app said it was quitting.
+  final bool quitting;
+
   /// The screen at that boundary, as text.
   final String screen;
 
@@ -83,8 +87,9 @@ final class Seen {
 
 /// What an action returns: the frame it ended at and the screen.
 final class Step {
-  /// A step that ended at [frame].
-  const Step(this.frame, this.screen, this.seen);
+  /// A step that ended at [frame]; [exit] is how the app ended, when it
+  /// did.
+  const Step(this.frame, this.screen, this.seen, {this.exit});
 
   /// The number of frames the app had run.
   final int frame;
@@ -92,8 +97,14 @@ final class Step {
   /// The screen as text.
   final String screen;
 
-  /// The event the step ended at.
+  /// The last event seen: the one the step ended at.
   final Seen seen;
+
+  /// How the app ended, null while it runs. A step of an app that said it
+  /// was quitting (`press('q')`) comes back with it, as does every call
+  /// after: the same result each time. An app that ended unexpectedly is
+  /// an [AppEnded] instead.
+  final ExitResult? exit;
 }
 
 /// What the app left behind when it ended, as an end-to-end check wants
@@ -199,7 +210,8 @@ final class Session {
   final _history = <Seen>[];
   var _seq = 0;
   final _waiters = <_Waiter>[];
-  AppEnded? _ended;
+  ExitResult? _ended;
+  var _quitting = false;
   final _ending = Completer<int?>();
   var _outputDone = false;
   int? _exit;
@@ -243,7 +255,7 @@ final class Session {
         _onBytes,
         onDone: () {
           _outputDone = true;
-          _maybeEnd("the app's terminal ended");
+          _maybeEnd();
         },
       ),
     );
@@ -251,7 +263,7 @@ final class Session {
       _launched.exitCode.then((code) {
         _exit = code;
         _exited = true;
-        _maybeEnd('the app exited');
+        _maybeEnd();
       }),
     );
     final uri = await _race(_launched.serviceUri, 'the VM service address');
@@ -261,24 +273,15 @@ final class Session {
     unawaited(service.done.then((_) => _serviceClosed()));
     _subs.add(service.events.listen(_onEvent));
     await _call(service, 'flags', {'frameEvents': 'true'});
-    final answer = await _call(service, 'find', {
-      'finder': jsonEncode(const {
-        'first': {'text': ''},
-      }),
-    });
-    if ((answer['frame']! as int) == 0) {
-      await _until(
-        (s) => s.isFrame,
-        from: 0,
-        what: 'the first frame',
-      );
+    // where the app is: the boundary of the output the first frame ended
+    // at, whether a frame ran before the events were asked for or not
+    final status = await _call(service, 'status');
+    _queue.add(AppEvent('twk.input', status));
+    _drain();
+    if ((status['frame']! as int) == 0) {
+      await _until((s) => s.isFrame, from: 0, what: 'the first frame');
     } else {
-      // A frame ran before the events were asked for: another is, to have
-      // a boundary of the app's output to start from.
-      // See Session.start's note on drv-clock, whose status gives it.
-      final from = _seq;
-      await _call(service, 'reassemble');
-      await _until((s) => s.isFrame, from: from, what: 'the first frame');
+      await _until((_) => true, from: 0, what: 'the first screen');
     }
   }
 
@@ -319,7 +322,7 @@ final class Session {
       final written = d['outputWritten'];
       if (written is! int) {
         _queue.removeFirst();
-        _fail(
+        _finish(
           'the app counts none of its output (its terminal is not a '
           'CountingBackend)',
         );
@@ -345,7 +348,7 @@ final class Session {
         seq: _seq++,
         kind: e.kind,
         frame: d['frame']! as int,
-        drawn: d['drawn']! as bool,
+        drawn: d['drawn'] as bool? ?? false,
         width: w,
         height: h,
         inputRead: d['inputRead']! as int,
@@ -354,8 +357,12 @@ final class Session {
         scheduled: d['scheduled']! as bool,
         frameDue: d['frameDue'] as int?,
         time: d['time']! as int,
+        quitting: d['quitting'] as bool? ?? false,
         screen: _screen.frame.text,
       );
+      if (seen.quitting) {
+        _quitting = true;
+      }
       _history.add(seen);
       if (_history.length > 256) {
         _history.removeRange(0, 128);
@@ -372,43 +379,60 @@ final class Session {
   /// for its exit code, before the end is reported without it.
   static const _exitGrace = Duration(seconds: 2);
 
+  var _serviceDone = false;
+  Timer? _grace;
+
   void _serviceClosed() {
+    _serviceDone = true;
     if (_exited) {
-      return;
+      _maybeEnd();
+    } else if (!_quitting) {
+      // an app that ends closes its service first: its exit code follows
+      _grace ??= _ports.clock.timer(_exitGrace, () {
+        _finish("the app's VM service closed");
+      });
     }
-    // an app that ends closes its service first: its exit code follows
-    final timer = _ports.clock.timer(_exitGrace, () {
-      _fail("the app's VM service closed");
-    });
-    unawaited(_launched.exitCode.then((_) => timer.cancel()));
+    // an app that said it was quitting is waited for as long as it takes
   }
 
-  void _maybeEnd(String reason) {
+  void _maybeEnd() {
     if (!_exited || !_outputDone) {
       return;
     }
+    if (_service != null && !_serviceDone) {
+      // its last events come before the service closes: they say whether
+      // the app was quitting
+      _grace ??= _ports.clock.timer(_exitGrace, _finishExited);
+      return;
+    }
+    _finishExited();
+  }
+
+  void _finishExited() {
     // everything the app wrote is on the screen it leaves
     final rest = _log.rawLength;
     if (rest > _fed) {
       _screen.feedFrame(_log.slice(_fed, rest));
       _fed = rest;
     }
-    _fail(_closing ? 'the app was closed' : 'the app exited');
+    _finish(_closing ? 'the app was closed' : 'the app exited');
   }
 
-  void _fail(String reason) {
+  void _finish(String reason) {
     if (_ended != null) {
       return;
     }
-    final ended = _ended = AppEnded(
-      reason,
-      exitCode: _exit,
+    _grace?.cancel();
+    final ended = _ended = ExitResult(
+      code: _exit,
       screen: _screen.frame.text,
       log: const [],
+      expected: _quitting || _closing,
+      reason: reason,
     );
     _ending.complete(_exit);
     for (final waiter in [..._waiters]) {
-      waiter.fail(ended);
+      waiter.fail(AppEnded(ended));
     }
   }
 
@@ -428,7 +452,7 @@ final class Session {
     );
     _waiters.add(waiter);
     if (_ended case final e?) {
-      waiter.fail(e);
+      waiter.fail(AppEnded(e));
     }
     unawaited(
       future.then(
@@ -499,7 +523,7 @@ final class Session {
     _waiters.add(waiter);
     done.future.whenComplete(() => _waiters.remove(waiter)).ignore();
     if (_ended case final e?) {
-      waiter.fail(e);
+      waiter.fail(AppEnded(e));
     } else {
       // events seen since [from] that are held already
       for (final s in _history) {
@@ -518,38 +542,78 @@ final class Session {
     required int from,
     (int, int)? size,
   }) async {
-    var seen = await _until(
-      (s) =>
-          s.inputRead >= target &&
-          !s.inputPending &&
-          (size == null || (s.width, s.height) == size),
-      from: from,
-      what: 'the frame that takes the input in',
-    );
-    if (!seen.isFrame && seen.scheduled) {
-      seen = await _until(
-        (s) => s.isFrame && s.inputRead >= target,
-        from: seen.seq + 1,
-        what: 'the frame the input asked for',
+    try {
+      var seen = await _until(
+        (s) =>
+            s.inputRead >= target &&
+            !s.inputPending &&
+            (size == null || (s.width, s.height) == size),
+        from: from,
+        what: 'the frame that takes the input in',
       );
+      if (!seen.isFrame && seen.scheduled) {
+        seen = await _until(
+          (s) => s.isFrame && s.inputRead >= target,
+          from: seen.seq + 1,
+          what: 'the frame the input asked for',
+        );
+      }
+      if (seen.quitting) {
+        // the app said it is quitting: its exit is the answer
+        await _until(
+          (_) => false,
+          from: seen.seq + 1,
+          what: 'the app that said it is quitting to exit',
+        );
+      }
+      return Step(seen.frame, seen.screen, seen);
+    } on AppEnded catch (e) {
+      if (e.expected) {
+        return _exitStep(e.result);
+      }
+      rethrow;
     }
-    return Step(seen.frame, seen.screen, seen);
+  }
+
+  Step _exitStep(ExitResult result) => Step(
+    _history.isEmpty ? 0 : _history.last.frame,
+    result.screen,
+    _history.last,
+    exit: result,
+  );
+
+  /// The step of an app that has ended as it said it would; the error of
+  /// one that did not; null while it runs.
+  Step? _afterEnd() {
+    final ended = _ended;
+    if (ended == null) {
+      return null;
+    }
+    if (!ended.expected) {
+      throw AppEnded(ended);
+    }
+    return _exitStep(ended);
   }
 
   Future<Step> _act(List<List<int>> writes) async {
-    _checkOpen();
+    if (_afterEnd() case final step?) {
+      return step;
+    }
     Step? step;
     for (final bytes in writes) {
       final from = _seq;
       _write(bytes);
       step = await _settled(_written, from: from);
+      if (step.exit != null) {
+        return step;
+      }
     }
     return step ?? Step(frame, _screen.frame.text, _history.last);
   }
 
   void _checkOpen() {
     if (_ended case final e?) {
-      throw e;
+      throw AppEnded(e);
     }
   }
 
@@ -559,8 +623,9 @@ final class Session {
   /// by spaces (`ctrl+s`, `shift+tab`, `g g`), in the bytes the app's
   /// modes ask for. Returns once the app has drawn the frame of each, the
   /// last one's step. A [DriverError] for a key the app's modes give no
-  /// bytes for, and [AppEnded] where the app ended first (`press('q')` on
-  /// an app that quits).
+  /// bytes for. Where the app says it is quitting (`press('q')`), the step
+  /// waits for its exit and has it as `exit`: the app exited (0); an
+  /// [AppEnded] where the app ended without having said so.
   Future<Step> press(String keys) {
     final writes = <List<int>>[];
     for (final combo in KeyCombo.parseSequence(keys)) {
@@ -583,8 +648,10 @@ final class Session {
 
   /// Sets the terminal's size and returns once the app has drawn a frame at
   /// it.
-  Future<Step> resize(int width, int height) {
-    _checkOpen();
+  Future<Step> resize(int width, int height) async {
+    if (_afterEnd() case final step?) {
+      return step;
+    }
     final from = _seq;
     _screen.resizeAnswering(width, height);
     _terminal.resize(width, height);
@@ -655,6 +722,9 @@ final class Session {
   /// there reaches it (part 6 of DESIGN.md): its middle cell, down and up,
   /// the app's frame awaited as for a key.
   Future<Step> tap(ElementFinder finder) async {
+    if (_afterEnd() case final step?) {
+      return step;
+    }
     final target = await findOne(finder);
     final shown = target.shown;
     if (shown == null) {

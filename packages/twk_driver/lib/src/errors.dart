@@ -18,28 +18,74 @@ class DriverError implements Exception {
   String toString() => message;
 }
 
-/// A wait that ended because the app did: its process exited, its
-/// terminal ended, or its VM service closed. Not a timeout.
-final class AppEnded extends DriverError {
-  /// The end of an app: [reason] says which, [exitCode] is the code when
-  /// the process exited, [screen] and [log] what was last seen.
-  AppEnded(
-    String reason, {
-    required this.exitCode,
+/// How an app ended, and what was last seen of it.
+final class ExitResult {
+  /// An end: the process's [code] (null where it is not known), the last
+  /// [screen] as text, the last log records ([log]), whether it was
+  /// [expected] (the app said it was quitting, or the driver closed it) and
+  /// how it [reason] came to be known.
+  const ExitResult({
+    required this.code,
     required this.screen,
     required this.log,
-  }) : super(
-         '$reason${exitCode == null ? '' : ' ($exitCode)'}\n'
-         'screen at the end:\n$screen'
-         '${log.isEmpty ? '' : '\nlast log records:\n${log.join('\n')}'}',
-       );
+    required this.expected,
+    required this.reason,
+  });
 
-  /// The exit code of the process, null while it is not known.
-  final int? exitCode;
+  /// The exit code of the process, null where it is not known.
+  final int? code;
 
   /// The screen as the frames showed it last, as text.
   final String screen;
 
   /// The last log records the app wrote, as text lines.
   final List<String> log;
+
+  /// Whether the app quit as it said it would (`quitting` in its last
+  /// acknowledgement) or the driver closed it, and did not fail.
+  final bool expected;
+
+  /// What ended: `the app exited`, `the app's terminal ended`, `the app's
+  /// VM service closed`.
+  final String reason;
+
+  /// `the app exited (0)`, or `the app exited unexpectedly (1)` where the
+  /// app did not say it was quitting.
+  String get message =>
+      '${expected ? reason : '$reason unexpectedly'}'
+      '${code == null ? '' : ' ($code)'}';
+
+  @override
+  String toString() => message;
+}
+
+/// A wait that ended because the app did: its process exited, its
+/// terminal ended, or its VM service closed. Not a timeout. Thrown where
+/// the app ended without saying it was quitting ([expected] false) and by
+/// calls that have no step to return it in.
+final class AppEnded extends DriverError {
+  /// The end [result] of an app, with the screen and log it left.
+  AppEnded(this.result)
+    : super(
+        '${result.message}\n'
+        'screen at the end:\n${result.screen}${_logOf(result.log)}',
+      );
+
+  static String _logOf(List<String> log) =>
+      log.isEmpty ? '' : '\nlast log records:\n${log.join('\n')}';
+
+  /// How it ended.
+  final ExitResult result;
+
+  /// The exit code of the process, null while it is not known.
+  int? get exitCode => result.code;
+
+  /// The screen as the frames showed it last, as text.
+  String get screen => result.screen;
+
+  /// The last log records the app wrote, as text lines.
+  List<String> get log => result.log;
+
+  /// Whether the app said it was quitting.
+  bool get expected => result.expected;
 }

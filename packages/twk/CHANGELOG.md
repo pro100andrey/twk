@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Added:
+
+- `ext.twk.status`: where the app is, as `twk.frame` carries it (without
+  `drawn`), `inputRead` sampled afresh, nothing changed: the baseline a
+  driver starts from. `twk.frame`, `twk.input` and it carry `quitting`
+  (`TwkApp.quitting`).
+
 Breaking:
 
 - The default theme is the terminal's own colors: without a `Theme`,

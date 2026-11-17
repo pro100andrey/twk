@@ -762,6 +762,13 @@ final class TwkApp {
       failure = error;
       failureStack = stack;
     }
+    // what a driver is to be told of the end (`quitting`) goes before the
+    // terminal is closed, from which the process soon ends
+    if (_settleTimer != null) {
+      final settled = Completer<void>();
+      Zone.root.createTimer(Duration.zero, settled.complete);
+      await settled.future;
+    }
     await step('the input was not cancelled', () => _input?.cancel());
     if (!_suspended) {
       await step('the screen was not left', () async {
@@ -832,9 +839,18 @@ final class TwkApp {
   /// terminal is handed back. Calling it again does nothing.
   void quit() {
     if (!_done.isCompleted) {
+      _quitting = true;
       _done.complete();
+      // a driver is told the app is quitting, though nothing was read
+      _settleSoon();
     }
   }
+
+  /// Whether [quit] was called: the app ends once its frame, if one runs,
+  /// is done, and the terminal handed back. What a driver (`twk_driver`)
+  /// reads to tell an app that quits from one that fails.
+  bool get quitting => _quitting;
+  var _quitting = false;
 
   /// A default color or palette entry the terminal reported (OSC 10, 11
   /// or 4, asked again after its color scheme changed) is what colors with

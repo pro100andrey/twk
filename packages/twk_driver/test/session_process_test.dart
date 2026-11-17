@@ -88,21 +88,17 @@ void main() {
     expect(s.screen.width, 100);
   });
 
-  test('press q on an app that quits: its exit is 0 and it left its '
-      'terminal as it found it', () async {
+  test('press q on an app that quits: the step is the app exited (0), '
+      'it left its terminal as it found it, and every call after says the '
+      'same', () async {
     final s = await start();
-    // the app acknowledges the key before it ends: the step comes back
-    await s.press('q');
+    final step = await s.press('q');
+    expect(step.exit, isNotNull);
+    expect(step.exit!.message, 'the app exited (0)');
+    expect(step.exit!.code, 0);
     expect(await s.exitCode, 0);
-    // from then on every wait is the app's end, not a timeout
-    await expectLater(
-      s.press('up'),
-      throwsA(
-        isA<AppEnded>()
-            .having((e) => e.exitCode, 'exitCode', 0)
-            .having((e) => e.message, 'message', contains('exited (0)')),
-      ),
-    );
+    final again = await s.press('up');
+    expect(identical(again.exit, step.exit), isTrue);
     final report = await s.close();
     expect(report.exitedByItself, isTrue);
     expect(report.problems, isEmpty);
