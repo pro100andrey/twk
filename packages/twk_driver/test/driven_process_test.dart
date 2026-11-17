@@ -84,6 +84,15 @@ final class _StoppableTerminal implements TerminalPort {
   Uint8List? get modesAtEnd => _inner.modesAtEnd;
 }
 
+/// The bound of what these tests wait for on real time, which is I/O the
+/// driver's clock cannot move: a process start (a compiled app, seconds on
+/// a loaded machine: a full handover on s1 runs at a load of 40-60) plus
+/// the app terminal's own limits, 1 s of flush and 5 s blind
+/// (`_closeFlushLimit`, `_closeBlindLimit` of twk_core's terminal), and
+/// the output's 2 ms retries. The product limits stay as they are; this is
+/// the bound of the wait, which fails with a message when nothing comes.
+const _realTimeBound = Duration(seconds: 90);
+
 void main() {
   late String app;
   setUpAll(
@@ -254,13 +263,15 @@ void main() {
     final s = await Session.start(
       ProcessSpec(app, arguments: const ['--quiet']),
       ports: SessionPorts(process: port),
-      timeout: const Duration(seconds: 30),
+      timeout: _realTimeBound,
     );
     addTearDown(s.close);
     port.terminal
       ..stop()
       // 400 kB the pseudo-terminal does not hold
       ..write('x'.codeUnits);
+    // press waits for the frame within the session's real-time bound: the
+    // app's writes are retried every 2 ms until the terminal reads again
     final press = s.press('u');
     port.terminal.resume();
     expect((await press).screen, contains('ups: 1'));
@@ -273,7 +284,7 @@ void main() {
     final s = await Session.start(
       ProcessSpec(app, arguments: const ['--quiet']),
       ports: SessionPorts(process: port),
-      timeout: const Duration(seconds: 30),
+      timeout: _realTimeBound,
     );
     addTearDown(s.close);
     port.terminal.stop();
@@ -286,7 +297,7 @@ void main() {
       'the app to end though nothing reads its terminal',
       // the close guards of the app's terminal run on real time: up to 1 s
       // (flush) and 5 s (blind), after an app start under a loaded machine
-      timeout: const Duration(seconds: 30),
+      timeout: _realTimeBound,
     );
     expect(code, 0);
   });
