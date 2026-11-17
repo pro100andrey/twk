@@ -198,7 +198,10 @@ final class BlockImage {
     return BlockImage._(columns, rows, List.unmodifiable(cells));
   }
 
-  BlockImage._(this.columns, this.rows, this.cells);
+  BlockImage._(this.columns, this.rows, this.cells)
+    : glyphs = List.unmodifiable([
+        for (final cell in cells) cell.glyph.runes.first,
+      ]);
 
   /// The cells it takes across.
   final int columns;
@@ -208,6 +211,10 @@ final class BlockImage {
 
   /// The cells, row by row.
   final List<BlockCell> cells;
+
+  /// The code point of each cell's [BlockCell.glyph], row by row: what a
+  /// paint draws, without taking it from the string each time.
+  final List<int> glyphs;
 
   /// The cell at [column] and [row], from the top left.
   BlockCell cellAt(int column, int row) => cells[row * columns + column];

@@ -38,6 +38,30 @@ void main() {
       ]);
     });
 
+    test("glyphs are the code points of the cells, braille's included", () {
+      final image = Bitmap(4, 4);
+      for (var y = 0; y < 4; y++) {
+        for (var x = 0; x < 4; x++) {
+          image.setPixel(x, y, (x + y).isEven ? 0xFFFF0000 : 0x00000000);
+        }
+      }
+      for (final mode in [
+        BlockMode.half,
+        BlockMode.braille,
+        BlockMode.octant,
+      ]) {
+        final blocks = BlockImage.fromPixels(image, mode: mode);
+        expect(blocks.glyphs.length, blocks.cells.length);
+        for (var i = 0; i < blocks.cells.length; i++) {
+          expect(
+            blocks.glyphs[i],
+            blocks.cells[i].glyph.runes.first,
+            reason: '$mode cell $i',
+          );
+        }
+      }
+    });
+
     test('leaves the lower half of the last row undrawn', () {
       final blocks = BlockImage.fromPixels(
         _bitmap([
