@@ -806,12 +806,16 @@ final class Session {
 
   // --------------------------------------------------------------- waits --
 
-  /// The first event seen from number [from] on that [test] accepts.
+  /// The first event seen from number [from] on that [test] accepts, or
+  /// the failure of a wait that lasts [within] (the session's [timeout]
+  /// where not given) of the driver's clock: each wait has its own bound.
   Future<Seen> _until(
     bool Function(Seen) test, {
     required int from,
     required String what,
+    Duration? within,
   }) {
+    final bound = within ?? timeout;
     final done = Completer<Seen>();
     late final Timer timer;
     final waiter = _Waiter(
@@ -831,11 +835,11 @@ final class Session {
         }
       },
     );
-    timer = _clock.timer(timeout, () {
+    timer = _clock.timer(bound, () {
       if (!done.isCompleted) {
         done.completeError(
           DriverError(
-            "no $what within $timeout of the driver's clock; the app has "
+            "no $what within $bound of the driver's clock; the app has "
             'not answered. Screen at frame $frame:\n${_screen.frame.text}',
           ),
         );
@@ -1197,16 +1201,17 @@ final class Session {
   /// The first event from number [from] on, or null once [within] has
   /// passed on the driver's clock.
   Future<Seen?> _eventWithin(int from, Duration within, String what) async {
-    final saved = timeout;
-    timeout = within;
     try {
-      return await _until((_) => true, from: from, what: what);
+      return await _until(
+        (_) => true,
+        from: from,
+        what: what,
+        within: within,
+      );
     } on AppEnded {
       rethrow;
     } on DriverError {
       return null;
-    } finally {
-      timeout = saved;
     }
   }
 
@@ -1280,19 +1285,14 @@ final class Session {
     required Duration timeout,
     required String what,
   }) async {
-    final saved = this.timeout;
-    this.timeout = timeout;
-    try {
-      final from = _history.isEmpty ? 0 : _history.last.seq;
-      final seen = await _until(
-        (s) => test(s.screen),
-        from: from,
-        what: what,
-      );
-      return Step(seen.frame, seen.screen, seen);
-    } finally {
-      this.timeout = saved;
-    }
+    final from = _history.isEmpty ? 0 : _history.last.seq;
+    final seen = await _until(
+      (s) => test(s.screen),
+      from: from,
+      what: what,
+      within: timeout,
+    );
+    return Step(seen.frame, seen.screen, seen);
   }
 
   // ---------------------------------------------------------------- tree --

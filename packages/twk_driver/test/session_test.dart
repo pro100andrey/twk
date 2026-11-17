@@ -411,6 +411,42 @@ void main() {
       await t.session.close();
     });
 
+    test('two concurrent waits end each at its own deadline and leave the '
+        "session's timeout as it was", () async {
+      final t = await started();
+      Object? short;
+      Object? long;
+      final a = t.session
+          .waitForScreen(
+            (s) => s.contains('never'),
+            timeout: const Duration(seconds: 3),
+            what: 'the short one',
+          )
+          .then<void>((_) {}, onError: (Object e) => short = e);
+      final b = t.session
+          .waitForScreen(
+            (s) => s.contains('never'),
+            timeout: const Duration(seconds: 10),
+            what: 'the long one',
+          )
+          .then<void>((_) {}, onError: (Object e) => long = e);
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 3));
+      await pumpEventQueue();
+      expect(short, isA<DriverError>());
+      expect(long, isNull);
+      t.clock.advance(const Duration(seconds: 7));
+      await pumpEventQueue();
+      expect(
+        long,
+        isA<DriverError>().having((e) => e.message, 'message', contains('10')),
+      );
+      await Future.wait([a, b]);
+      // each wait's bound was its own: the session's was never lent
+      expect(t.session.timeout, const Duration(seconds: 5));
+      await t.session.close();
+    });
+
     test('a waitFor predicate that throws on a later frame fails that wait '
         'with its error, at once', () async {
       final t = await started();

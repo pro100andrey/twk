@@ -4,6 +4,10 @@
 
 Fixed:
 
+- Two waits at once (`waitFor`, `waitForScreen`, a press) each end at their
+  own deadline: a wait lent the session's `timeout` to itself and put it
+  back when it ended, so a second wait overwrote the first's bound and the
+  session kept the wrong one; the bound is now the wait's own.
 - A wait on an app that never reads its input, or is not quiet yet has no
   timer, failed never (`waitFor` looped for ever on the driver's clock);
   it fails after the session's timeout, naming what did not happen, with the
