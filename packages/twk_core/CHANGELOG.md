@@ -11,6 +11,10 @@ Breaking:
 
 Changed:
 
+- `KeyEvent ==` and `hashCode` leave `baseChar` out (it says which key a
+  layout's character is on, not which key it is), so `key == ctrlC` holds
+  on a Russian layout too; `kittyCode` shares a field with `modifiers`,
+  which keeps `KeyEvent` as cheap to make as before it.
 - What a driven app's zone must not hold stays on real time: a terminal's
   resume and close guards run in the zone the terminal was made in, the
   output's retries in the zone it was opened in, the log server's token

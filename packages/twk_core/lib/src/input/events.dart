@@ -324,7 +324,9 @@ enum KeyKind {
 ///
 /// Text typed comes as one event per grapheme cluster; a key that types
 /// text with Shift (no other modifier) is the text it types, `A`, without
-/// [Mod.shift]. Two events are equal when every field is.
+/// [Mod.shift]. Two events are equal when their [code], [char],
+/// [modifiers], [kittyCode] and [kind] are: the [baseChar] a terminal adds
+/// does not tell keys apart, so `key == ctrlC` holds on any layout.
 ///
 /// ```dart
 /// const ctrlC = KeyEvent(KeyCode.char, char: 'c', modifiers: Mod.ctrl);
@@ -349,11 +351,11 @@ final class KeyEvent extends InputEvent {
   const KeyEvent(
     this.code, {
     this.char = '',
-    this.modifiers = 0,
+    int modifiers = 0,
     this.kind = KeyKind.press,
     this.baseChar = '',
-    this.kittyCode = 0,
-  });
+    int kittyCode = 0,
+  }) : _bits = modifiers | kittyCode << 8;
 
   /// The key.
   final KeyCode code;
@@ -362,8 +364,13 @@ final class KeyEvent extends InputEvent {
   /// other keys.
   final String char;
 
+  // The modifiers in the low byte, the kitty code above it: one field for
+  // both keeps a KeyEvent as small as before the kitty code (the keys
+  // benchmark decodes thousands of them).
+  final int _bits;
+
   /// The [Mod] bits of the modifier keys held, 0 for none.
-  final int modifiers;
+  int get modifiers => _bits & 0xFF;
 
   /// Whether the key went down, repeats or came up; [KeyKind.press] where
   /// the terminal doesn't tell.
@@ -381,7 +388,7 @@ final class KeyEvent extends InputEvent {
   /// Which key of [KeyCode.modifier], [KeyCode.lock] or [KeyCode.media] it
   /// is, as the kitty keyboard protocol numbers them ([KittyKey]); 0 for
   /// the other keys.
-  final int kittyCode;
+  int get kittyCode => _bits >> 8;
 
   /// The name kitty gives the key [kittyCode] is in lower case
   /// (`left_shift`, `caps_lock`, `media_play_pause`); null for the other
@@ -402,14 +409,11 @@ final class KeyEvent extends InputEvent {
       other is KeyEvent &&
       other.code == code &&
       other.char == char &&
-      other.modifiers == modifiers &&
-      other.kind == kind &&
-      other.baseChar == baseChar &&
-      other.kittyCode == kittyCode;
+      other._bits == _bits &&
+      other.kind == kind;
 
   @override
-  int get hashCode =>
-      Object.hash(code, char, modifiers, kind, baseChar, kittyCode);
+  int get hashCode => Object.hash(code, char, _bits, kind);
 
   @override
   String toString() {

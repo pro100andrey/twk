@@ -27,6 +27,10 @@ KeyEvent key(
 KeyEvent char(String c, {int mods = 0, KeyKind kind = KeyKind.press}) =>
     key(KeyCode.char, char: c, mods: mods, kind: kind);
 
+List<String> bases(String s) => [
+  for (final e in parse(s)) (e as KeyEvent).baseChar,
+];
+
 const KeyKind repeat = KeyKind.repeat;
 const KeyKind release = KeyKind.release;
 
@@ -158,6 +162,16 @@ void main() {
           ),
         ],
       );
+      // == leaves the base key out, so it is read apart
+      expect(
+        bases('\x1b[97:65;6u\x1b[97;3;97u\x1b[1089::99;5u\x1b[97:65:97;10u'),
+        [
+          '',
+          '',
+          'c',
+          'a',
+        ],
+      );
     });
 
     test('the base layout key of a key is the one a US layout types: Ctrl '
@@ -186,6 +200,11 @@ void main() {
           ),
         ],
       );
+      expect(bases('\x1b[1099::121;5u\x1b[1089:1057:99;6u\x1b[952::104;5:3u'), [
+        'y',
+        'c',
+        'h',
+      ]);
     });
 
     test('a base key that is no character is none', () {
@@ -300,12 +319,50 @@ void main() {
       }
     });
 
+    test('the base layout key is no part of == or hashCode, the kitty code '
+        'is', () {
+      const ctrlC = KeyEvent(KeyCode.char, char: 'c', modifiers: Mod.ctrl);
+      const onRussian = KeyEvent(
+        KeyCode.char,
+        char: 'c',
+        modifiers: Mod.ctrl,
+        baseChar: 'c',
+      );
+      const other = KeyEvent(
+        KeyCode.char,
+        char: 'c',
+        modifiers: Mod.ctrl,
+        baseChar: 'x',
+      );
+      expect(onRussian, ctrlC);
+      expect(onRussian.hashCode, ctrlC.hashCode);
+      expect(other, onRussian);
+      expect(parse('\x1b[99::99;5u').single, ctrlC);
+      expect(
+        const KeyEvent(KeyCode.lock, kittyCode: KittyKey.capsLock) ==
+            const KeyEvent(KeyCode.lock, kittyCode: KittyKey.numLock),
+        isFalse,
+      );
+    });
+
     test('a kitty code tells two keys of one family apart', () {
       final a = key(KeyCode.modifier, kitty: KittyKey.leftShift);
       final b = key(KeyCode.modifier, kitty: KittyKey.rightShift);
       expect(a == b, isFalse);
       expect(a.hashCode == b.hashCode, isFalse);
       expect(a.toString(), 'Key(modifier:left_shift)');
+      // the code and the modifiers share a field, and stay apart
+      final c = key(
+        KeyCode.modifier,
+        mods: Mod.ctrl | Mod.superKey,
+        kitty: KittyKey.isoLevel5Shift,
+      );
+      expect(c.modifiers, Mod.ctrl | Mod.superKey);
+      expect(c.kittyCode, KittyKey.isoLevel5Shift);
+      expect(
+        c == key(KeyCode.modifier, mods: Mod.ctrl, kitty: c.kittyCode),
+        isFalse,
+      );
     });
   });
 

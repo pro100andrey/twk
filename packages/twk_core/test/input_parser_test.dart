@@ -496,6 +496,10 @@ void main() {
     expect(parse('\x1b[97:65:97;2u'), [
       const KeyEvent(KeyCode.char, char: 'A', baseChar: 'a'),
     ]);
+    expect(
+      (parse('\x1b[97:65:97;2u').single as KeyEvent).baseChar,
+      'a',
+    );
     expect(parse('\x1b[97;2u'), [
       const KeyEvent(KeyCode.char, char: 'a', modifiers: Mod.shift),
     ]);
