@@ -56,6 +56,12 @@ final class DrivenClock implements Clock {
   /// the time it still has.
   void Function()? beforeMove;
 
+  /// Called when the timers that wait change from outside a move: one is
+  /// started or cancelled, or the clock woke itself and ran what was due.
+  /// Not while the clock moves ([advance] and its kin), whose caller sees
+  /// the result. While null, a timer pays one test of it.
+  void Function()? onChange;
+
   /// How many timers wait, periodic ones included.
   int get pendingTimers => _timers.length;
 
@@ -91,6 +97,7 @@ final class DrivenClock implements Clock {
     if (wakesItself && !_moving && timer._due <= _now && _wake == null) {
       _wake = Zone.root.createTimer(Duration.zero, _wakeUp);
     }
+    _changed();
     return timer;
   }
 
@@ -98,6 +105,13 @@ final class DrivenClock implements Clock {
     _wake = null;
     if (!_moving) {
       _run(() => _fireUntil(_now));
+      _changed();
+    }
+  }
+
+  void _changed() {
+    if (!_moving) {
+      onChange?.call();
     }
   }
 
@@ -280,7 +294,11 @@ final class _DrivenTimer implements Timer {
   bool get isActive => _clock._timers.contains(this);
 
   @override
-  void cancel() => _clock._timers.remove(this);
+  void cancel() {
+    if (_clock._timers.remove(this)) {
+      _clock._changed();
+    }
+  }
 
   void _fire() {
     _tick++;

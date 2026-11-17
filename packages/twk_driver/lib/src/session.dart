@@ -45,7 +45,7 @@ final class Seen {
   /// Its place among the events seen, from 0.
   final int seq;
 
-  /// `twk.frame` or `twk.input`.
+  /// `twk.frame`, `twk.input` or `twk.scheduled`.
   final String kind;
 
   /// How many frames the app had run.
@@ -570,7 +570,9 @@ final class Session {
   }
 
   void _onEvent(AppEvent event) {
-    if (event.kind == 'twk.frame' || event.kind == 'twk.input') {
+    if (event.kind == 'twk.frame' ||
+        event.kind == 'twk.input' ||
+        event.kind == 'twk.scheduled') {
       _queue.add(event);
       _drain();
     }
@@ -1062,11 +1064,12 @@ final class Session {
           final left = end - _clock.elapsedMicroseconds;
           if (left > 0) {
             // what comes in from outside (a child's answer, a socket) asks
-            // for a frame the app's clock has not reached: no event says
-            // so, the status does, so it is looked at every so often
+            // for a frame the app's clock has not reached: the app says so
+            // with a `twk.scheduled` event, which ends this wait; none,
+            // and it ends with the io time, on the driver's clock
             await _eventWithin(
               seen.seq + 1,
-              Duration(microseconds: math.min(left, _ioPoll.inMicroseconds)),
+              Duration(microseconds: left),
               what,
             );
             continue;
@@ -1100,10 +1103,6 @@ final class Session {
       'Screen at frame $frame:\n$screen',
     );
   }
-
-  /// How often a quiet app that is waited on for I/O is asked where it is,
-  /// in time of the driver's clock.
-  static const _ioPoll = Duration(milliseconds: 50);
 
   /// The first event from number [from] on, or null once [within] has
   /// passed on the driver's clock.

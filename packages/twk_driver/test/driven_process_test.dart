@@ -284,6 +284,9 @@ void main() {
     final code = await waitFor(
       port.launched.exitCode,
       'the app to end though nothing reads its terminal',
+      // the close guards of the app's terminal run on real time: up to 1 s
+      // (flush) and 5 s (blind), after an app start under a loaded machine
+      timeout: const Duration(seconds: 30),
     );
     expect(code, 0);
   });

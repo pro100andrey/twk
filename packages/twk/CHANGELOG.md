@@ -4,6 +4,12 @@
 
 Added:
 
+- `twk.scheduled` (`frameEvents` on, a driven clock): the payload of
+  `twk.input`, posted once per turn of the event loop when a timer of the
+  clock is started or cancelled outside a move of the clock and outside input
+  (`DrivenClock.onChange`), a frame asked for among them: what a child's
+  answer does on a clock that stands. An app that is not driven or has
+  `frameEvents` off posts none.
 - `twk.frame` carries `stats` (`micros`, `build`, `layout`, `paint`,
   `present`, `bytes`, from `TwkApp.stats`) for a drawn frame, null for an
   undrawn one; built only while `frameEvents` is on. `twk.input` and

@@ -384,6 +384,66 @@ void main() {
       await t.session.close();
     });
 
+    test('a quiet app waited on with io: what asks for a frame from outside '
+        'says so with twk.scheduled, and the wait goes on to that frame, '
+        'with no poll and no move of the driver clock', () async {
+      final t = await started();
+      final wait = t.session.waitFor(
+        (s) => s.contains('late'),
+        io: const Duration(seconds: 3),
+      );
+      await pumpEventQueue();
+      final before = t.clock.elapsedMicroseconds;
+      t.service.onMove = (time) {
+        if (time >= 1000) {
+          t.process.launched.terminal.app('late');
+          t.service.frame(frame: 2, inputRead: 0, outputWritten: 9);
+        }
+      };
+      // a child's answer: a frame is asked for a gap after the last
+      t.service
+        ..timers.add(1000)
+        ..scheduled = true
+        ..frameDue = 1000
+        ..scheduledEvent();
+      expect((await wait).frame, 2);
+      expect(
+        t.clock.elapsedMicroseconds,
+        before,
+        reason: 'no time of the driver passed',
+      );
+      await t.session.close();
+    });
+
+    test('without the event the io wait does not notice what the app asked '
+        'for until the io time is out, on the driver clock', () async {
+      final t = await started();
+      var done = false;
+      final wait = t.session.waitFor(
+        (s) => s.contains('late'),
+        io: const Duration(seconds: 3),
+      );
+      unawaited(wait.then((_) => done = true, onError: (_) => done = true));
+      await pumpEventQueue();
+      t.service.onMove = (time) {
+        if (time >= 1000) {
+          t.process.launched.terminal.app('late');
+          t.service.frame(frame: 2, inputRead: 0, outputWritten: 9);
+        }
+      };
+      // asked for, and nothing said
+      t.service
+        ..timers.add(1000)
+        ..scheduled = true
+        ..frameDue = 1000;
+      await pumpEventQueue();
+      expect(done, isFalse);
+      expect(t.service.calls.where((c) => c.contains('advance')), isEmpty);
+      t.clock.advance(const Duration(seconds: 3));
+      expect((await wait).frame, 2);
+      await t.session.close();
+    });
+
     test(
       'waitFor returns the screen shown now without moving anything',
       () async {

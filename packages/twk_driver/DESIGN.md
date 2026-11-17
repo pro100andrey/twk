@@ -68,7 +68,7 @@ Made with the user on 2026-11-12, after a review of precedents (part 11):
  adapters       twk_term Pty   twk_term TerminalEmulator  VmAppClient   Pty spawn of
                                (+ twk_test Vt checker)    (vm_service)  `dart run` / kernel
                          \______ bytes through the pty ___/   JSON over the VM service
- app            AppBinding: ext.twk.* (+ find, hitTest, clock), twk.frame / twk.input,
+ app            AppBinding: ext.twk.* (+ find, hitTest, clock), twk.frame / twk.input / twk.scheduled,
                 DrivenClock under TWK_DRIVEN; TwkApp/Terminal: byte counters
 ```
 
@@ -612,10 +612,16 @@ that I/O cannot be seen, so a false "never" explains itself.
 
 What comes in from outside asks for a frame the app's clock does not reach:
 a child's answer calls `setState`, and the frame is due a gap after the
-last, on a clock that stands. No event says so, so a quiet app that is
-waited on with `io` is asked for its `ext.twk.clock` status every 50 ms of
-the driver's clock (`Session._ioPoll`); once it is not quiet (a frame is
-asked for) the wait goes on as for any app, advancing to what is due.
+last, on a clock that stands. The app says so: it posts `twk.scheduled`
+(the payload of `twk.input`) when, with `frameEvents` on and a driven
+clock, a timer of the clock is started or cancelled (a frame asked for is
+one) outside a move of the clock and outside input, once per turn of the
+event loop (a root-zone timer, as for `twk.input`; `DrivenClock.onChange`).
+A quiet app that is waited on with `io` waits for an event, up to the io
+time on the driver's clock: no poll, no timer of the driver's. The event
+ends that wait, and once the app is not quiet (a frame is asked for) the
+wait goes on as for any app, advancing to what is due. An app that is not
+driven, or has `frameEvents` off, posts none and pays nothing.
 
 ## 5. Finders as data (`ext.twk.find`)
 

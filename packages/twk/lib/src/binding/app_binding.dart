@@ -899,7 +899,8 @@ final class AppBinding implements FrameClock {
   ///   [DebugAids.selectMany]) and `treeEvents` (the event
   ///   `twk.treeChanged` after each frame that built,
   ///   [DebugAids.treeEvents]), `frameEvents` (the events `twk.frame` and
-  ///   `twk.input` a driver syncs on, [DebugAids.frameEvents]), and
+  ///   `twk.input` a driver syncs on, and `twk.scheduled` of a driven app,
+  ///   [DebugAids.frameEvents]), and
   ///   `framesInRow` (`TwkApp.framesInRow`,
   ///   which the app is built with), each true or false; any of the first
   ///   eight passed as a parameter, `true` or `false`, is set first.
@@ -2099,7 +2100,10 @@ final class DebugAids {
   /// terminal), `inputPending`, `scheduled` and `frameDue` (a frame is
   /// asked for, and when it is due, in microseconds of the app's clock),
   /// `time` (the app's clock), `nextDue`, null: no timer of the app's
-  /// clock is known, and `quitting` (`TwkApp.quitting`). `twk.frame` also
+  /// clock is known, and `quitting` (`TwkApp.quitting`). `twk.scheduled`,
+  /// with the same data, is posted by a driven app once per turn of the
+  /// event loop when its clock's timers change outside a move of the clock
+  /// and outside input. `twk.frame` also
   /// carries `stats`: for a drawn frame `micros`, `build`, `layout`,
   /// `paint` and `present` (the microseconds the frame and its stages took)
   /// and `bytes` (what it wrote), from `TwkApp.stats`; null for a frame
@@ -2113,7 +2117,47 @@ final class DebugAids {
     _frameEvents = on;
     _framesDrawn = _binding.twkApp.stats.frames;
     _binding.twkApp.onInputSettled = on ? _postInput : null;
+    final clock = _binding.twkApp.clock;
+    if (clock is DrivenClock) {
+      clock.onChange = on ? _scheduleChanged : null;
+    }
+    if (!on) {
+      _scheduledTimer?.cancel();
+      _scheduledTimer = null;
+    }
   }
+
+  Timer? _scheduledTimer;
+
+  /// The timers of the driven clock changed outside a move: a frame was
+  /// asked for, or the earliest timer moved. Posts [_postScheduled] once
+  /// for the turn of the event loop, from a root-zone timer after what the
+  /// turn queued has run.
+  void _scheduleChanged() {
+    if (_scheduledTimer != null || _binding._clockMoving) {
+      return;
+    }
+    _scheduledTimer = Zone.root.createTimer(Duration.zero, () {
+      _scheduledTimer = null;
+      _postScheduled();
+    });
+  }
+
+  /// Posts `twk.scheduled`: a frame was asked for, or a timer started or
+  /// cancelled, by what is outside a step of the driver (a child's answer,
+  /// a socket), which no frame or read of input says. Not for a move of the
+  /// clock (the driver made it and has its answer) and not for input: a
+  /// read of the terminal is acknowledged by `twk.input` or the frame.
+  void _postScheduled() {
+    final app = _binding.twkApp;
+    if (_binding._clockMoving || app.sampleInput() != _postedInputRead) {
+      return;
+    }
+    AppBinding.postEvent('twk.scheduled', _frameData(false, app.inputRead));
+  }
+
+  /// The `inputRead` of the last event posted.
+  var _postedInputRead = 0;
 
   var _framesDrawn = 0;
   var _frameInputRead = 0;
@@ -2158,6 +2202,7 @@ final class DebugAids {
 
   Map<String, Object?> _frameData(bool drawn, int inputRead) {
     final app = _binding.twkApp;
+    _postedInputRead = inputRead;
     final terminal = app.terminal;
     return {
       'version': AppBinding.serviceExtensionsVersion,

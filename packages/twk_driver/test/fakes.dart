@@ -256,6 +256,22 @@ final class FakeService implements AppServicePort {
     'time': time ?? this.time,
   });
 
+  /// The app posts `twk.scheduled`: something outside a step asked for a
+  /// frame or changed the timers. It carries the app's state as it is.
+  void scheduledEvent() => _post('twk.scheduled', {
+    'quitting': false,
+    'frame': frames,
+    'drawn': false,
+    'inputRead': 0,
+    'outputWritten': statusWritten,
+    'width': 80,
+    'height': 24,
+    'inputPending': false,
+    'scheduled': scheduled,
+    'frameDue': frameDue,
+    'time': time,
+  });
+
   void _post(String kind, Map<String, Object?> d) => _events.add(
     AppEvent(kind, {
       'version': 1,

@@ -4,6 +4,9 @@
 
 Added:
 
+- A quiet app waited on with `io` waits for the app's `twk.scheduled` event
+  (up to the io time on the driver's clock) instead of asking its
+  `ext.twk.clock` status every 50 ms.
 - `Session.compose` and `Session.attach`: a session from the ports a
   caller gives (process, screen, clock, an optional app service);
   `Session.start` is the twk app's convenience over `compose`. Without an

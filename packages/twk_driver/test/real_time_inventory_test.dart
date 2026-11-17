@@ -138,6 +138,11 @@ const _table = <String, List<Entry>>{
       Kind.real,
       'ext.twk.clock waits for the event loop to turn',
     ),
+    Entry(
+      '_scheduledTimer = Zone.root.createTimer',
+      Kind.real,
+      'twk.scheduled: once per turn of the event loop, not a time of the app',
+    ),
   ],
 };
 
