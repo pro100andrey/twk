@@ -223,7 +223,8 @@ void _copy(String from, String to) {
   if (FileSystemEntity.isDirectorySync(from)) {
     Directory(to).createSync(recursive: true);
     for (final e in Directory(from).listSync(followLinks: false)) {
-      _copy(e.path, '$to/${e.path.split('/').last}');
+      // listSync's paths use the platform's separator: backslashes on Windows
+      _copy(e.path, '$to/${e.path.split(RegExp(r'[/\\]')).last}');
     }
   } else {
     File(from).copySync(to);

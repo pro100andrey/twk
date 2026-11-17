@@ -34,7 +34,8 @@ entry: tool/xtask.dart
 # side: ci-tests the slowest packages' suites (the `slow-suites` set), ci
 # all the rest; ci-os the macOS and Windows ones: on macOS every package's
 # tests and the pseudo-terminal runs, on Windows those of the packages an
-# app takes on every platform (the `portable` set).
+# app takes on every platform (the `portable` set), and on both the VS Code
+# extension's install, compile and unit tests (node from the workflow).
 gates: [quick, handover, ci, ci-tests, ci-os]
 
 sets:
@@ -623,7 +624,7 @@ tasks:
     # network on the first, unless npm's cache has them). Each of the three
     # steps is skipped, and said so, where node or npm is not on the PATH.
     desc: npm ci for the VS Code extension, in .dart_tool/vscode/, once per lock
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     do: vscode
     args: [install]
 
@@ -631,7 +632,7 @@ tasks:
     # editors/vscode/src and its tsconfigs copied afresh, then its
     # `npm run compile` (tsc, both projects): a type error fails.
     desc: compile the VS Code extension (tsc) into .dart_tool/vscode/out/
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     needs: [vscode-install]
     do: vscode
     args: [compile]
@@ -644,7 +645,7 @@ tasks:
     # a real VS Code (npm test) is in no gate: it needs a display and
     # downloads a VS Code.
     desc: the VS Code extension's unit tests (mocha), over that compile
-    gate: [handover, ci]
+    gate: [handover, ci, ci-os]
     needs: [vscode-compile]
     # vscode-package cleans and compiles out/ again under it
     exclusive: [vscode-out]
