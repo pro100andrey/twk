@@ -281,9 +281,7 @@ void main() {
 
     test('the app that ended leaves its log in the exit', () async {
       await runDriverTest((d) async {
-        // inline: a fullscreen app prints the log it leaves on the normal
-        // screen, which the strict emulator takes for a stray line feed
-        final a = await d.start(app, arguments: ['--inline'], inline: true);
+        final a = await d.start(app);
         await a.press('l');
         final step = await a.press('q');
         expect(step.exit!.log, [contains('warning logged at 0')]);

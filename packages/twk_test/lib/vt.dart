@@ -226,7 +226,8 @@ final class Vt {
   /// [segmenter] splits printed text into cells, by default as the
   /// application's [TextSegmenter] does. [strict] throws each error as it
   /// happens; off, they are only kept in [errors]. [allowLineFeed] takes
-  /// LF, [scrollback] keeps the lines scrolled off the top in [history],
+  /// LF ([lineFeedOnNormalScreen]: only off the alternate screen),
+  /// [scrollback] keeps the lines scrolled off the top in [history],
   /// and [relativeOnly] makes an absolute row an error, as drawing on the
   /// alternate screen is (going there to ask queries is not): the three of
   /// an inline region's normal screen. [cellPixelWidth] and [cellPixelHeight]
@@ -240,6 +241,7 @@ final class Vt {
     TextSegmenter? segmenter,
     this.strict = true,
     this.allowLineFeed = false,
+    this.lineFeedOnNormalScreen = false,
     this.scrollback = false,
     this.relativeOnly = false,
     this.cellPixelWidth = 10,
@@ -294,6 +296,12 @@ final class Vt {
   /// twk_core never emits LF (with the tty's ONLCR an LF would also return
   /// the cursor to column 0).
   final bool allowLineFeed;
+
+  /// Accept LF while the normal screen is up, not while the alternate one
+  /// is: what a fullscreen app's own output after it left the alternate
+  /// screen is (the log it prints at exit, one line each), where the
+  /// terminal's ONLCR makes it CR LF. Off, only [allowLineFeed] says.
+  final bool lineFeedOnNormalScreen;
 
   /// A normal screen: lines scrolled off its top (by LF or SU over the
   /// whole screen) are kept in [history] instead of being dropped.
@@ -643,7 +651,8 @@ final class Vt {
         cx = 0;
         pendingWrap = false;
         i++;
-      } else if (b == 0x0A && allowLineFeed) {
+      } else if (b == 0x0A &&
+          (allowLineFeed || (lineFeedOnNormalScreen && !_alternate))) {
         flushText();
         pendingWrap = false;
         _lineFeed();

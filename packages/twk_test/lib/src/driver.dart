@@ -269,6 +269,7 @@ final class CheckedScreen implements ScreenPort {
         height,
         strict: false,
         allowLineFeed: inline,
+        lineFeedOnNormalScreen: true,
         scrollback: inline,
         relativeOnly: inline,
       ) {
