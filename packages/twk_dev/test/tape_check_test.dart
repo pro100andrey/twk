@@ -135,7 +135,7 @@ final class _Clock extends TapeClock {
   }
 
   @override
-  Timer alarm(Duration duration, void Function() fire) {
+  Timer timer(Duration duration, void Function() fire) {
     // A Timer is what the runner holds to cancel; this one never goes
     // off by itself, it only says whether the alarm is still wanted.
     // ignore: twk_lints/wall_time_in_tests

@@ -19,8 +19,12 @@ both write and read asciicast v2 with `lib/src/cast.dart` (`Cast`,
 `CastWriter`, exported by `package:twk_dev/twk_dev.dart`), put the terminal in
 raw mode with `lib/src/raw_tty.dart` and turn off what the output left on with
 `lib/src/modes.dart`. `twk tape` is `lib/src/tape.dart`, the command,
-`TapeRunner` (its pauses those of a `TapeClock`, the real time by default) and
-`redraw`, over twk_term's `Pty` and `TerminalEmulator`; its language is
+`TapeRunner` (its pauses and the session's timeouts those of a `TapeClock`, the
+real time by default) and `redraw`; the runner is a client of twk_driver's
+`Session`, composed of the tape's own ports: twk_term's `Pty` through
+`PtyCommandPort` (or `PtyProcessPort`, for an app the tape looks into), wrapped
+by `tape/recording.dart`'s recorder of what it outputs and when, and
+`EmulatorScreen` over themed `TerminalEmulator`s; its language is
 `lib/src/tape/script.dart`, its themes `theme.dart`, the SVG `svg.dart`
 (`screenSvg`, `SvgFilm`) and the characters it draws as shapes `glyphs.dart`.
 `example/tally.tape` is the walkthrough's app recorded. `example/tally.dart`

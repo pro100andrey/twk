@@ -13,7 +13,20 @@ Fixed:
 - `twk record --replay`: a recording that ends inside a paste no longer leaves
   the splitter in it for the next `add`.
 
+Added:
+
+- `twk tape`: `Wait Widget <Type>`, `Wait Text "<text>"` and `Click "<text>"`
+  for a twk app (`Run dart <file>`): the tape waits for what the app's widget
+  tree has and clicks a widget, after the tap check of twk_driver (a click on
+  what is covered, hidden or takes no click fails the tape, saying why). On a
+  program that is no twk app they fail with "not a twk app".
+
 Changed:
+
+- `twk tape` runs on twk_driver's `Session`: its typing, keys and Waits go
+  through the session, with a recording terminal and the tape's themed
+  emulators as its ports. `TapeClock` is a twk_core `Clock` (`timer`, `periodic`,
+  `elapsed`, `pause`), and a program is ended through its terminal at the end.
 
 - `twk test-from-cast` emulates nothing: the test it writes holds the frame
   shown at each marker (the last one where there are none) to a screen file,

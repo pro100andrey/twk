@@ -8,7 +8,10 @@ A tape is a script, VHS's language: a statement a line, `#` to the end of a
 line a comment (not in a quoted word or a Wait's pattern). It runs a program
 in a pseudo-terminal (twk_term's `Pty`, as `twk record` does) whose screen
 twk_term's emulator keeps, types into it, waits, and writes what the program
-showed. `example/tally.tape` records the walkthrough's app: hidden while it
+showed. It is a client of twk_driver's `Session`: the keys and the typing go
+through the session, a Wait on the screen is the session's wait on the
+program's output, and for a twk app the session is connected to the app, so
+that a tape can wait for its widgets and click them (below). `example/tally.tape` records the walkthrough's app: hidden while it
 compiles and draws its first frame, then counted.
 
 ```text
@@ -93,6 +96,30 @@ waits
 waits until the screen's text (rows a line each; `+Line`, the cursor's row)
 matches, or `"<text>"` shows; past the timeout the tape fails
 
+### `Wait[@<time>] Widget <Type>`, `Wait[@<time>] Text "<text>"`
+
+for a twk app: waits until the app's widget tree has a widget of that type
+(`runtimeType.toString()`, exactly: `Tabs`, `"DropDown<String>"`), or a `Text`
+whose whole text is `<text>`; past the timeout the tape fails, with the
+screen. The app's tree is looked at every 50 ms of the tape's clock.
+
+### `Click[@<time>] "<text>"`
+
+for a twk app: clicks the one `Text` whose whole text is `<text>` (a button's
+label, say), the typing speed (or `@<time>`) after. Before the click the tape
+checks that it reaches the widget, as twk_driver's `tap` does: the widget must
+be shown, nothing else on top of it (`covered by Text (node 5)`), something
+there that takes a click, the app asking for the mouse. A click that would not
+reach it fails the tape, saying why; so does one on text that is on none or on
+more than one widget.
+
+A tape of a twk app is one whose `Run` is `dart <file.dart>` (or a kernel,
+`.dill`) and that has a `Wait Widget`, `Wait Text` or `Click`: its program is
+then started with the VM service the driver connects to. In any other tape
+(`sh`, `cat`, or a Dart program run without such a statement) these statements
+fail with "not a twk app (no app service)", and nothing else changes: a Wait on
+a regexp is a wait on the screen after each piece of output in both.
+
 ### `Hide`, `Show`
 
 the time between them is cut from the recording; at the Show the screen is
@@ -139,9 +166,9 @@ rounded corners) are paths and block elements rectangles, so that they meet
 the next cell's and the next row's as a terminal draws them; double and dashed
 lines are text. Colours 0 to 15 are the theme's, the rest xterm's.
 
-When the tape has run, the recording ends, the program is hung up
-(`Pty.close`: SIGHUP as its terminal goes) and, still running 2 s later,
-killed through its terminal (`Pty.kill`), then the outputs are written; a
+When the tape has run, the recording ends, the program is ended through its
+terminal (the session's `close`: killed, and its terminal hung up, which hangs
+up what it left running), then the outputs are written; a
 Screenshot is written when the tape gets to it. A Wait that timed out ends the
 tape with 1 and the screen, writing no output; so does an output that can't be
 written; SIGINT, SIGTERM and SIGHUP end it with 128 and the signal's number,
@@ -162,5 +189,5 @@ tape, the timeout and the screen at that time (as without `--check`), and the
 exit code is 1. Exit codes are those of a run: 0 passed; 1 failed, or the
 tape cannot be read or is wrong (stderr only); 127 the program cannot be
 started; 128 and a signal's number when stopped. The Wait's timeout is
-measured by the runner's clock (`TapeClock.alarm`; a test gives it a clock it
+measured by the runner's clock (`TapeClock.timer`; a test gives it a clock it
 moves), the wall's in the command.
