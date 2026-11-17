@@ -96,29 +96,35 @@ void main() {
           windows: [
             Window(
               title: 'Alpha',
-              controller: WindowController(
-                left: 2,
-                top: 1,
-                width: 20,
-                height: 5,
+              controller: disposing(
+                WindowController(
+                  left: 2,
+                  top: 1,
+                  width: 20,
+                  height: 5,
+                ),
               ),
               onClose: () {},
               child: const Text('alpha body'),
             ),
             Window(
               title: 'Beta',
-              controller: WindowController(
-                left: 10,
-                top: 3,
-                width: 20,
-                height: 9,
+              controller: disposing(
+                WindowController(
+                  left: 10,
+                  top: 3,
+                  width: 20,
+                  height: 9,
+                ),
               ),
               maximisable: false,
               child: const Text('beta body'),
             ),
             Window(
               title: 'A long title cut off',
-              controller: WindowController(left: 31, width: 9, height: 3),
+              controller: disposing(
+                WindowController(left: 31, width: 9, height: 3),
+              ),
               minWidth: 3,
               minimisable: false,
               maximisable: false,
@@ -151,20 +157,23 @@ void main() {
     t,
   ) async {
     final inner = FocusNode();
-    final b = WindowController(left: 10, top: 3, width: 20, height: 5);
+    final b = disposing(
+      WindowController(left: 10, top: 3, width: 20, height: 5),
+    );
     addTearDown(inner.dispose);
-    addTearDown(b.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: WindowLayer(
           windows: [
             Window(
               title: 'Alpha',
-              controller: WindowController(
-                left: 2,
-                top: 1,
-                width: 20,
-                height: 5,
+              controller: disposing(
+                WindowController(
+                  left: 2,
+                  top: 1,
+                  width: 20,
+                  height: 5,
+                ),
               ),
               child: Focus(focusNode: inner, child: const Text('alpha')),
             ),
@@ -217,7 +226,7 @@ void main() {
           windows: [
             Window(
               title: 'Alpha',
-              controller: WindowController(width: 20, height: 5),
+              controller: disposing(WindowController(width: 20, height: 5)),
               child: const Text('alpha'),
             ),
           ],
@@ -258,8 +267,9 @@ void main() {
       [for (final k in t.binding.focusManager.activeKeys) '$k'],
       isNot(contains('shift+right wider')),
     );
-    final c = WindowController(left: 5, top: 2, width: 20, height: 5);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 5, top: 2, width: 20, height: 5),
+    );
     await t.pumpWidget(
       Theme.terminal(
         child: WindowLayer(
@@ -291,21 +301,25 @@ void main() {
           windows: [
             Window(
               title: 'Alpha',
-              controller: WindowController(
-                left: 2,
-                top: 1,
-                width: 20,
-                height: 5,
+              controller: disposing(
+                WindowController(
+                  left: 2,
+                  top: 1,
+                  width: 20,
+                  height: 5,
+                ),
               ),
               child: Focus(focusNode: a, child: const Text('a')),
             ),
             Window(
               title: 'Beta',
-              controller: WindowController(
-                left: 10,
-                top: 3,
-                width: 20,
-                height: 5,
+              controller: disposing(
+                WindowController(
+                  left: 10,
+                  top: 3,
+                  width: 20,
+                  height: 5,
+                ),
               ),
               child: Focus(focusNode: b, child: const Text('b')),
             ),
@@ -349,8 +363,9 @@ void main() {
   testTwk('the title bar dragged moves the window, kept in the layer', (
     t,
   ) async {
-    final c = WindowController(left: 2, top: 1, width: 20, height: 5);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
     await t.pumpWidget(
       Theme.terminal(
         child: WindowLayer(
@@ -376,8 +391,9 @@ void main() {
 
   testTwk('an edge or a corner dragged resizes the window from it, within '
       'its least size and the layer', (t) async {
-    final c = WindowController(left: 10, top: 3, width: 16, height: 6);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 10, top: 3, width: 16, height: 6),
+    );
     final layer = WindowLayer(
       windows: [
         Window(title: 'Alpha', controller: c, child: const Text('alpha')),
@@ -424,8 +440,9 @@ void main() {
 
   testTwk('the keys on the title bar move the window, resize it, maximise '
       'and restore it, minimise and close it', (t) async {
-    final c = WindowController(left: 2, top: 1, width: 20, height: 5);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
     var closed = 0;
     await t.pumpWidget(
       Theme.terminal(
@@ -501,8 +518,9 @@ void main() {
 
   testTwk('the buttons minimise, maximise, restore and close the window; a '
       'double click on the title bar maximises and restores it', (t) async {
-    final c = WindowController(left: 2, top: 1, width: 20, height: 5);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
     var closed = 0;
     await t.pumpWidget(
       Theme.terminal(
@@ -555,10 +573,12 @@ void main() {
   testTwk('a minimised window is a chip in the strip, not shown, hit nor '
       'focusable, its state kept; the chip restores it to the front, its '
       'title bar focused', (t) async {
-    final a = WindowController(left: 2, top: 1, width: 20, height: 5);
-    final b = WindowController(left: 10, top: 3, width: 20, height: 9);
-    addTearDown(a.dispose);
-    addTearDown(b.dispose);
+    final a = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
+    final b = disposing(
+      WindowController(left: 10, top: 3, width: 20, height: 9),
+    );
     final counter = GlobalKey<CounterState>();
     final app = FocusNode();
     addTearDown(app.dispose);
@@ -624,8 +644,9 @@ void main() {
 
   testTwk('the layer getting smaller moves and shrinks the windows into it; '
       'bigger, it shows them where they were', (t) async {
-    final c = WindowController(left: 25, top: 6, width: 15, height: 6);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 25, top: 6, width: 15, height: 6),
+    );
     await t.pumpWidget(
       Theme.terminal(
         child: WindowLayer(
@@ -660,12 +681,15 @@ void main() {
   testTwk("a window's state is kept as it moves, comes to the front, is "
       'maximised and as the windows change around it, one added coming to '
       'the front; its child moves out of it by a GlobalKey', (t) async {
-    final a = WindowController(left: 2, top: 1, width: 20, height: 5);
-    final b = WindowController(left: 10, top: 3, width: 20, height: 5);
-    final c = WindowController(left: 6, top: 2, width: 20, height: 5);
-    addTearDown(a.dispose);
-    addTearDown(b.dispose);
-    addTearDown(c.dispose);
+    final a = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
+    final b = disposing(
+      WindowController(left: 10, top: 3, width: 20, height: 5),
+    );
+    final c = disposing(
+      WindowController(left: 6, top: 2, width: 20, height: 5),
+    );
     Window alpha([Widget child = const Counter()]) => Window(
       key: const ValueKey('a'),
       title: 'Alpha',
@@ -739,8 +763,7 @@ void main() {
 
   testTwk('what repaints on its own in a window is painted over by the '
       'windows in front of it, and not seen once it is minimised', (t) async {
-    final alpha = WindowController(width: 6, height: 3);
-    addTearDown(alpha.dispose);
+    final alpha = disposing(WindowController(width: 6, height: 3));
     await t.pumpWidget(
       Theme.terminal(
         child: WindowLayer(
@@ -748,11 +771,13 @@ void main() {
             Window(title: 'Alpha', controller: alpha, child: const Spinner()),
             Window(
               title: 'Beta',
-              controller: WindowController(
-                left: 1,
-                top: 1,
-                width: 14,
-                height: 4,
+              controller: disposing(
+                WindowController(
+                  left: 1,
+                  top: 1,
+                  width: 14,
+                  height: 4,
+                ),
               ),
               child: const Text('beta'),
             ),
@@ -782,8 +807,9 @@ void main() {
       'and the margin; the mouse goes through the margin to what is under '
       'it', (t) async {
     var pressed = 0;
-    final c = WindowController(left: 2, top: 1, width: 12, height: 3);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 2, top: 1, width: 12, height: 3),
+    );
     await t.pumpWidget(
       Theme.terminal(
         child: WindowLayer(
@@ -844,7 +870,9 @@ void main() {
     test('grab over the title bar, grabbing while it moves the window, '
         'the resize shapes over the edges and the corners; none while it '
         'is maximised', () async {
-      final c = WindowController(left: 2, top: 1, width: 14, height: 4);
+      final c = disposing(
+        WindowController(left: 2, top: 1, width: 14, height: 4),
+      );
       final run = ShapeRun(layer(c), width: 30, height: 8);
       await run.start();
       final shapes = <String>[];
@@ -890,11 +918,12 @@ void main() {
       await run.move(0, 3);
       expect(run.shapes(), isEmpty);
       await run.quit();
-      c.dispose();
     });
 
     test('left alone with pointerShapes false', () async {
-      final c = WindowController(left: 2, top: 1, width: 14, height: 4);
+      final c = disposing(
+        WindowController(left: 2, top: 1, width: 14, height: 4),
+      );
       final run = ShapeRun(
         pointersOff(layer(c)),
         width: 30,
@@ -907,7 +936,6 @@ void main() {
       await run.quit();
       // only the terminal's own given back as the app ends
       expect(run.shapes(), ['']);
-      c.dispose();
     });
   });
 
@@ -950,9 +978,10 @@ void main() {
         'the bar the selection with a mark while it has the focus', (
       t,
     ) async {
-      final c = WindowController(left: 2, top: 1, width: 20, height: 5);
+      final c = disposing(
+        WindowController(left: 2, top: 1, width: 20, height: 5),
+      );
       final inner = FocusNode();
-      addTearDown(c.dispose);
       addTearDown(inner.dispose);
       await t.pumpWidget(
         Theme.terminal(child: layer(c, inner)),
@@ -991,9 +1020,10 @@ void main() {
 
     testTwk('is the default where the theme is RGB; bordered where it is '
         'not, and where it is asked for', (t) async {
-      final c = WindowController(left: 2, top: 1, width: 20, height: 5);
+      final c = disposing(
+        WindowController(left: 2, top: 1, width: 20, height: 5),
+      );
       final inner = FocusNode();
-      addTearDown(c.dispose);
       addTearDown(inner.dispose);
       await t.pumpWidget(
         Theme.terminal(child: layer(c, inner, frame: WindowFrame.bordered)),
@@ -1027,9 +1057,10 @@ void main() {
     testTwk('a button is lit while the mouse is over it, × in the error '
         'colour; an edge or a corner that resizes the window while the '
         'mouse is over it', (t) async {
-      final c = WindowController(left: 2, top: 1, width: 20, height: 5);
+      final c = disposing(
+        WindowController(left: 2, top: 1, width: 20, height: 5),
+      );
       final inner = FocusNode();
-      addTearDown(c.dispose);
       addTearDown(inner.dispose);
       await t.pumpWidget(
         Theme.terminal(child: layer(c, inner)),
@@ -1121,11 +1152,13 @@ void main() {
   testTwk('minimising the window the focus is in gives its chip the focus, '
       'from its title bar or from inside it; the other windows stay where '
       'they are', (t) async {
-    final a = WindowController(left: 2, top: 1, width: 20, height: 5);
-    final b = WindowController(left: 10, top: 3, width: 20, height: 5);
+    final a = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
+    final b = disposing(
+      WindowController(left: 10, top: 3, width: 20, height: 5),
+    );
     final inner = FocusNode();
-    addTearDown(a.dispose);
-    addTearDown(b.dispose);
     addTearDown(inner.dispose);
     await t.pumpWidget(
       Theme.terminal(
@@ -1195,8 +1228,9 @@ void main() {
         'and shrinks into its chip; the mouse goes through it on its way', (
       t,
     ) async {
-      final c = WindowController(left: 2, top: 2, width: 20, height: 5);
-      addTearDown(c.dispose);
+      final c = disposing(
+        WindowController(left: 2, top: 2, width: 20, height: 5),
+      );
       await t.pumpWidget(Theme.terminal(child: layer(c)), size: (40, 12));
       expect(corner(t, 2), 21);
       c.maximised = true;
@@ -1236,8 +1270,9 @@ void main() {
     });
 
     testTwk('the mouse goes through a window on its way', (t) async {
-      final c = WindowController(left: 2, top: 2, width: 20, height: 5);
-      addTearDown(c.dispose);
+      final c = disposing(
+        WindowController(left: 2, top: 2, width: 20, height: 5),
+      );
       var pressed = 0;
       await t.pumpWidget(
         Theme.terminal(
@@ -1270,8 +1305,9 @@ void main() {
     });
 
     testTwk('a duration of zero shows each change at once', (t) async {
-      final c = WindowController(left: 2, top: 2, width: 20, height: 5);
-      addTearDown(c.dispose);
+      final c = disposing(
+        WindowController(left: 2, top: 2, width: 20, height: 5),
+      );
       await t.pumpWidget(
         Theme.terminal(child: layer(c, duration: Duration.zero)),
         size: (40, 12),
@@ -1287,9 +1323,10 @@ void main() {
 
   testTwk('a click on the buttons of a raised frame minimises, maximises '
       'and closes the window', (t) async {
-    final c = WindowController(left: 2, top: 1, width: 20, height: 5);
+    final c = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
     var closed = 0;
-    addTearDown(c.dispose);
     await t.pumpWidget(
       Theme.terminal(
         child: Theme(
@@ -1329,11 +1366,13 @@ void main() {
   testTwk('Space on a chip restores its window; a chip whose window is '
       'restored by its controller, or taken from the layer, leaves the '
       'focus to the layer', (t) async {
-    final a = WindowController(left: 2, top: 1, width: 20, height: 5);
-    final b = WindowController(left: 10, top: 3, width: 20, height: 5);
+    final a = disposing(
+      WindowController(left: 2, top: 1, width: 20, height: 5),
+    );
+    final b = disposing(
+      WindowController(left: 10, top: 3, width: 20, height: 5),
+    );
     final inner = FocusNode();
-    addTearDown(a.dispose);
-    addTearDown(b.dispose);
     addTearDown(inner.dispose);
     Widget layer({bool both = true}) => WindowLayer(
       duration: Duration.zero,
@@ -1405,8 +1444,9 @@ void main() {
 
   testTwk('the layer built with another margin lays the decorations out '
       'by it; its intrinsic size is its child', (t) async {
-    final c = WindowController(left: 2, top: 1, width: 12, height: 3);
-    addTearDown(c.dispose);
+    final c = disposing(
+      WindowController(left: 2, top: 1, width: 12, height: 3),
+    );
     Widget layer(EdgeInsets margin) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1454,7 +1494,7 @@ void main() {
 
   test('where ambiguous characters are two columns wide, the title is cut '
       'before the buttons, measured by the terminal, not over them', () async {
-    final c = WindowController(width: 24, height: 3);
+    final c = disposing(WindowController(width: 24, height: 3));
     final app = await WideApp.start(
       Theme.terminal(
         child: WindowLayer(
@@ -1474,7 +1514,6 @@ void main() {
     );
     final top = app.lines().first;
     await app.quit();
-    c.dispose();
     // the corner is + here; the title cut at …, then the buttons as ASCII
     // (□ and × are two columns here) and the corner
     expect(top, endsWith('… _ + x +'));

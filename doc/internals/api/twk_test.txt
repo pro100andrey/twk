@@ -35,6 +35,7 @@ twk_test.dart function containsLine
 twk_test.dart function cursorAt
 twk_test.dart function describeApp
 twk_test.dart function describeScreen
+twk_test.dart function disposing
 twk_test.dart function findsNWidgets
 twk_test.dart function hasAttr
 twk_test.dart function hasBg
