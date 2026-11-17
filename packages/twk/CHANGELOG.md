@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Changed:
+
+- `PointerEvent` keeps its button and modifiers in one field and its
+  sub-cell position in one, null for whole cells: an event is 64 bytes as
+  before the position, not 80.
+
 Added:
 
 - Shortcuts work on any keyboard layout where the terminal has the kitty

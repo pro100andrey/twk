@@ -517,17 +517,25 @@ final class TwkApp {
   // A real root-zone timer on purpose, not the [clock]'s: it marks a turn
   // of the event loop (what a read or an event queued has run), not a time
   // of the app, and a driven clock that stands still must not hold it.
+  //
+  // The closure is made in a method of its own: one in this method would
+  // have it allocate a Context for `this` on every call, an object for each
+  // event dispatched even where no driver listens.
   void _settleSoon() {
     if (onInputSettled != null) {
-      // armed again by what is dispatched: after the zero-delay work the
-      // handler queued, which is run by then
-      _settleTimer?.cancel();
-      _settleTimer = Zone.root.createTimer(Duration.zero, () {
-        _settleTimer = null;
-        sampleInput();
-        onInputSettled?.call();
-      });
+      _armSettle();
     }
+  }
+
+  void _armSettle() {
+    // armed again by what is dispatched: after the zero-delay work the
+    // handler queued, which is run by then
+    _settleTimer?.cancel();
+    _settleTimer = Zone.root.createTimer(Duration.zero, () {
+      _settleTimer = null;
+      sampleInput();
+      onInputSettled?.call();
+    });
   }
 
   /// Input is being dispatched: a frame asked for now is the input's.

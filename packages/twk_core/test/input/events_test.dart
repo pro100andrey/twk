@@ -76,6 +76,39 @@ void main() {
     }
   });
 
+  test('a mouse event keeps button, modifiers and pixel offsets apart', () {
+    const e = MouseEvent(
+      MouseKind.drag,
+      3,
+      4,
+      button: 11,
+      modifiers: Mod.shift | Mod.ctrl,
+      offsetX: 0,
+      offsetY: 19,
+    );
+    expect(
+      (e.button, e.modifiers, e.offsetX, e.offsetY),
+      (
+        11,
+        Mod.shift | Mod.ctrl,
+        0,
+        19,
+      ),
+    );
+    const whole = MouseEvent(MouseKind.down, 3, 4, button: 2);
+    expect((whole.button, whole.modifiers), (2, 0));
+    expect((whole.offsetX, whole.offsetY), (null, null));
+    // an offset of 0 is not no offset
+    expect(
+      const MouseEvent(MouseKind.down, 1, 1, offsetX: 0, offsetY: 0),
+      isNot(const MouseEvent(MouseKind.down, 1, 1)),
+    );
+    expect(
+      const MouseEvent(MouseKind.down, 1, 1, offsetX: 2, offsetY: 3).hashCode,
+      const MouseEvent(MouseKind.down, 1, 1, offsetX: 2, offsetY: 3).hashCode,
+    );
+  });
+
   test('an unknown sequence prints its bytes, ESC spelled out', () {
     expect(
       UnknownSequence('\x1b[99;1z'.codeUnits).toString(),

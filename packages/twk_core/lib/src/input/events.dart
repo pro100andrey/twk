@@ -484,11 +484,25 @@ final class MouseEvent extends InputEvent {
     this.kind,
     this.x,
     this.y, {
-    this.button = 0,
-    this.modifiers = 0,
-    this.offsetX,
-    this.offsetY,
-  });
+    int button = 0,
+    int modifiers = 0,
+    int? offsetX,
+    int? offsetY,
+  }) : assert(modifiers >= 0 && modifiers < 256, 'modifiers: 0 to 255'),
+       assert(button >= 0 && button < 256, 'button: 0 to 255'),
+       _bits =
+           modifiers |
+           button << 8 |
+           (offsetX == null
+               ? 0
+               : (offsetX < 0 ? 0 : (offsetX > 0xFFFE ? 0xFFFE : offsetX)) +
+                         1 <<
+                     16) |
+           (offsetY == null
+               ? 0
+               : (offsetY < 0 ? 0 : (offsetY > 0xFFFE ? 0xFFFE : offsetY)) +
+                         1 <<
+                     32);
 
   /// What the mouse did.
   final MouseKind kind;
@@ -503,22 +517,34 @@ final class MouseEvent extends InputEvent {
   /// [MouseKind.up] and [MouseKind.drag]: 0 left, 1 middle, 2 right, 8
   /// back, 9 forward, 10 and 11 further side buttons. 0 for a move and the
   /// wheel.
-  final int button;
+  int get button => _bits >> 8 & 0xFF;
+
+  // The modifiers, the button and the pixel offsets (each plus one, 0 for
+  // none) in one field: a MouseEvent stays as small as it was before the
+  // offsets (the mouse benchmarks allocate one for every move).
+  final int _bits;
 
   /// The [Mod] bits held: [Mod.shift], [Mod.alt] and [Mod.ctrl] only, as
   /// far as the terminal reports them rather than acting on them itself
   /// (many take Shift with the mouse for their own selection).
-  final int modifiers;
+  int get modifiers => _bits & 0xFF;
 
   /// How many pixels right of the cell's left edge the pointer is, where
   /// the terminal reports pixels (SGR-Pixels, mode 1016) and the cell's
   /// size is known: 0 up to the cell's width less one. Null where it is
-  /// not known: most terminals report whole cells.
-  final int? offsetX;
+  /// not known: most terminals report whole cells. Held in 16 bits: one
+  /// beyond 65534 is 65534, a negative one 0.
+  int? get offsetX {
+    final v = _bits >> 16 & 0xFFFF;
+    return v == 0 ? null : v - 1;
+  }
 
   /// How many pixels below the cell's top edge the pointer is; null as
   /// [offsetX] is.
-  final int? offsetY;
+  int? get offsetY {
+    final v = _bits >> 32 & 0xFFFF;
+    return v == 0 ? null : v - 1;
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -526,14 +552,10 @@ final class MouseEvent extends InputEvent {
       other.kind == kind &&
       other.x == x &&
       other.y == y &&
-      other.button == button &&
-      other.modifiers == modifiers &&
-      other.offsetX == offsetX &&
-      other.offsetY == offsetY;
+      other._bits == _bits;
 
   @override
-  int get hashCode =>
-      Object.hash(kind, x, y, button, modifiers, offsetX, offsetY);
+  int get hashCode => Object.hash(kind, x, y, _bits);
 
   @override
   String toString() =>

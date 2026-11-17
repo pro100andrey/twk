@@ -11,6 +11,11 @@ Breaking:
 
 Changed:
 
+- `MouseEvent` keeps its button, modifiers and pixel offsets in one field
+  (it grew by two fields with the offsets: 64 bytes an event, 48 as before),
+  and the app's input listener allocates nothing for the driver's settle
+  timer where none listens (a Context for `this` on every event); the
+  allocation profile of input is back to what it was.
 - The pixel mouse's cell size stays current over a link that cannot read the
   tty's pixels (a socket, ssh): each resize asks the terminal again (CSI 16 t,
   CSI 14 t over the size in cells where there is no cell size), the old size

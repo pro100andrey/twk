@@ -55,11 +55,12 @@ final class PointerEvent {
     this.y, {
     required this.screenX,
     required this.screenY,
-    this.button = 0,
-    this.modifiers = 0,
-    this.subX,
-    this.subY,
-  });
+    int button = 0,
+    int modifiers = 0,
+    double? subX,
+    double? subY,
+  }) : _bits = (modifiers & 0xFF) | (button & 0xFF) << 8,
+       _sub = subX == null ? null : (subX, subY ?? 0);
 
   /// What the mouse did; for an enter or an exit, what moved it in or out
   /// (a frame that moved the region: a move, or a drag while a button is
@@ -83,11 +84,17 @@ final class PointerEvent {
   /// the cell's width: 0 up to, not including, 1. Null where the terminal
   /// reports whole cells only (`MouseEvent.offsetX` is null); a drag that
   /// follows the pointer within a cell reads it through [exactX].
-  final double? subX;
+  double? get subX => _sub?.$1;
 
   /// How far below the cell's top edge the pointer is, as a share of the
   /// cell's height; null as [subX] is.
-  final double? subY;
+  double? get subY => _sub?.$2;
+
+  // The button and the modifiers in one field, and the sub-cell position
+  // (null for whole cells, nearly always) in another: a PointerEvent stays
+  // as small as it was before the position (a mouse move makes two).
+  final int _bits;
+  final (double, double)? _sub;
 
   /// The pointer's column in cells from the left of the widget, a
   /// fraction of a cell more than [x] where the terminal reports pixels
@@ -106,10 +113,10 @@ final class PointerEvent {
 
   /// The button pressed, released or held: 0 left, 1 middle, 2 right, 8 to
   /// 11 the side buttons.
-  final int button;
+  int get button => _bits >> 8 & 0xFF;
 
   /// [Mod]'s Shift, Alt and Ctrl, held.
-  final int modifiers;
+  int get modifiers => _bits & 0xFF;
 
   /// Whether Shift is held.
   bool get shift => modifiers & Mod.shift != 0;
