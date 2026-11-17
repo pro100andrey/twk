@@ -15,6 +15,7 @@ twk_driver.dart class Found
 twk_driver.dart class Launched
 twk_driver.dart class ProcessPort
 twk_driver.dart class ProcessSpec
+twk_driver.dart class PtyCommandPort
 twk_driver.dart class PtyProcessPort
 twk_driver.dart class ScreenPort
 twk_driver.dart class ScreenView

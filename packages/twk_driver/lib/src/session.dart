@@ -175,9 +175,21 @@ final class SessionPorts {
 /// an emulator, the widget tree through its VM service, and every action
 /// returns once the app has drawn the frame that took the input in.
 final class Session {
-  Session._(this._launched, this._ports, this._screen, this._service);
+  Session._(
+    this._launched,
+    this._screen,
+    this._clock,
+    this._macos,
+    this._driverPid,
+    this._withService,
+    this._driven,
+    this._drivenValue,
+  );
 
-  /// Starts [spec] and returns once the app has run its first frame.
+  /// Starts [spec] with the adapters of [ports] (the real ones by default:
+  /// a Dart program in a pseudo-terminal, the emulators, the app's VM
+  /// service) and returns once the app has run its first frame. It is
+  /// [compose] with what a twk app needs.
   ///
   /// [timeout] bounds each wait of this session in time of the
   /// [SessionPorts.clock], the real one by default: an app that has not
@@ -198,10 +210,74 @@ final class Session {
     Duration timeout = const Duration(seconds: 20),
     bool driven = true,
     DateTime? startTime,
-  }) async {
+  }) {
     final p = ports ?? SessionPorts();
-    final value = driven ? '${p.driverPid}${_at(startTime)}' : null;
-    final launched = await p.process.spawn(
+    return compose(
+      spec,
+      process: p.process,
+      screen:
+          p.screen?.call(spec.width, spec.height) ??
+          EmulatorScreen(width: spec.width, height: spec.height),
+      connect: p.connect ?? _connect,
+      clock: p.clock,
+      timeout: timeout,
+      driven: driven,
+      startTime: startTime,
+      macos: p.macos,
+      driverPid: p.driverPid,
+    );
+  }
+
+  /// Starts [spec] with [process] and drives it through the ports given: a
+  /// session is these, and [start] only makes the adapters of a twk app.
+  ///
+  /// The terminal is the one [process] launches (a recorder wraps the
+  /// [Launched] of its port in its own, see [TerminalPort.write]); [screen]
+  /// is the caller's, of the size of [spec], themed as it likes: the
+  /// session assumes nothing of it beyond [ScreenPort]; [clock] is the time
+  /// the session's timeouts run on (a test's own, a recorder's).
+  ///
+  /// [connect] is what makes the session one of a twk app: it connects to
+  /// the VM service at the address the program wrote, and the session then
+  /// acts and waits by the frames the app posts, finds widgets and taps
+  /// them, and with [driven] runs the app on the driver's time (as for
+  /// [start]), and returns once the app has run its first frame. Without
+  /// it (null) the program is any program in a terminal, a shell for one:
+  ///
+  ///  * `press`, `type`, `paste` and `resize` return as soon as the bytes
+  ///    are written: nothing says when the program has taken them in, so
+  ///    the step has the screen as it is;
+  ///  * a wait ([waitFor], [waitForScreen]) looks at the screen each chunk
+  ///    of output leaves it as, never at one drawn in part (inside a
+  ///    synchronized update), and fails when [timeout] (or `io`, for
+  ///    [waitFor]) has passed on [clock];
+  ///  * `find`, `findOne`, `tap` and [clock] fail at once with "not a twk
+  ///    app (no app service)";
+  ///  * [driven] is meaningless (there is no app to take the time): it is
+  ///    an [ArgumentError] to ask for it, and [Session.driven] is false;
+  ///  * `exitCode`, `ended` and `close` are as for an app.
+  static Future<Session> compose(
+    ProcessSpec spec, {
+    required ProcessPort process,
+    required ScreenPort screen,
+    Future<AppServicePort> Function(Uri uri)? connect,
+    Clock? clock,
+    Duration timeout = const Duration(seconds: 20),
+    bool driven = false,
+    DateTime? startTime,
+    bool macos = false,
+    int? driverPid,
+  }) async {
+    if (driven && connect == null) {
+      throw ArgumentError.value(
+        driven,
+        'driven',
+        'a program without an app service has no clock to drive',
+      );
+    }
+    final me = driverPid ?? pid;
+    final value = driven ? '$me${_at(startTime)}' : null;
+    final launched = await process.spawn(
       value == null
           ? spec
           : ProcessSpec(
@@ -213,15 +289,77 @@ final class Session {
               height: spec.height,
             ),
     );
-    final screen =
-        p.screen?.call(spec.width, spec.height) ??
-        EmulatorScreen(width: spec.width, height: spec.height);
-    final session = Session._(launched, p, screen, null)
-      ..timeout = timeout
-      .._driven = driven
-      .._drivenValue = value;
+    return _open(
+      launched,
+      screen,
+      clock ?? SystemClock(),
+      timeout,
+      macos,
+      me,
+      connect: connect,
+      driven: driven,
+      drivenValue: value,
+    );
+  }
+
+  /// A session over a program that is running already: [launched], whose
+  /// end and kill are the session's from here on, and [screen] and [clock]
+  /// as for [compose]. [service] is the connection to the app's VM service,
+  /// when it is a twk app (null: any program, see [compose]); [driven] says
+  /// that it was started with `TWK_DRIVEN` for this process
+  /// (`ext.twk.clock` then answers that it took it, or the attach fails).
+  static Future<Session> attach(
+    Launched launched, {
+    required ScreenPort screen,
+    AppServicePort? service,
+    Clock? clock,
+    Duration timeout = const Duration(seconds: 20),
+    bool driven = false,
+    bool macos = false,
+  }) {
+    if (driven && service == null) {
+      throw ArgumentError.value(
+        driven,
+        'driven',
+        'a program without an app service has no clock to drive',
+      );
+    }
+    return _open(
+      launched,
+      screen,
+      clock ?? SystemClock(),
+      timeout,
+      macos,
+      pid,
+      service: service,
+      driven: driven,
+    );
+  }
+
+  static Future<Session> _open(
+    Launched launched,
+    ScreenPort screen,
+    Clock clock,
+    Duration timeout,
+    bool macos,
+    int driverPid, {
+    required bool driven,
+    Future<AppServicePort> Function(Uri uri)? connect,
+    AppServicePort? service,
+    String? drivenValue,
+  }) async {
+    final session = Session._(
+      launched,
+      screen,
+      clock,
+      macos,
+      driverPid,
+      connect != null || service != null,
+      driven,
+      drivenValue,
+    )..timeout = timeout;
     try {
-      await session._init();
+      await session._init(connect, service);
     } on Object {
       await session._kill();
       rethrow;
@@ -230,11 +368,14 @@ final class Session {
   }
 
   final Launched _launched;
-  final SessionPorts _ports;
   final ScreenPort _screen;
+  final Clock _clock;
+  final bool _macos;
+  final int _driverPid;
+  final bool _withService;
+  final bool _driven;
+  final String? _drivenValue;
   AppServicePort? _service;
-  var _driven = false;
-  String? _drivenValue;
 
   /// How long a wait of this session may last before it is reported.
   late Duration timeout;
@@ -285,7 +426,10 @@ final class Session {
 
   // -------------------------------------------------------------- start --
 
-  Future<void> _init() async {
+  Future<void> _init(
+    Future<AppServicePort> Function(Uri uri)? connect,
+    AppServicePort? given,
+  ) async {
     _screen.answerTo(_write);
     _subs.add(
       _terminal.output.listen(
@@ -303,9 +447,18 @@ final class Session {
         _maybeEnd();
       }),
     );
-    final uri = await _race(_launched.serviceUri, 'the VM service address');
-    final connect = _ports.connect ?? _connect;
-    final service = await _race(connect(uri), 'the VM service');
+    if (!_withService) {
+      // any program: where it is, is what its terminal shows
+      _noteOutput();
+      return;
+    }
+    final AppServicePort service;
+    if (given != null) {
+      service = given;
+    } else {
+      final uri = await _race(_launched.serviceUri, 'the VM service address');
+      service = await _race(connect!(uri), 'the VM service');
+    }
     _service = service;
     unawaited(service.done.then((_) => _serviceClosed()));
     _subs.add(service.events.listen(_onEvent));
@@ -317,9 +470,10 @@ final class Session {
     final status = await _call(service, _driven ? 'clock' : 'status');
     if (_driven && status['driven'] != true) {
       throw DriverError(
-        'the app is not driven: it did not take TWK_DRIVEN=$_drivenValue, '
+        'the app is not driven: it did not take TWK_DRIVEN'
+        '${_drivenValue == null ? '' : '=$_drivenValue'}, '
         'which an app takes only when its parent process is the driver '
-        '(pid ${_ports.driverPid}). A program started through `dart run` '
+        '(pid $_driverPid). A program started through `dart run` '
         'has a process between; start it with `dart <file>` or compile it. '
         'Pass driven: false to run it on real time.',
       );
@@ -344,10 +498,22 @@ final class Session {
   /// The hold on the app's time (`ext.twk.clock`): where it stands, and
   /// the moves of a driven app's clock.
   late final clock = ClockControl(
-    (params) => _call(_service!, 'clock', params),
+    (params) => _call(_app('ext.twk.clock'), 'clock', params),
   );
 
-  /// Whether the app runs on the driver's time.
+  /// The app's service, or the error of a session that has none.
+  AppServicePort _app(String what) =>
+      _service ??
+      (_withService
+          ? throw const DriverError('the app service is not connected yet')
+          : throw DriverError(
+              '$what: not a twk app (no app service): the session was made '
+              'without one, and only a twk app gives its widget tree, taps and '
+              'clock',
+            ));
+
+  /// Whether the app runs on the driver's time; false for a session without
+  /// an app service.
   bool get driven => _driven;
 
   // ------------------------------------------------------------ the bytes --
@@ -363,7 +529,44 @@ final class Session {
   void _onBytes(Uint8List raw) {
     _log.add(raw, onlcr: _terminal.nlToCrNl ?? true);
     _screen.feedAnswering(raw);
+    if (!_withService) {
+      // no frames to wait for: the screen is what the bytes made of it
+      _screen.feedFrame(raw);
+      _fed = _log.rawLength;
+      if (!_screen.frame.updating) {
+        _noteOutput();
+      }
+      return;
+    }
     _drain();
+  }
+
+  /// Notes the screen as it is after a chunk of output, which a session
+  /// without an app service waits on as one on an app waits on a frame.
+  void _noteOutput() {
+    final seen = Seen(
+      seq: _seq++,
+      kind: 'output',
+      frame: 0,
+      drawn: false,
+      width: _screen.frame.width,
+      height: _screen.frame.height,
+      inputRead: 0,
+      outputWritten: _log.appLength,
+      inputPending: false,
+      scheduled: false,
+      frameDue: null,
+      time: _clock.elapsedMicroseconds,
+      quitting: false,
+      screen: _screen.frame.text,
+    );
+    _history.add(seen);
+    if (_history.length > 256) {
+      _history.removeRange(0, 128);
+    }
+    for (final waiter in [..._waiters]) {
+      waiter.offer(seen);
+    }
   }
 
   void _onEvent(AppEvent event) {
@@ -448,7 +651,7 @@ final class Session {
       _maybeEnd();
     } else if (!_quitting) {
       // an app that ends closes its service first: its exit code follows
-      _grace ??= _ports.clock.timer(_exitGrace, () {
+      _grace ??= _clock.timer(_exitGrace, () {
         _finish("the app's VM service closed");
       });
     }
@@ -462,7 +665,7 @@ final class Session {
     if (_service != null && !_serviceDone) {
       // its last events come before the service closes: they say whether
       // the app was quitting
-      _grace ??= _ports.clock.timer(_exitGrace, _finishExited);
+      _grace ??= _clock.timer(_exitGrace, _finishExited);
       return;
     }
     _finishExited();
@@ -570,7 +773,7 @@ final class Session {
         }
       },
     );
-    timer = _ports.clock.timer(timeout, () {
+    timer = _clock.timer(timeout, () {
       if (!done.isCompleted) {
         done.completeError(
           DriverError(
@@ -664,6 +867,11 @@ final class Session {
     if (_afterEnd() case final step?) {
       return step;
     }
+    if (!_withService) {
+      // nothing says when the program has taken the bytes in
+      writes.forEach(_write);
+      return Step(frame, _screen.frame.text, _history.last);
+    }
     Step? step;
     for (final bytes in writes) {
       final from = _seq;
@@ -719,6 +927,11 @@ final class Session {
     }
     final from = _seq;
     _screen.resizeAnswering(width, height);
+    if (!_withService) {
+      _screen.resizeFrame(width, height);
+      _terminal.resize(width, height);
+      return Step(frame, _screen.frame.text, _history.last);
+    }
     _terminal.resize(width, height);
     return _settled(_written, size: (width, height), from: from);
   }
@@ -804,14 +1017,17 @@ final class Session {
     required String? near,
   }) async {
     if (!_driven) {
-      if (io == null) {
+      // without a service the output is all there is to wait on, for as
+      // long as the session's timeout
+      final limit = io ?? (_withService ? null : timeout);
+      if (limit == null) {
         throw const DriverError(
           'waitFor on an app that is not driven waits in real time, for '
           'which it needs io: how long',
         );
       }
       final expired = Completer<void>();
-      final timer = _ports.clock.timer(io, expired.complete);
+      final timer = _clock.timer(limit, expired.complete);
       try {
         await Future.any([found.future, expired.future]);
       } finally {
@@ -819,7 +1035,7 @@ final class Session {
       }
       if (!found.isCompleted) {
         throw DriverError(
-          "no $what within ${_seconds(io)} of the driver's clock. "
+          "no $what within ${_seconds(limit)} of the driver's clock. "
           'Screen at frame $frame:\n${_screen.frame.text}',
         );
       }
@@ -842,9 +1058,8 @@ final class Session {
       }
       if (status.quiet ?? false) {
         if (io != null) {
-          final end = ioEnd ??=
-              _ports.clock.elapsedMicroseconds + io.inMicroseconds;
-          final left = end - _ports.clock.elapsedMicroseconds;
+          final end = ioEnd ??= _clock.elapsedMicroseconds + io.inMicroseconds;
+          final left = end - _clock.elapsedMicroseconds;
           if (left > 0) {
             // what comes in from outside (a child's answer, a socket) asks
             // for a frame the app's clock has not reached: no event says
@@ -973,8 +1188,8 @@ final class Session {
 
   /// The nodes [finder] matches, as the app's widgets see it.
   Future<List<Found>> find(ElementFinder finder) async {
+    final service = _app('find');
     _checkOpen();
-    final service = _service!;
     final answer = await _call(service, 'find', {
       'finder': jsonEncode(finder.toJson()),
     });
@@ -1006,6 +1221,7 @@ final class Session {
   /// there reaches it (part 6 of DESIGN.md): its middle cell, down and up,
   /// the app's frame awaited as for a key.
   Future<Step> tap(ElementFinder finder) async {
+    _app('tap');
     if (_afterEnd() case final step?) {
       return step;
     }
@@ -1025,7 +1241,7 @@ final class Session {
     if (_screen.frame.isContinuation(x, y)) {
       x--;
     }
-    final hit = await _call(_service!, 'hitTest', {'x': '$x', 'y': '$y'});
+    final hit = await _call(_app('tap'), 'hitTest', {'x': '$x', 'y': '$y'});
     final path = [for (final n in hit['path']! as List<Object?>) n! as Json];
     final listeners = [
       for (final l in hit['listeners']! as List<Object?>) l! as Json,
@@ -1082,8 +1298,8 @@ final class Session {
     if (byItself) {
       final modes = _terminal.modesAtEnd;
       if (modes != null) {
-        final lflag = _lflag(modes, macos: _ports.macos);
-        final (icanon, echo, isig) = _ports.macos
+        final lflag = _lflag(modes, macos: _macos);
+        final (icanon, echo, isig) = _macos
             ? (0x100, 0x8, 0x1)
             : (0x2, 0x8, 0x1);
         if (lflag & icanon == 0 || lflag & echo == 0 || lflag & isig == 0) {

@@ -55,6 +55,61 @@ final class PtyProcessPort implements ProcessPort {
   }
 }
 
+/// Starts any command in a pseudo-terminal, as it is: `spec.program` is
+/// the executable (`sh`), its [ProcessSpec.arguments] its arguments, with
+/// the same terminal flags as [PtyProcessPort] and no VM service. For a
+/// session made without an app service.
+final class PtyCommandPort implements ProcessPort {
+  /// A port that runs commands.
+  const PtyCommandPort();
+
+  @override
+  Future<Launched> spawn(ProcessSpec spec) async {
+    final pty = Pty.start(
+      spec.program,
+      spec.arguments,
+      width: spec.width,
+      height: spec.height,
+      workingDirectory: spec.workingDirectory,
+      environment: spec.environment,
+      output: PtyOutput.terminal,
+    );
+    return _CommandLaunched(pty);
+  }
+}
+
+final class _CommandLaunched implements Launched {
+  _CommandLaunched(this._pty) : terminal = _PtyTerminal(_pty) {
+    exitCode = _pty.exitCode.whenComplete(() => _ended = true);
+  }
+
+  final Pty _pty;
+  var _ended = false;
+
+  @override
+  final TerminalPort terminal;
+
+  @override
+  late final Future<int?> exitCode;
+
+  @override
+  Future<Uri> get serviceUri => Future.error(
+    const DriverError('the command has no VM service: it is not a Dart app'),
+  );
+
+  @override
+  Future<void> kill() async {
+    if (!_ended) {
+      _pty
+        ..kill()
+        ..close();
+    } else {
+      _pty.close();
+    }
+    await exitCode;
+  }
+}
+
 final class _PtyTerminal implements TerminalPort {
   _PtyTerminal(this._pty);
 

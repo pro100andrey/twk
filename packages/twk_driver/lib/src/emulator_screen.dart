@@ -5,7 +5,8 @@ library;
 import 'dart:typed_data';
 
 import 'package:twk_core/twk_core.dart' show KeyEvent, MouseEvent;
-import 'package:twk_term/twk_term.dart' show MouseProtocol, TerminalEmulator;
+import 'package:twk_term/twk_term.dart'
+    show MouseProtocol, TerminalEmulator, TerminalMode;
 
 import 'ports.dart';
 
@@ -42,6 +43,9 @@ final class _View implements ScreenView {
 
   @override
   bool get alternateScreen => _term.alternateScreen;
+
+  @override
+  bool get updating => _term.mode(TerminalMode.synchronizedOutput);
 
   @override
   String get text => [for (var y = 0; y < height; y++) line(y)].join('\n');

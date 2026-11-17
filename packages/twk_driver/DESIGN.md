@@ -119,6 +119,42 @@ for the core's unit tests, and the adapters are tested in process tests
   depends on package:test only for `fail`, which becomes the driver's
   own error.
 
+**Composition: a session is its ports (decided 2026-11-17).** `Session` is
+built from ports a caller gives; `Session.start` is the convenience that
+makes the adapters of a twk app. Three entries, one engine:
+
+- `Session.start(spec, ports:)`: `dart <program>` in a pty
+  (`PtyProcessPort`), `EmulatorScreen`, `VmAppClient`, driven time. It
+  calls `compose`.
+- `Session.compose(spec, process:, screen:, connect:, clock:, ...)`:
+  spawns with the caller's `ProcessPort`, drives with the caller's
+  `ScreenPort` (themed as it likes; the session assumes nothing of it
+  beyond the port) and times its timeouts on the caller's `Clock` (a
+  test's, a recorder's). `connect` null: no app service.
+- `Session.attach(launched, screen:, service:, ...)`: the same over a
+  program running already.
+
+Where tape fits: a recorder is a `TerminalPort` wrapped around the
+terminal of the `Launched` its `ProcessPort` returns. Its `output` passes
+each chunk on, noting the time of its own clock; its `write` notes the
+bytes. The driver needs nothing more of the port for recording and
+depends on no recorder; the chunk times are the recorder's. `PtyCommandPort`
+starts any command (`sh`) in a pty with no VM service.
+
+Two modes, by whether there is an app service:
+
+| | with `AppServicePort` | without |
+|---|---|---|
+| `press`/`type`/`paste`/`resize` | return at the frame that took the input in | return when the bytes are written |
+| waits | on frames (part 3.3), `waitFor` drives the app's time (4.6) | on the screen as the `ScreenPort` has it after each chunk of output, not while it is inside a synchronized update (`ScreenView.updating`), within `timeout` (`io` for `waitFor`) on the given clock |
+| `find`, `tap`, `clock` | the app's | `DriverError` "not a twk app (no app service)" |
+| `driven` | the app runs on the driver's time | meaningless: `compose(driven: true)` is an `ArgumentError`, `Session.driven` false |
+| end, `exitCode`, `close` | as ever | as ever (the app never says it is quitting, so an end the driver did not ask for is an `AppEnded`) |
+
+Without a service both emulators take every chunk, so `Session.screen` is
+what the terminal shows; a wait on the cursor line reads
+`session.screen.line(session.screen.cursorY)` in its test.
+
 **Package graph.** twk_core is the Clock port plus the counters. twk adds
 DrivenClock, the driven `runApp`, the new extensions and the finder
 data. twk_term (already on twk), plus vm_service, gives twk_driver.

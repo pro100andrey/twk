@@ -24,6 +24,11 @@ abstract interface class TerminalPort {
   bool? get nlToCrNl;
 
   /// Hands [bytes] to the app as its input.
+  ///
+  /// A recorder wraps a terminal in one of its own, in the [Launched] it
+  /// gives the session: its [output] passes each chunk on, noting the time
+  /// its clock gave it, and its [write] notes what the driver wrote.
+  /// Nothing of a recorder is in the driver.
   void write(List<int> bytes);
 
   /// Sets the terminal's size and tells the app (SIGWINCH).
@@ -60,6 +65,10 @@ abstract interface class ScreenView {
 
   /// Whether the app is on the alternate screen.
   bool get alternateScreen;
+
+  /// Whether the app is inside a synchronized update (DEC 2026): the screen
+  /// is drawn in part, and a wait on output does not look at it.
+  bool get updating;
 
   /// The screen as text, one line to a row, the trailing blank rows kept
   /// as empty lines.

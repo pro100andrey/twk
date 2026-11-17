@@ -19,5 +19,11 @@ await app.tap(const ElementFinder.text('Save'));
 final report = await app.close();
 ```
 
+A session is made of ports a caller may give (`Session.compose`,
+`Session.attach`); without an app service it drives any program in a
+terminal (a shell, with `PtyCommandPort`): input is written, waits are on
+the screen the output leaves, and `find`/`tap` fail with "not a twk app".
+`DESIGN.md` has the composition.
+
 `twk_test` (`package:twk_test/driver.dart`) and `twk mcp` are front ends of
 this package. Linux and macOS only. `DESIGN.md` is the design.

@@ -29,5 +29,5 @@ export 'src/ports.dart'
         ScreenView,
         TerminalPort;
 export 'src/program.dart' show compiledProgram;
-export 'src/pty_terminal.dart' show PtyProcessPort;
+export 'src/pty_terminal.dart' show PtyCommandPort, PtyProcessPort;
 export 'src/session.dart' show CloseReport, Seen, Session, SessionPorts, Step;

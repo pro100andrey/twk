@@ -289,6 +289,9 @@ final class FakeScreen implements ScreenPort {
   @override
   var mouseTracked = true;
 
+  /// Whether the app is inside a synchronized update.
+  var updating = false;
+
   @override
   void answerTo(void Function(Uint8List bytes)? sink) => _answer = sink;
 
@@ -368,4 +371,7 @@ final class _View implements ScreenView {
 
   @override
   bool get alternateScreen => true;
+
+  @override
+  bool get updating => _screen.updating;
 }

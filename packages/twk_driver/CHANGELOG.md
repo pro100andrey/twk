@@ -4,6 +4,13 @@
 
 Added:
 
+- `Session.compose` and `Session.attach`: a session from the ports a
+  caller gives (process, screen, clock, an optional app service);
+  `Session.start` is the twk app's convenience over `compose`. Without an
+  app service: waits on the screen the output leaves, input returns when
+  written, `find`/`tap`/`clock` fail with "not a twk app (no app
+  service)". `PtyCommandPort` starts any command in a pty;
+  `ScreenView.updating` (a synchronized update in progress).
 - The package: `Session`, a twk app run as a process in a pseudo-terminal
   and driven from outside (`press`, `type`, `paste`, `resize`, `tap`,
   `find`, `waitForScreen`), each action returning at the frame that took the
