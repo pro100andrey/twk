@@ -51,6 +51,7 @@ export 'package:twk_core/twk_core.dart'
         KeyCode,
         KeyEvent,
         KeyKind,
+        KittyKey,
         Mod,
         MouseEvent,
         MouseKind,

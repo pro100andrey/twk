@@ -60,6 +60,8 @@ String? keySequence(
     KeyCode.f10 => tilde(21),
     KeyCode.f11 => tilde(23),
     KeyCode.f12 => tilde(24),
+    // xterm sends nothing for these
+    KeyCode.modifier || KeyCode.lock || KeyCode.media => null,
   };
 }
 
@@ -89,6 +91,8 @@ String _shifted(KeyEvent key) {
 /// * the arrows, Home, End, F1, F2 and F4 are `CSI 1 ; m X` (`CSI X`
 ///   without modifiers), the others `CSI n ; m ~`, F3 `CSI 13 ~`; never in
 ///   DECCKM's `SS3` form;
+/// * the modifier, lock and media keys are `CSI code ; m u` with 8, their
+///   [KeyEvent.kittyCode], and nothing without it;
 /// * with 2 a repeat has `:2` after the modifiers, a release `:3`, and a
 ///   release is sent at all (of Enter, Tab and Backspace only with 8);
 ///   without 2 a release sends nothing (null).
@@ -234,6 +238,12 @@ String? kittyKeySequence(KeyEvent key, int flags) {
         _ => (24, '~'), // f12
       };
       return csi(number, trailer);
+    case KeyCode.modifier || KeyCode.lock || KeyCode.media:
+      // reported only with 8, as `CSI code ; m u`
+      if (!allKeys || key.kittyCode == 0) {
+        return null;
+      }
+      return csi(key.kittyCode, 'u');
   }
 }
 

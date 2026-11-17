@@ -277,6 +277,7 @@ twk.dart class KeyBindings
 twk.dart class KeyCombo
 twk.dart class KeyEvent
 twk.dart class KeyHintsBar
+twk.dart class KittyKey
 twk.dart class LayoutBuilder
 twk.dart class LeaderKey
 twk.dart class LeafRenderObjectElement

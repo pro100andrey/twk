@@ -21,7 +21,8 @@ KeyEvent key(
   String char = '',
   int mods = 0,
   KeyKind kind = KeyKind.press,
-}) => KeyEvent(code, char: char, modifiers: mods, kind: kind);
+  int kitty = 0,
+}) => KeyEvent(code, char: char, modifiers: mods, kind: kind, kittyCode: kitty);
 
 KeyEvent char(String c, {int mods = 0, KeyKind kind = KeyKind.press}) =>
     key(KeyCode.char, char: c, mods: mods, kind: kind);
@@ -208,20 +209,103 @@ void main() {
       expect(parse('\x1b[97;2;u'), [char('a', mods: Mod.shift)]);
     });
 
-    test('Enter, Tab and Backspace come as CSI u; modifier keys alone '
-        'make no key', () {
+    test('Enter, Tab and Backspace come as CSI u', () {
       expect(parse('\x1b[13u\x1b[9;2u\x1b[127;5u\x1b[13;1:3u'), [
         key(KeyCode.enter),
         key(KeyCode.tab, mods: Mod.shift),
         key(KeyCode.backspace, mods: Mod.ctrl),
         key(KeyCode.enter, kind: release),
       ]);
-      // left Shift, right Control: pressed, then released
+    });
+
+    test('modifier keys, pressed, repeated and released, with the kitty '
+        'code of each', () {
+      // left Shift, right Control: pressed, then released (the modifier
+      // bits are those held after the event)
       expect(
-        parse('\x1b[57441;2u\x1b[57441;1:3u\x1b[57448;5u\x1b[57448;1:3u')
-            .whereType<KeyEvent>(),
-        isEmpty,
+        parse(
+          '\x1b[57441;2u\x1b[57441;2:2u\x1b[57441;1:3u'
+          '\x1b[57448;5u\x1b[57448;1:3u',
+        ),
+        [
+          key(KeyCode.modifier, mods: Mod.shift, kitty: KittyKey.leftShift),
+          key(
+            KeyCode.modifier,
+            mods: Mod.shift,
+            kind: repeat,
+            kitty: KittyKey.leftShift,
+          ),
+          key(KeyCode.modifier, kind: release, kitty: KittyKey.leftShift),
+          key(KeyCode.modifier, mods: Mod.ctrl, kitty: KittyKey.rightControl),
+          key(
+            KeyCode.modifier,
+            kind: release,
+            kitty: KittyKey.rightControl,
+          ),
+        ],
       );
+      // each of the twelve and the two ISO shifts
+      for (var c = 57441; c <= 57454; c++) {
+        expect(parse('\x1b[$c;1u'), [
+          key(KeyCode.modifier, kitty: c),
+        ], reason: '$c');
+      }
+    });
+
+    test('lock keys, pressed and released', () {
+      expect(parse('\x1b[57358u\x1b[57358;1:3u\x1b[57360;129u\x1b[57359u'), [
+        key(KeyCode.lock, kitty: KittyKey.capsLock),
+        key(KeyCode.lock, kind: release, kitty: KittyKey.capsLock),
+        // Num Lock's own state is no modifier
+        key(KeyCode.lock, kitty: KittyKey.numLock),
+        key(KeyCode.lock, kitty: KittyKey.scrollLock),
+      ]);
+    });
+
+    test('media keys, pressed and released', () {
+      expect(parse('\x1b[57430u\x1b[57430;1:3u\x1b[57439;1:2u'), [
+        key(KeyCode.media, kitty: KittyKey.mediaPlayPause),
+        key(KeyCode.media, kind: release, kitty: KittyKey.mediaPlayPause),
+        key(KeyCode.media, kind: repeat, kitty: KittyKey.raiseVolume),
+      ]);
+      for (var c = 57428; c <= 57440; c++) {
+        expect(parse('\x1b[$c;1u'), [key(KeyCode.media, kitty: c)]);
+      }
+    });
+
+    test('the codes between the families stay what they were', () {
+      // F13 (57376) has no KeyCode: no event; the keypad is its keys
+      expect(parse('\x1b[57376u').whereType<KeyEvent>(), isEmpty);
+      expect(parse('\x1b[57399u'), [char('0')]);
+      expect(parse('\x1b[57427u').whereType<KeyEvent>(), isEmpty);
+    });
+
+    test('a key names itself as kitty does', () {
+      String? name(int c) => KeyEvent(KeyCode.modifier, kittyCode: c).kittyName;
+      expect(name(57441), 'left_shift');
+      expect(name(57358), 'caps_lock');
+      expect(name(57430), 'media_play_pause');
+      expect(name(57454), 'iso_level5_shift');
+      expect(name(57376), isNull);
+      expect(const KeyEvent(KeyCode.enter).kittyName, isNull);
+      // every code of the three families has a name, and no other
+      for (var c = 57358; c <= 57454; c++) {
+        if (c >= 57361 && c <= 57427) {
+          expect(name(c), isNull, reason: '$c');
+          continue;
+        }
+        final read = parse('\x1b[$c;1u').whereType<KeyEvent>();
+        expect(read, hasLength(1), reason: '$c');
+        expect(name(c), isNotNull, reason: '$c');
+      }
+    });
+
+    test('a kitty code tells two keys of one family apart', () {
+      final a = key(KeyCode.modifier, kitty: KittyKey.leftShift);
+      final b = key(KeyCode.modifier, kitty: KittyKey.rightShift);
+      expect(a == b, isFalse);
+      expect(a.hashCode == b.hashCode, isFalse);
+      expect(a.toString(), 'Key(modifier:left_shift)');
     });
   });
 

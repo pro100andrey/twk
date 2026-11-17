@@ -247,8 +247,9 @@ describe('what twk finds out about the twk terminal, switch by switch', function
     app.t.press(key('ArrowUp', 'ArrowUp', { type: 'release' }), '');
     app.t.press(key('c', 'KeyC', { ctrl: true }), '\x03');
     app.t.press(key('q', 'KeyQ', { ctrl: true }), '\x11');
-    const lines = await app.lines(7);
+    const lines = await app.lines(8);
     await app.done();
-    assert.deepEqual(lines.slice(1), ['key char "A" 0', 'key char "A" 0', 'key enter "" 0', 'key up "" 0', 'key char "c" 4', 'key char "q" 4']);
+    // Shift itself is a key now (flag 8 reports it), with its own bit held
+    assert.deepEqual(lines.slice(1), ['key modifier "" 1', 'key char "A" 0', 'key char "A" 0', 'key enter "" 0', 'key up "" 0', 'key char "c" 4', 'key char "q" 4']);
   });
 });

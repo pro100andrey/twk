@@ -132,6 +132,16 @@ void main() {
     }
   });
 
+  test('the modifier, lock and media keys of the kitty protocol name no '
+      'shortcut', () {
+    for (final name in ['modifier', 'lock', 'media']) {
+      expect(() => KeyCombo.parseSequence(name), throwsFormatException);
+    }
+    // a key event of one is a combo no shortcut accepts
+    const shift = KeyEvent(KeyCode.modifier, kittyCode: KittyKey.leftShift);
+    expect(KeyCombo.parseSequence('enter').single.accepts(shift), isFalse);
+  });
+
   test('leader in a sequence stands for the leader given, alone; without '
       'one it is a FormatException', () {
     final space = KeyCombo.char(' ');

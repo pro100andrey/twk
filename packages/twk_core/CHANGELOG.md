@@ -18,6 +18,12 @@ Changed:
 
 Added:
 
+- `KeyCode.modifier`, `KeyCode.lock` and `KeyCode.media`, and
+  `KeyEvent.kittyCode` (`KittyKey` has the codes and their names): with the
+  kitty keyboard protocol's flag 8 the parser reads Shift, Ctrl, Alt,
+  Super, Hyper and Meta (left and right), the ISO level shifts, Caps, Num
+  and Scroll Lock and the media keys, with their repeats and releases
+  (flag 2), as `KeyEvent`s. A shortcut cannot name them.
 - Pixel mouse: where the terminal answers DECRQM for SGR-Pixels (mode
   1016) and a cell's size is known, the mouse is reported in pixels and
   `InputParser` divides them into the cell and `MouseEvent.offsetX` and

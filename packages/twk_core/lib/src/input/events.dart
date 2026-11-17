@@ -128,7 +128,150 @@ enum KeyCode {
 
   /// The function key F12.
   f12,
+
+  /// A modifier key itself (Shift, Ctrl, Alt, Super, Hyper, Meta, left or
+  /// right, or an ISO level shift) pressed or released: only with the
+  /// kitty keyboard protocol's [KittyKeyboardFlags.allKeysAsEscapes].
+  /// [KeyEvent.kittyCode] tells which ([KittyKey]); never a shortcut.
+  modifier,
+
+  /// A lock key (Caps Lock, Num Lock, Scroll Lock): as [modifier],
+  /// [KeyEvent.kittyCode] tells which.
+  lock,
+
+  /// A media key (play, pause, track, volume, ...): as [modifier],
+  /// [KeyEvent.kittyCode] tells which.
+  media,
 }
+
+/// The codes of the kitty keyboard protocol's keys that have no character
+/// or [KeyCode] of their own, as [KeyEvent.kittyCode] holds them for
+/// [KeyCode.modifier], [KeyCode.lock] and [KeyCode.media] events.
+abstract final class KittyKey {
+  /// Caps Lock.
+  static const capsLock = 57358;
+
+  /// Scroll Lock.
+  static const scrollLock = 57359;
+
+  /// Num Lock.
+  static const numLock = 57360;
+
+  /// Media Play.
+  static const mediaPlay = 57428;
+
+  /// Media Pause.
+  static const mediaPause = 57429;
+
+  /// Media Play/Pause.
+  static const mediaPlayPause = 57430;
+
+  /// Media Reverse.
+  static const mediaReverse = 57431;
+
+  /// Media Stop.
+  static const mediaStop = 57432;
+
+  /// Media Fast Forward.
+  static const mediaFastForward = 57433;
+
+  /// Media Rewind.
+  static const mediaRewind = 57434;
+
+  /// Media Next Track.
+  static const mediaTrackNext = 57435;
+
+  /// Media Previous Track.
+  static const mediaTrackPrevious = 57436;
+
+  /// Media Record.
+  static const mediaRecord = 57437;
+
+  /// Volume Down.
+  static const lowerVolume = 57438;
+
+  /// Volume Up.
+  static const raiseVolume = 57439;
+
+  /// Mute.
+  static const muteVolume = 57440;
+
+  /// Left Shift.
+  static const leftShift = 57441;
+
+  /// Left Ctrl.
+  static const leftControl = 57442;
+
+  /// Left Alt.
+  static const leftAlt = 57443;
+
+  /// Left Super.
+  static const leftSuper = 57444;
+
+  /// Left Hyper.
+  static const leftHyper = 57445;
+
+  /// Left Meta.
+  static const leftMeta = 57446;
+
+  /// Right Shift.
+  static const rightShift = 57447;
+
+  /// Right Ctrl.
+  static const rightControl = 57448;
+
+  /// Right Alt.
+  static const rightAlt = 57449;
+
+  /// Right Super.
+  static const rightSuper = 57450;
+
+  /// Right Hyper.
+  static const rightHyper = 57451;
+
+  /// Right Meta.
+  static const rightMeta = 57452;
+
+  /// ISO Level 3 Shift (AltGr).
+  static const isoLevel3Shift = 57453;
+
+  /// ISO Level 5 Shift.
+  static const isoLevel5Shift = 57454;
+}
+
+/// The names kitty gives its keys, by code.
+const Map<int, String> _kittyNames = {
+  KittyKey.capsLock: 'caps_lock',
+  KittyKey.scrollLock: 'scroll_lock',
+  KittyKey.numLock: 'num_lock',
+  KittyKey.mediaPlay: 'media_play',
+  KittyKey.mediaPause: 'media_pause',
+  KittyKey.mediaPlayPause: 'media_play_pause',
+  KittyKey.mediaReverse: 'media_reverse',
+  KittyKey.mediaStop: 'media_stop',
+  KittyKey.mediaFastForward: 'media_fast_forward',
+  KittyKey.mediaRewind: 'media_rewind',
+  KittyKey.mediaTrackNext: 'media_track_next',
+  KittyKey.mediaTrackPrevious: 'media_track_previous',
+  KittyKey.mediaRecord: 'media_record',
+  KittyKey.lowerVolume: 'lower_volume',
+  KittyKey.raiseVolume: 'raise_volume',
+  KittyKey.muteVolume: 'mute_volume',
+  KittyKey.leftShift: 'left_shift',
+  KittyKey.leftControl: 'left_control',
+  KittyKey.leftAlt: 'left_alt',
+  KittyKey.leftSuper: 'left_super',
+  KittyKey.leftHyper: 'left_hyper',
+  KittyKey.leftMeta: 'left_meta',
+  KittyKey.rightShift: 'right_shift',
+  KittyKey.rightControl: 'right_control',
+  KittyKey.rightAlt: 'right_alt',
+  KittyKey.rightSuper: 'right_super',
+  KittyKey.rightHyper: 'right_hyper',
+  KittyKey.rightMeta: 'right_meta',
+  KittyKey.isoLevel3Shift: 'iso_level3_shift',
+  KittyKey.isoLevel5Shift: 'iso_level5_shift',
+};
 
 /// One thing a terminal sent: what the user did ([KeyEvent],
 /// [MouseEvent], [PasteEvent], [FocusEvent]), the terminal's new size
@@ -209,6 +352,7 @@ final class KeyEvent extends InputEvent {
     this.modifiers = 0,
     this.kind = KeyKind.press,
     this.baseChar = '',
+    this.kittyCode = 0,
   });
 
   /// The key.
@@ -234,6 +378,16 @@ final class KeyEvent extends InputEvent {
   /// when [char] names no shortcut, so it works on any layout.
   final String baseChar;
 
+  /// Which key of [KeyCode.modifier], [KeyCode.lock] or [KeyCode.media] it
+  /// is, as the kitty keyboard protocol numbers them ([KittyKey]); 0 for
+  /// the other keys.
+  final int kittyCode;
+
+  /// The name kitty gives the key [kittyCode] is in lower case
+  /// (`left_shift`, `caps_lock`, `media_play_pause`); null for the other
+  /// keys.
+  String? get kittyName => _kittyNames[kittyCode];
+
   /// Whether Ctrl is held ([Mod.ctrl]).
   bool get ctrl => modifiers & Mod.ctrl != 0;
 
@@ -250,14 +404,20 @@ final class KeyEvent extends InputEvent {
       other.char == char &&
       other.modifiers == modifiers &&
       other.kind == kind &&
-      other.baseChar == baseChar;
+      other.baseChar == baseChar &&
+      other.kittyCode == kittyCode;
 
   @override
-  int get hashCode => Object.hash(code, char, modifiers, kind, baseChar);
+  int get hashCode =>
+      Object.hash(code, char, modifiers, kind, baseChar, kittyCode);
 
   @override
   String toString() {
-    final name = code == KeyCode.char ? '"$char"' : code.name;
+    final name = code == KeyCode.char
+        ? '"$char"'
+        : kittyCode != 0
+        ? '${code.name}:${kittyName ?? kittyCode}'
+        : code.name;
     final mod = modifiers != 0 ? ' mod=$modifiers' : '';
     final k = kind != KeyKind.press ? ' ${kind.name}' : '';
     final b = baseChar.isNotEmpty ? ' base="$baseChar"' : '';

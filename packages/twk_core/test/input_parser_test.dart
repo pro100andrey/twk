@@ -224,10 +224,15 @@ void main() {
       const KeyEvent(KeyCode.char, char: '0'),
       const KeyEvent(KeyCode.char, char: '+', modifiers: Mod.ctrl),
     ]);
-    for (final code in [57376, 57358, 57428, 57441, 57454]) {
-      // F13, Caps Lock, media keys, modifier keys: no KeyCode for them
-      expect(parse('\x1b[${code}u').whereType<KeyEvent>(), isEmpty);
-    }
+    // F13 has no KeyCode; Caps Lock, media keys and modifier keys have
+    // their families' (test/input/kitty_keyboard_test.dart)
+    expect(parse('\x1b[57376u').whereType<KeyEvent>(), isEmpty);
+    expect(parse('\x1b[57358u\x1b[57428u\x1b[57441u\x1b[57454u'), [
+      const KeyEvent(KeyCode.lock, kittyCode: KittyKey.capsLock),
+      const KeyEvent(KeyCode.media, kittyCode: KittyKey.mediaPlay),
+      const KeyEvent(KeyCode.modifier, kittyCode: KittyKey.leftShift),
+      const KeyEvent(KeyCode.modifier, kittyCode: KittyKey.isoLevel5Shift),
+    ]);
     // reply to the protocol query CSI ? u
     expect(parse('\x1b[?1u'), [const KeyboardFlagsReport(1)]);
     expect(parse('\x1b[?u'), [const KeyboardFlagsReport(0)]);

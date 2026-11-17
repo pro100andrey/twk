@@ -270,9 +270,15 @@ final class KeyCombo {
     'super': Mod.superKey,
   };
 
+  // the keys a shortcut names: not a character, nor the modifier, lock and
+  // media keys of the kitty protocol, which are no shortcut
   static final _keys = <String, KeyCode>{
     for (final code in KeyCode.values)
-      if (code != KeyCode.char) code.name.toLowerCase(): code,
+      if (code != KeyCode.char &&
+          code != KeyCode.modifier &&
+          code != KeyCode.lock &&
+          code != KeyCode.media)
+        code.name.toLowerCase(): code,
   };
 
   // Names a key is read by besides its own (twk_lints' key_names.dart holds

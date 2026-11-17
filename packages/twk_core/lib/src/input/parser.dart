@@ -1196,6 +1196,16 @@ final class InputParser {
   /// A keypad key as the key or character it stands for; null for the
   /// keys there is no [KeyCode] for.
   static KeyEvent? _kittyFunctionalKey(int code, int mods, KeyKind kind) {
+    final family = code <= KittyKey.numLock && code >= KittyKey.capsLock
+        ? KeyCode.lock
+        : code <= KittyKey.muteVolume && code >= KittyKey.mediaPlay
+        ? KeyCode.media
+        : code <= KittyKey.isoLevel5Shift && code >= KittyKey.leftShift
+        ? KeyCode.modifier
+        : null;
+    if (family != null) {
+      return KeyEvent(family, modifiers: mods, kind: kind, kittyCode: code);
+    }
     final i = code - _kittyKeypadFirst;
     final text = switch (code) {
       57415 => '=',

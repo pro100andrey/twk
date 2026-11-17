@@ -43,6 +43,7 @@ terminal.dart class InputEvent
 terminal.dart class InputParser
 terminal.dart class KeyEvent
 terminal.dart class KeyboardFlagsReport
+terminal.dart class KittyKey
 terminal.dart class KittyKeyboardFlags
 terminal.dart class LineEncoder
 terminal.dart class LocalAddress
@@ -147,6 +148,7 @@ twk_core.dart class InputEvent
 twk_core.dart class InputParser
 twk_core.dart class KeyEvent
 twk_core.dart class KeyboardFlagsReport
+twk_core.dart class KittyKey
 twk_core.dart class KittyKeyboardFlags
 twk_core.dart class LineEncoder
 twk_core.dart class ListItemManager

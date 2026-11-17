@@ -90,10 +90,49 @@ void main() {
       String char = '',
       int mods = 0,
       KeyKind kind = KeyKind.press,
+      int kitty = 0,
     }) => kittyKeySequence(
-      KeyEvent(code, char: char, modifiers: mods, kind: kind),
+      KeyEvent(code, char: char, modifiers: mods, kind: kind, kittyCode: kitty),
       flags,
     )?.replaceAll('\x1b', r'\e');
+
+    test('modifier, lock and media keys are CSI u with flag 8 only', () {
+      const shift = KittyKey.leftShift;
+      expect(
+        key(8, KeyCode.modifier, mods: Mod.shift, kitty: shift),
+        r'\e[57441;2u',
+      );
+      expect(key(1, KeyCode.modifier, mods: Mod.shift, kitty: shift), isNull);
+      expect(key(0, KeyCode.modifier, mods: Mod.shift, kitty: shift), isNull);
+      // a release needs flag 2 too, and says so
+      expect(
+        key(8, KeyCode.modifier, kind: KeyKind.release, kitty: shift),
+        isNull,
+      );
+      expect(
+        key(10, KeyCode.modifier, kind: KeyKind.release, kitty: shift),
+        r'\e[57441;1:3u',
+      );
+      expect(
+        key(10, KeyCode.lock, kind: KeyKind.repeat, kitty: 57358),
+        r'\e[57358;1:2u',
+      );
+      expect(
+        key(8, KeyCode.media, kitty: KittyKey.mediaPlayPause),
+        r'\e[57430u',
+      );
+      // no code, no sequence
+      expect(key(8, KeyCode.media), isNull);
+    });
+
+    test('xterm sends nothing for them', () {
+      for (final code in [KeyCode.modifier, KeyCode.lock, KeyCode.media]) {
+        expect(
+          keySequence(KeyEvent(code, kittyCode: KittyKey.leftShift)),
+          isNull,
+        );
+      }
+    });
 
     test('disambiguated: text as typed, modified keys as CSI u', () {
       expect(key(1, KeyCode.char, char: 'a'), 'a');

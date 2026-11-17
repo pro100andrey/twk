@@ -83,6 +83,13 @@ void main() {
     }
     expect(keyName(keyEvent('esc')!), 'escape');
     expect(keyEvent('nokey'), isNull);
+    // a modifier key by kitty's name; no name makes one
+    expect(
+      keyName(const KeyEvent(KeyCode.modifier, kittyCode: 57441)),
+      'left_shift',
+    );
+    expect(keyEvent('modifier'), isNull);
+    expect(keyEvent('media'), isNull);
   });
 
   group('the toasts', () {
