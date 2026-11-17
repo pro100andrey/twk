@@ -347,7 +347,10 @@ final class TwkTester {
   /// through [multiplexer] as a terminal's are passed on. Its cells are
   /// [cellPixels] pixels (width, height) as it reports them
   /// (`TerminalCaps.cellPixelWidth` and `cellPixelHeight`), the emulator's
-  /// too; when null it reports none, and the emulator's are 10 × 20. The
+  /// too; when null it reports none, and the emulator's are 10 × 20. With
+  /// [pixelMouse] (which needs [cellPixels]) the mouse is reported in
+  /// pixels (SGR-Pixels), and [mouse]'s `offsetX` and `offsetY` reach the
+  /// app as [MouseEvent.offsetX] and [MouseEvent.offsetY]. The
   /// binding gets [maxFps],
   /// [maxInlineRows], [clearInlineOnExit] and [exitOnCtrlC] (see
   /// [AppBinding]), and [environment] in place of the process's: none by
@@ -375,6 +378,7 @@ final class TwkTester {
     NotificationProtocol notifications = NotificationProtocol.none,
     GraphicsProtocol graphics = GraphicsProtocol.none,
     (int, int)? cellPixels,
+    bool pixelMouse = false,
     int maxFps = 60,
     int? maxInlineRows,
     bool clearInlineOnExit = false,
@@ -388,6 +392,14 @@ final class TwkTester {
     if (binding == null) {
       _startTime = startTime ?? defaultStartTime;
       _pointerShapes = pointerShapes;
+      if (pixelMouse && cellPixels == null) {
+        throw ArgumentError.value(
+          pixelMouse,
+          'pixelMouse',
+          'needs cellPixels',
+        );
+      }
+      _pixelCell = pixelMouse ? cellPixels : null;
       _start(
         widget,
         size: size ?? (80, 24),
@@ -521,6 +533,9 @@ final class TwkTester {
           normalScreenMouse: viewport != null,
         ),
       );
+      if (_pixelCell != null) {
+        term.pixelMouse = true;
+      }
       final binding = _binding = AppBinding(
         term,
         viewport: viewport,
@@ -691,23 +706,57 @@ final class TwkTester {
   /// Delivers the mouse report (SGR, mode 1006) of [kind] at the cell
   /// ([x], [y]), 0-based, with [button] (0 left, 1 middle, 2 right, 8 to 11
   /// the side buttons) for a press, release or drag, and [modifiers]
-  /// ([Mod]'s Shift, Alt and Ctrl). A [StateError] in the inline mode,
-  /// where the terminal keeps the mouse for itself, but in a viewport
-  /// (see [pumpWidget]), whose app gets the events in its own cells.
+  /// ([Mod]'s Shift, Alt and Ctrl). With `pixelMouse` ([pumpWidget]) the
+  /// pointer is [offsetX], [offsetY] pixels into the cell, in its middle by
+  /// default; without it an offset is a [StateError]. A [StateError] in
+  /// the inline mode, where the terminal keeps the mouse for itself, but in
+  /// a viewport (see [pumpWidget]), whose app gets the events in its own
+  /// cells.
   Future<void> mouse(
     MouseKind kind,
     int x,
     int y, {
     int button = 0,
     int modifiers = 0,
+    int? offsetX,
+    int? offsetY,
   }) async {
     final term = _running();
+    final pixels = _pixelCell;
+    if (pixels == null && (offsetX != null || offsetY != null)) {
+      throw StateError('an offset needs pumpWidget(pixelMouse: true)');
+    }
+    if (pixels != null) {
+      RangeError.checkValueInInterval(
+        offsetX ?? 0,
+        0,
+        pixels.$1 - 1,
+        'offsetX',
+      );
+      RangeError.checkValueInInterval(
+        offsetY ?? 0,
+        0,
+        pixels.$2 - 1,
+        'offsetY',
+      );
+    }
     if (mode == ScreenMode.inline && binding.twkApp.viewport == null) {
       throw StateError('the inline mode gets no mouse reports');
     }
     RangeError.checkValueInInterval(x, 0, term.width - 1, 'x');
     RangeError.checkValueInInterval(y, 0, term.height - 1, 'y');
-    await _send(mouseBytes(kind, x, y, button, modifiers));
+    await _send(
+      mouseBytes(
+        kind,
+        x,
+        y,
+        button,
+        modifiers,
+        cellPixels: pixels,
+        offsetX: offsetX,
+        offsetY: offsetY,
+      ),
+    );
     _throwError();
   }
 
@@ -855,6 +904,9 @@ final class TwkTester {
 
   /// Whether the terminal was started to show pointer shapes.
   var _pointerShapes = false;
+
+  // the cell's pixels while the mouse is reported in pixels
+  (int, int)? _pixelCell;
 
   /// The shape the app gave the mouse pointer last ([PointerShape], OSC
   /// 22): [PointerShape.arrow] where it shows the terminal's default, null

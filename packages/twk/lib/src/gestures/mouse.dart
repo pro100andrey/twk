@@ -57,6 +57,8 @@ final class PointerEvent {
     required this.screenY,
     this.button = 0,
     this.modifiers = 0,
+    this.subX,
+    this.subY,
   });
 
   /// What the mouse did; for an enter or an exit, what moved it in or out
@@ -76,6 +78,31 @@ final class PointerEvent {
 
   /// The row of the cell from the top of the screen.
   final int screenY;
+
+  /// How far right of the cell's left edge the pointer is, as a share of
+  /// the cell's width: 0 up to, not including, 1. Null where the terminal
+  /// reports whole cells only (`MouseEvent.offsetX` is null); a drag that
+  /// follows the pointer within a cell reads it through [exactX].
+  final double? subX;
+
+  /// How far below the cell's top edge the pointer is, as a share of the
+  /// cell's height; null as [subX] is.
+  final double? subY;
+
+  /// The pointer's column in cells from the left of the widget, a
+  /// fraction of a cell more than [x] where the terminal reports pixels
+  /// ([subX]), [x] as a double where it does not.
+  double get exactX => x + (subX ?? 0);
+
+  /// The pointer's row in cells from the top of the widget, as [exactX].
+  double get exactY => y + (subY ?? 0);
+
+  /// The pointer's column in cells from the left of the screen, as
+  /// [exactX].
+  double get exactScreenX => screenX + (subX ?? 0);
+
+  /// The pointer's row in cells from the top of the screen, as [exactX].
+  double get exactScreenY => screenY + (subY ?? 0);
 
   /// The button pressed, released or held: 0 left, 1 middle, 2 right, 8 to
   /// 11 the side buttons.
@@ -690,6 +717,28 @@ final class MouseTracker {
     }
   }
 
+  /// The size of a cell in pixels (width, height), or null where it is not
+  /// known: with it a [MouseEvent.offsetX] becomes [PointerEvent.subX].
+  /// The binding sets it from the terminal's.
+  (int, int)? Function()? cellPixels;
+
+  // where in its cell the pointer of the event under dispatch is
+  double? _subX;
+  double? _subY;
+
+  void _sub(MouseEvent event) {
+    final ox = event.offsetX;
+    final oy = event.offsetY;
+    final size = ox == null || oy == null ? null : cellPixels?.call();
+    if (size == null) {
+      _subX = _subY = null;
+      return;
+    }
+    // the middle of the pixel the pointer is in
+    _subX = ((ox! + 0.5) / size.$1).clamp(0.0, 0.999999);
+    _subY = ((oy! + 0.5) / size.$2).clamp(0.0, 0.999999);
+  }
+
   final _result = HitTestResult();
 
   // the listeners the last hit test found, the deepest first, and where
@@ -731,6 +780,7 @@ final class MouseTracker {
     final MouseEvent(:kind, :x, :y, :button) = event;
     _x = x;
     _y = y;
+    _sub(event);
     _hitTest(_result, x, y);
     _moveTo(kind, x, y, button, event.modifiers, hover: true);
     final bit = 1 << button;
@@ -1000,7 +1050,7 @@ final class MouseTracker {
     _showCursor();
   }
 
-  static PointerEvent _local(
+  PointerEvent _local(
     MouseKind kind,
     int localX,
     int localY,
@@ -1016,6 +1066,8 @@ final class MouseTracker {
     screenY: y,
     button: button,
     modifiers: modifiers,
+    subX: _subX,
+    subY: _subY,
   );
 
   /// Shows the pointer's shape of the deepest region the mouse is in that
@@ -1094,7 +1146,7 @@ final class MouseTracker {
 
   /// The event of [kind] at [x], [y] of the screen as [target] gets it;
   /// null when it is not in the tree.
-  static PointerEvent? _pointerAt(
+  PointerEvent? _pointerAt(
     RenderObject target,
     MouseKind kind,
     int x,
@@ -1119,6 +1171,8 @@ final class MouseTracker {
       screenY: y,
       button: button,
       modifiers: modifiers,
+      subX: _subX,
+      subY: _subY,
     );
   }
 

@@ -70,7 +70,9 @@ enum ScrollbarVisibility {
 /// and the place of the thumb.
 ///
 /// Dragging the thumb with the left button scrolls the content as far as
-/// the thumb moves, wherever the mouse goes until the release; pressing
+/// the thumb moves, wherever the mouse goes until the release (where the
+/// terminal reports pixels, [PointerEvent.subY], as far as a part of a
+/// cell the mouse moved: a row of a long list is a pixel or less); pressing
 /// the track before or after the thumb scrolls a window that way. A press
 /// of the bar is its own: a `GestureDetector` around it gets nothing of
 /// it. The wheel over the bar scrolls the scrollable as over it.
@@ -450,9 +452,10 @@ final class _Track with ChangeNotifier {
   Duration _hideAt = Duration.zero;
   int? _hiding;
 
-  // a drag of the thumb: the cell along the bar it was pressed at and
+  // a drag of the thumb: where along the bar it was pressed, in cells
+  // (a fraction of a cell more where the terminal reports pixels) and
   // where the thumb started then, in steps; null while there is none
-  int? _grabAt;
+  double? _grabAt;
   var _grabStart = 0;
 
   /// Whether the thumb is being dragged.
@@ -583,7 +586,7 @@ final class _Track with ChangeNotifier {
     } else if (at * _steps >= end) {
       p.jumpTo(p.pixels + page);
     } else {
-      _grabAt = at;
+      _grabAt = axis == Axis.vertical ? event.exactY : event.exactX;
       _grabStart = start;
       mouse?.whenReleased(_released);
       _changed();
@@ -603,9 +606,15 @@ final class _Track with ChangeNotifier {
     if (room <= 0) {
       return;
     }
-    final at = axis == Axis.vertical ? event.y : event.x;
+    final vertical = axis == Axis.vertical;
+    final sub = (vertical ? event.subY : event.subX) != null;
+    final at = vertical ? event.exactY : event.exactX;
     final start = _grabStart + (at - grabAt) * _steps;
-    final along = _ratio(p.maxScrollExtent, start < 0 ? 0 : start, room);
+    // within a cell the thumb is not on a step: the content follows the
+    // pointer, as many rows as it comes to
+    final along = sub
+        ? (p.maxScrollExtent * (start < 0 ? 0 : start) / room).round()
+        : _ratio(p.maxScrollExtent, start < 0 ? 0 : start.round(), room);
     p.jumpTo(p.reverse ? p.maxScrollExtent - along : along);
   }
 

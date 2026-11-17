@@ -246,7 +246,9 @@ final class SplitPane {
 /// out again.
 ///
 /// A divider dragged with the left button follows the mouse, the panes on
-/// either side of it growing and shrinking as far as their sizes let them:
+/// either side of it growing and shrinking as far as their sizes let them
+/// (where the terminal reports pixels, [PointerEvent.subX], the shares keep
+/// the part of a cell the mouse moved, the panes' cells staying whole):
 /// dragged over a [SplitPane.collapsible] pane past half its least it
 /// collapses the pane, and back out it expands it. Tab gives a divider the
 /// focus: then Left and Right (Up and Down between panes one below
@@ -371,8 +373,8 @@ final class _Grip {
   final int divider;
 
   /// The cell of the screen pressed.
-  final int x;
-  final int y;
+  final double x;
+  final double y;
 
   /// The panes' own cells, their shares and those collapsed.
   final List<int> sizes;
@@ -498,8 +500,8 @@ final class _SplitViewState extends State<SplitView> {
     setState(
       () => _grip = _Grip(
         divider,
-        event.screenX,
-        event.screenY,
+        event.exactScreenX,
+        event.exactScreenY,
         split.own,
         c._fractions!,
         {...c._collapsed},
@@ -512,9 +514,21 @@ final class _SplitViewState extends State<SplitView> {
     if (grip == null || grip.divider != divider) {
       return;
     }
-    final delta = _across ? event.screenX - grip.x : event.screenY - grip.y;
+    final delta = _across
+        ? event.exactScreenX - grip.x
+        : event.exactScreenY - grip.y;
     final move = _Move(grip.sizes, grip.collapsed, _limits(), widget.panes);
-    _moveTo(move, grip.fractions, divider, move.nearest(divider, delta));
+    final size = move.nearest(divider, delta);
+    // where the terminal reports pixels the pane keeps the part of a cell
+    // the pointer is past its whole cells, unless the size was held back
+    final want = grip.sizes[divider] + delta;
+    _moveTo(
+      move,
+      grip.fractions,
+      divider,
+      size,
+      within: size != null && want.round() == size ? want - size : 0,
+    );
   }
 
   void _up(int divider) {
@@ -549,13 +563,30 @@ final class _SplitViewState extends State<SplitView> {
   /// Gives the pane before [divider] [size] own cells and the pane after
   /// it the rest of the two, as [move] found them, and sets the controller
   /// from what that leaves.
-  void _moveTo(_Move move, List<double> fractions, int divider, int? size) {
+  ///
+  /// A [within] other than 0 is a part of a cell more that the pane before
+  /// [divider] has, and the pane after it that much less, in the shares:
+  /// not in the cells the layout gives them, which are whole.
+  void _moveTo(
+    _Move move,
+    List<double> fractions,
+    int divider,
+    int? size, {
+    double within = 0,
+  }) {
     if (size == null) {
       return;
     }
     final (sizes, collapsed) = move.apply(divider, size);
     final c = _controller;
-    final shares = _shares(sizes, collapsed, fractions);
+    final exact = <num>[...sizes];
+    if (within != 0 &&
+        !collapsed.contains(divider) &&
+        !collapsed.contains(divider + 1)) {
+      exact[divider] += within;
+      exact[divider + 1] -= within;
+    }
+    final shares = _shares(exact, collapsed, fractions);
     if (!_sameShares(shares, c._fractions) ||
         collapsed.length != c._collapsed.length ||
         !collapsed.containsAll(c._collapsed)) {
@@ -635,13 +666,13 @@ final class _SplitViewState extends State<SplitView> {
 /// [collapsed]: those collapsed keep theirs of [fractions], the others
 /// share the rest by their sizes.
 List<double> _shares(
-  List<int> sizes,
+  List<num> sizes,
   Set<int> collapsed,
   List<double> fractions,
 ) {
   final n = sizes.length;
   var kept = 0.0;
-  var cells = 0;
+  num cells = 0;
   var shown = 0;
   for (var i = 0; i < n; i++) {
     if (collapsed.contains(i)) {
@@ -691,7 +722,7 @@ final class _Move {
   /// The size of the pane before [divider] that may be nearest to its own
   /// [delta] cells on, the nearer to its size of two as near; null when
   /// there is none.
-  int? nearest(int divider, int delta) {
+  int? nearest(int divider, num delta) {
     final now = sizes[divider];
     final total = now + sizes[divider + 1];
     final to = now + delta;

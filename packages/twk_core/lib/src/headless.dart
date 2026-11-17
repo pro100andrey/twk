@@ -153,6 +153,21 @@ final class HeadlessTerminal
   int height;
 
   final _parser = InputParser();
+
+  /// Whether the mouse reports [input] gets are SGR-Pixels (mode 1016):
+  /// the position in pixels, which the parser divides into the cell and
+  /// [MouseEvent.offsetX], [MouseEvent.offsetY] by the cell size of
+  /// [TerminalInfo.caps]. Off by default, and not turned on where that
+  /// size is not known.
+  bool get pixelMouse => _parser.pixelMouse;
+
+  set pixelMouse(bool value) {
+    _parser
+      ..pixelMouse = value
+      ..cellPixelWidth = info.caps.cellPixelWidth
+      ..cellPixelHeight = info.caps.cellPixelHeight;
+  }
+
   final _events = StreamController<InputEvent>();
 
   /// Decoded input, plus [ResizeEvent]s.
