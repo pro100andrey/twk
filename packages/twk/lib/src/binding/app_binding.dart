@@ -790,6 +790,7 @@ final class AppBinding implements FrameClock {
     'ext.twk.layout',
     'ext.twk.select',
     'ext.twk.find',
+    'ext.twk.hitTest',
     'ext.twk.highlight',
     'ext.twk.flags',
     'ext.twk.reassemble',
@@ -861,6 +862,19 @@ final class AppBinding implements FrameClock {
   ///   [ServiceExtensionResponse.invalidParams]; a `node` of it that has
   ///   left the tree is [ServiceExtensionResponse.extensionError].
   /// * `ext.twk.layout` also answers `shown`, as `ext.twk.find` does.
+  /// * `ext.twk.hitTest`, `x`, `y` (and `cursorY`, as `ext.twk.select`
+  ///   takes it): what a click at that cell reaches: `frame`, `cell` (`x`
+  ///   and `y`, in the rows of the screen of the app), `takenBy`, `pick`
+  ///   while the pick of `ext.twk.flags` takes the mouse, `console` where
+  ///   the open console does, else null (the tree gets it); `path`, the
+  ///   elements that own the render objects hit, the deepest first, each
+  ///   `id`, `type` and `render`; `listeners`, the `Listener`s among them,
+  ///   and those given by `listenOver`, with a callback, the deepest first,
+  ///   each with `render`, `type`, `callbacks` (`down`, `up`, `hover`,
+  ///   `drag`, `scroll`) and `over` for one that listens over another
+  ///   render object; and `absorbedBy`, the render object of the
+  ///   `AbsorbPointer` that takes the press, null for none. It calls no
+  ///   callback and moves no hover.
   /// * `ext.twk.highlight`, `id`: has the render object of that node, as
   ///   in `ext.twk.layout`, outlined ([DebugAids.highlight]), or, without
   ///   `id`, none: `id`, null for none, and `render`.
@@ -978,6 +992,8 @@ final class AppBinding implements FrameClock {
         return inspector.select(_int(params, 'x'), _selectedRow(params));
       case 'ext.twk.find':
         return _find(params);
+      case 'ext.twk.hitTest':
+        return _hitTest(params);
       case 'ext.twk.highlight':
         final node = params.containsKey('id') ? _node(params) : null;
         final o = debug.highlight = node == null
@@ -1023,6 +1039,23 @@ final class AppBinding implements FrameClock {
     } on StateError catch (e) {
       throw _ExtensionError.gone(e.message);
     }
+  }
+
+  /// What `ext.twk.hitTest` answers for the cell `x`, `y` names.
+  Map<String, Object?> _hitTest(Map<String, String> params) {
+    final x = _int(params, 'x');
+    final y = _selectedRow(params);
+    final takenBy = debug.select
+        ? 'pick'
+        : debug._consoleCovers(x, y)
+        ? 'console'
+        : null;
+    return {
+      'frame': twkApp.framesRun,
+      'cell': {'x': x, 'y': y},
+      'takenBy': takenBy,
+      ..._inspector.hitAt(x, y, _mouse.targetsAt(x, y)),
+    };
   }
 
   /// The record `ext.twk.log` adds.
@@ -1863,6 +1896,19 @@ final class DebugAids {
       case _:
     }
     return true;
+  }
+
+  /// Whether the open console takes the mouse at [x], [y] ([_takeMouse]),
+  /// changing nothing.
+  bool _consoleCovers(int x, int y) {
+    final panel = _consolePanel;
+    if (panel == null || _console == null || panel.owner == null) {
+      return false;
+    }
+    final (left, top) = panel.globalOffset;
+    final dx = x - left;
+    final dy = y - top;
+    return dx >= 0 && dy >= 0 && dx < panel.width && dy < panel.height;
   }
 
   void _consoleChanged() {

@@ -611,6 +611,21 @@ final class RenderMouseRegion extends _RenderMouseTarget {
   }
 }
 
+/// A [Listener] a press would reach ([MouseTracker.targetsAt]), with the
+/// names of its callbacks and the render object it listens over, null
+/// for a listener in the tree.
+typedef MouseTarget = ({
+  RenderListener listener,
+  RenderObject? over,
+  List<String> callbacks,
+});
+
+/// What a press at a cell would reach ([MouseTracker.targetsAt]).
+typedef MouseTargets = ({
+  List<MouseTarget> listeners,
+  RenderObject? absorbedBy,
+});
+
 /// Routes the mouse events of an app to its [Listener]s and
 /// [MouseRegion]s by a hit test of its render tree, and counts what those
 /// mounted under [scope] need the terminal to report ([tracking]). The
@@ -872,6 +887,49 @@ final class MouseTracker {
       }
     }
     return hit;
+  }
+
+  /// What a press at [x], [y] of the screen would reach, calling nothing
+  /// and changing nothing the mouse has (no enter, exit or hover; the
+  /// press, the buttons held and the regions it is in are as they were):
+  /// `listeners`, the [Listener]s it hits, those given by [listenOver]
+  /// included, the deepest first, each with the callbacks it has, as
+  /// `down`, `up`, `hover`, `drag` and `scroll`, and with `over` the
+  /// render object it listens over, null for a listener in the tree; and
+  /// `absorbedBy`, the first `AbsorbPointer` that absorbs in the hit, or
+  /// null. A listener with no callback is left out.
+  MouseTargets targetsAt(int x, int y) {
+    _hitTest(_result, x, y);
+    final hit = _listenersHit();
+    const names = [
+      (MouseKind.down, 'down'),
+      (MouseKind.up, 'up'),
+      (MouseKind.move, 'hover'),
+      (MouseKind.drag, 'drag'),
+      (MouseKind.wheelUp, 'scroll'),
+    ];
+    final listeners = <MouseTarget>[];
+    for (var i = 0; i < hit.length; i++) {
+      final listener = hit[i];
+      final callbacks = [
+        for (final (kind, name) in names)
+          if (listener._callbackFor(kind) != null) name,
+      ];
+      if (callbacks.isNotEmpty) {
+        listeners.add((
+          listener: listener,
+          over: listener._over,
+          callbacks: callbacks,
+        ));
+      }
+    }
+    RenderObject? absorber;
+    for (var i = 0; i < _result.length && absorber == null; i++) {
+      if (_result[i] case final RenderAbsorbPointer o when o.absorbing) {
+        absorber = o;
+      }
+    }
+    return (listeners: listeners, absorbedBy: absorber);
   }
 
   /// The mouse is at [x], [y], where [_result] was hit tested: the regions

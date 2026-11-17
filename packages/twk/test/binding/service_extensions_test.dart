@@ -1156,6 +1156,249 @@ void main() {
     });
   });
 
+  group('ext.twk.hitTest', () {
+    Future<Json> hit(TwkTester t, int x, int y, [Map<String, String>? more]) =>
+        call(t, 'ext.twk.hitTest', {'x': '$x', 'y': '$y', ...?more});
+
+    List<Json> listenersOf(Json answer) => [
+      for (final l in answer['listeners']! as List<Object?>) l! as Json,
+    ];
+
+    List<Json> pathOf(Json answer) => [
+      for (final p in answer['path']! as List<Object?>) p! as Json,
+    ];
+
+    /// The cell of the first character of [text] on the screen.
+    (int, int) cellOf(TwkTester t, String text) {
+      final y = t.lines.indexWhere((l) => l.contains(text));
+      return (t.lines[y].indexOf(text), y);
+    }
+
+    testTwk('answers the elements hit, deepest first, and the listener a '
+        'press reaches with its callbacks, where nothing covers it', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        Listener(
+          onPointerDown: (_) {},
+          onPointerUp: (_) {},
+          child: const Text('page'),
+        ),
+        size: (20, 3),
+      );
+      final (x, y) = cellOf(t, 'page');
+      final at = await hit(t, x, y);
+      expect(at['version'], 1);
+      expect(at['frame'], t.binding.twkApp.framesRun);
+      expect(at['cell'], {'x': x, 'y': y});
+      expect(at['takenBy'], isNull);
+      expect(at['absorbedBy'], isNull);
+      final path = pathOf(at);
+      expect(path.first['type'], 'Text');
+      expect(path.map((p) => p['type']), contains('Listener'));
+      final listener = path.firstWhere((p) => p['type'] == 'Listener');
+      expect(listenersOf(at), [
+        {
+          'render': listener['render'],
+          'type': 'Listener',
+          'callbacks': ['down', 'up'],
+        },
+      ]);
+    });
+
+    testTwk('a dialog over a target takes the cell: the listener of the '
+        "page is not in the answer, the dialog's are", (t) async {
+      await t.pumpWidget(
+        App(
+          child: Builder(
+            builder: (context) => Column(
+              children: [
+                Listener(
+                  onPointerDown: (_) {},
+                  child: const Text('page'),
+                ),
+                Button(
+                  'open',
+                  onPressed: () => unawaited(
+                    showDialog<void>(
+                      context: context,
+                      builder: (_) => Dialog(
+                        title: 'Hi',
+                        child: Button('OK', onPressed: () {}),
+                      ),
+                      fadeIn: Duration.zero,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        size: (30, 12),
+      );
+      final (px, py) = cellOf(t, 'page');
+      final before = await hit(t, px, py);
+      final page = listenersOf(before).single;
+      expect(page['type'], 'Listener');
+      final (ox, oy) = cellOf(t, 'open');
+      await t.click(ox, oy);
+      await t.pump();
+      await t.pump();
+      expect(t.lines.join('\n'), contains('Hi'));
+      final covered = await hit(t, px, py);
+      expect(pathOf(covered).first['type'], '_Shade');
+      expect(
+        listenersOf(covered).map((l) => l['render']),
+        isNot(contains(page['render'])),
+      );
+      expect(listenersOf(covered), hasLength(1));
+      // a cell of the dialog itself: a button's listeners
+      final (kx, ky) = cellOf(t, 'OK');
+      final button = await hit(t, kx, ky);
+      expect(pathOf(button).first['type'], 'Text');
+      expect(listenersOf(button), isNotEmpty);
+      expect(listenersOf(button).first['callbacks'], contains('down'));
+    });
+
+    testTwk('an AbsorbPointer in the hit is named and hides what is below '
+        'it', (t) async {
+      await t.pumpWidget(
+        Column(
+          children: [
+            AbsorbPointer(
+              child: Listener(
+                onPointerDown: (_) {},
+                child: const Text('absorbed'),
+              ),
+            ),
+          ],
+        ),
+        size: (20, 3),
+      );
+      final (x, y) = cellOf(t, 'absorbed');
+      final at = await hit(t, x, y);
+      final absorber = pathOf(at)
+          .firstWhere((p) => p['type'] == 'AbsorbPointer');
+      expect(at['absorbedBy'], absorber['render']);
+      expect(listenersOf(at), isEmpty);
+      expect(
+        (await hit(t, x, y + 2))['absorbedBy'],
+        isNull,
+        reason: 'nothing at a cell the absorber is not at',
+      );
+    });
+
+    testTwk('a listener given by listenOver is in the answer though it is '
+        'in no hit, with what it listens over', (t) async {
+      await t.pumpWidget(
+        Column(
+          children: [
+            Text.rich(['link'.tap(() {}), const Span(' x')]),
+          ],
+        ),
+        size: (20, 3),
+      );
+      final (x, y) = cellOf(t, 'link');
+      final at = await hit(t, x, y);
+      final text = pathOf(at).first;
+      expect(text['type'], 'Text');
+      final listeners = listenersOf(at);
+      expect(listeners, hasLength(1));
+      expect(listeners.single['callbacks'], ['down', 'up']);
+      expect(listeners.single['over'], text['render']);
+      expect(listeners.single['type'], 'Text');
+      expect(
+        pathOf(at).map((p) => p['render']),
+        isNot(contains(listeners.single['render'])),
+      );
+    });
+
+    testTwk('the open console takes its cells, the pick takes every cell, '
+        'and the tree the rest', (t) async {
+      await t.pumpWidget(
+        Listener(onPointerDown: (_) {}, child: const Text('page')),
+        size: (20, 14),
+      );
+      final (x, y) = cellOf(t, 'page');
+      expect((await hit(t, x, y))['takenBy'], isNull);
+      await call(t, 'ext.twk.flags', {'console': 'true'});
+      await t.pump();
+      expect((await hit(t, x, y))['takenBy'], isNull);
+      expect((await hit(t, x, 13))['takenBy'], 'console');
+      await call(t, 'ext.twk.flags', {'console': 'false'});
+      await t.pump();
+      expect((await hit(t, x, 13))['takenBy'], isNull);
+      await call(t, 'ext.twk.flags', {'select': 'true'});
+      final picked = await hit(t, x, y);
+      expect(picked['takenBy'], 'pick');
+      expect(listenersOf(picked), hasLength(1));
+    });
+
+    testTwk("in the inline mode a row is counted from the cursor's row, as "
+        'select does', (t) async {
+      await t.pumpWidget(
+        Column(
+          children: [
+            const Text('top'),
+            Listener(onPointerDown: (_) {}, child: const Text('page')),
+          ],
+        ),
+        size: (20, 5),
+        mode: ScreenMode.inline,
+      );
+      final cursor = t.binding.twkApp.screen.presenter.cursorRow;
+      expect(cursor, isNonNegative);
+      final (x, y) = cellOf(t, 'page');
+      final at = await hit(t, x, 10 - cursor + y, {'cursorY': '10'});
+      expect(at['cell'], {'x': x, 'y': y});
+      expect(listenersOf(at), hasLength(1));
+      final top = await hit(t, x, 10 - cursor + y - 1, {'cursorY': '10'});
+      expect(top['cell'], {'x': x, 'y': y - 1});
+      expect(listenersOf(top), isEmpty);
+      expect(await error(t, 'ext.twk.hitTest', {'x': '1'}), (
+        ServiceExtensionResponse.invalidParams,
+        'no y',
+      ));
+    });
+
+    testTwk('calls no callback and moves no hover: the regions the mouse is '
+        'in and a listener are told nothing by it', (t) async {
+      final log = <String>[];
+      await t.pumpWidget(
+        Column(
+          children: [
+            MouseRegion(
+              onEnter: (_) => log.add('enter'),
+              onExit: (_) => log.add('exit'),
+              onHover: (_) => log.add('hover'),
+              child: Listener(
+                onPointerDown: (_) => log.add('down'),
+                onPointerUp: (_) => log.add('up'),
+                onPointerHover: (_) => log.add('listener hover'),
+                child: const Text('target'),
+              ),
+            ),
+          ],
+        ),
+        size: (20, 4),
+      );
+      final (x, y) = cellOf(t, 'target');
+      await t.mouse(MouseKind.move, x, y);
+      final told = [...log];
+      expect(told, contains('enter'));
+      // over the target and off it, over empty space, where the mouse is
+      // not: a move there would exit the region
+      for (final (dx, dy) in [(1, 0), (-5, 3), (0, 0), (0, 2)]) {
+        final at = await hit(t, x + dx, y + dy);
+        expect(at['frame'], isNotNull);
+      }
+      expect(log, told);
+      await t.mouse(MouseKind.move, x, y);
+      expect(log.where((e) => e == 'enter'), hasLength(1));
+      expect(log.where((e) => e == 'exit'), isEmpty);
+    });
+  });
+
   group('registration', () {
     test('registers nothing in product mode', () {
       final names = <String>[];
@@ -1187,6 +1430,7 @@ void main() {
         'ext.twk.layout',
         'ext.twk.select',
         'ext.twk.find',
+        'ext.twk.hitTest',
         'ext.twk.highlight',
         'ext.twk.flags',
         'ext.twk.reassemble',

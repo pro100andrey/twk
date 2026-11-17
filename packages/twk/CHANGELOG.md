@@ -29,6 +29,12 @@ Added:
   each one's id, type, key, whole text, rect and the cells shown; also a
   `node` the tree gave an id earlier. `ext.twk.layout` answers `shown` too.
   The inspector's version stays 1.
+- `ext.twk.hitTest`: what a click at a cell reaches, by the real hit test and
+  without calling anything or moving a hover: `takenBy` (the pick or the
+  console, which take the mouse before the tree), the elements hit, the
+  `Listener`s among them (those given by `listenOver` too) with the callbacks
+  they have, and the `AbsorbPointer` that takes the press. The inspector's
+  version stays 1.
 - `ext.twk.flags` `frameEvents`: the events `twk.frame` (after every frame,
   drawn or not) and `twk.input` (after a read of the terminal or an event) with
   the bytes of input the app took in, the bytes it wrote, and whether a frame

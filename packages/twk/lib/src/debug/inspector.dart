@@ -21,6 +21,7 @@ import 'package:twk_core/twk_core.dart'
 import '../finders/finders.dart';
 import '../finders/whole_text.dart';
 import '../framework/framework.dart';
+import '../gestures/mouse.dart' show MouseTargets;
 import '../text/text.dart' show Text;
 
 /// Gives the elements and the render objects of an app ids, and describes
@@ -223,6 +224,47 @@ final class Inspector {
       'id': hit == null ? null : idOf(hit),
       'path': path.reversed.toList(),
       'render': [for (var i = 0; i < result.length; i++) idOf(result[i])],
+    };
+  }
+
+  /// What a click at [x], [y] of the screen reaches, by a hit test of the
+  /// last layout and what [found] (`MouseTracker.targetsAt`) finds
+  /// there: `path`, the elements that own the render objects hit, the
+  /// deepest first, each with `id`, widget `type` and `render`;
+  /// `listeners`, those of them a press reaches with a callback, each
+  /// with `render`, `type` (of the element that owns it, or of the one
+  /// that owns what it listens over), `callbacks` and, for a listener
+  /// that listens over a render object of another widget, `over`, its
+  /// id; and `absorbedBy`, the id of the render object of the
+  /// `AbsorbPointer` that takes the press, null for none.
+  Map<String, Object?> hitAt(
+    int x,
+    int y,
+    MouseTargets found,
+  ) {
+    final (_, result) = _hit(x, y);
+    final owners = _owners();
+    Map<String, Object?> element(RenderObject o, Element e) => {
+      'id': idOf(e),
+      'type': '${e.widget.runtimeType}',
+      'render': idOf(o),
+    };
+    return {
+      'path': [
+        for (var i = 0; i < result.length; i++)
+          if (owners[result[i]] case final e?) element(result[i], e),
+      ],
+      'listeners': [
+        for (final (:listener, :over, :callbacks) in found.listeners)
+          {
+            'render': idOf(listener),
+            'type':
+                '${(owners[over ?? listener]?.widget ?? listener).runtimeType}',
+            'callbacks': callbacks,
+            if (over != null) 'over': idOf(over),
+          },
+      ],
+      'absorbedBy': found.absorbedBy == null ? null : idOf(found.absorbedBy!),
     };
   }
 

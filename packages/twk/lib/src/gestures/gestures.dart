@@ -6,7 +6,13 @@ export 'drag_drop.dart';
 export 'gesture_detector.dart' hide takeDrag;
 export 'ignore_pointer.dart' hide RenderAbsorbPointer;
 export 'mouse.dart'
-    hide MouseTracker, listenOver, setOnPointerMove, stopListeningOver;
+    hide
+        MouseTarget,
+        MouseTargets,
+        MouseTracker,
+        listenOver,
+        setOnPointerMove,
+        stopListeningOver;
 export 'selection.dart'
     hide
         addToSelectionArea,
