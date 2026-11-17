@@ -1,0 +1,10 @@
+include:
+  - package:pro_lints/recommended.yaml
+  # twk's analyzer plugin with its rules on: lints and assists for twk
+  - package:twk_lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true

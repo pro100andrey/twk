@@ -7,7 +7,8 @@ code while it runs, look inside it, read its log and record a session.
 ## Features
 
 - **Create:** `twk create` writes a new app from a template (`app`, `inline`,
-  `form` or `dashboard`). It runs, analyzes and passes its tests as it is.
+  `form`, `dashboard`, `ssh`, `web`, `riverpod` or `bloc`). It runs, analyzes
+  and passes its tests as it is.
 - **Hot reload:** `twk run` runs your app and reloads the code you save. The
   state of every widget is kept.
 - **Inspect:** `twk inspect` shows a running app's widget tree or render

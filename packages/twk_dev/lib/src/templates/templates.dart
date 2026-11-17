@@ -8,9 +8,13 @@ import 'dart:convert';
 import 'package:path/path.dart' as p;
 
 import 'app.g.dart';
+import 'bloc.g.dart';
 import 'dashboard.g.dart';
 import 'form.g.dart';
 import 'inline.g.dart';
+import 'riverpod.g.dart';
+import 'ssh.g.dart';
+import 'web.g.dart';
 
 /// A kind of app `twk create` starts: its [name], what it is in a line
 /// ([description]) and its package packed with mold, in base64 ([packed]).
@@ -20,6 +24,10 @@ final class Template {
     required this.name,
     required this.description,
     required this.packed,
+    this.run = const [
+      'dart run bin/main.dart',
+      'dart run twk_dev:twk run bin/main.dart  # hot reloaded',
+    ],
   });
 
   /// What `--template` names it.
@@ -30,6 +38,10 @@ final class Template {
 
   /// Its package packed with mold, in base64.
   final String packed;
+
+  /// The commands that run the app, after `dart pub get`, as `twk create`
+  /// shows them: hot reloaded unless the app is not one `twk run` runs.
+  final List<String> run;
 
   /// The archive mold unpacks.
   List<int> get archive => base64.decode(packed);
@@ -58,6 +70,31 @@ const templates = [
         'full screen: panels of live readings in a chart, a gauge and bars',
     packed: kDashboardTemplateBase64,
   ),
+  Template(
+    name: 'ssh',
+    description: 'served over SSH: each client that logs in gets its own app',
+    packed: kSshTemplateBase64,
+    run: ['dart run bin/main.dart  # then: ssh -t -p 2222 localhost'],
+  ),
+  Template(
+    name: 'web',
+    description: 'in a browser, on xterm.js, built with dart2wasm',
+    packed: kWebTemplateBase64,
+    run: [
+      'dart compile wasm web/main.dart -o web/main.wasm',
+      'python3 -m http.server -d web 8080  # then: http://localhost:8080',
+    ],
+  ),
+  Template(
+    name: 'riverpod',
+    description: 'full screen: a counter with its state in riverpod providers',
+    packed: kRiverpodTemplateBase64,
+  ),
+  Template(
+    name: 'bloc',
+    description: 'full screen: a counter with its state in a bloc cubit',
+    packed: kBlocTemplateBase64,
+  ),
 ];
 
 /// The mold variable a template's package name replaces.
@@ -70,6 +107,16 @@ const twkPackages = ['twk', 'twk_dev', 'twk_lints', 'twk_test'];
 /// The version of twk, twk_test, twk_dev and twk_lints a project takes
 /// from pub.
 const twkVersion = '0.3.0';
+
+/// The packages a template takes by path that only some of them do, each
+/// with its version on pub: [withTwkFrom] rewrites those a pubspec has,
+/// like the [twkPackages], which it must have.
+const optionalTwkPackages = {
+  'twk_bloc': '0.1.0',
+  'twk_riverpod': '0.1.0',
+  'twk_ssh': '0.1.0',
+  'twk_web': '0.1.0',
+};
 
 /// [pubspec], a template's, with the [twkPackages] it takes by a path in
 /// the repository taken by path from the twk repository checked out at
@@ -91,7 +138,7 @@ const twkVersion = '0.3.0';
 /// one from pub not at all.
 String withTwkFrom(String pubspec, {String? checkout}) {
   String source(String package) => checkout == null
-      ? ' ^$twkVersion'
+      ? ' ^${optionalTwkPackages[package] ?? twkVersion}'
       : '\n    path: ${_yaml(p.join(checkout, 'packages', package))}';
   var result = pubspec;
   for (final package in twkPackages) {
@@ -99,6 +146,10 @@ String withTwkFrom(String pubspec, {String? checkout}) {
     if (!dependency.hasMatch(result)) {
       throw StateError('The pubspec takes no $package by path');
     }
+    result = result.replaceFirst(dependency, '  $package:${source(package)}');
+  }
+  for (final package in optionalTwkPackages.keys) {
+    final dependency = RegExp('^  $package:\n    path: .*\$', multiLine: true);
     result = result.replaceFirst(dependency, '  $package:${source(package)}');
   }
   final block = _overrides.firstMatch(result)?[0] ?? '';

@@ -1,0 +1,4 @@
+.dart_tool/
+build/
+# the server's host key: made on the first run, private to this machine
+host_ed25519

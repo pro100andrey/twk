@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:twk_dev/src/templates/templates.dart';
 
 import '../tool/pack_templates.dart';
+import 'create_cycle.dart' show repository;
 import 'twk.dart';
 
 void main() {
@@ -62,6 +63,40 @@ void main() {
       }
     },
   );
+
+  test('a template takes twk_ssh, twk_web, twk_riverpod or twk_bloc by path '
+      'where it has them, by the version of the package from pub', () async {
+    for (final MapEntry(key: package, value: version)
+        in optionalTwkPackages.entries) {
+      expect(
+        File(
+          p.join(await repository(), 'packages', package, 'pubspec.yaml'),
+        ).readAsStringSync(),
+        contains('\nversion: $version\n'),
+        reason: package,
+      );
+    }
+    const pubspec =
+        'name: app\n'
+        'dependencies:\n'
+        '  twk:\n    path: ../../twk\n'
+        '  twk_ssh:\n    path: ../../twk_ssh\n'
+        'dev_dependencies:\n'
+        '  twk_dev:\n    path: ../../twk_dev\n'
+        '  twk_lints:\n    path: ../../twk_lints\n'
+        '  twk_test:\n    path: ../../twk_test\n'
+        'dependency_overrides:\n'
+        '  twk:\n    path: ../../twk\n'
+        '  twk_core:\n    path: ../../twk_core\n'
+        '  twk_driver:\n    path: ../../twk_driver\n'
+        '  twk_term:\n    path: ../../twk_term\n';
+    expect(withTwkFrom(pubspec), contains('\n  twk_ssh: ^0.1.0\n'));
+    expect(
+      withTwkFrom(pubspec, checkout: '/t'),
+      contains('\n  twk_ssh:\n    path: /t/packages/twk_ssh\n'),
+    );
+    expect(withTwkFrom(pubspec), isNot(contains('path:')));
+  });
 
   test('a pubspec that takes a package of twk by no path is a StateError', () {
     expect(

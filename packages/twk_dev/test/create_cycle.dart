@@ -61,7 +61,17 @@ List<String> filesIn(String dir) => [
 
 /// Tests that the template [name] makes a package that gets its
 /// dependencies, analyzes with no issue, passes its tests and is formatted.
-void templateCycle(String name) {
+///
+/// [entry] is the file the app starts from, `bin/main.dart` unless the
+/// template's is another (`web/main.dart`, which `web/index.html` loads);
+/// [compile], the arguments of a `dart` that builds it, where analyzing it is
+/// not enough to know it builds.
+void templateCycle(
+  String name, {
+  String entry = 'bin/main.dart',
+  List<String>? compile,
+  List<String> extraFiles = const [],
+}) {
   test(
     'the $name template makes a package that gets its dependencies, '
     'analyzes with no issue, passes its tests and is formatted',
@@ -75,15 +85,19 @@ void templateCycle(String name) {
       ]);
       expect(created.exitCode, 0, reason: '${created.stderr}');
       final package = '${name}_app';
-      expect(filesIn(dir), [
-        '.gitignore',
-        'README.md',
-        'analysis_options.yaml',
-        'bin/main.dart',
-        'lib/$package.dart',
-        'pubspec.yaml',
-        'test/${package}_test.dart',
-      ]);
+      expect(
+        filesIn(dir),
+        ([
+          '.gitignore',
+          'README.md',
+          'analysis_options.yaml',
+          entry,
+          'lib/$package.dart',
+          'pubspec.yaml',
+          'test/${package}_test.dart',
+          ...extraFiles,
+        ]..sort()),
+      );
 
       await dart(dir, ['pub', 'get', '--offline']);
       final analyzed = await dart(dir, ['analyze']);
@@ -96,6 +110,9 @@ void templateCycle(String name) {
         '--set-exit-if-changed',
         '.',
       ]);
+      if (compile != null) {
+        await dart(dir, compile);
+      }
     },
     timeout: const Timeout(Duration(minutes: 5)),
   );

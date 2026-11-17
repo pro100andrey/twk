@@ -274,10 +274,11 @@ final class CreateCommand extends Command<int> with Completes {
       stdout
         ..writeln()
         ..writeln('  cd ${_quoted(rest.single)}')
-        ..writeln('  dart pub get')
-        ..writeln('  dart run bin/main.dart')
-        ..writeln('  dart run twk_dev:twk run bin/main.dart  # hot reloaded')
-        ..writeln('  dart test');
+        ..writeln('  dart pub get');
+      for (final command in template.run) {
+        stdout.writeln('  $command');
+      }
+      stdout.writeln('  dart test');
       if (skillUnoffered) {
         stdout.writeln(
           '  dart run twk_dev:twk agents  # the twk skill, for coding agents',
@@ -521,6 +522,13 @@ const _taken = {
   'twk_dev',
   'twk_lints',
   'twk_test',
+  'twk_bloc',
+  'twk_riverpod',
+  'twk_ssh',
+  'twk_web',
+  'bloc',
+  'riverpod',
+  'web',
 };
 
 /// Whether [dir] is a checkout of the twk repository: it has the packages
