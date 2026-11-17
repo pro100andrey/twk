@@ -15,5 +15,6 @@ dependencies:
   test: ^1.33.0
   twk: ^0.3.0
   twk_core: ^0.3.0
+  twk_driver: ^0.3.0
 dev_dependencies:
   pro_lints: ^6.2.0

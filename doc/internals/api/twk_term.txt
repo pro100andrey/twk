@@ -22,6 +22,7 @@ twk_term.dart class WorkingDirectoryChanged
 twk_term.dart enum MouseEncoding
 twk_term.dart enum MouseProtocol
 twk_term.dart enum PromptMark
+twk_term.dart enum PtyOutput
 twk_term.dart enum TerminalMode
 twk_term.dart function keySequence
 twk_term.dart function kittyKeySequence

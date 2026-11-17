@@ -60,6 +60,25 @@ final tiocswinsz = _macos ? 0x80087467 : 0x5414;
 /// IUTF8 in `c_iflag`: the line discipline erases a UTF-8 character whole.
 const iutf8 = 0x4000;
 
+/// OPOST in `c_oflag`: output is processed at all.
+const opost = 0x1;
+
+/// ONLCR in `c_oflag`: the line discipline writes NL as CR NL.
+final onlcr = _macos ? 0x2 : 0x4;
+
+/// OCRNL in `c_oflag`: CR is written as NL.
+final ocrnl = _macos ? 0x10 : 0x8;
+
+/// ONOCR in `c_oflag`: no CR is written in column 0.
+final onocr = _macos ? 0x20 : 0x10;
+
+/// ONLRET in `c_oflag`: NL does the work of CR.
+final onlret = _macos ? 0x40 : 0x20;
+
+/// Tab expansion in `c_oflag`: TAB3 (TABDLY's field) on Linux, OXTABS on
+/// macOS; clear, TAB0, a tab reaches the master as it was written.
+final tabExpand = _macos ? 0x4 : 0x1800;
+
 /// POSIX_SPAWN_SETSIGDEF: the signals of [spawnattrSetsigdefault] are
 /// reset to their default action in the child.
 const spawnSetSigDef = 0x04;

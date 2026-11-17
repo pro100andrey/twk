@@ -11,6 +11,16 @@ library;
 import 'dart:async';
 import 'dart:typed_data';
 
+/// How the program's terminal processes its output; on the web there is no
+/// terminal, and neither value does anything.
+enum PtyOutput {
+  /// As the system made it.
+  system,
+
+  /// As a terminal gives it.
+  terminal,
+}
+
 /// A program run in a pseudo-terminal; on the web there is none, and
 /// [Pty.start] throws an [UnsupportedError].
 ///
@@ -31,6 +41,7 @@ final class Pty {
     String? workingDirectory,
     Map<String, String>? environment,
     bool includeParentEnvironment = true,
+    PtyOutput output = PtyOutput.system,
   }) => throw UnsupportedError('Pty runs on Linux and macOS only');
 
   /// The program's process id; there is none on the web.
@@ -48,6 +59,9 @@ final class Pty {
   /// Whether [exitCode] knows the code of a program another waiter took
   /// first: no program runs on the web.
   static bool get tellsExitCode => false;
+
+  /// Whether the terminal writes NL as CR NL; there is none on the web.
+  bool? get nlToCrNl => null;
 
   /// The process group in the foreground of the terminal; there is none
   /// on the web.

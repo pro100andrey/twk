@@ -81,6 +81,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
       'twk_lints',
       'twk_term',
       'twk_dev',
+      'twk_driver',
     ]) {
       expect(
         File(
@@ -112,6 +113,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
         '\ndependency_overrides:\n'
         "  twk:\n    path: '/home/ann/it''s: here/packages/twk'\n"
         "  twk_core:\n    path: '/home/ann/it''s: here/packages/twk_core'\n"
+        "  twk_driver:\n    path: '/home/ann/it''s: here/packages/twk_driver'\n"
         "  twk_term:\n    path: '/home/ann/it''s: here/packages/twk_term'\n",
       ),
     );

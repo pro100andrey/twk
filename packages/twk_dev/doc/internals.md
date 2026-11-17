@@ -8,8 +8,8 @@ which builds the subcommands with `package:args`; `lib/src/shell.dart` and
 `lib/src/logs.dart` are two commands over twk_core, and `lib/src/run.dart` is
 `twk run`, a client of the app's VM service (`package:vm_service`). `twk
 inspect` is `lib/src/inspect.dart`, the command and `RunningApps`, the apps
-found by the service file; `lib/src/app_client.dart`, `AppClient`, what the
-inspector asks an app, and `VmAppClient`, over the VM service; and
+found by the service file; `AppClient`, what the inspector asks an app,
+and `VmAppClient`, over the VM service, from twk_driver; and
 `lib/src/inspector_view.dart`, `InspectorView`, the screen, on twk. `twk
 create` is `lib/src/create.dart`, over mold's `Unbundler`; its templates are
 packages in `templates/`, packed by `tool/pack_templates.dart` into

@@ -1,0 +1,27 @@
+name: twk_driver
+description: >-
+  Drives a twk app as a real process in a pseudo-terminal: real input bytes,
+  the screen read through an emulator, the widget tree through the app's VM
+  service, every action synced on the frame that consumed it.
+version: 0.3.0
+repository: https://github.com/pro100andrey/twk/tree/main/packages/twk_driver
+issue_tracker: https://github.com/pro100andrey/twk/issues
+topics: [terminal, tui, testing, automation]
+# the pseudo-terminal is POSIX's
+platforms:
+  linux:
+  macos:
+
+environment:
+  sdk: ^3.13.5
+resolution: workspace
+dependencies:
+  twk: ^0.3.0
+  twk_core: ^0.3.0
+  twk_term: ^0.3.0
+  vm_service: ^15.4.0
+dev_dependencies:
+  pro_lints: ^6.2.0
+  test: ^1.33.0
+  twk_test:
+    path: ../twk_test

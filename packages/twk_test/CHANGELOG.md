@@ -11,6 +11,9 @@ Breaking:
 
 Changed:
 
+- `compiledProgram` lives in twk_driver now and twk_test re-exports it; a
+  program that does not compile is a `DriverError` (twk_driver's), not a
+  `TestFailure`.
 - `find.*` build twk's `ElementFinder` values and evaluate them with its
   code: `Finder` is a final class that wraps one and has `toJson`, which
   `ext.twk.find` takes. `find.byWidgetPredicate`'s `toJson` throws, naming

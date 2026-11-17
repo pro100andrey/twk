@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
+import 'errors.dart';
 
 // Examples can assume:
 // import 'dart:io';
@@ -37,7 +37,7 @@ import 'package:test/test.dart';
 /// compiled by one of them (isolates of one process may each compile it,
 /// its kernel the same); [cache] is best a directory of its own in the
 /// package's `.dart_tool`, which git ignores. A program that does not
-/// compile is a [TestFailure] with what the compiler said.
+/// compile is a [DriverError] with what the compiler said.
 ///
 /// [defines] are the environment declarations it is compiled with (`-D`),
 /// which a `const bool.fromEnvironment` reads as it is compiled, not as
@@ -119,7 +119,7 @@ Future<String> compiledProgram(
         source,
       ]);
       if (compiled.exitCode != 0) {
-        fail(
+        throw DriverError(
           '$program does not compile:\n${compiled.stdout}${compiled.stderr}',
         );
       }

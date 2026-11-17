@@ -8,7 +8,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:test/test.dart';
-import 'package:twk_test/twk_test.dart';
+import 'package:twk_driver/twk_driver.dart';
+import 'package:twk_test/twk_test.dart' show runProcess;
 
 /// Long before any compile of the test's: a kernel that still has it was
 /// not written again.
@@ -115,7 +116,7 @@ const said = 'one $more';
     await expectLater(
       compile(),
       throwsA(
-        isA<TestFailure>().having(
+        isA<DriverError>().having(
           (e) => e.message,
           'message',
           allOf(contains('app.dart does not compile'), contains('said.dart')),

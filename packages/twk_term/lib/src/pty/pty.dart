@@ -109,6 +109,20 @@ Map<String, String> ptyEnvironment(
   ...?given,
 };
 
+/// How the program's terminal processes what it writes (`c_oflag`), set
+/// before the program runs ([Pty.start]'s `output`).
+enum PtyOutput {
+  /// As the system made it: the flags are left alone.
+  system,
+
+  /// As a terminal gives them: output processed, NL written as CR NL
+  /// (OPOST and ONLCR), tabs not expanded (TAB0), no CR written as NL,
+  /// none left out in column 0 and NL not doing CR's work (no OCRNL,
+  /// ONOCR or ONLRET). What reaches [Pty.output] is then the program's
+  /// bytes with a CR before each LF ([Pty.nlToCrNl]).
+  terminal,
+}
+
 /// Bigger than `struct termios` on Linux (60 bytes) and macOS (72).
 const _termiosBytes = 256;
 
@@ -183,6 +197,8 @@ final class Pty {
   /// COLORTERM to `truecolor`, and [environment] over all of them: a
   /// program in the emulator is not told it runs in the terminal around
   /// it. An [executable] without a slash is looked for in its PATH.
+  /// [output] says how the terminal processes the program's output; it is
+  /// set before the program runs, so its first byte is already so.
   /// Throws a [ProcessException] when the program can't be started (on
   /// macOS, where sh execs it through env, one found and executable that
   /// still won't run, of another architecture or with a bad `#!` line,
@@ -197,6 +213,7 @@ final class Pty {
     String? workingDirectory,
     Map<String, String>? environment,
     bool includeParentEnvironment = true,
+    PtyOutput output = PtyOutput.system,
   }) {
     if (!Platform.isLinux && !Platform.isMacOS) {
       throw UnsupportedError('Pty runs on Linux and macOS only');
@@ -268,6 +285,14 @@ final class Pty {
       final termios = scope.alloc<Uint32>(256);
       if (c.tcgetattr(slave, termios.cast()) == 0) {
         termios.value |= c.iutf8;
+        if (output == PtyOutput.terminal) {
+          // c_oflag follows c_iflag, as wide as it: 32 bits on Linux, 64 on
+          // macOS (little-endian on both, so its low half is the first)
+          final oflag = termios + (Platform.isMacOS ? 2 : 1);
+          oflag.value =
+              (oflag.value | c.opost | c.onlcr) &
+              ~(c.ocrnl | c.onocr | c.onlret | c.tabExpand);
+        }
         c.tcsetattr(slave, c.tcsanow, termios.cast());
       }
 
@@ -537,6 +562,28 @@ final class Pty {
   /// leader ends: what checks that a program put its terminal back reads
   /// them here.
   Uint8List? get modesAtEnd => _modesAtEnd;
+
+  /// Whether the terminal writes the program's NL as CR NL (ONLCR of
+  /// `c_oflag`), read through the master when asked, a system call each
+  /// time: a program's bare LF reaches [output] with the CR before it
+  /// while it is true. Null once the master is closed, or where the kernel
+  /// would not say.
+  bool? get nlToCrNl {
+    if (_master < 0) {
+      return null;
+    }
+    final scope = c.NativeScope();
+    try {
+      final termios = scope.alloc<Uint32>(_termiosBytes);
+      if (c.tcgetattr(_master, termios.cast()) != 0) {
+        return null;
+      }
+      final oflag = termios + (Platform.isMacOS ? 2 : 1);
+      return oflag.value & c.onlcr != 0;
+    } finally {
+      scope.release();
+    }
+  }
 
   /// The process group in the foreground of the terminal (tcgetpgrp(3) on
   /// the master): the program's own, [pid], while it alone runs there, and

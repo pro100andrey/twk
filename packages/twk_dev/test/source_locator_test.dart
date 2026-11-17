@@ -5,10 +5,10 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart' show EditorCommand;
-import 'package:twk_dev/src/app_client.dart';
 import 'package:twk_dev/src/inspector_view.dart';
 import 'package:twk_dev/src/source_find.dart';
 import 'package:twk_dev/src/source_locator.dart';
+import 'package:twk_driver/twk_driver.dart';
 import 'package:twk_test/twk_test.dart';
 
 const _source = '''

@@ -12,7 +12,7 @@ export 'src/emulator/input.dart'
 export 'src/emulator/modes.dart';
 export 'src/pty/pty.dart'
     if (dart.library.js_interop) 'src/pty/pty_web.dart'
-    show Pty;
+    show Pty, PtyOutput;
 export 'src/pty/raw_tty.dart'
     if (dart.library.js_interop) 'src/pty/raw_tty_web.dart'
     show RawTty;

@@ -15,9 +15,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:twk_dev/src/app_client.dart';
 import 'package:twk_dev/src/inspect.dart';
 import 'package:twk_dev/src/run.dart';
+import 'package:twk_driver/twk_driver.dart';
 import 'package:twk_test/twk_test.dart'
     show runProcess, startProcess, waitFor, waitUntil;
 import 'package:vm_service/utils.dart';

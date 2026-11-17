@@ -14,13 +14,14 @@
 /// it ends.
 library;
 
+export 'package:twk_driver/twk_driver.dart' show compiledProgram;
+
 export 'src/fake_clock.dart' show FakeClock;
 export 'src/fake_frame_clock.dart' show FakeFrameClock;
 export 'src/fake_stderr.dart' show FakeStderr;
 export 'src/finders.dart' hide appRoot;
 export 'src/matchers.dart';
 export 'src/process.dart' show runProcess, startProcess;
-export 'src/program.dart' show compiledProgram;
 export 'src/recording.dart' show RecordedFrame;
 export 'src/screen_frames.dart';
 export 'src/screen_text.dart';

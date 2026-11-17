@@ -1,5 +1,6 @@
-/// A running app as `twk inspect` reaches it, through its VM service:
-/// [AppClient], [VmAppClient], [AppError], and [watchExtensions].
+/// A running app reached through its VM service: [AppClient] (what
+/// `twk inspect` reads), [VmAppClient] (which is also the driver's
+/// [AppServicePort]), [AppError], and [watchExtensions].
 library;
 
 import 'dart:async';
@@ -9,6 +10,8 @@ import 'package:twk/twk.dart' show AppBinding;
 import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
+
+import 'ports.dart' show AppEvent, AppServicePort;
 
 /// A JSON object.
 typedef Json = Map<String, Object?>;
@@ -61,8 +64,9 @@ abstract interface class VmQueries {
 }
 
 /// Calls [added] with each service extension an isolate of [service]
-/// registers: those registered already, then those to come until the
-/// subscription answered is cancelled. Throws what the service threw
+/// registers: those registered already (each isolate asked at once, all
+/// named when this returns), then those to come until the subscription
+/// answered is cancelled. Throws what the service threw
 /// listening, the subscription cancelled then.
 Future<StreamSubscription<Event>> watchExtensions(
   VmService service,
@@ -77,12 +81,21 @@ Future<StreamSubscription<Event>> watchExtensions(
   try {
     await service.streamListen(EventStreams.kIsolate);
     final vm = await service.getVM();
-    for (final ref in vm.isolates ?? const <IsolateRef>[]) {
-      final isolate = await service.getIsolate(ref.id!);
-      for (final rpc in isolate.extensionRPCs ?? const <String>[]) {
-        added(ref.id!, rpc);
-      }
-    }
+    // Each isolate asked on its own: one in a blocking native call (the
+    // terminal's input) answers late or never, and does not keep the others
+    // from being named. One gone meanwhile has none to name.
+    final asked = <Future<void>>[
+      for (final ref in vm.isolates ?? const <IsolateRef>[])
+        service
+            .getIsolate(ref.id!)
+            .then((isolate) {
+              for (final rpc in isolate.extensionRPCs ?? const <String>[]) {
+                added(ref.id!, rpc);
+              }
+            })
+            .catchError((Object _) {}),
+    ];
+    await Future.wait(asked);
   } on Object {
     await events.cancel();
     rethrow;
@@ -92,8 +105,14 @@ Future<StreamSubscription<Event>> watchExtensions(
 
 /// An app reached over its VM service (`package:vm_service`): the isolate
 /// that registered the binding's extensions.
-final class VmAppClient implements AppClient, VmQueries {
-  VmAppClient._(this.name, this._service, this._isolate, this._events);
+final class VmAppClient implements AppClient, VmQueries, AppServicePort {
+  VmAppClient._(
+    this.name,
+    this._service,
+    this._isolate,
+    this._events,
+    this._appEvents,
+  );
 
   /// Connects to the VM service at [uri]: its WebSocket address
   /// (`ws://127.0.0.1:8181/token=/ws`), or the one the VM prints
@@ -110,15 +129,21 @@ final class VmAppClient implements AppClient, VmQueries {
     final found = Completer<String>();
     // the picks of every isolate, which the client takes its own of
     final picks = StreamController<(String, (int, int)?)>.broadcast();
+    // every twk event of the isolates, which the client takes its own of
+    final all = StreamController<(String, AppEvent)>.broadcast();
     service.onExtensionEvent.listen((event) {
-      if (event.extensionKind == 'twk.select') {
-        final data = event.extensionData?.data;
-        // an event of a version this does not read is not misread
-        if (data?['version'] != AppBinding.serviceExtensionsVersion) {
-          return;
-        }
-        final x = data?['x'];
-        final y = data?['y'];
+      final kind = event.extensionKind;
+      final data = event.extensionData?.data;
+      // an event of a version this does not read is not misread
+      if (kind == null ||
+          !kind.startsWith('twk.') ||
+          data?['version'] != AppBinding.serviceExtensionsVersion) {
+        return;
+      }
+      all.add((event.isolate?.id ?? '', AppEvent(kind, {...data!})));
+      if (kind == 'twk.select') {
+        final x = data['x'];
+        final y = data['y'];
         picks.add((
           event.isolate?.id ?? '',
           x is int && y is int ? (x, y) : null,
@@ -131,12 +156,31 @@ final class VmAppClient implements AppClient, VmQueries {
           found.completeError(const AppError('the app went away'));
         }
         unawaited(picks.close());
+        unawaited(all.close());
       }),
     );
-    StreamSubscription<Event>? isolates;
+    // Not awaited: asking an isolate that sits in a blocking native call
+    // (the terminal's input) for its extensions waits for it, and the
+    // isolate of the binding is found by what it registers either way.
+    final watching = _watch(service, found);
+    try {
+      final isolate = await found.future;
+      return VmAppClient._(name, service, isolate, picks.stream, all.stream);
+    } on Object {
+      await service.dispose();
+      rethrow;
+    } finally {
+      unawaited(watching.then((isolates) => isolates?.cancel()));
+    }
+  }
+
+  static Future<StreamSubscription<Event>?> _watch(
+    VmService service,
+    Completer<String> found,
+  ) async {
     try {
       await service.streamListen(EventStreams.kExtension);
-      isolates = await watchExtensions(service, (id, rpc) {
+      return await watchExtensions(service, (id, rpc) {
         if (rpc == 'ext.twk.tree' && !found.isCompleted) {
           found.complete(id);
         }
@@ -145,15 +189,7 @@ final class VmAppClient implements AppClient, VmQueries {
       if (!found.isCompleted) {
         found.completeError(AppError('$e'));
       }
-    }
-    try {
-      final isolate = await found.future;
-      return VmAppClient._(name, service, isolate, picks.stream);
-    } on Object {
-      await service.dispose();
-      rethrow;
-    } finally {
-      await isolates?.cancel();
+      return null;
     }
   }
 
@@ -163,6 +199,11 @@ final class VmAppClient implements AppClient, VmQueries {
   final VmService _service;
   final String _isolate;
   final Stream<(String, (int, int)?)> _events;
+  final Stream<(String, AppEvent)> _appEvents;
+
+  @override
+  Stream<AppEvent> get events =>
+      _appEvents.where((e) => e.$1 == _isolate).map((e) => e.$2);
 
   @override
   Stream<(int, int)?> get picks =>

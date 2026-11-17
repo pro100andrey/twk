@@ -4,6 +4,11 @@
 
 Added:
 
+- `Pty.start(output: PtyOutput.terminal)` sets the slave's output flags a
+  terminal has (OPOST and ONLCR on, tabs not expanded, no OCRNL, ONOCR or
+  ONLRET) before the program runs, and `Pty.nlToCrNl` says whether the tty
+  writes the program's NL as CR NL now: what a driver counts the program's
+  bytes by.
 - A test of the cursor color twk writes (`OSC 12` with `#rrggbb`, `OSC 112`):
   the emulator already keeps it as `cursorColor`.
 

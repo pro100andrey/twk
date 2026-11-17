@@ -104,6 +104,8 @@ dependency_overrides:
     path: <twk>/packages/twk
   twk_core:
     path: <twk>/packages/twk_core
+  twk_driver:
+    path: <twk>/packages/twk_driver
   twk_term:
     path: <twk>/packages/twk_term
 ```

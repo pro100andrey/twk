@@ -7,8 +7,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:test/test.dart';
-import 'package:twk_dev/src/app_client.dart';
-import 'package:twk_test/twk_test.dart' show waitFor;
+import 'package:twk_driver/twk_driver.dart';
+import 'package:twk_test/twk_test.dart' show waitFor, waitUntil;
 import 'package:vm_service/vm_service.dart';
 
 /// A VM service of isolates whose `ext.twk.*` extensions [answer] answers.
@@ -30,6 +30,9 @@ final class FakeVm {
 
   /// The extension calls, `method isolateId` each.
   final calls = <String>[];
+
+  /// The isolates that never answer `getIsolate`.
+  final silent = <String>{};
 
   /// The error `getVM` answers with; null for the VM.
   Json? vmError;
@@ -55,6 +58,9 @@ final class FakeVm {
             'isolates': [for (final id in isolates.keys) _ref(id)],
           },
         };
+      case 'getIsolate' when silent.contains(params['isolateId']):
+        // an isolate in a blocking native call: no answer
+        return;
       case 'getIsolate':
         final id = params['isolateId']! as String;
         reply = {
@@ -214,6 +220,49 @@ void main() {
     );
     await app.call('flags');
     expect(vm.calls, ['ext.twk.flags isolates/3']);
+    await vm.close();
+  });
+
+  test('an isolate that never answers getIsolate does not keep the app '
+      'from being found', () async {
+    final vm = FakeVm({
+      'isolates/1': ['ext.twk.tree'],
+      'isolates/2': <String>[],
+    });
+    vm.silent.add('isolates/2');
+    // the other isolate comes first in the VM's list
+    vm.isolates
+      ..clear()
+      ..addAll({
+        'isolates/2': <String>[],
+        'isolates/1': ['ext.twk.tree'],
+      });
+    final app = await waitFor(
+      VmAppClient.attach(vm.service, 'the app'),
+      'the client to attach',
+    );
+    expect(app.name, 'the app');
+    await vm.close();
+  });
+
+  test("events: the twk events of the app's isolate, of the version read, "
+      'and no other', () async {
+    final vm = FakeVm({
+      'isolates/1': ['ext.twk.tree'],
+      'isolates/2': ['ext.twk.tree'],
+    });
+    final app = await VmAppClient.attach(vm.service, 'the app');
+    final seen = <String>[];
+    final sub = app.events.listen((e) => seen.add('${e.kind} ${e.data['n']}'));
+    vm
+      ..post('isolates/1', 'twk.frame', {'version': 1, 'n': 1})
+      ..post('isolates/2', 'twk.frame', {'version': 1, 'n': 2})
+      ..post('isolates/1', 'twk.frame', {'version': 99, 'n': 3})
+      ..post('isolates/1', 'other.kind', {'version': 1, 'n': 4})
+      ..post('isolates/1', 'twk.input', {'version': 1, 'n': 5});
+    await waitUntil(() => seen.length >= 2, 'two events');
+    expect(seen, ['twk.frame 1', 'twk.input 5']);
+    await sub.cancel();
     await vm.close();
   });
 

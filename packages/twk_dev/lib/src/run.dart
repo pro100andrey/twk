@@ -11,10 +11,10 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:twk/twk.dart' show DebugAids;
 import 'package:twk_core/twk_core.dart' show LocalAddress;
+import 'package:twk_driver/twk_driver.dart';
 import 'package:vm_service/utils.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'app_client.dart';
 import 'completion.dart';
 import 'project.dart';
 

@@ -4,7 +4,8 @@ library;
 
 import 'dart:async';
 
-import 'app_client.dart';
+import 'package:twk_driver/twk_driver.dart';
+
 import 'source_find.dart';
 
 /// A place in a file of the app's code.

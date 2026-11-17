@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
-import 'package:twk_dev/src/app_client.dart';
 import 'package:twk_dev/src/inspector_view.dart';
+import 'package:twk_driver/twk_driver.dart';
 import 'package:twk_test/twk_test.dart';
 
 /// An element tree as `ext.twk.tree` describes it: the binding's nodes,

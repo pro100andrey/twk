@@ -6,7 +6,8 @@ import 'dart:io' show Platform, Process, ProcessStartMode;
 
 import 'package:twk/twk.dart';
 
-import 'app_client.dart';
+import 'package:twk_driver/twk_driver.dart';
+
 import 'source_find.dart';
 import 'source_locator.dart';
 

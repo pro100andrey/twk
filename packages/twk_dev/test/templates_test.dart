@@ -75,8 +75,8 @@ void main() {
       ),
     );
   });
-  test('a pubspec without the overrides of twk, twk_core and twk_term by '
-      'path, or with others, is a StateError', () {
+  test('a pubspec without the overrides of twk, twk_core, twk_driver and '
+      'twk_term by path, or with others, is a StateError', () {
     const dependencies =
         'name: app\n'
         'dependencies:\n'
@@ -92,7 +92,8 @@ void main() {
       isA<StateError>().having(
         (e) => e.message,
         'message',
-        'The pubspec overrides $overrides by path, not twk, twk_core, twk_term',
+        'The pubspec overrides $overrides by path, '
+            'not twk, twk_core, twk_driver, twk_term',
       ),
     );
     expect(() => withTwkFrom(dependencies), refused('nothing'));
@@ -112,6 +113,8 @@ void main() {
         '    path: ../../twk\n'
         '  twk_core:\n'
         '    path: ../../twk_core\n'
+        '  twk_driver:\n'
+        '    path: ../../twk_driver\n'
         '  twk_term:\n'
         '    path: ../../twk_term',
       ),
@@ -143,6 +146,7 @@ void main() {
     const twk = '  twk:\n    path: ../../twk\n';
     const core =
         '  twk_core:\n    path: ../../twk_core\n'
+        '  twk_driver:\n    path: ../../twk_driver\n'
         '  twk_term:\n    path: ../../twk_term\n';
     for (final block in [
       '$twk$core  meta: ^1.16.0\n',
