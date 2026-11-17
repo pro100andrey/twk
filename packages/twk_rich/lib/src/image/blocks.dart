@@ -52,6 +52,29 @@ enum BlockMode {
   final int down;
 }
 
+/// The block mode an `Image` draws in where it is given none, and the
+/// terminal shows no images: the one `TWK_IMAGE_BLOCKS` in [environment]
+/// names (a [BlockMode]'s name, `half`, `quadrant`, `sextant`, `octant`,
+/// `braille` or `ascii`; any other value, `auto` among them, is none),
+/// else [BlockMode.sextant] where the terminal is known to draw sextants
+/// itself ([sextants], `TerminalInfo.sextants`), else [BlockMode.half].
+///
+/// A terminal that is not known to is not guessed from its font, which
+/// twk cannot see: its user sets `TWK_IMAGE_BLOCKS=sextant`, or an app
+/// `Image.blockMode`.
+BlockMode defaultBlockMode({
+  bool sextants = false,
+  Map<String, String> environment = const {},
+}) {
+  final named = environment['TWK_IMAGE_BLOCKS'] ?? '';
+  for (final mode in BlockMode.values) {
+    if (mode.name == named) {
+      return mode;
+    }
+  }
+  return sextants ? BlockMode.sextant : BlockMode.half;
+}
+
 /// A cell of a [BlockImage]: [glyph] in [fg] on [bg], `0xRRGGBB` each, null
 /// for the colour of what is under the cell.
 final class BlockCell {

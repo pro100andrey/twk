@@ -19,8 +19,15 @@ Added:
   images: 6, 8, 8 and 1 pixels a cell (`BlockMode.across` and `.down`). Sextants
   and octants pick the cell's best two colours as quadrants do, braille shows
   the bright pixels as dots in one colour, ascii a ramp of characters. The
-  glyphs are `Marker`'s (twk's charts), not tables of their own; the default
-  stays `.half`.
+  glyphs are `Marker`'s (twk's charts), not tables of their own.
+- `Image` draws in sextants by default where the terminal is known to draw
+  them itself (`TerminalInfo.sextants`, twk_core's `sextantsFor`: kitty,
+  foot, Ghostty, WezTerm, Konsole 22.04, VTE 0.78, Contour, Rio) and in half
+  blocks where it is not; `Image.blockMode` is null by default for that
+  (`BlockImage`'s own default stays `.half`), `defaultBlockMode` is the
+  decision. `TWK_IMAGE_BLOCKS` (`half`, `quadrant`, `sextant`, `octant`,
+  `braille`, `ascii`) names the mode for every image of the process, under an
+  `Image`'s own `blockMode`.
 
 Fixed:
 

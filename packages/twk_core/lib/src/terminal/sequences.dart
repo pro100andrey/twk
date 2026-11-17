@@ -4,7 +4,7 @@
 /// desktop notifications ([notifySequence]), progress ([progressSequence]),
 /// bidi modes; each wrapped for a [Multiplexer] where it has to pass one
 /// ([passthroughSequence]). What a terminal is known to show is told by its
-/// environment ([pointerNamesFor], [progressReportsFor],
+/// environment ([pointerNamesFor], [progressReportsFor], [sextantsFor],
 /// [bidiReorderingFor]).
 library;
 
@@ -505,6 +505,67 @@ bool progressReportsFor(Map<String, String> env, {String version = ''}) {
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
       _number(env['VTE_VERSION']) >= 8000 ||
       _number(env['KONSOLE_VERSION']) >= 260400;
+}
+
+/// Whether the terminal is known to draw the block sextants (U+1FB00 to
+/// U+1FB3B, Unicode 13) itself, as pixels of the cell, so that they show
+/// whatever font the user has, from its environment and its name and
+/// version as it tells them ([version], XTVERSION). By its environment and
+/// version: kitty (0.19.3 on, where its sextants were mended), foot,
+/// Ghostty (1.0 on), WezTerm (20210814 on, with `custom_block_glyphs` on,
+/// which is the default), Konsole (22.04 on), VTE (0.78 on: GNOME
+/// Terminal, Ptyxis and kin), Contour (0.3.1 on) and Rio (0.4.6 on).
+///
+/// Not known to: Alacritty (0.13.2 on draws them, but tells no version),
+/// Windows Terminal, iTerm2, mintty and xterm.js (VS Code), whose sources
+/// have them only in a release not yet made or a renderer not always on,
+/// or not at all as with xterm and Terminal.app, which leave them to the
+/// font. A terminal that is not known is taken to not draw them. Not
+/// inside tmux or GNU screen, which hide the terminal outside them.
+bool sextantsFor(Map<String, String> env, {String version = ''}) {
+  final term = env['TERM'] ?? '';
+  if (env.containsKey('TMUX') ||
+      env.containsKey('STY') ||
+      term.startsWith('tmux') ||
+      term.startsWith('screen')) {
+    return false;
+  }
+  if (version.startsWith('kitty(')) {
+    return _atLeast(version.substring(6), const [0, 19, 3]);
+  }
+  if (version.startsWith('foot(') || version.startsWith('ghostty ')) {
+    return true;
+  }
+  if (version.startsWith('WezTerm ')) {
+    return _atLeast(version.substring(8), const [20210814]);
+  }
+  if (version.startsWith('VTE(')) {
+    return _number(version.substring(4).replaceAll(')', '')) >= 7800;
+  }
+  if (term == 'xterm-kitty' ||
+      term == 'xterm-ghostty' ||
+      term.startsWith('foot')) {
+    return true;
+  }
+  final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
+  switch (env['TERM_PROGRAM'] ?? '') {
+    case 'ghostty':
+      return true;
+    case 'WezTerm':
+      return _atLeast(programVersion, const [20210814]);
+    case 'contour':
+      return _atLeast(programVersion, const [0, 3, 1]);
+    case 'rio':
+      return _atLeast(programVersion, const [0, 4, 6]);
+    case '':
+      break;
+    default:
+      return false;
+  }
+  return env.containsKey('KITTY_WINDOW_ID') ||
+      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
+      _number(env['VTE_VERSION']) >= 7800 ||
+      _number(env['KONSOLE_VERSION']) >= 220400;
 }
 
 /// Whether [version], an XTVERSION answer, is kitty's, 0.38 or later.

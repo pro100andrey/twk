@@ -157,7 +157,16 @@ get a PNG of the fitted image as big as its cells, transparent past it, so
 that the terminal does not stretch it; sixel is scaled in whole bands of six
 pixels. Where the protocol is none, or with `forceBlocks`, it is drawn in
 `BlockImage` cells of `blockMode`, a transparent pixel leaving the cell under
-it. The file is read and its size taken from its header at the first layout,
+it. A `blockMode` left null is `defaultBlockMode`: the mode `TWK_IMAGE_BLOCKS`
+names (`half`, `quadrant`, `sextant`, `octant`, `braille` or `ascii`; the
+app's environment, `TwkApp.environment`), else `sextant` where the terminal is
+known to draw the sextants (U+1FB00..1FB3B) itself, whatever its font
+(`TerminalInfo.sextants`, from `sextantsFor`: kitty 0.19.3, foot, Ghostty,
+WezTerm 20210814 with `custom_block_glyphs`, Konsole 22.04, VTE 0.78,
+Contour 0.3.1, Rio 0.4.6), else `half`. A terminal that is not known to
+(Alacritty, Windows Terminal, iTerm2, mintty, xterm.js, xterm, Terminal.app,
+or any inside tmux or screen) is not guessed from a font twk cannot see: its
+user sets `TWK_IMAGE_BLOCKS=sextant`. The file is read and its size taken from its header at the first layout,
 decoded at the first paint; what is drawn is kept until the box, the protocol
 or a property changes, so that the presenter places the same image again
 without sending it. A file that can't be read or decoded is an error shown in
@@ -166,7 +175,7 @@ one is not shown
 
 ## Examples
 
-`example/image/viewer.dart` shows the PNG or JPEG file it is given below its
+`example/image/viewer.dart` shows the PNG, JPEG or GIF file it is given below its
 name and above the keys: `f` cycles the fit, `p` what it is drawn with — the
 terminal's protocol, half blocks, quadrants — and `q` quits. The protocol is
 the terminal's for the whole run, as the probe finds it when the app starts or

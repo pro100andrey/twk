@@ -208,6 +208,13 @@ void main() {
       expect(s, contains('fit: .cover,'));
       expect(s, contains('blockMode: .quadrant,'));
     });
+
+    testTwk('the Code has no blockMode while the mode is the detected one', (
+      t,
+    ) async {
+      await open(t, '#/images/image?tab=code');
+      expect(screen(t), isNot(contains('blockMode')));
+    });
   });
 
   group('the TerminalView page: the scripted shell', () {

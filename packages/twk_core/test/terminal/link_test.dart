@@ -534,6 +534,18 @@ void main() {
       expect(declared.pointerNames, PointerNames.css);
     });
 
+    test('draws the block sextants by its name and its environment', () async {
+      Future<bool> sextants(Map<String, String> env) async {
+        final link = FakeLink(environment: env)..type(_answers);
+        return (await clock.open(link, _options)).info.sextants;
+      }
+
+      expect(await sextants(kitty), isTrue);
+      expect(await sextants({'VTE_VERSION': '7800'}), isTrue);
+      expect(await sextants({'TERM': 'xterm-256color'}), isFalse);
+      expect(await sextants({'TERM': 'alacritty'}), isFalse);
+    });
+
     test('declaring some, the rest is guessed', () async {
       final info = (await open(
         const TerminalDeclaration(progressReports: true),

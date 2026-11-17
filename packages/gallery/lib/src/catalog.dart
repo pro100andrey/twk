@@ -822,9 +822,10 @@ const catalog = [
   CatalogGroup('Images', 'packages/twk_rich', [
     CatalogPage(
       'Image',
-      "A PNG or JPEG fitted to its cells: placed with the terminal's "
-          'graphics protocol (kitty, sixel, iTerm2), or drawn in half blocks '
-          'or quadrants where it has none.',
+      'A PNG, JPEG, GIF or APNG fitted to its cells: placed with the '
+          "terminal's graphics protocol (kitty, sixel, iTerm2), or drawn in "
+          'blocks (sextants where the terminal draws them, else half blocks) '
+          'where it has none.',
     ),
   ]),
   CatalogGroup('Terminal', 'packages/twk_term', [

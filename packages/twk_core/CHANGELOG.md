@@ -26,6 +26,12 @@ Changed:
 
 Added:
 
+- `TerminalInfo.sextants` and `sextantsFor`: whether the terminal is known to
+  draw the block sextants (U+1FB00..1FB3B) itself, by its environment and
+  XTVERSION as the pointer's and progress decisions are made: kitty 0.19.3
+  on, foot, Ghostty, WezTerm 20210814 on, Konsole 22.04 on, VTE 0.78 on,
+  Contour 0.3.1 on, Rio 0.4.6 on; not inside tmux or screen. An unknown
+  terminal is false.
 - `KeyCode.modifier`, `KeyCode.lock` and `KeyCode.media`, and
   `KeyEvent.kittyCode` (`KittyKey` has the codes and their names): with the
   kitty keyboard protocol's flag 8 the parser reads Shift, Ctrl, Alt,

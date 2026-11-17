@@ -43,7 +43,15 @@ const _imageAlignment = ChoiceOption<String>(
 const _imageMode = ChoiceOption<String>(
   'mode',
   'blocks',
-  values: ['half', 'quadrant', 'sextant', 'octant', 'braille', 'ascii'],
+  values: [
+    'detected',
+    'half',
+    'quadrant',
+    'sextant',
+    'octant',
+    'braille',
+    'ascii',
+  ],
 );
 
 /// The Image page's `width` option.
@@ -70,11 +78,15 @@ final _image = GalleryPage(
   group: _group,
   title: 'Image',
   about:
-      'A PNG or JPEG fitted to its cells. Where the terminal has a graphics '
+      'A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or APNG with '
+      'frames plays on the app’s clock. Where the terminal has a graphics '
       'protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; '
       'where it has none, or with forceBlocks, as here, it is drawn in '
       'characters: half blocks, quadrants, sextants (Unicode 13), octants '
-      '(Unicode 16), braille or plain ASCII.',
+      '(Unicode 16), braille or plain ASCII. Left to detected, the default, '
+      'it is sextants where the terminal is known to draw them itself '
+      '(kitty, foot, Ghostty, WezTerm, Konsole, VTE and a few more) and half '
+      'blocks elsewhere; TWK_IMAGE_BLOCKS names a mode for all images.',
   options: [
     _imagePicture,
     _imageFit,
@@ -92,7 +104,9 @@ final _image = GalleryPage(
     height: o(_imageHeight).toInt(),
     fit: ImageFit.values.byName(o(_imageFit)),
     alignment: _alignments[o(_imageAlignment)]!,
-    blockMode: BlockMode.values.byName(o(_imageMode)),
+    blockMode: o(_imageMode) == 'detected'
+        ? null
+        : BlockMode.values.byName(o(_imageMode)),
     forceBlocks: true,
   ),
   heightIn: (o, room) =>
@@ -108,7 +122,7 @@ final _image = GalleryPage(
       if (o.nameOf(_imageFit) != 'contain') '  fit: .${o.nameOf(_imageFit)},',
       if (o.nameOf(_imageAlignment) != 'center')
         '  alignment: .${o.nameOf(_imageAlignment)},',
-      if (o.nameOf(_imageMode) != 'half')
+      if (o.nameOf(_imageMode) != 'detected')
         '  blockMode: .${o.nameOf(_imageMode)},',
       "  // in blocks wherever it runs; without it the terminal's graphics",
       '  // protocol where it has one: kitty, sixel or iTerm2',

@@ -1,4 +1,4 @@
-// An image viewer: the PNG or JPEG file named on the command line, below
+// An image viewer: the PNG, JPEG or GIF file named on the command line, below
 // its name and above the keys, shown with the terminal's graphics protocol
 // or, where it has none, in half blocks. The protocol is the one the probe
 // finds when the app starts, or the one TWK_GRAPHICS names (kitty, sixel,

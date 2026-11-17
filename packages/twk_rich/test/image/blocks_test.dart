@@ -477,4 +477,43 @@ void main() {
       );
     });
   });
+
+  group('defaultBlockMode', () {
+    test('sextants where the terminal draws them, else half blocks', () {
+      expect(defaultBlockMode(), BlockMode.half);
+      expect(defaultBlockMode(sextants: true), BlockMode.sextant);
+    });
+
+    test('TWK_IMAGE_BLOCKS names a mode, over what the terminal draws', () {
+      for (final mode in BlockMode.values) {
+        for (final sextants in [false, true]) {
+          expect(
+            defaultBlockMode(
+              sextants: sextants,
+              environment: {'TWK_IMAGE_BLOCKS': mode.name},
+            ),
+            mode,
+          );
+        }
+      }
+    });
+
+    test('a value that is no mode is no choice', () {
+      for (final value in ['', 'auto', 'Half', 'sextants', '2x3']) {
+        expect(
+          defaultBlockMode(environment: {'TWK_IMAGE_BLOCKS': value}),
+          BlockMode.half,
+          reason: value,
+        );
+        expect(
+          defaultBlockMode(
+            sextants: true,
+            environment: {'TWK_IMAGE_BLOCKS': value},
+          ),
+          BlockMode.sextant,
+          reason: value,
+        );
+      }
+    });
+  });
 }

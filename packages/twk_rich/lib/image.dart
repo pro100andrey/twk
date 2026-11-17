@@ -1,8 +1,9 @@
-/// Images for the terminal: PNG and JPEG files decoded to a `Bitmap`,
-/// scaled to a box of cells (`CellFit`), and encoded for a graphics
-/// protocol (`kittyImage`, `iterm2Image`, `sixelImage`) or drawn with block
-/// characters where there is none (`BlockImage`); the `Image` widget shows
-/// one in an app, with the terminal's protocol or in blocks.
+/// Images for the terminal: PNG, JPEG, GIF and APNG files decoded to a
+/// `Bitmap` (frames, for an animation), scaled to a box of cells
+/// (`CellFit`), and encoded for a graphics protocol (`kittyImage`,
+/// `iterm2Image`, `sixelImage`) or drawn with block characters where there
+/// is none (`BlockImage`); the `Image` widget shows one in an app, with the
+/// terminal's protocol or in blocks.
 ///
 /// A library of its own, which `package:twk_rich/twk_rich.dart` does not
 /// export: an app that shows no image compiles none of it. Its JPEG decoder

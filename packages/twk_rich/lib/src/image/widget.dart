@@ -132,7 +132,7 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   });
 
@@ -144,7 +144,7 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   }) : source = ImageSource.memory(bytes);
 
@@ -156,7 +156,7 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   }) : source = ImageSource.file(path);
 
@@ -168,7 +168,7 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   }) : source = ImageSource.bitmap(bitmap);
 
@@ -191,8 +191,11 @@ final class Image extends LeafRenderObjectWidget {
   /// Where the image goes in the cells of the box it does not take.
   final Alignment alignment;
 
-  /// How block characters draw the image where the terminal shows none.
-  final BlockMode blockMode;
+  /// How block characters draw the image where the terminal shows none;
+  /// null, the default, for [defaultBlockMode]: `TWK_IMAGE_BLOCKS` where
+  /// the environment names a mode, else [BlockMode.sextant] where the
+  /// terminal is known to draw sextants itself, else [BlockMode.half].
+  final BlockMode? blockMode;
 
   /// Draws the image in block characters even where the terminal shows
   /// images.
@@ -205,7 +208,7 @@ final class Image extends LeafRenderObjectWidget {
     boxHeight: height,
     fit: fit,
     alignment: alignment,
-    blockMode: blockMode,
+    blockMode: _blockModeOf(context),
     forceBlocks: forceBlocks,
     cell: _cellOf(context),
     binding: AppBinding.maybeOf(context),
@@ -219,9 +222,23 @@ final class Image extends LeafRenderObjectWidget {
       ..boxHeight = height
       ..fit = fit
       ..alignment = alignment
-      ..blockMode = blockMode
+      ..blockMode = _blockModeOf(context)
       ..forceBlocks = forceBlocks
       ..cell = _cellOf(context);
+  }
+
+  /// [blockMode], else the default of the terminal and the environment the
+  /// app runs on ([defaultBlockMode]).
+  BlockMode _blockModeOf(BuildContext context) {
+    final mode = blockMode;
+    if (mode != null) {
+      return mode;
+    }
+    final app = AppBinding.maybeOf(context)?.twkApp;
+    return defaultBlockMode(
+      sextants: app?.terminal.info.sextants ?? false,
+      environment: app?.environment ?? const {},
+    );
   }
 
   /// The size of a cell of the terminal the app runs on.

@@ -1,11 +1,12 @@
 // The pointer's shape (OSC 22) and the progress in the tab (OSC 9;4): the
 // sequences, wrapped for a multiplexer, and the terminals known to show
-// them by their environment; GNU screen's pieces of a sequence passed on.
+// them, or to draw the block sextants, by their environment; GNU screen's
+// pieces of a sequence passed on.
 import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:twk_core/src/terminal/sequences.dart'
-    show pointerNamesFor, progressReportsFor;
+    show pointerNamesFor, progressReportsFor, sextantsFor;
 import 'package:twk_core/twk_core.dart';
 
 void main() {
@@ -257,6 +258,106 @@ void main() {
       ]) {
         expect(
           progressReportsFor(env, version: version),
+          isFalse,
+          reason: '$env $version',
+        );
+      }
+    });
+  });
+
+  group('known to draw the block sextants', () {
+    test('by its TERM, its TERM_PROGRAM and version, or the variables it '
+        'sets', () {
+      for (final env in const [
+        {'TERM': 'xterm-kitty'},
+        {'TERM': 'xterm-ghostty'},
+        {'TERM': 'foot'},
+        {'TERM': 'foot-extra'},
+        {'TERM_PROGRAM': 'ghostty'},
+        {'TERM_PROGRAM': 'WezTerm', 'TERM_PROGRAM_VERSION': '20210814-124438'},
+        {'TERM_PROGRAM': 'WezTerm', 'TERM_PROGRAM_VERSION': '20240203-110809'},
+        {'TERM_PROGRAM': 'contour', 'TERM_PROGRAM_VERSION': '0.3.1'},
+        {'TERM_PROGRAM': 'contour', 'TERM_PROGRAM_VERSION': '0.6.1.7494'},
+        {'TERM_PROGRAM': 'rio', 'TERM_PROGRAM_VERSION': '0.4.6'},
+        {'TERM': 'xterm-256color', 'KITTY_WINDOW_ID': '1'},
+        {'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty'},
+        {'VTE_VERSION': '7800'},
+        {'VTE_VERSION': '8200'},
+        {'KONSOLE_VERSION': '220400'},
+        {'KONSOLE_VERSION': '260400'},
+      ]) {
+        expect(sextantsFor(env), isTrue, reason: '$env');
+      }
+    });
+
+    test('by the name and version it tells (XTVERSION)', () {
+      for (final version in const [
+        'kitty(0.19.3)',
+        'kitty(0.35.2)',
+        'foot(1.16.2)',
+        'ghostty 1.0.0',
+        'WezTerm 20210814-124438-54e29167',
+        'WezTerm 20240203-110809-5046fc22',
+        'VTE(7800)',
+        'VTE(8200)',
+      ]) {
+        expect(
+          sextantsFor(const {}, version: version),
+          isTrue,
+          reason: version,
+        );
+      }
+      // the name it tells over the environment of the one it was started from
+      expect(
+        sextantsFor(const {'KITTY_WINDOW_ID': '1'}, version: 'kitty(0.35.2)'),
+        isTrue,
+      );
+      expect(
+        sextantsFor(const {'TERM': 'xterm-256color'}, version: 'foot(1.16.2)'),
+        isTrue,
+      );
+    });
+
+    test('not by an earlier one, one not known to, another TERM_PROGRAM, '
+        'or inside tmux or screen', () {
+      for (final (env, version) in const [
+        (<String, String>{}, ''),
+        ({'TERM': 'xterm-256color'}, ''),
+        ({'TERM': 'alacritty'}, ''),
+        ({'TERM': 'xterm'}, 'XTerm(390)'),
+        ({'TERM_PROGRAM': 'Apple_Terminal'}, ''),
+        ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.6.6'}, ''),
+        (<String, String>{}, 'iTerm2 3.6.6'),
+        ({'TERM_PROGRAM': 'mintty', 'TERM_PROGRAM_VERSION': '3.7.8'}, ''),
+        ({'TERM_PROGRAM': 'vscode'}, ''),
+        ({'WT_SESSION': 'x'}, ''),
+        ({'TERM_PROGRAM': 'WezTerm', 'TERM_PROGRAM_VERSION': '20210813'}, ''),
+        ({'TERM_PROGRAM': 'WezTerm'}, ''),
+        ({'TERM_PROGRAM': 'contour', 'TERM_PROGRAM_VERSION': '0.3.0'}, ''),
+        ({'TERM_PROGRAM': 'rio', 'TERM_PROGRAM_VERSION': '0.4.5'}, ''),
+        ({'TERM_PROGRAM': 'rio'}, ''),
+        ({'VTE_VERSION': '7600'}, ''),
+        ({'KONSOLE_VERSION': '211200'}, ''),
+        (<String, String>{}, 'kitty(0.19.2)'),
+        (<String, String>{}, 'WezTerm 20210813-000000-abc'),
+        (<String, String>{}, 'VTE(7600)'),
+        ({'TERM_PROGRAM': 'vscode', 'KITTY_WINDOW_ID': '1'}, ''),
+        (
+          {
+            'TERM': 'tmux-256color',
+            'TMUX': '/tmp/t,1,0',
+            'KITTY_WINDOW_ID': '1',
+          },
+          '',
+        ),
+        ({'TERM_PROGRAM': 'tmux', 'TMUX': '/tmp/t,1,0'}, 'kitty(0.35.2)'),
+        (
+          {'TERM': 'screen.xterm-256color', 'STY': '1.pts', 'TERM_PROGRAM': ''},
+          'foot(1.16.2)',
+        ),
+      ]) {
+        expect(
+          sextantsFor(env, version: version),
           isFalse,
           reason: '$env $version',
         );

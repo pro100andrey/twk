@@ -3,8 +3,8 @@ text
 │  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
 │                                                                                │
 │   ⌕ Filter       /     Image                                   Preview   Code  │
-│                        A PNG or JPEG fitted to its cells. Where the terminal   │
-│     FrameOverlay       has a graphics protocol (kitty, sixel, iTerm2) its pi…  │
+│                        A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or  │
+│     FrameOverlay       APNG with frames plays on the app’s clock. Where the…   │
 │     Repaint rainb…   ──────────────────────────────────────────────────────────│
 │     RepaintBounda…        ┌                                              ┐     │
 │                         ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
@@ -19,8 +19,8 @@ text
 │                        fit         contain  cover  fill  scaleDown             │
 │   IMAGES         1     alignment   center  topLeft  centerLeft  centerRight    │
 │ ▎   Image                          bottomRight                                 │
-│                        blocks      half  quadrant  sextant  octant  braille    │
-│   TERMINAL       1  ▐              ascii                                       │
+│                        blocks      detected  half  quadrant  sextant  octant   │
+│   TERMINAL       1  ▐              braille  ascii                              │
 │     TerminalView    ▐  width      ─────────────▌▌─────────────  44 cells       │
 │                        height     ───────── ──────────────────  12 rows        │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
@@ -28,8 +28,8 @@ styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeea××××××aaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahÚhÚÚÚÚÚÚhhhhhhhÛhaaggkkkkkggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
-│aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmgmmmmgmmmmmmgmmgmmmgmmmmmmgmmmmmgmmmgmmmmmmmmggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmgmgmmmmmmmmgmmmmmmmmgmmmmmmmgmmmmmmgmmmmmmmgmmmgmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmgmmmmmgmmmgmmgmmmmgmmmmmmgmmgmmmgmmmmmmgmgmmmgmmgg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmgmmmmgmmmmmmgmmmmmgmmgmmmgmmmmmgmmmmmmgmmmmmgmmmmggg│
 │aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggoggggggggggggggggpqqrstuvwxyzABCDvEgggggggggggggggggogg│
@@ -44,8 +44,8 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaggmmmggggggggþÿÿÿÿÿÿÿþhαααααhhααααhhαααααααααhgggggggggggg│
 │aaaddddddaaaaaaaaa×aaaggmmmmmmmmmggþÿÿÿÿÿÿþhαααααααhhααααααααααhhαααααααααααhggg│
 │aβþþþÿÿÿÿÿþþþþþþþþþþþaggggggggggggghαααααααααααhgggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggþÿÿÿÿþhααααααααhhαααααααhhααααααhhαααααααhggg│
-│aaaddddddddaaaaaaa×aadggggggggggggghαααααhgggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggþÿÿÿÿÿÿÿÿþhααααhhααααααααhhαααααααhhααααααhgg│
+│aaaddddddddaaaaaaa×aadggggggggggggghαααααααhhαααααhggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnnnnaaaadggmmmmmggggggγγγγγγγγγγγγγδγmmmmmmmmmmmmmggÜÜgÜÜÜÜÜggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggγγγγγγγγγδmmmmmmmmmmmmmmmmmmggÜÜgÜÜÜÜgggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│

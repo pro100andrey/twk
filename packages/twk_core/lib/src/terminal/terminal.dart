@@ -74,6 +74,7 @@ final class TerminalInfo {
     this.pixelMouse = false,
     this.pointerNames,
     this.progressReports = false,
+    this.sextants = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
     this.cursorRgb,
@@ -236,6 +237,13 @@ final class TerminalInfo {
   /// its version ([progressReportsFor]).
   final bool progressReports;
 
+  /// Whether the terminal is known to draw the block sextants (U+1FB00 to
+  /// U+1FB3B) itself, whatever the font ([sextantsFor], by its environment
+  /// and its version); false where it is not known to. An image in block
+  /// characters takes them for its default ([TerminalInfo] is what
+  /// `twk_rich`'s `Image` asks).
+  final bool sextants;
+
   /// The app's own settings the terminal sets ([settingNames]), as its
   /// environment has them: `TWK_SCREEN_READER` and `TWK_DEBUG` where the
   /// link's environment ([TerminalLink.environment]) sets them, set empty
@@ -290,7 +298,7 @@ final class TerminalInfo {
       'colorSchemeReports=$colorSchemeReports '
       'notifications=${notifications.name} multiplexer=${multiplexer.name} '
       'pointerNames=${pointerNames?.name} '
-      'progressReports=$progressReports '
+      'progressReports=$progressReports sextants=$sextants '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
       'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
@@ -1692,6 +1700,7 @@ final class Terminal
       progressReports:
           declared.progressReports ??
           progressReportsFor(told, version: version),
+      sextants: sextantsFor(told, version: version),
       bidi: o.bidi ?? bidiReorderingFor(told, mode: bidiMode, version: version),
       settings: settings,
     );

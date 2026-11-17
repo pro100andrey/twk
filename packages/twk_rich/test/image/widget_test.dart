@@ -342,6 +342,44 @@ void main() {
     expect(kittyFiles(t), hasLength(3), reason: 'another fit');
   });
 
+  group('the default block mode', () {
+    // a cell's 2 × 3 sextant pixels: blue on the left, red on the right; in
+    // half blocks one pixel across, a half block in their mean
+    final b = picture(10, 30, left: blue, splitX: 5);
+
+    testTwk('half blocks where the terminal is not known to draw sextants', (
+      t,
+    ) async {
+      await t.pumpWidget(topLeft(Image.bitmap(b)));
+      expect(t.cell(0, 0).text, '▀');
+    });
+
+    testTwk('TWK_IMAGE_BLOCKS names the mode: sextant', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b)),
+        environment: {'TWK_IMAGE_BLOCKS': 'sextant'},
+      );
+      expect(t.cell(0, 0).text, isIn(['🬏', '🬷', '▌', '▐']));
+      expect(t.cell(0, 0).text, isNot('▀'));
+    });
+
+    testTwk('TWK_IMAGE_BLOCKS: a name that is no mode is none', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b)),
+        environment: {'TWK_IMAGE_BLOCKS': 'auto'},
+      );
+      expect(t.cell(0, 0).text, '▀');
+    });
+
+    testTwk("the Image's own blockMode is over TWK_IMAGE_BLOCKS", (t) async {
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b, blockMode: BlockMode.half)),
+        environment: {'TWK_IMAGE_BLOCKS': 'sextant'},
+      );
+      expect(t.cell(0, 0).text, '▀');
+    });
+  });
+
   group('properties', () {
     testTwk('another blockMode draws the image again in its blocks', (
       t,
