@@ -265,6 +265,8 @@ export interface Screen {
   readonly onDidNote: Event<string>;
   /** Its size changed (its view's columns and lines). */
   readonly onDidResize: Event<void>;
+  /** An app took it: what the app writes from now on is of a new run, counted from 0 (the app counts its bytes from its own start). Absent for a screen that has no app. */
+  readonly onDidAppStart?: Event<void>;
   readonly onDidDispose: Event<void>;
 }
 

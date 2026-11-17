@@ -126,6 +126,7 @@ body { display: flex; flex-direction: column; font-family: var(--vscode-font-fam
 .row.in .dir { color: var(--vscode-terminal-ansiGreen, green); }
 .row.out .dir { color: var(--vscode-terminal-ansiBlue, blue); }
 .raw { opacity: 0.7; }
+.row.revealed { outline: 1px solid var(--vscode-focusBorder, currentColor); background: var(--vscode-list-activeSelectionBackground, transparent); }
 .row.stacked { cursor: pointer; }
 .row.stacked:hover { background: var(--vscode-list-hoverBackground); }
 #log .row.debug, #log .row.info, #log .row.warning, #log .row.error, #log .row.note { grid-template-columns: 6.5em 6em 10em minmax(16em, 1fr); }
@@ -142,7 +143,7 @@ body { display: flex; flex-direction: column; font-family: var(--vscode-font-fam
 `;
 
 /** The log's page: its module, styled by VS Code's colours. */
-function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js', style = logStyle, content = '<header id="bar"></header>\n<main id="log"></main>'): string {
+export function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js', style = logStyle, content = '<header id="bar"></header>\n<main id="log"></main>'): string {
   const uri = (...p: string[]) => w.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...p)).toString();
   const nonce = nonceOf();
   return `<!DOCTYPE html>

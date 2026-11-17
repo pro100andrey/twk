@@ -10,7 +10,9 @@ export type ToLog =
   /** Entries made since the last. */
   | { readonly type: 'entries'; readonly entries: readonly LogEntry[] }
   /** Its terminal was closed: nothing more comes. */
-  | { readonly type: 'ended' };
+  | { readonly type: 'ended' }
+  /** Show the entry [id] (a frame of the frames panel): the filter whole, the frame opened, the row scrolled to and marked. */
+  | { readonly type: 'reveal'; readonly id: number };
 
 /** What the log tells the extension. */
 export type FromLog =
@@ -64,6 +66,8 @@ export function isToLog(m: unknown): m is ToLog {
       return isEntries(m.entries);
     case 'ended':
       return true;
+    case 'reveal':
+      return isNumber(m.id);
     default:
       return false;
   }

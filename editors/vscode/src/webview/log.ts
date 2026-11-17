@@ -31,8 +31,10 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<H
   return e;
 }
 
+const boxes = new Map<'out' | 'in' | 'note' | 'text', HTMLInputElement>();
 const toggle = (label: string, key: 'out' | 'in' | 'note' | 'text') => {
   const box = element('input', { type: 'checkbox', checked: filter[key] });
+  boxes.set(key, box);
   box.addEventListener('change', () => {
     filter[key] = box.checked;
     render();
@@ -75,6 +77,7 @@ function row(e: LogEntry, parent?: LogEntry): HTMLElement {
     element('span', { className: 'name', textContent: e.kind === 'frame' ? `${opened.has(e.id) ? '▾' : '▸'} ${e.name}` : e.name }),
     element('span', { className: 'raw', textContent: e.raw }),
   );
+  r.dataset.id = String(e.id);
   if (parent) {
     r.dataset.parent = String(parent.id);
   }
@@ -134,12 +137,41 @@ function add(more: readonly LogEntry[]): void {
   status();
 }
 
-/** Shows the entries kept as the filter says, from scratch. */
-function render(): void {
-  const shown = entries.filter((e) => !held.includes(e) && matches(e)).slice(-most);
-  log.replaceChildren(...shown.flatMap(rowsOf));
+/** Shows the entries kept as the filter says, from scratch; the rows around the entry [around] where there are more than fit. */
+function render(around?: number): void {
+  const all = entries.filter((e) => !held.includes(e) && matches(e));
+  const at = around === undefined ? -1 : all.findIndex((e) => e.id === around);
+  const from = at < 0 ? Math.max(0, all.length - most) : Math.max(0, Math.min(at - (most >> 1), all.length - most));
+  log.replaceChildren(...all.slice(from, from + most).flatMap(rowsOf));
   log.scrollTop = log.scrollHeight;
   status();
+}
+
+/** Shows the entry [id]: what is held shown, the filter whole, a frame opened, its row scrolled to and marked. Nothing where it is not among the entries kept. */
+function reveal(id: number): void {
+  const entry = entries.find((e) => e.id === id);
+  if (!entry) {
+    return;
+  }
+  if (paused) {
+    paused = false;
+    pause.textContent = 'Pause';
+    held = [];
+  }
+  if (!matches(entry)) {
+    filter.out = filter.in = filter.note = filter.text = true;
+    filter.word = '';
+    word.value = '';
+    boxes.forEach((box) => (box.checked = true));
+  }
+  if (entry.kind === 'frame') {
+    opened.add(entry.id);
+  }
+  render(id);
+  log.querySelectorAll('.revealed').forEach((r) => r.classList.remove('revealed'));
+  const row = log.querySelector(`[data-id="${id}"]`);
+  row?.classList.add('revealed');
+  row?.scrollIntoView({ block: 'center' });
 }
 
 function status(): void {
@@ -174,6 +206,9 @@ window.addEventListener('message', (event: MessageEvent<unknown>) => {
     case 'ended':
       ended = true;
       status();
+      break;
+    case 'reveal':
+      reveal(m.id);
       break;
   }
 });

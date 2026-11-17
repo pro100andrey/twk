@@ -26,6 +26,43 @@ export interface LogEntry {
   readonly bytes: number;
   /** A frame's entries, in order. */
   readonly children?: readonly LogEntry[];
+  /**
+   * What the app wrote is counted as the app counts it (`bytesWritten`, which `twk.frame` carries as `outputWritten`): the
+   * app's run it is of, and the count of the app's bytes at its beginning (`at`) and its end (`end`). Absent for what the
+   * terminal sent, the notes, and output no run was told of.
+   */
+  readonly run?: number;
+  readonly at?: number;
+  readonly end?: number;
+}
+
+/** Where a piece of the app's output is in the app's own count of what it wrote: the app's run (1 for the first of a terminal), and the bytes the app wrote in that run before it. */
+export interface AppOffset {
+  readonly run: number;
+  readonly offset: number;
+}
+
+/**
+ * The entry where the app's latest run had written [count] bytes (the end of a frame, `outputWritten`): the first whose end
+ * reaches it. [dropped] where the log begins after it (the entries before were let go: the traffic kept is capped); then the
+ * entry is the first there is. The last entry where the log has not got as far yet. Undefined where none is of a run.
+ */
+export function entryAtAppBytes(entries: readonly LogEntry[], count: number): { readonly entry: LogEntry; readonly dropped: boolean } | undefined {
+  let run = 0;
+  for (const e of entries) {
+    if (e.run !== undefined && e.end !== undefined && e.run > run) {
+      run = e.run;
+    }
+  }
+  const of = entries.filter((e) => e.run === run && e.end !== undefined && e.at !== undefined);
+  if (of.length === 0) {
+    return undefined;
+  }
+  const first = of[0];
+  if (count <= first.at! && first.at! > 0) {
+    return { entry: first, dropped: true };
+  }
+  return { entry: of.find((e) => e.end! >= count) ?? of[of.length - 1], dropped: false };
 }
 
 /** What a log shows of its entries: which directions, the text runs, and a word (lower case) of the name or the bytes. */
@@ -56,6 +93,7 @@ export function entryMatches(e: LogEntry, filter: LogFilter): boolean {
 interface Open {
   readonly time: number;
   readonly number: number;
+  readonly at?: number;
   readonly entries: LogEntry[];
   bytes: number;
 }
@@ -91,6 +129,10 @@ export class SequenceLog {
   private open: Open | undefined;
   private depth = 0;
   private positionAsked = 0;
+  /** The app's run the output is of, the app's count at the end of the last token made of it, and at the end of the last bytes given. */
+  private run = 0;
+  private emitted = 0;
+  private fed = 0;
   private readonly limit: number;
   private readonly frameLimit: number;
 
@@ -99,13 +141,26 @@ export class SequenceLog {
     this.frameLimit = options.frameLimit ?? 2000;
   }
 
-  /** What the app wrote at [time]. */
-  output(time: number, bytes: Uint8Array): void {
+  /** What the app wrote at [time]; [at] says where it is in the app's own count (what the entries then carry as `run`, `at` and `end`). */
+  output(time: number, bytes: Uint8Array, at?: AppOffset): void {
+    if (at && (at.run !== this.run || at.offset > this.fed)) {
+      // another run, or bytes before were let go
+      this.run = at.run;
+      this.emitted = at.offset;
+    }
+    if (at) {
+      this.fed = at.offset + bytes.length;
+    }
     for (const t of this.out.read(bytes)) {
       const change = syncChange(t);
-      const entry = this.entry(time, 'out', t.kind, describeOutput(t), t.raw);
+      const begins = this.emitted;
+      if (at) {
+        // a token's raw is its bytes, a char each (a text run's UTF-8 as it was written)
+        this.emitted += t.raw.length;
+      }
+      const entry = this.entry(time, 'out', t.kind, describeOutput(t), t.raw, at ? { run: this.run, at: begins, end: this.emitted } : undefined);
       if (change > 0 && this.depth <= 0 && this.open === undefined) {
-        this.open = { time, number: ++this.frames, entries: [], bytes: 0 };
+        this.open = { time, number: ++this.frames, ...(at ? { at: begins } : {}), entries: [], bytes: 0 };
       }
       const stray = change < 0 && this.depth <= 0;
       this.depth = Math.max(0, this.depth + change);
@@ -188,8 +243,8 @@ export class SequenceLog {
     this.fresh = [];
   }
 
-  private entry(time: number, direction: Direction, kind: EntryKind, name: string, raw: string): LogEntry {
-    return { id: this.nextId++, time, direction, kind, name, raw: visible(raw), bytes: raw.length };
+  private entry(time: number, direction: Direction, kind: EntryKind, name: string, raw: string, span?: { run: number; at: number; end: number }): LogEntry {
+    return { id: this.nextId++, time, direction, kind, name, raw: visible(raw), bytes: raw.length, ...span };
   }
 
   private closeFrame(open: Open, time: number, closed = true): void {
@@ -205,6 +260,7 @@ export class SequenceLog {
       raw: `${open.bytes} bytes`,
       bytes: open.bytes,
       children: open.entries,
+      ...(open.at === undefined ? {} : { run: this.run, at: open.at, end: this.emitted }),
     });
   }
 

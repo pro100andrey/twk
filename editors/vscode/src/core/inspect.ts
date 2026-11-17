@@ -57,11 +57,13 @@ export interface Flags {
   /** Whether a pick goes on after a cell picked. */
   readonly selectMany: boolean;
   readonly treeEvents: boolean;
+  /** Whether the app posts `twk.frame` for each frame; absent where it does not report it. */
+  readonly frameEvents?: boolean;
 }
 
 export type FlagName = keyof Flags;
 
-export const flagNames: readonly FlagName[] = ['overlay', 'console', 'rainbow', 'relayout', 'overflow', 'keys', 'select', 'selectMany', 'treeEvents'];
+export const flagNames: readonly FlagName[] = ['overlay', 'console', 'rainbow', 'relayout', 'overflow', 'keys', 'select', 'selectMany', 'treeEvents', 'frameEvents'];
 
 /** What an inspector hears from the app: what it posted, a hot reload done, or its binding there (its service extensions registered), which may be after its VM service connected. */
 export type AppEvent =
@@ -170,6 +172,7 @@ export function parseFlags(answer: unknown): Flags {
     rainbow: on('rainbow'),
     relayout: on('relayout'),
     ...overflow,
+    ...(a.frameEvents === undefined ? {} : { frameEvents: on('frameEvents') }),
     keys: on('keys'),
     select: on('select'),
     selectMany: on('selectMany'),

@@ -3,7 +3,7 @@
 // it takes; what the terminal sent; notes; what is kept and taken.
 import * as assert from 'node:assert/strict';
 
-import { LogEntry, SequenceLog } from '../../../core/seqlog';
+import { LogEntry, SequenceLog, entryAtAppBytes } from '../../../core/seqlog';
 
 const b = (s: string) => Buffer.from(s, 'utf8');
 const names = (es: readonly LogEntry[]) => es.map((e) => e.name);
@@ -69,5 +69,92 @@ describe('the sequence log', () => {
     assert.deepEqual(log.all(), []);
     log.note(10, 'after');
     assert.deepEqual(names(log.take()), ['after']);
+  });
+});
+
+describe('the log by the app\'s count of its bytes', () => {
+  const sync = (text: string) => `\x1b[?2026h${text}\x1b[?2026l`;
+  const first = sync('ab');
+  const second = sync('é€😀'); // 2, 3 and 4 bytes of UTF-8, which the app counts as bytes
+
+  it('gives each entry of the app\'s output where it begins and ends in the app\'s count, a frame its whole', () => {
+    const log = new SequenceLog();
+    log.output(0, b('\x1b[?1049h'), { run: 1, offset: 0 });
+    log.output(5, b(first), { run: 1, offset: 8 });
+    log.output(9, b(second), { run: 1, offset: 8 + Buffer.byteLength(first) });
+    const [alt, one, two] = log.all();
+    assert.deepEqual([alt.run, alt.at, alt.end], [1, 0, 8]);
+    assert.deepEqual([one.run, one.at, one.end], [1, 8, 8 + Buffer.byteLength(first)]);
+    assert.equal(two.end, 8 + Buffer.byteLength(first) + Buffer.byteLength(second));
+    assert.equal(two.children!.at(-1)!.end, two.end);
+    assert.equal(two.at, one.end);
+  });
+
+  it('carries no count for output nobody counted, nor for what the terminal sent', () => {
+    const log = new SequenceLog();
+    log.output(0, b('x'));
+    log.input(1, b('q'));
+    for (const e of log.all()) {
+      assert.equal(e.end, undefined);
+      assert.equal(e.run, undefined);
+    }
+  });
+
+  it('keeps the count across a sequence cut between reads', () => {
+    const log = new SequenceLog();
+    const whole = b(first);
+    log.output(0, whole.subarray(0, 5), { run: 1, offset: 0 });
+    log.output(1, whole.subarray(5), { run: 1, offset: 5 });
+    const [frame] = log.all();
+    assert.deepEqual([frame.at, frame.end], [0, whole.length]);
+  });
+
+  it('goes on from where the bytes are said to be where some were let go between', () => {
+    const log = new SequenceLog();
+    log.output(0, b(first), { run: 1, offset: 0 });
+    log.output(1, b(first), { run: 1, offset: 1000 });
+    const [one, two] = log.all();
+    assert.deepEqual([one.at, one.end], [0, Buffer.byteLength(first)]);
+    assert.deepEqual([two.at, two.end], [1000, 1000 + Buffer.byteLength(first)]);
+  });
+
+  it('finds the entry where the app had written a count: the first that reaches it', () => {
+    const log = new SequenceLog();
+    log.output(0, b(first), { run: 1, offset: 0 });
+    log.output(1, b(second), { run: 1, offset: Buffer.byteLength(first) });
+    const entries = log.all();
+    const end1 = Buffer.byteLength(first);
+    assert.equal(entryAtAppBytes(entries, end1)!.entry, entries[0]);
+    assert.equal(entryAtAppBytes(entries, end1 + 1)!.entry, entries[1]);
+    assert.equal(entryAtAppBytes(entries, end1 + Buffer.byteLength(second))!.entry, entries[1]);
+    assert.equal(entryAtAppBytes(entries, end1 + Buffer.byteLength(second))!.dropped, false);
+    // the log has not got as far: the last one
+    assert.equal(entryAtAppBytes(entries, 100000)!.entry, entries[1]);
+  });
+
+  it('finds a count the log begins after as dropped: the first entry there is', () => {
+    const log = new SequenceLog();
+    // what came before offset 100 was let go
+    log.output(0, b(first), { run: 1, offset: 100 });
+    const entries = log.all();
+    const found = entryAtAppBytes(entries, 40)!;
+    assert.equal(found.dropped, true);
+    assert.equal(found.entry, entries[0]);
+    assert.equal(entryAtAppBytes(entries, 100 + Buffer.byteLength(first))!.dropped, false);
+  });
+
+  it('counts each app anew, and looks in the latest', () => {
+    const log = new SequenceLog();
+    log.output(0, b(first), { run: 1, offset: 0 });
+    log.output(1, b(first), { run: 2, offset: 0 });
+    log.output(2, b(second), { run: 2, offset: Buffer.byteLength(first) });
+    const entries = log.all();
+    assert.equal(entries[1].run, 2);
+    assert.equal(entries[1].at, 0);
+    assert.equal(entryAtAppBytes(entries, 3)!.entry, entries[1]);
+    assert.equal(entryAtAppBytes([], 3), undefined);
+    const noRun = new SequenceLog();
+    noRun.output(0, b(first));
+    assert.equal(entryAtAppBytes(noRun.all(), 3), undefined);
   });
 });

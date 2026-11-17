@@ -104,6 +104,11 @@
         "category": "twk"
       },
       {
+        "command": "twk.frames.show",
+        "title": "Show the Frames Panel (Each Frame's Time and Bytes)",
+        "category": "twk"
+      },
+      {
         "command": "twk.inspector.refresh",
         "title": "Refresh the Widget Tree",
         "category": "twk",
@@ -537,7 +542,24 @@
         ]
       }
     ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "twk",
+          "title": "twk",
+          "icon": "$(pulse)"
+        }
+      ]
+    },
     "views": {
+      "twk": [
+        {
+          "id": "twk.frames",
+          "name": "Frames",
+          "type": "webview",
+          "contextualTitle": "twk"
+        }
+      ],
       "debug": [
         {
           "id": "twk.inspector",

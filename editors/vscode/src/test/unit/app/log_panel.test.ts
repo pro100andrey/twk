@@ -6,9 +6,11 @@
 // and its text (app/screens.ts).
 import * as assert from 'node:assert/strict';
 
-import { LogPanel, LogPanels } from '../../../app/log_panel';
+import { LogPanel, LogPanels, Traffic } from '../../../app/log_panel';
 import { parseCast } from '../../../core/cast';
 import { activeScreen, screenText } from '../../../app/screens';
+import { Emitter } from '../../../core/events';
+import { Output, Screen } from '../../../app/ports';
 import { TwkTerminal } from '../../../app/terminal';
 import { ToLog } from '../../../webview/log_protocol';
 import { FakeClock, FakeDesktop, FakeLog, FakePanel, FakeSettings, FakeView, realShell } from '../fakes';
@@ -18,7 +20,7 @@ function terminal(name = 'counter.dart', view = new FakeView(name)): TwkTerminal
 }
 
 /** The names of the entries of what [panel] was sent, message by message. */
-const sent = (panel: FakePanel<ToLog>) => panel.posted.map((m) => (m.type === 'ended' ? 'ended' : `${m.type}: ${m.entries.map((e) => e.name).join(' | ')}`));
+const sent = (panel: FakePanel<ToLog>) => panel.posted.map((m) => (m.type === 'ended' ? 'ended' : m.type === 'reveal' ? `reveal ${m.id}` : `${m.type}: ${m.entries.map((e) => e.name).join(' | ')}`));
 
 describe('the sequence log panel', () => {
   let clock: FakeClock;
@@ -183,5 +185,146 @@ describe("the twk terminal the commands take, and its screen's text", () => {
   it('its rows without the blanks that end them, nor the blank rows at its end', () => {
     assert.equal(screenText({ buffer: 'alternate', rows: ['╭──╮  ', '│ab│', '╰──╯', '', '  '] }), '╭──╮\n│ab│\n╰──╯\n');
     assert.equal(screenText({ buffer: 'normal', rows: ['', ''] }), '');
+  });
+});
+
+/** A screen the test writes to ([app], [say]) and tells an app took ([appStarts]). */
+class FakeScreen implements Screen {
+  readonly name = 'counter.dart';
+  readonly view = new FakeView('counter.dart');
+  readonly outputs = new Emitter<Output>();
+  readonly inputs = new Emitter<Uint8Array>();
+  readonly notes = new Emitter<string>();
+  readonly resizes = new Emitter<void>();
+  readonly disposes = new Emitter<void>();
+  readonly starts = new Emitter<void>();
+  readonly onDidOutput = this.outputs.event;
+  readonly onDidInput = this.inputs.event;
+  readonly onDidNote = this.notes.event;
+  readonly onDidResize = this.resizes.event;
+  readonly onDidDispose = this.disposes.event;
+  readonly onDidAppStart = this.starts.event;
+  /** What the app writes. */
+  app(text: string): void {
+    this.outputs.fire({ bytes: Buffer.from(text), fromApp: true });
+  }
+  /** A line of the extension's. */
+  say(text: string): void {
+    this.outputs.fire({ bytes: Buffer.from(text), fromApp: false });
+  }
+}
+
+const frame = (text: string) => `\x1b[?2026h${text}\x1b[?2026l`;
+
+describe('showing a frame of the app in the log by the bytes the app wrote', () => {
+  let clock: FakeClock;
+  let panel: FakePanel<ToLog>;
+  let screen: FakeScreen;
+
+  beforeEach(() => {
+    clock = new FakeClock();
+    panel = new FakePanel<ToLog>();
+    screen = new FakeScreen();
+  });
+
+  /** The frames of [log]'s entries, by name. */
+  const frames = (log: LogPanel) => log.entries().filter((e) => e.kind === 'frame');
+
+  it('tells the webview the frame where the app had written that many bytes, the extension\'s own lines not counted', () => {
+    const traffic = new Traffic(screen, clock);
+    screen.starts.fire(undefined);
+    screen.say('twk: dart run counter.dart\r\n');
+    const log = new LogPanel(screen, panel, clock, traffic);
+    panel.send({ type: 'ready' });
+    screen.app(frame('one'));
+    screen.say('a line of ours');
+    screen.app(frame('two'));
+    const [one, two] = frames(log);
+    const end1 = Buffer.byteLength(frame('one'));
+    assert.deepEqual(log.revealAppBytes(end1), { found: true, dropped: false });
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: one.id });
+    assert.deepEqual(log.revealAppBytes(end1 + Buffer.byteLength(frame('two'))), { found: true, dropped: false });
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: two.id });
+  });
+
+  it('counts a log opened after the app wrote as the one opened before: the bytes it wrote since the app took the screen', () => {
+    const traffic = new Traffic(screen, clock);
+    screen.starts.fire(undefined);
+    screen.app(frame('one'));
+    const log = new LogPanel(screen, panel, clock, traffic);
+    screen.app(frame('two'));
+    const [one, two] = frames(log);
+    panel.send({ type: 'ready' });
+    log.revealAppBytes(Buffer.byteLength(frame('one')));
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: one.id });
+    log.revealAppBytes(Buffer.byteLength(frame('one')) + 1);
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: two.id });
+  });
+
+  it('counts a new app from its own start, and looks for the frame in its run', () => {
+    const traffic = new Traffic(screen, clock);
+    screen.starts.fire(undefined);
+    screen.app(frame('old app'));
+    screen.starts.fire(undefined);
+    screen.app(frame('x'));
+    const log = new LogPanel(screen, panel, clock, traffic);
+    panel.send({ type: 'ready' });
+    const [, fresh] = frames(log);
+    log.revealAppBytes(Buffer.byteLength(frame('x')));
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: fresh.id });
+  });
+
+  it('counts an app that takes the screen while the log is open from its own start', () => {
+    const log = new LogPanel(screen, panel, clock, new Traffic(screen, clock));
+    panel.send({ type: 'ready' });
+    screen.starts.fire(undefined);
+    screen.app(frame('old app'));
+    screen.starts.fire(undefined);
+    screen.app(frame('x'));
+    const [, fresh] = frames(log);
+    log.revealAppBytes(Buffer.byteLength(frame('x')));
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: fresh.id });
+  });
+
+  it('shows it once the webview is up, where it was not', () => {
+    const traffic = new Traffic(screen, clock);
+    screen.starts.fire(undefined);
+    screen.app(frame('one'));
+    const log = new LogPanel(screen, panel, clock, traffic);
+    assert.deepEqual(log.revealAppBytes(Buffer.byteLength(frame('one'))), { found: true, dropped: false });
+    assert.equal(panel.posted.length, 0);
+    panel.send({ type: 'ready' });
+    assert.deepEqual(
+      panel.posted.map((m) => m.type),
+      ['reset', 'reveal'],
+    );
+  });
+
+  it('says dropped, showing the first entry, where the traffic kept begins after the frame', () => {
+    // room for the last frame only
+    const traffic = new Traffic(screen, clock, Buffer.byteLength(frame('three')) + 1);
+    screen.starts.fire(undefined);
+    screen.app(frame('one'));
+    screen.app(frame('two'));
+    screen.app(frame('three'));
+    const log = new LogPanel(screen, panel, clock, traffic);
+    panel.send({ type: 'ready' });
+    const [only] = frames(log);
+    assert.equal(frames(log).length, 1);
+    assert.deepEqual(log.revealAppBytes(Buffer.byteLength(frame('one'))), { found: true, dropped: true });
+    assert.deepEqual(panel.posted.at(-1), { type: 'reveal', id: only.id });
+    const all = Buffer.byteLength(frame('one')) + Buffer.byteLength(frame('two')) + Buffer.byteLength(frame('three'));
+    assert.deepEqual(log.revealAppBytes(all), { found: true, dropped: false });
+  });
+
+  it('finds none where no app wrote to the screen', () => {
+    const log = new LogPanel(screen, panel, clock, new Traffic(screen, clock));
+    panel.send({ type: 'ready' });
+    screen.say('twk: waiting');
+    assert.deepEqual(log.revealAppBytes(10), { found: false, dropped: false });
+    assert.equal(
+      panel.posted.some((m) => m.type === 'reveal'),
+      false,
+    );
   });
 });

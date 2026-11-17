@@ -56,6 +56,9 @@ export class TwkTerminal implements TerminalPane, Screen {
   private readonly outputs = new Emitter<Output>();
   /** What was written to its view: the app's bytes (the lost ones too), or a line of the extension's. */
   readonly onDidOutput = this.outputs.event;
+  private readonly appStarts = new Emitter<void>();
+  /** An app took it. */
+  readonly onDidAppStart = this.appStarts.event;
   private readonly notes = new Emitter<string>();
   /** An app came or went, its size changed: said for the sequence log. */
   readonly onDidNote = this.notes.event;
@@ -185,6 +188,9 @@ export class TwkTerminal implements TerminalPane, Screen {
       onEvent: (event) => {
         const said = event === 'connected' ? 'an app connected' : 'the app went away';
         this.deps.log.appendLine(`twk terminal ${this.name}: ${said}`);
+        if (event === 'connected') {
+          this.appStarts.fire();
+        }
         this.notes.fire(event === 'connected' ? `${said}, welcomed at ${this.columns}x${this.lines}` : said);
         if (event === 'disconnected') {
           this.say('\r\n\x1b[2mtwk: the app went away\x1b[0m\r\n');
@@ -309,7 +315,7 @@ export class TwkTerminal implements TerminalPane, Screen {
     this.shell = undefined;
     this.disposed.fire();
     this.disposed.dispose();
-    [this.inputs, this.reloads, this.picks, this.outputs, this.notes, this.resizes, this.retitles].forEach((e) => e.dispose());
+    [this.inputs, this.reloads, this.picks, this.outputs, this.appStarts, this.notes, this.resizes, this.retitles].forEach((e) => e.dispose());
   }
 }
 

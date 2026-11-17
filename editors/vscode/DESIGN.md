@@ -40,6 +40,12 @@ says it was not.
   button is pressed, each click on the terminal picks the widget under it
   and opens where it was made; where a widget was made, from the tree;
   the frame overlay, the repaint rainbow, the relayout highlight.
+- **The frames panel** (twk, beside Terminal and Problems in the editor's
+  panel; twk: Show the Frames Panel): the last frames the app drew as bars,
+  their time or their bytes (the switch), the tallest the panel's height and
+  the slowest marked, with the count, the median and the slowest; a click on
+  a bar shows that frame in the terminal's sequence log (opened if it is
+  closed).
 - **The app's log** (the debug aid `logs`): the records the app serves
   (`LogSink.serve()`, what `twk logs` tails in another terminal), in a
   panel of the editor: time, level in its colour, message, error, and by
@@ -2005,3 +2011,63 @@ the screen it is.
   checked by their parts: the protocol, the state and the editor over a fake
   panel).
 
+
+## 2h. The frames panel
+
+A webview view (`twk.frames`, `viewsContainers.panel` `twk`) in the bottom
+panel; part 0 says what it shows, here how.
+
+- **Data.** The app's `twk.frame` events (`DebugAids._frameData`, posted while
+  `ext.twk.flags` `frameEvents` is on): `frame`, `drawn`, `outputWritten`, and
+  `stats` (`FrameStats`: `micros`, `build`, `layout`, `paint`, `present`,
+  `bytes` of that frame; the app's side is the task frame-stats-event). The
+  extension turns `frameEvents` on while the view is on the screen, off when
+  it is hidden, when the app shown changes and at deactivate (it costs a post
+  a frame), and again for an app whose binding comes after its VM service, as
+  the inspector's `treeEvents`. `core/frames.ts` (pure) reads an event only of
+  `version` 1 (as `isTreeChanged`: another's is no frame) and keeps the last
+  100 drawn frames (`FrameHistory`); an event that drew nothing is no frame,
+  but its output count is where the next frame's bytes begin.
+- **An app without `stats`** (older): the bytes of a frame are the difference
+  of `outputWritten` between two events, the times unknown (a bar of none, a
+  note saying so); stats with a field that is no measure count as none. An app
+  without the `frameEvents` flag says it posts no frame events.
+- **The bars and the summary** (`barsOf`, `summarize`): a bar's height is its
+  share of the tallest known value; the median is of the known values (the mean
+  of the middle two where even); the slowest (the largest in bytes) is the
+  latest of equal values; the count is of the frames shown, and of all drawn
+  since the panel followed the app. `src/app/frames.ts` follows the newest app
+  as the inspector does, sends the state at most every 100 ms to
+  `src/vscode/frames_view.ts` (the page `src/webview/frames.ts`, its messages
+  `frames_protocol.ts` checked at both ends).
+- **A click finds the frame in the sequence log by the bytes**, not by time:
+  `outputWritten` is the app's count of the bytes it had written at the frame's
+  end (twk_core's `bytesWritten`, the probe's included), and the log keeps
+  the app's output by the same count. `Traffic` and `LogPanel` count the app's
+  output bytes in runs (`TwkTerminal.onDidAppStart`, fired as an app connects,
+  begins a new run counted from 0: the app counts from its own start, the
+  terminal's earlier output and the extension's own lines are not in it), each
+  piece of traffic stamped with where it is, so that what the 4 MB cap let go
+  leaves the count right; `SequenceLog.output` gives each entry `run`, `at`,
+  `end` (a token's `raw` is its bytes, a char each) and `entryAtAppBytes` the
+  first entry of the latest run whose end reaches the count. The driver's rule
+  (twk_driver's `ByteLog`: received minus the LFs a pty's ONLCR added) is not
+  needed here: the extension's terminal is twk's socket terminal
+  (`core/shell.ts`), whose `output` frames are written to the view as the app
+  wrote them, no line discipline between, so the counts agree as they are.
+  Not checked against a live app: the probe's bytes are counted by the app's
+  `bytesWritten` and are in the socket's output; a mismatch would show as the
+  frame found a few entries off.
+- **The log** opens if it is closed (`LogPanels.show`); `reveal` in the log's
+  protocol has the webview show the whole log (filter reset, held entries
+  shown), open the frame and scroll to its row, marked. A frame the log no
+  longer has (the traffic cap) shows the first entry kept, and the status bar
+  says "Frame N is no longer in the log."; one the log has no entry of at all
+  says it is not in the log; an app that counts no output (`outputWritten`
+  null) says it cannot be found.
+- **Tests** (`src/test/unit`): `core/frames.test.ts` (events, history, bars,
+  summary), `app/frames.test.ts` (flags on and off by visibility, the version
+  filter, the bars, a click, the notices, restarts), `core/seqlog.test.ts` and
+  `app/log_panel.test.ts` (the count, the run, the cap). Not run: the view and
+  the page in a real VS Code (`npm test` needs a display; the page is checked
+  by its protocol and the state).

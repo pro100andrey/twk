@@ -14,6 +14,7 @@ import * as path from 'node:path';
 
 import { HotApps, Hot } from '../app/hot_apps';
 import { AppLogs, AppLogsView } from '../app/app_logs';
+import { Frames } from '../app/frames';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
@@ -47,6 +48,7 @@ import { ScreenFileEditors, screenFileViewType } from './screen_editor';
 import { VsCodeDebugger } from './debugger';
 import { VsCodeDesktop } from './desktop';
 import { registerLaunches } from './launch';
+import { VsCodeFramesView } from './frames_view';
 import { openAppLogsPanel, openLogPanel, openWebviewTerminal } from './panel';
 import { RecordingStatus } from './recording';
 import { VsCodeInspectorView, DetailItem, VsCodeNodeDetailsView, copyText, vsCodeOpener, vsCodePickingIndicator } from './inspector_view';
@@ -202,6 +204,15 @@ export function activate(context: vscode.ExtensionContext): Api {
   });
   const recordingStatus = new RecordingStatus(recordings);
   const logs = new LogPanels((title) => openLogPanel(title, context.extensionUri), realClock);
+  const framesView = new VsCodeFramesView(context.extensionUri);
+  const frames = new Frames({
+    apps: hot.onApp,
+    view: framesView,
+    logs: { reveal: (terminal, count) => logs.show(terminal).revealAppBytes(count) },
+    notice: { say: (text) => void vscode.window.setStatusBarMessage(text, 5000) },
+    clock: realClock,
+  });
+  context.subscriptions.push(framesView, { dispose: () => frames.dispose() });
   const players = new Set<Player>();
   context.subscriptions.push(
     terminals.onDidCreate((t) => logs.follow(t)),
@@ -217,6 +228,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   );
   shutdown = async () => {
     inspector.dispose();
+    frames.dispose();
     logs.dispose();
     players.forEach((p) => p.dispose());
     // no word of it to a window that is closing
@@ -374,6 +386,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   };
 
   command('twk.showAppLogs', async () => appLogsView.show());
+  command('twk.frames.show', async () => framesView.focus());
   command('twk.showLog', async () => logs.show(theScreen()));
   // Saves a sequence log to a file: the file given or picked (a `.cast` is the bytes with their times, as asciicast; any other
   // the rows as text), the filter given or the one its webview applies; answers what it wrote

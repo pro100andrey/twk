@@ -110,6 +110,15 @@ describe("twk's inspector answers", () => {
     assert.throws(() => parseFlags({ ...old, overflow: 'yes' }), /no overflow/);
   });
 
+  it('reads the frameEvents flag where the app reports it, and leaves it out where it does not', () => {
+    const base = { version: 1, overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true };
+    assert.equal(parseFlags({ ...base, frameEvents: true }).frameEvents, true);
+    assert.equal(parseFlags({ ...base, frameEvents: false }).frameEvents, false);
+    assert.equal('frameEvents' in parseFlags(base), false);
+    assert.throws(() => parseFlags({ ...base, frameEvents: 'yes' }), /no frameEvents/);
+    assert.deepEqual(flagParams({ frameEvents: true }), { frameEvents: 'true' });
+  });
+
   it('the toggles: picked as the app has them, and back as each on or off', () => {
     const flags = parseFlags({ version: 1, overlay: true, rainbow: false, relayout: true, overflow: true, console: false, keys: false, select: false, selectMany: false, treeEvents: false });
     const items = toggleItems(flags);
