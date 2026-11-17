@@ -5,6 +5,8 @@ a test.
 
 ## Other libraries
 
+- `package:twk_test/driver.dart` (`driverTest`, `DriverApp`) runs the real
+  program in a pseudo-terminal: [Driving the real app](driver.md).
 - `package:twk_test/vt.dart` (`Vt`, `VtCell`, `VtImage`) is the emulator;
   twk_core's own tests are held to it. A `VtCell` prints as a snapshot with
   styles shows it (`[bold]a[/]`). A DCS or APC string ends at ST alone: a

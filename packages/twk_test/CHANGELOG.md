@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+Added:
+
+- `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
+  process in a pseudo-terminal on driven time. `d.start(program, size:,
+  profile:, env:, driven:, inline:)` returns a `DriverApp`: `press`, `type`,
+  `paste`, `resize`, `tap(find...)`, `find`, `findOne`, `rect`, `tree`,
+  `waitFor`, `waitForFinder`, `clock`, `screen`. The finders and matchers are
+  `testTwk`'s: `find.*` are evaluated by the app (`ext.twk.find`), and
+  `containsLine`, `hasTextAt`, `styleAt`, `cursorAt` and `matchesScreen` read
+  `app.screen` (a `DriverScreen`) as they read a `TwkTester`. A test ends by
+  closing the apps and failing on what the strict `Vt` could not take of their
+  output and on the terminal an app that exited did not give back; a failed
+  one prints each app's screen, last frames and widget tree.
+  `driverTest(profiles:)` runs a test once per terminal profile
+  (`terminalProfiles`: truecolor, 256 colors, 16 colors, no color).
+
 Breaking:
 
 - `FakeClock.stopwatch` is gone: `FakeClock.clock`, a `DrivenClock`, is what

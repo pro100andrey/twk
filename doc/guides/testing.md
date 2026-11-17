@@ -244,13 +244,54 @@ void main() {
 `testTwk` runs the app in the test's own process, on a screen the tester
 keeps. What it cannot show is the app as `runApp` runs it: the process, the
 terminal's modes and the bytes it writes (what `runApp` does with them is in
-[Running an app](running.md)). For that the test runs the app in a
-pseudo-terminal, twk_term's `Pty`, and reads what it writes through
-twk_term's emulator, `TerminalEmulator`, as a terminal would:
-`compiledProgram` of twk_test compiles the app once, `waitUntil` and
-`waitFor` wait for the screen and for the exit in real time, within a bound
-that fails saying what was waited for, never a sleep, and the tear-down
-kills the one process the test started, through its `Pty`.
+[Running an app](running.md)). For that `driverTest` of
+`package:twk_test/driver.dart` runs the program in a pseudo-terminal: its
+keys are real bytes, its screen is read through an emulator, and the app's
+time is the test's (its timers fire when the test moves its clock, so there
+is nothing to sleep for). The screen is read with the matchers of `testTwk`
+(`app.screen`), the widgets are found by its finders (`find.text`,
+`find.byKey`: they are asked of the app, `await app.find(...)`,
+`app.tap(find.text('Save'))` checks that a click reaches the widget),
+`app.waitFor` and `app.waitForFinder` wait for a frame that shows what the
+test expects, and `profiles: ['truecolor', '16 colors']` runs the test once
+for each terminal. When the test ends, the strict emulator's complaints
+(a sequence no terminal takes, a print that wraps) and the terminal an app
+that exited did not give back (the tty not cooked, the alternate screen not
+left, the cursor hidden) fail it; a test that fails prints the screen, the
+last frames and the widget tree.
+
+<!-- file: packages/twk_test/test/example/driver_counter_test.dart -->
+```dart
+@Tags(['process'])
+@TestOn('linux || mac-os')
+library;
+
+import 'package:test/test.dart';
+import 'package:twk_test/driver.dart';
+import 'package:twk_test/twk_test.dart';
+
+void main() {
+  driverTest('the counter counts on Up and quits on q', (d) async {
+    // the real program in a pseudo-terminal, on time the test moves
+    final app = await d.start('../twk/example/counter.dart', size: (40, 7));
+    expect(app.screen, containsLine(contains('Count: 0')));
+    await app.press('up');
+    expect(app.screen, containsLine(contains('Count: 1')));
+    // the app's exit, and the terminal it gave back, are checked
+    final step = await app.press('q');
+    expect(step.exit!.code, 0);
+  });
+}
+```
+
+The app is a program of its own, with a `main` that calls `runApp`; the
+test runs on Linux and macOS, and is tagged `process`. Where a test needs
+the terminal itself and nothing of the driver, twk_term's `Pty` and
+`TerminalEmulator` are underneath: `compiledProgram` of twk_test compiles
+the app once, `waitUntil` and `waitFor` wait for the screen and for the exit
+in real time, within a bound that fails saying what was waited for, never a
+sleep, and the tear-down kills the one process the test started, through its
+`Pty`.
 
 <!-- file: packages/twk_term/test/example/run_app_test.dart -->
 ```dart
@@ -308,9 +349,7 @@ void main() {
 }
 ```
 
-The app is a program of its own, with a `main` that calls `runApp`; the
-test needs `twk_term` among its `dev_dependencies`, and runs on Linux and
-macOS. A program that needs no terminal, a command-line tool whose output
+The test needs `twk_term` among its `dev_dependencies`. A program that needs no terminal, a command-line tool whose output
 is what is wanted, is started with twk_test's `startProcess` or
 `runProcess` instead, which end it with the test too.
 

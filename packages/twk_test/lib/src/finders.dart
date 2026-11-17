@@ -134,6 +134,31 @@ final class Finder {
   String toString() => description;
 }
 
+/// The [ElementFinder] [finder] is: what the app's `ext.twk.find` takes as
+/// data, shared with the driver's tests ([Finder.toJson] is its wire form).
+@internal
+ElementFinder elementFinderOf(Finder finder) => finder._finder;
+
+/// Whether the count matcher [matcher] (one of [findsNothing],
+/// [findsOneWidget], [findsWidgets], [findsNWidgets]) takes [n] widgets
+/// found; an [ArgumentError] for any other matcher.
+@internal
+bool findsCountAdmits(Matcher matcher, int n) => _finds(matcher).admits(n);
+
+/// What the count matcher [matcher] expects, as it describes itself:
+/// `finds one widget`.
+@internal
+String findsCountDescribed(Matcher matcher) =>
+    _finds(matcher).describe(StringDescription()).toString();
+
+_Finds _finds(Matcher matcher) => matcher is _Finds
+    ? matcher
+    : throw ArgumentError.value(
+        matcher,
+        'count',
+        'one of findsNothing, findsOneWidget, findsWidgets, findsNWidgets',
+      );
+
 /// The widgets [_test] takes; in-process only.
 final class _PredicateFinder extends ElementFinder {
   const _PredicateFinder(this.description, this._test);
@@ -174,14 +199,19 @@ final class _Finds extends Matcher {
   final int _least;
   final int? _most;
 
+  /// Whether [n] widgets found are what it expects.
+  bool admits(int n) {
+    final most = _most;
+    return n >= _least && (most == null || n <= most);
+  }
+
   @override
   bool matches(Object? item, Map<dynamic, dynamic> matchState) {
     if (item is! Finder) {
       return false;
     }
     final found = matchState[_Finds] = item.evaluate();
-    final most = _most;
-    return found.length >= _least && (most == null || found.length <= most);
+    return admits(found.length);
   }
 
   @override

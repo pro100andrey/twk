@@ -10,9 +10,11 @@ import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart' show Attr, ClusterScan, Color;
 
 import '../vt.dart';
+import 'driver_screen.dart' show DriverScreen;
 import 'finders.dart';
 import 'screen_file.dart';
 import 'screen_frames.dart';
+import 'screen_subject.dart';
 import 'screen_text.dart';
 import 'tester.dart';
 
@@ -84,7 +86,7 @@ CellRect _asRect(Object region) => region as CellRect;
 /// a [StateError] when a finder
 /// does not find one widget. Null for none.
 CellRect? _regionOn(
-  TwkTester t,
+  ScreenSubject t,
   Object? within,
 ) => switch (within) {
   null => null,
@@ -265,6 +267,47 @@ Matcher matchesScreenFile(String path, {bool styles = true}) =>
       styles,
     );
 
+/// What [item] is a screen of: a [TwkTester] or a [DriverScreen]; null for
+/// anything else.
+ScreenSubject? _subjectOf(Object? item) => switch (item) {
+  final TwkTester t => _TesterSubject(t),
+  final DriverScreen s => s,
+  _ => null,
+};
+
+/// A [TwkTester] as the matchers read it.
+final class _TesterSubject implements ScreenSubject {
+  _TesterSubject(this._t);
+
+  final TwkTester _t;
+
+  @override
+  Vt get vt => _t.vt;
+
+  @override
+  List<String> get lines => _t.lines;
+
+  @override
+  List<String> linesIn(CellRect region) => _t.linesIn(region);
+
+  @override
+  (int, int) get cursor => _t.cursor;
+
+  @override
+  bool get cursorVisible => _t.cursorVisible;
+
+  @override
+  CellRect rect(Finder finder) => _t.rect(finder);
+
+  @override
+  String get context => [
+    'widget tree:',
+    appRoot(_t)?.describe().toStringDeep() ?? 'none',
+    '',
+    describeApp(_t.vt, _t.binding.twkApp.owner.root, screen: false),
+  ].join('\n');
+}
+
 /// A matcher of a [TwkTester]'s screen; its mismatch ends with the screen,
 /// the widget tree from the widget [TwkTester.pumpWidget] showed down, as
 /// [Finder]s see it, and the render tree.
@@ -273,10 +316,10 @@ abstract base class _ScreenMatcher extends Matcher {
 
   /// Whether [t]'s screen matches; what [_which] needs goes in
   /// [matchState].
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState);
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState);
 
   /// Adds what [t]'s screen has in place of what is expected.
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState);
+  void _which(ScreenSubject t, Description d, Map<dynamic, dynamic> matchState);
 
   /// Whether the mismatch shows the screen after [_which], which shows it
   /// itself otherwise.
@@ -287,8 +330,10 @@ abstract base class _ScreenMatcher extends Matcher {
   bool get _marksStyles => false;
 
   @override
-  bool matches(Object? item, Map<dynamic, dynamic> matchState) =>
-      item is TwkTester && _matches(item, matchState);
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) {
+    final subject = _subjectOf(item);
+    return subject != null && _matches(subject, matchState);
+  }
 
   @override
   Description describeMismatch(
@@ -297,11 +342,12 @@ abstract base class _ScreenMatcher extends Matcher {
     Map<dynamic, dynamic> matchState,
     bool verbose,
   ) {
-    if (item is! TwkTester) {
-      return mismatchDescription.add('is not a TwkTester');
+    final subject = _subjectOf(item);
+    if (subject == null) {
+      return mismatchDescription.add('is not a TwkTester or a DriverScreen');
     }
-    _which(item, mismatchDescription, matchState);
-    final vt = item.vt;
+    _which(subject, mismatchDescription, matchState);
+    final vt = subject.vt;
     return mismatchDescription
         .add('\n\n')
         .add(
@@ -311,10 +357,7 @@ abstract base class _ScreenMatcher extends Matcher {
               describeScreen(vt, styles: _marksStyles),
               '',
             ],
-            'widget tree:',
-            appRoot(item)?.describe().toStringDeep() ?? 'none',
-            '',
-            describeApp(vt, item.binding.twkApp.owner.root, screen: false),
+            subject.context,
           ].join('\n'),
         );
   }
@@ -348,7 +391,7 @@ final class _ContainsLine extends _ScreenMatcher {
   final Object? _within;
 
   @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState) {
     final List<String> lines;
     try {
       final region = _regionOn(t, _within);
@@ -373,7 +416,11 @@ final class _ContainsLine extends _ScreenMatcher {
   }
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+  void _which(
+    ScreenSubject t,
+    Description d,
+    Map<dynamic, dynamic> matchState,
+  ) {
     if (matchState['error'] case final String error) {
       d.add(error);
       return;
@@ -400,7 +447,7 @@ final class _HasTextAt extends _ScreenMatcher {
   final Object? _within;
 
   /// The cells the matcher reads: the screen's, or the region's cut by it.
-  CellRect _area(TwkTester t) {
+  CellRect _area(ScreenSubject t) {
     final vt = t.vt;
     final r = _regionOn(t, _within);
     if (r == null) {
@@ -450,7 +497,7 @@ final class _HasTextAt extends _ScreenMatcher {
   }
 
   @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState) {
     final CellRect area;
     try {
       area = _area(t);
@@ -473,7 +520,11 @@ final class _HasTextAt extends _ScreenMatcher {
   }
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+  void _which(
+    ScreenSubject t,
+    Description d,
+    Map<dynamic, dynamic> matchState,
+  ) {
     if (matchState['error'] case final String error) {
       d.add(error);
       return;
@@ -506,7 +557,7 @@ final class _StyleAt extends _ScreenMatcher {
   bool get _marksStyles => true;
 
   @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState) {
     final vt = t.vt;
     if (_offScreen(vt, _x, _y) != null) {
       return false;
@@ -522,7 +573,11 @@ final class _StyleAt extends _ScreenMatcher {
       .addDescriptionOf(_style);
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+  void _which(
+    ScreenSubject t,
+    Description d,
+    Map<dynamic, dynamic> matchState,
+  ) {
     final vt = t.vt;
     final off = _offScreen(vt, _x, _y);
     if (off != null) {
@@ -607,7 +662,7 @@ final class _CursorAt extends _ScreenMatcher {
   final int _y;
 
   @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) =>
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState) =>
       t.cursorVisible && t.cursor == (_x, _y);
 
   @override
@@ -615,7 +670,11 @@ final class _CursorAt extends _ScreenMatcher {
       description.add('the cursor at column $_x, row $_y');
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+  void _which(
+    ScreenSubject t,
+    Description d,
+    Map<dynamic, dynamic> matchState,
+  ) {
     final (x, y) = t.cursor;
     d.add(
       t.cursorVisible
@@ -640,7 +699,7 @@ final class _MatchesScreen extends _ScreenMatcher {
   bool get _showsScreen => !_styles;
 
   @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState) {
     final rows = screenRows(t.vt, styles: _styles);
     return rows.length == _rows.length &&
         Iterable<int>.generate(rows.length).every((y) => rows[y] == _rows[y]);
@@ -654,7 +713,11 @@ final class _MatchesScreen extends _ScreenMatcher {
   );
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) {
+  void _which(
+    ScreenSubject t,
+    Description d,
+    Map<dynamic, dynamic> matchState,
+  ) {
     final rows = screenRows(t.vt, styles: _styles);
     final count = rows.length > _rows.length ? rows.length : _rows.length;
     String rowOf(List<String> rows, int y) => y < rows.length ? rows[y] : '';
@@ -721,7 +784,7 @@ final class _MatchesScreenFile extends _ScreenMatcher {
       : super.describeMismatch(item, mismatchDescription, matchState, verbose);
 
   @override
-  bool _matches(TwkTester t, Map<dynamic, dynamic> matchState) {
+  bool _matches(ScreenSubject t, Map<dynamic, dynamic> matchState) {
     final cursor = t.cursorVisible ? t.cursor : null;
     return _matchScreen(
       (held) => ScreenFile.of(t.vt, cursor, previous: held),
@@ -806,8 +869,11 @@ final class _MatchesScreenFile extends _ScreenMatcher {
       description.add('the ${_styles ? '' : 'text of the '}screen of $_path');
 
   @override
-  void _which(TwkTester t, Description d, Map<dynamic, dynamic> matchState) =>
-      d.add(_explain(matchState));
+  void _which(
+    ScreenSubject t,
+    Description d,
+    Map<dynamic, dynamic> matchState,
+  ) => d.add(_explain(matchState));
 
   /// Why the screen does not match, for the failure message.
   String _explain(Map<dynamic, dynamic> matchState) {

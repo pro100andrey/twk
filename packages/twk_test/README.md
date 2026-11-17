@@ -77,6 +77,8 @@ void main() {
   writing a test, time, input, errors.
 - [The screen](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/screen.md):
   reading it, matchers, golden files, finders and frames.
+- [Driving the real app](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/driver.md):
+  `driverTest`: the program in a pseudo-terminal, on time the test moves.
 - [Other libraries](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/libraries.md):
   the emulator, `Shot`, `FakeClock` on its own, and tests that run processes.
 - [How it is tested](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/internals.md):

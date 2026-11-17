@@ -31,3 +31,4 @@ export 'src/ports.dart'
 export 'src/program.dart' show compiledProgram;
 export 'src/pty_terminal.dart' show PtyCommandPort, PtyProcessPort;
 export 'src/session.dart' show CloseReport, Seen, Session, SessionPorts, Step;
+export 'src/tree_text.dart' show treeText;

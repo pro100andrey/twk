@@ -4,6 +4,8 @@
 
 Added:
 
+- `treeText`: the `ext.twk.tree` answer as indented text, as `twk mcp`'s
+  `tree` tool writes it, for the front ends that show a tree.
 - A quiet app waited on with `io` waits for the app's `twk.scheduled` event
   (up to the io time on the driver's clock) instead of asking its
   `ext.twk.clock` status every 50 ms.

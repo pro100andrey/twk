@@ -490,7 +490,7 @@ sent: привет
   test('a matcher of the screen fails on what is not a tester', () {
     expect(
       failure('text', containsLine('text')).elementAt(2),
-      '   Which: is not a TwkTester',
+      '   Which: is not a TwkTester or a DriverScreen',
     );
   });
 
