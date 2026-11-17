@@ -1436,6 +1436,7 @@ void main() {
         'ext.twk.reassemble',
         'ext.twk.log',
         'ext.twk.status',
+        'ext.twk.clock',
       ]);
       final tree = handlers['ext.twk.tree']!;
       final none = await tree('ext.twk.tree', {});

@@ -922,6 +922,12 @@ final class Terminal
   final TerminalInfo info;
   final InputParser _parser;
   final TerminalLink _link;
+
+  /// The zone the terminal was made in, where the timers of its I/O run
+  /// (a resume's wait for the cursor, a close's flush guards): real time
+  /// even when the zone that calls it is an app's whose timers are
+  /// driven (`TWK_DRIVEN`).
+  final Zone _realZone = Zone.current;
   final StreamSubscription<List<int>> _input;
   final List<StreamSubscription<void>> _signals;
 
@@ -2139,15 +2145,14 @@ final class Terminal
     _checkSize();
     var column = -1;
     if (asked != null) {
-      column = await asked.future.timeout(
-        options.probeTimeout,
-        onTimeout: () => -1,
+      column = await _realZone.run(
+        () => asked!.future.timeout(options.probeTimeout, onTimeout: () => -1),
       );
       _cursorAsked = null;
       if (column < 0) {
         // the answer may still come, and is no key (CSI 1;2R is Shift+F3)
         _lateCursorTimer?.cancel();
-        _lateCursorTimer = Timer(
+        _lateCursorTimer = _realZone.createTimer(
           const Duration(seconds: 5),
           () => _parser.expectCursorReport = false,
         );
@@ -2274,13 +2279,17 @@ final class Terminal
     final link = _link;
     var taken = link is DrainingLink ? link.taken : null;
     if (link is! DrainingLink || taken == null) {
-      await flush().timeout(_closeBlindLimit, onTimeout: () {});
+      await _realZone.run(
+        () => flush().timeout(_closeBlindLimit, onTimeout: () {}),
+      );
       return;
     }
     var done = false;
     final flushed = flush().whenComplete(() => done = true)..ignore();
     while (!done) {
-      await flushed.timeout(_closeFlushLimit, onTimeout: () {});
+      await _realZone.run(
+        () => flushed.timeout(_closeFlushLimit, onTimeout: () {}),
+      );
       if (link.taken == taken) {
         return;
       }

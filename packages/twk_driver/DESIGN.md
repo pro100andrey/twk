@@ -574,6 +574,13 @@ fails. Go treats such I/O as not "durably blocked", and CDP has
 app cannot tell. Every "never" failure says that the app was quiet and
 that I/O cannot be seen, so a false "never" explains itself.
 
+What comes in from outside asks for a frame the app's clock does not reach:
+a child's answer calls `setState`, and the frame is due a gap after the
+last, on a clock that stands. No event says so, so a quiet app that is
+waited on with `io` is asked for its `ext.twk.clock` status every 50 ms of
+the driver's clock (`Session._ioPoll`); once it is not quiet (a frame is
+asked for) the wait goes on as for any app, advancing to what is due.
+
 ## 5. Finders as data (`ext.twk.find`)
 
 The finders are values in twk: `toJson`, `fromJson`, and an `evaluate`

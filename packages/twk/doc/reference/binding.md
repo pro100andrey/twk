@@ -238,7 +238,9 @@ it and the render objects hit (`render`), the deepest first;
 (`highlight`); `ext.twk.flags` gives `overlay`, `console` (open), `rainbow`,
 `relayout`, `keys`, `select` and `framesInRow`, and sets those of the first
 six passed `true` or `false`, none when a value is wrong (`framesInRow`
-cannot be set); `ext.twk.reassemble` reassembles the app; `ext.twk.log`
+cannot be set); `ext.twk.reassemble` reassembles the app and answers the frame run and the
+frame due; `ext.twk.clock` says where the app's clock stands and, for an
+app a driver runs on its time (`TWK_DRIVEN`), moves it; `ext.twk.log`
 (`message`, `level`: `debug`, `info` by default, `warning` or `error`;
 `error`) adds a record to the app's log, an error opening the console.
 

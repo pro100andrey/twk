@@ -68,7 +68,10 @@ void main() {
       await t.pump();
       expect(t.lines, ['count', '2', '...', ''], reason: 'nothing marked');
 
-      expect(await call(t, 'ext.twk.reassemble'), {'version': 1});
+      final asked = await call(t, 'ext.twk.reassemble');
+      expect(asked.keys, ['version', 'frame', 'frameDue']);
+      expect(asked['frame'], t.binding.twkApp.framesRun);
+      expect(asked['frameDue'], t.binding.twkApp.frameDue);
       await t.pump();
       expect(t.lines, ['clicks', '2', '#####', '']);
       expect(_Title.builds, builds + 1);

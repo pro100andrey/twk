@@ -75,6 +75,8 @@ import '../platform/platform.dart'
     show environment, processId, runOnTerminal, startApart, tempFile;
 import '../semantics/semantics.dart';
 import '../style/theme.dart';
+import 'driven_clock.dart';
+import 'driven_start.dart';
 import 'error_widget.dart';
 import 'source_excerpt.dart';
 import 'terminal_status.dart' show TerminalStatus;
@@ -197,6 +199,12 @@ Future<void> runApp(
       'not ordered by the ${bidi.name}',
     );
   }
+  // TWK_DRIVEN: a driver moves the time. The terminal opens on real time,
+  // as the I/O it is; the binding and the app run in the driven zone.
+  final driven = clock == null ? DrivenStart.of() : null;
+  if (driven != null) {
+    await DrivenStart.requireService();
+  }
   final reader = screenReader ?? AppBinding._readerAsked(environment);
   final term =
       terminal ??
@@ -208,7 +216,7 @@ Future<void> runApp(
           bidi: bidi,
         ),
       );
-  await AppBinding(
+  Future<void> start() => AppBinding(
     term,
     viewport: viewport,
     maxFps: maxFps,
@@ -219,10 +227,12 @@ Future<void> runApp(
     exitOnCtrlC: exitOnCtrlC,
     stopOnCtrlZ: stopOnCtrlZ,
     restCursor: restCursor,
-    clock: clock,
+    clock: clock ?? driven?.clock,
+    startTime: driven?.startTime,
     screenReader: screenReader,
     onError: onError,
   ).run(app);
+  await (driven == null ? start() : driven.zone.run(start));
 }
 
 /// A widget tree run as an app on a terminal by a `TwkApp` ([twkApp]),
@@ -798,6 +808,7 @@ final class AppBinding implements FrameClock {
     'ext.twk.reassemble',
     'ext.twk.log',
     'ext.twk.status',
+    'ext.twk.clock',
   ];
 
   /// The version of the shape of what [callServiceExtension] answers: an
@@ -898,8 +909,18 @@ final class AppBinding implements FrameClock {
   ///   `scheduled`, `frameDue`, `time`, `nextDue` (null) and `quitting`
   ///   (`TwkApp.quitting`). It changes nothing, and answers whether
   ///   `frameEvents` is on or not: the baseline a driver starts from.
+  /// * `ext.twk.clock`, `op` (`status`, the default, `advance` with `by`,
+  ///   `advanceTo` with `to`, `next`; microseconds) and `describe`: where
+  ///   the app's clock stands: `ext.twk.status` with `driven` (the clock is
+  ///   a [DrivenClock], as a driver of the app, `TWK_DRIVEN`, makes it),
+  ///   `timers`, `quiet` and, with `describe=true`, the timers; null for
+  ///   the last three on real time, where the other ops are refused. The
+  ///   ops move a driven clock, firing the timers in due order, each
+  ///   timer's microtasks and a running frame awaited after it; one call at
+  ///   a time.
   /// * `ext.twk.reassemble`: [reassemble]s the app, after a hot reload of
-  ///   its code; nothing else.
+  ///   its code; it answers `frame` (the frames run) and `frameDue`, which
+  ///   a driver moves a driven clock to.
   /// * `ext.twk.log`, `message`, `level` (`debug`, `info`, the default,
   ///   `warning` or `error`) and `error`, if any: adds that record to the
   ///   app's log (`TwkApp.logs`), where a tool that runs the app says what
@@ -910,7 +931,9 @@ final class AppBinding implements FrameClock {
     Map<String, String> parameters,
   ) async {
     try {
-      final answer = _answer(method, parameters);
+      final answer = method == 'ext.twk.clock'
+          ? await _clockCall(parameters)
+          : _answer(method, parameters);
       return ServiceExtensionResponse.result(
         jsonEncode({'version': serviceExtensionsVersion, ...answer}),
       );
@@ -1018,7 +1041,8 @@ final class AppBinding implements FrameClock {
         return debug._status();
       case 'ext.twk.reassemble':
         reassemble();
-        return const {};
+        // the frame a driven app moves its clock to, and the last that ran
+        return {'frame': twkApp.framesRun, 'frameDue': twkApp.frameDue};
       case 'ext.twk.log':
         final record = _record(params);
         // the console, made now if it wasn't, opens on an error
@@ -1026,6 +1050,105 @@ final class AppBinding implements FrameClock {
         return const {};
     }
     throw ArgumentError.value(method, 'method', 'not a service extension');
+  }
+
+  var _clockMoving = false;
+
+  /// What `ext.twk.clock` answers: the `ext.twk.status` of the app, and
+  /// the clock: `driven` (its clock is a [DrivenClock]), `timers` (how many
+  /// wait), `quiet` (no timer waits, no frame is asked for or runs, the
+  /// input parser holds nothing: nothing happens until something is read)
+  /// and, with `describe=true`, `describe`, the timers by due time. Not
+  /// driven, `timers` and `quiet` are null and only `op=status` is
+  /// answered.
+  ///
+  /// `op=advance` with `by` (microseconds), `advanceTo` with `to` and `next`
+  /// (the time the next timer is due, none: stays) move the clock, firing
+  /// the timers in due order. After each the zone of the root runs what it
+  /// queued (a timer of zero delay and the microtasks before it) and a
+  /// frame that runs ends, flush included; the app's time then is the
+  /// target. One call is answered at a time.
+  Future<Map<String, Object?>> _clockCall(Map<String, String> params) async {
+    final op = params['op'] ?? 'status';
+    final clock = twkApp.clock;
+    final driven = clock is DrivenClock ? clock : null;
+    if (op != 'status') {
+      if (driven == null) {
+        throw const _ExtensionError.params('the app is not driven');
+      }
+      final int target;
+      switch (op) {
+        case 'advance':
+          final by = _int(params, 'by');
+          if (by < 0) {
+            throw const _ExtensionError.params('by: not negative');
+          }
+          target = driven.elapsedMicroseconds + by;
+        case 'advanceTo':
+          target = _int(params, 'to');
+          if (target < driven.elapsedMicroseconds) {
+            throw const _ExtensionError.params("to: not before the clock's");
+          }
+        case 'next':
+          final due = driven.nextDue;
+          target = due == null || due < driven.elapsedMicroseconds
+              ? driven.elapsedMicroseconds
+              : due;
+        default:
+          throw _ExtensionError.params(
+            'op: status, advance, advanceTo or next, not $op',
+          );
+      }
+      if (_clockMoving) {
+        throw const _ExtensionError.gone('the clock is already moving');
+      }
+      _clockMoving = true;
+      try {
+        await _moveClock(driven, target);
+      } finally {
+        _clockMoving = false;
+      }
+    }
+    return {
+      ...debug._status(),
+      'driven': driven != null,
+      'timers': driven?.pendingTimers,
+      'quiet': driven == null
+          ? null
+          : driven.pendingTimers == 0 &&
+                !twkApp.scheduled &&
+                !twkApp.inFrame &&
+                !twkApp.inputPending,
+      if (driven != null && params['describe'] == 'true')
+        'describe': [
+          for (final t in driven.waiting)
+            {'due': t.due, 'periodic': t.periodic, 'created': t.created},
+        ],
+    };
+  }
+
+  Future<void> _moveClock(DrivenClock clock, int target) async {
+    for (var fired = 0; clock.fireNext(target); fired++) {
+      if (fired >= clock.maxFired) {
+        throw _ExtensionError.gone(
+          'the clock fired ${clock.maxFired} timers in one move: a timer '
+          'that starts itself again with no wait?\n${clock.describeTimers()}',
+        );
+      }
+      await _settled();
+    }
+    clock.moveTo(target);
+    await _settled();
+  }
+
+  /// Completes once what the timer fired queued has run: the microtasks
+  /// and a zero timer of the root zone behind them, the running frame's end
+  /// after.
+  Future<void> _settled() async {
+    final done = Completer<void>();
+    Zone.root.createTimer(Duration.zero, done.complete);
+    await done.future;
+    await twkApp.frameEnd;
   }
 
   /// What `ext.twk.find` answers for the finder in `finder`.
@@ -2033,7 +2156,10 @@ final class DebugAids {
       'scheduled': app.scheduled,
       'frameDue': app.frameDue,
       'time': app.clock.elapsedMicroseconds,
-      'nextDue': null,
+      'nextDue': switch (app.clock) {
+        final DrivenClock clock => clock.nextDue,
+        _ => null,
+      },
     };
   }
 

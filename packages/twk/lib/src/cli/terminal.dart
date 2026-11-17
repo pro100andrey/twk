@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:twk_core/twk_core.dart' show Clock, SystemClock, Terminal;
 
 import '../../twk.dart' show TerminalBackend, TerminalOptions;
+import '../binding/driven_start.dart';
 import '../platform/platform.dart' as platform;
 import 'capabilities.dart';
 
@@ -93,6 +94,11 @@ abstract class CliTerminal {
   /// (`package:twk_test/cli.dart`).
   Clock get clock => _wall;
 
+  /// What `AppBinding.now` reads when [clock] reads zero: null, the real
+  /// time at that moment, unless [clock] is a driver's (`TWK_DRIVEN`),
+  /// which names it.
+  DateTime? get startTime => null;
+
   /// Runs [body] where the code of the inline session runs: as it is, or in
   /// the zone of the fake clock that [clock] is, whose microtasks and
   /// timers a test then moves.
@@ -130,6 +136,23 @@ final class _SystemTerminal extends CliTerminal {
   final bool? _hyperlinks;
 
   Map<String, String> get _env => _environment ?? platform.environment;
+
+  // what TWK_DRIVEN asks of the process, read when first needed: a driver
+  // moves the clock the session keeps its time by, which runs in a zone
+  // of its own, the terminal opening on real time
+  late final DrivenStart? _driven = DrivenStart.of(environment: _env);
+
+  @override
+  Clock get clock => _driven?.clock ?? super.clock;
+
+  @override
+  DateTime? get startTime => _driven?.startTime;
+
+  @override
+  R run<R>(R Function() body) {
+    final driven = _driven;
+    return driven == null ? body() : driven.zone.run(body);
+  }
 
   @override
   late final capabilities = CliCapabilities.detect(
@@ -201,9 +224,22 @@ final class _SystemTerminal extends CliTerminal {
   // session is for, under CI where it was asked to (`interactive: true`)
   // too
   @override
-  Future<TerminalBackend> openInline() => Terminal.open(
-    const TerminalOptions(alternateScreen: false, mouse: false, plain: false),
-  );
+  Future<TerminalBackend> openInline() async {
+    final driven = _driven;
+    if (driven != null) {
+      await DrivenStart.requireService();
+    }
+    // the terminal is I/O: on real time, in the zone `run` came from
+    return (driven?.outer ?? Zone.current).run(
+      () => Terminal.open(
+        const TerminalOptions(
+          alternateScreen: false,
+          mouse: false,
+          plain: false,
+        ),
+      ),
+    );
+  }
 
   @override
   void interrupt() => platform.interruptProcess();

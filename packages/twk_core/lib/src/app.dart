@@ -446,6 +446,10 @@ final class TwkApp {
       _committing != null ||
       _commits.isNotEmpty;
 
+  /// Whether a frame runs now, awaiting its flush perhaps: what a driver
+  /// that moves the clock waits out before it calls the app quiet.
+  bool get inFrame => _inFrame;
+
   /// When the frame asked for is due, in microseconds of [clock]; null
   /// when none is ([scheduled]). For a frame that follows the running one
   /// it is when [requestFrame] will have it run.

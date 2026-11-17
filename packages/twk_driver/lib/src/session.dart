@@ -4,6 +4,8 @@ library;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io' show pid;
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart' show ElementFinder, KeyCombo;
@@ -12,6 +14,7 @@ import 'package:twk_core/twk_core.dart'
 
 import 'app_client.dart' show AppError, Json, VmAppClient;
 import 'byte_log.dart';
+import 'clock_control.dart';
 import 'emulator_screen.dart';
 import 'errors.dart';
 import 'found.dart';
@@ -141,8 +144,10 @@ final class SessionPorts {
     this.connect,
     Clock? clock,
     this.macos = false,
+    int? driverPid,
   }) : process = process ?? PtyProcessPort(),
-       clock = clock ?? SystemClock();
+       clock = clock ?? SystemClock(),
+       driverPid = driverPid ?? pid;
 
   /// Starts the app in a pseudo-terminal.
   final ProcessPort process;
@@ -159,6 +164,10 @@ final class SessionPorts {
 
   /// Whether the terminal's attributes are macOS's (`c_lflag` 64 bits).
   final bool macos;
+
+  /// The process id `TWK_DRIVEN` names: the driver's own, which the app
+  /// takes the variable for only when it is its parent's.
+  final int driverPid;
 }
 
 /// A twk app run as a process in a pseudo-terminal and driven from
@@ -174,17 +183,43 @@ final class Session {
   /// [SessionPorts.clock], the real one by default: an app that has not
   /// answered within it is reported, with its screen. The app ending
   /// answers every wait at once.
+  ///
+  /// With [driven] (the default) the app runs on the driver's time
+  /// (`TWK_DRIVEN`, part 4 of DESIGN.md): its timers fire when [clock]
+  /// moves it, `press` moves it only to the frame the input asked for, and
+  /// [waitFor] moves it on until the screen is what it waits for. [startTime]
+  /// is what the app's `AppBinding.now` reads when its clock is at zero;
+  /// null, the real time at its start. The start fails at once, naming the
+  /// cause, where the app did not take the variable. Without [driven] the
+  /// app runs on real time, and only the waits that take `io` are of use.
   static Future<Session> start(
     ProcessSpec spec, {
     SessionPorts? ports,
     Duration timeout = const Duration(seconds: 20),
+    bool driven = true,
+    DateTime? startTime,
   }) async {
     final p = ports ?? SessionPorts();
-    final launched = await p.process.spawn(spec);
+    final value = driven ? '${p.driverPid}${_at(startTime)}' : null;
+    final launched = await p.process.spawn(
+      value == null
+          ? spec
+          : ProcessSpec(
+              spec.program,
+              arguments: spec.arguments,
+              workingDirectory: spec.workingDirectory,
+              environment: {...spec.environment, 'TWK_DRIVEN': value},
+              width: spec.width,
+              height: spec.height,
+            ),
+    );
     final screen =
         p.screen?.call(spec.width, spec.height) ??
         EmulatorScreen(width: spec.width, height: spec.height);
-    final session = Session._(launched, p, screen, null)..timeout = timeout;
+    final session = Session._(launched, p, screen, null)
+      ..timeout = timeout
+      .._driven = driven
+      .._drivenValue = value;
     try {
       await session._init();
     } on Object {
@@ -198,6 +233,8 @@ final class Session {
   final SessionPorts _ports;
   final ScreenPort _screen;
   AppServicePort? _service;
+  var _driven = false;
+  String? _drivenValue;
 
   /// How long a wait of this session may last before it is reported.
   late Duration timeout;
@@ -274,8 +311,19 @@ final class Session {
     _subs.add(service.events.listen(_onEvent));
     await _call(service, 'flags', {'frameEvents': 'true'});
     // where the app is: the boundary of the output the first frame ended
-    // at, whether a frame ran before the events were asked for or not
-    final status = await _call(service, 'status');
+    // at, whether a frame ran before the events were asked for or not. The
+    // clock's status carries what the app's `status` does, and says
+    // whether the app took the time the driver offered it.
+    final status = await _call(service, _driven ? 'clock' : 'status');
+    if (_driven && status['driven'] != true) {
+      throw DriverError(
+        'the app is not driven: it did not take TWK_DRIVEN=$_drivenValue, '
+        'which an app takes only when its parent process is the driver '
+        '(pid ${_ports.driverPid}). A program started through `dart run` '
+        'has a process between; start it with `dart <file>` or compile it. '
+        'Pass driven: false to run it on real time.',
+      );
+    }
     _queue.add(AppEvent('twk.input', status));
     _drain();
     if ((status['frame']! as int) == 0) {
@@ -285,10 +333,22 @@ final class Session {
     }
   }
 
+  static String _at(DateTime? t) =>
+      t == null ? '' : '@${t.toUtc().toIso8601String()}';
+
   static Future<AppServicePort> _connect(Uri uri) async {
     final service = await VmAppClient.connect(uri);
     return VmAppClient.attach(service, '$uri');
   }
+
+  /// The hold on the app's time (`ext.twk.clock`): where it stands, and
+  /// the moves of a driven app's clock.
+  late final clock = ClockControl(
+    (params) => _call(_service!, 'clock', params),
+  );
+
+  /// Whether the app runs on the driver's time.
+  bool get driven => _driven;
 
   // ------------------------------------------------------------ the bytes --
 
@@ -552,6 +612,11 @@ final class Session {
         what: 'the frame that takes the input in',
       );
       if (!seen.isFrame && seen.scheduled) {
+        if (_driven && seen.frameDue != null) {
+          // the input's frame is due a gap after the last: the clock moves
+          // there, to that and nothing further
+          await clock.advanceTo(math.max(seen.frameDue!, seen.time));
+        }
         seen = await _until(
           (s) => s.isFrame && s.inputRead >= target,
           from: seen.seq + 1,
@@ -659,6 +724,225 @@ final class Session {
   }
 
   // ---------------------------------------------------------- the screen --
+
+  /// Takes the clock's [status] as an acknowledgement of the app's
+  /// input, which says what the app has run and written at the time of the
+  /// answer, and returns once the frame emulator has the output it
+  /// accounts for: the event that came of it.
+  Future<Seen> _observe(ClockStatus status) {
+    final seq = _seq + _queue.length;
+    _queue.add(AppEvent('twk.input', status.json));
+    _drain();
+    return _until((s) => s.seq >= seq, from: seq, what: "the app's output");
+  }
+
+  /// Waits until [test] accepts the screen of a frame, the one shown now
+  /// first, then each frame the app draws, none missed between checks.
+  ///
+  /// On a driven app it moves the app's time itself, from timer to timer,
+  /// until the app's clock has moved [budget] (of app time, 10 s by
+  /// default), and fails with "not within" and the timers that wait. An
+  /// app that is quiet, with no timer, no frame asked for and nothing held
+  /// in its input parser, will never change its screen by itself: that is
+  /// "never", at once, with the frame, the screen and, where [near] is
+  /// given, the line of it closest to that text. Real I/O in flight (a
+  /// socket, a file, a process) is invisible to the clock, so a wait that
+  /// involves any passes [io]: a quiet app is then waited on in real time,
+  /// up to [io] (on the driver's clock), for frames that may still come.
+  ///
+  /// An app that does not run on the driver's time (`driven: false`) is
+  /// waited on in real time up to [io], which is then required. The app
+  /// ending ends the wait ([AppEnded]).
+  Future<Step> waitFor(
+    bool Function(String screen) test, {
+    Duration budget = const Duration(seconds: 10),
+    Duration? io,
+    String what = 'the screen',
+    String? near,
+  }) async {
+    if (_afterEnd() case final step?) {
+      return step;
+    }
+    final found = Completer<Seen>();
+    final from = _history.isEmpty ? 0 : _history.last.seq;
+    final waiter = _Waiter(
+      (s) => test(s.screen),
+      from,
+      what,
+      onSeen: (s) {
+        if (!found.isCompleted) {
+          found.complete(s);
+        }
+      },
+      onFail: (e) {
+        if (!found.isCompleted) {
+          found.completeError(e);
+        }
+      },
+    );
+    _waiters.add(waiter);
+    found.future.ignore();
+    try {
+      for (final s in [..._history]) {
+        waiter.offer(s);
+      }
+      if (!found.isCompleted) {
+        await _search(found, what: what, budget: budget, io: io, near: near);
+      }
+      final seen = await found.future;
+      return Step(seen.frame, seen.screen, seen);
+    } finally {
+      _waiters.remove(waiter);
+    }
+  }
+
+  Future<void> _search(
+    Completer<Seen> found, {
+    required String what,
+    required Duration budget,
+    required Duration? io,
+    required String? near,
+  }) async {
+    if (!_driven) {
+      if (io == null) {
+        throw const DriverError(
+          'waitFor on an app that is not driven waits in real time, for '
+          'which it needs io: how long',
+        );
+      }
+      final expired = Completer<void>();
+      final timer = _ports.clock.timer(io, expired.complete);
+      try {
+        await Future.any([found.future, expired.future]);
+      } finally {
+        timer.cancel();
+      }
+      if (!found.isCompleted) {
+        throw DriverError(
+          "no $what within ${_seconds(io)} of the driver's clock. "
+          'Screen at frame $frame:\n${_screen.frame.text}',
+        );
+      }
+      return;
+    }
+    final first = await clock.status();
+    final begun = first.time;
+    int? ioEnd;
+    var status = first;
+    while (!found.isCompleted) {
+      status = await clock.status();
+      final seen = await _observe(status);
+      if (found.isCompleted) {
+        return;
+      }
+      if (status.inputRead < _written) {
+        // the app has not read what was written: its next event says more
+        await _eventWithin(seen.seq + 1, timeout, 'the app to read input');
+        continue;
+      }
+      if (status.quiet ?? false) {
+        if (io != null) {
+          final end = ioEnd ??=
+              _ports.clock.elapsedMicroseconds + io.inMicroseconds;
+          final left = end - _ports.clock.elapsedMicroseconds;
+          if (left > 0) {
+            // what comes in from outside (a child's answer, a socket) asks
+            // for a frame the app's clock has not reached: no event says
+            // so, the status does, so it is looked at every so often
+            await _eventWithin(
+              seen.seq + 1,
+              Duration(microseconds: math.min(left, _ioPoll.inMicroseconds)),
+              what,
+            );
+            continue;
+          }
+        }
+        throw DriverError(_never(what, seen, near, io));
+      }
+      if (status.time - begun >= budget.inMicroseconds) {
+        break;
+      }
+      final due = status.nextDue;
+      if (due == null) {
+        // not quiet, yet no timer: something real, an escape that waits
+        // out its timeout, a frame that is being written
+        await _eventWithin(seen.seq + 1, timeout, 'the app to settle');
+        continue;
+      }
+      await clock.advanceTo(
+        math.min(math.max(due, status.time), begun + budget.inMicroseconds),
+      );
+    }
+    if (found.isCompleted) {
+      return;
+    }
+    final last = await clock.status(describe: true);
+    final screen = _screen.frame.text;
+    throw DriverError(
+      'no $what within ${_seconds(budget)} of app time (the clock moved '
+      '${((last.time - begun) / 1e6).toStringAsFixed(3)} s, to frame '
+      '${last.frame}). Timers waiting:\n${last.describeTimers(last.time)}\n'
+      'Screen at frame $frame:\n$screen',
+    );
+  }
+
+  /// How often a quiet app that is waited on for I/O is asked where it is,
+  /// in time of the driver's clock.
+  static const _ioPoll = Duration(milliseconds: 50);
+
+  /// The first event from number [from] on, or null once [within] has
+  /// passed on the driver's clock.
+  Future<Seen?> _eventWithin(int from, Duration within, String what) async {
+    final saved = timeout;
+    timeout = within;
+    try {
+      return await _until((_) => true, from: from, what: what);
+    } on AppEnded {
+      rethrow;
+    } on DriverError {
+      return null;
+    } finally {
+      timeout = saved;
+    }
+  }
+
+  String _never(String what, Seen seen, String? near, Duration? io) {
+    final lines = seen.screen.split('\n');
+    final closest = near == null ? null : _closestLine(lines, near);
+    return 'never: no $what at frame ${seen.frame}, and nothing will change '
+        'it: the app is quiet (no timer waits, no frame is asked for, '
+        'nothing is held in its input parser)'
+        '${io == null ? '' : ' and nothing came in ${_seconds(io)}'}. '
+        'Real I/O in flight (a socket, a file, a process) is invisible to '
+        "the app's clock: "
+        "${io == null ? 'pass io: to wait for it' : 'give io: more'}."
+        '${closest == null ? '' : '\nClosest line: "${closest.trim()}"'}'
+        '\nScreen at frame ${seen.frame}:\n${seen.screen}';
+  }
+
+  static String _seconds(Duration d) {
+    final s = d.inMicroseconds / 1e6;
+    return '${s == s.roundToDouble() ? s.round() : s} s';
+  }
+
+  /// The line of [lines] that shares the most pairs of characters with
+  /// [text]; null where none shares any.
+  static String? _closestLine(List<String> lines, String text) {
+    Set<String> pairs(String s) => {
+      for (var i = 0; i + 1 < s.length; i++) s.substring(i, i + 2),
+    };
+    final want = pairs(text);
+    String? best;
+    var bestScore = 0;
+    for (final line in lines) {
+      final score = pairs(line).where(want.contains).length;
+      if (score > bestScore) {
+        best = line;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
 
   /// Waits until [test] accepts the screen of a frame (as text), the one
   /// shown now first and then each frame the app draws: none is missed

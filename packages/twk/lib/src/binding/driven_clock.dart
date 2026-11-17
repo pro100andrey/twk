@@ -187,6 +187,25 @@ final class DrivenClock implements Clock {
     }
   }
 
+  /// The timers that wait, the next due first: when each is due in
+  /// microseconds of the clock, whether it is periodic, and the line of
+  /// the code that started it (the first outside the SDK and the clocks),
+  /// null where none is known.
+  List<({int due, bool periodic, String? created})> get waiting {
+    int byDue(_DrivenTimer a, _DrivenTimer b) =>
+        a._due != b._due ? a._due - b._due : a._order - b._order;
+    return [
+      for (final t in [..._timers]..sort(byDue))
+        (
+          due: t._due,
+          periodic: t._each != null,
+          created: _callers(
+            t._started,
+          ).where((l) => !l.startsWith('AppBinding.start')).firstOrNull,
+        ),
+    ];
+  }
+
   /// The timers that wait, one a line, the next due first: when each is
   /// due, its period where it is periodic, and where it was started, the
   /// first lines of its stack outside the SDK and the clocks; `no timer

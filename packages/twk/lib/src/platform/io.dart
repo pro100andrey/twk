@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math' show max, min;
 
+import 'package:twk_core/libc.dart' as libc show getppid;
 import 'package:twk_core/twk_core.dart' as core show stdioIsTerminal;
 
 import 'file_identity.dart';
@@ -25,6 +26,10 @@ String get pathSeparator => Platform.pathSeparator;
 
 /// The process's id.
 int get processId => pid;
+
+/// The id of the process that started this one, -1 where there is none
+/// to ask (Windows).
+int get parentProcessId => Platform.isWindows ? -1 : libc.getppid();
 
 /// The path of the working directory.
 String get currentDirectory => Directory.current.path;

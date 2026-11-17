@@ -10,5 +10,15 @@ Added:
   input in; the ports `TerminalPort`, `ScreenPort`, `AppServicePort` and
   `ProcessPort` with their adapters; `ByteLog`, the app's count of what it
   wrote against what the terminal gave.
+- Driven time (`Session.start(driven: true)`, the default): the app is
+  started with `TWK_DRIVEN=<driver pid>`, its clock stands until the driver
+  moves it, `press` moves it to the frame the input asked for and no
+  further, `Session.clock` (`ClockControl`: `status`, `advance`,
+  `advanceTo`, `next`) moves it by hand, and `waitFor(test, budget, io)`
+  moves it from timer to timer until the screen is what it waits for:
+  "not within" the budget of app time with the timers that wait, or "never"
+  at once for a quiet app, `io` giving real time for what comes in from
+  outside. The start fails at once where the app did not take the time
+  (`driven: false` runs it on real time).
 - `VmAppClient` and `AppClient`, moved from twk_dev, and `compiledProgram`,
   moved from twk_test.

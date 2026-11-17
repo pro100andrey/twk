@@ -1,5 +1,6 @@
 // The fakes of the four ports, for the core's tests.
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:twk_core/twk_core.dart' show KeyEvent, MouseEvent;
@@ -76,8 +77,14 @@ final class FakeProcess implements ProcessPort {
   /// The program it starts.
   final launched = FakeLaunched();
 
+  /// What it was asked to start.
+  final specs = <ProcessSpec>[];
+
   @override
-  Future<Launched> spawn(ProcessSpec spec) async => launched;
+  Future<Launched> spawn(ProcessSpec spec) async {
+    specs.add(spec);
+    return launched;
+  }
 }
 
 /// A VM service of canned answers.
@@ -97,6 +104,69 @@ final class FakeService implements AppServicePort {
   /// What a method answers.
   final answers = <String, Json Function(Map<String, String>)>{};
 
+  /// Whether the app took TWK_DRIVEN, as `clock` says.
+  var driven = true;
+
+  /// The app's clock, in microseconds, which `clock` moves.
+  var time = 0;
+
+  /// When the timers of the clock are due.
+  final timers = <int>[];
+
+  /// Whether a frame is asked for, as `status` and `clock` say, and when.
+  var scheduled = false;
+  int? frameDue;
+
+  /// Called with the time each move of the clock reaches, after the timers
+  /// due by then are gone: where a test has the app draw what it does.
+  void Function(int time)? onMove;
+
+  int? get _nextDue => timers.isEmpty ? null : timers.reduce(math.min);
+
+  void _move(int target) {
+    time = math.max(time, target);
+    timers.removeWhere((due) => due <= time);
+    onMove?.call(time);
+  }
+
+  Json _clock(Map<String, String> params) {
+    switch (params['op'] ?? 'status') {
+      case 'advance':
+        _move(time + int.parse(params['by']!));
+      case 'advanceTo':
+        _move(int.parse(params['to']!));
+      case 'next':
+        if (_nextDue case final due?) {
+          _move(due);
+        }
+    }
+    return {
+      ..._status(),
+      'driven': driven,
+      'timers': driven ? timers.length : null,
+      'quiet': driven ? timers.isEmpty && !scheduled : null,
+      if (params['describe'] == 'true')
+        'describe': [
+          for (final due in [...timers]..sort())
+            {'due': due, 'periodic': false, 'created': 'lib/spinner.dart:40'},
+        ],
+    };
+  }
+
+  Json _status() => {
+    'version': 1,
+    'frame': frames,
+    'quitting': false,
+    'size': {'width': 80, 'height': 24},
+    'inputRead': 0,
+    'outputWritten': statusWritten,
+    'inputPending': false,
+    'scheduled': scheduled,
+    'frameDue': frameDue,
+    'time': time,
+    'nextDue': _nextDue,
+  };
+
   @override
   Future<Json> call(
     String method, [
@@ -108,19 +178,8 @@ final class FakeService implements AppServicePort {
       return answer(params);
     }
     return switch (method) {
-      'status' => {
-        'version': 1,
-        'frame': frames,
-        'quitting': false,
-        'size': {'width': 80, 'height': 24},
-        'inputRead': 0,
-        'outputWritten': statusWritten,
-        'inputPending': false,
-        'scheduled': false,
-        'frameDue': null,
-        'time': 0,
-        'nextDue': null,
-      },
+      'status' => _status(),
+      'clock' => _clock(params),
       'find' => {
         'version': 1,
         'frame': frames,
@@ -155,6 +214,8 @@ final class FakeService implements AppServicePort {
     bool inputPending = false,
     bool scheduled = false,
     bool quitting = false,
+    int? frameDue,
+    int? time,
   }) => _post('twk.frame', {
     'quitting': quitting,
     'frame': frame,
@@ -165,6 +226,8 @@ final class FakeService implements AppServicePort {
     'height': height,
     'inputPending': inputPending,
     'scheduled': scheduled,
+    'frameDue': frameDue,
+    'time': time ?? this.time,
   });
 
   /// The app posts `twk.input`.
@@ -177,6 +240,8 @@ final class FakeService implements AppServicePort {
     bool inputPending = false,
     bool scheduled = false,
     bool quitting = false,
+    int? frameDue,
+    int? time,
   }) => _post('twk.input', {
     'quitting': quitting,
     'frame': frame,
@@ -187,6 +252,8 @@ final class FakeService implements AppServicePort {
     'height': height,
     'inputPending': inputPending,
     'scheduled': scheduled,
+    'frameDue': frameDue,
+    'time': time ?? this.time,
   });
 
   void _post(String kind, Map<String, Object?> d) => _events.add(
@@ -199,9 +266,9 @@ final class FakeService implements AppServicePort {
       'outputWritten': d['outputWritten'],
       'inputPending': d['inputPending'],
       'scheduled': d['scheduled'],
-      'frameDue': null,
-      'time': 0,
-      'nextDue': null,
+      'frameDue': d['frameDue'],
+      'time': d['time'],
+      'nextDue': _nextDue,
       'quitting': d['quitting'] ?? false,
     }),
   );

@@ -9,6 +9,19 @@ Added:
   driver starts from. `twk.frame`, `twk.input` and it carry `quitting`
   (`TwkApp.quitting`).
 
+- `TWK_DRIVEN=<driver pid>[@<ISO-8601 start>]` in `runApp` and the `Cli`'s
+  system terminal: where the process's parent is that pid, the app runs on a
+  `DrivenClock` that only the driver moves (the binding and the app in a
+  zone whose timers go to it; the terminal and what is I/O on real time).
+  Ignored in product mode, refused without a VM service. A program the app
+  starts is not driven. `CliTerminal.startTime`.
+- `ext.twk.clock` (`op`: `status`, `advance`, `advanceTo`, `next`; `by`,
+  `to` in microseconds; `describe`): the status of `ext.twk.status` with
+  `driven`, `timers`, `quiet` and the timers' `describe`, and the moves of a
+  driven clock, each timer's microtasks and a running frame awaited. The
+  events and `ext.twk.status` carry the clock's `nextDue`.
+- `ext.twk.reassemble` answers `frame` and `frameDue`.
+
 Breaking:
 
 - The default theme is the terminal's own colors: without a `Theme`,

@@ -9,6 +9,13 @@ Breaking:
   zone as before, so a clock that moves when told to spaces the frames and
   holds the timers.
 
+Changed:
+
+- What a driven app's zone must not hold stays on real time: a terminal's
+  resume and close guards run in the zone the terminal was made in, the
+  output's retries in the zone it was opened in, the log server's token
+  wait and the trace's drain in the root zone. `TwkApp.inFrame`.
+
 Added:
 
 - `TwkApp.quitting`: whether `quit` was called. `quit` has the settled

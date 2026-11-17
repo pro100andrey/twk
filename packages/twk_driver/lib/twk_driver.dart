@@ -14,6 +14,7 @@ library;
 export 'src/app_client.dart'
     show AppClient, AppError, Json, VmAppClient, VmQueries, watchExtensions;
 export 'src/byte_log.dart' show ByteLog;
+export 'src/clock_control.dart' show ClockControl, ClockStatus, TimerInfo;
 export 'src/emulator_screen.dart' show EmulatorScreen;
 export 'src/errors.dart' show AppEnded, DriverError, ExitResult;
 export 'src/found.dart' show Cells, Found, foundOf;

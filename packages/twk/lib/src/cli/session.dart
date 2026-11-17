@@ -70,6 +70,7 @@ final class CliSession {
         backend,
         clearInlineOnExit: true,
         clock: terminal.clock,
+        startTime: terminal.startTime,
       ),
     );
     final session = CliSession._(

@@ -688,7 +688,8 @@ final class Pty {
     } else {
       _wake(_quit);
     }
-    Timer(_hangUpGrace, () {
+    // real time: the app's clock (`TWK_DRIVEN`) is not for a program's end
+    Zone.root.createTimer(_hangUpGrace, () {
       // once the I/O isolate ended, the program was reaped or killed
       if (!_ended && !_exit.isCompleted) {
         signalProcess(pid, _pidfd, ProcessSignal.sigkill);
@@ -750,7 +751,8 @@ final class Pty {
       _exit.complete(null);
     } else if (!_exit.isCompleted) {
       final status = c.calloc(1, sizeOf<Int>()).cast<Int>();
-      Timer.periodic(const Duration(milliseconds: 10), (timer) {
+      // real time, as the hang-up grace
+      Zone.root.createPeriodicTimer(const Duration(milliseconds: 10), (timer) {
         final r = c.waitpid(pid, status, c.wnohang);
         if (r != 0) {
           timer.cancel();
@@ -914,7 +916,7 @@ void _reapKilled(int pid) {
     return;
   }
   var tries = 0;
-  Timer.periodic(const Duration(milliseconds: 10), (timer) {
+  Zone.root.createPeriodicTimer(const Duration(milliseconds: 10), (timer) {
     if (reaped() || ++tries >= 100) {
       timer.cancel();
       c.free(status.cast());

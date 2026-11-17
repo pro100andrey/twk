@@ -22,12 +22,18 @@ Future<
     DrivenClock clock,
   })
 >
-started({int framesBefore = 0}) async {
+started({
+  int framesBefore = 0,
+  bool driven = true,
+  void Function(FakeService service)? setUp,
+}) async {
   final process = FakeProcess();
   final service = FakeService()
     ..frames = framesBefore
     // the app ran frames before the driver came: status says where it is
-    ..statusWritten = framesBefore == 0 ? 0 : 5;
+    ..statusWritten = framesBefore == 0 ? 0 : 5
+    ..driven = driven;
+  setUp?.call(service);
   final screen = FakeScreen();
   final clock = DrivenClock();
   final starting = Session.start(
@@ -39,11 +45,16 @@ started({int framesBefore = 0}) async {
       clock: clock,
     ),
     timeout: const Duration(seconds: 5),
+    driven: driven,
   );
   await pumpEventQueue();
   process.launched.terminal.app('start');
   if (framesBefore == 0) {
-    service.frame(frame: 1, inputRead: 0, outputWritten: 5);
+    service
+      ..frame(frame: 1, inputRead: 0, outputWritten: 5)
+      // from now on the app is where that frame left it
+      ..frames = 1
+      ..statusWritten = 5;
   }
   final session = await starting;
   return (
@@ -65,14 +76,345 @@ void main() {
     await t.session.close();
   });
 
-  test('a frame ran before the events: status is the baseline, and it asks '
-      'nothing of the app', () async {
+  test('a frame ran before the events: the clock status is the baseline, and '
+      'it asks nothing of the app', () async {
     final t = await started(framesBefore: 3);
-    expect(t.service.calls.any((c) => c.startsWith('status')), isTrue);
+    expect(t.service.calls.any((c) => c.startsWith('clock')), isTrue);
+    expect(t.service.calls.any((c) => c.startsWith('status')), isFalse);
     expect(t.service.calls.any((c) => c.startsWith('reassemble')), isFalse);
     expect(t.session.frame, 3);
     expect(t.session.screenText, 'start');
     await t.session.close();
+  });
+
+  group('time', () {
+    test('the app is offered the driver: TWK_DRIVEN is the driver pid, and '
+        'the start time when there is one', () async {
+      final process = FakeProcess();
+      final service = FakeService();
+      final screen = FakeScreen();
+      final starting = Session.start(
+        const ProcessSpec('app.dart', environment: {'A': 'b'}),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => screen,
+          connect: (_) async => service,
+          clock: DrivenClock(),
+          driverPid: 4242,
+        ),
+        startTime: DateTime.utc(2026, 5, 6, 7, 8, 9),
+      );
+      await pumpEventQueue();
+      process.launched.terminal.app('start');
+      service.frame(frame: 1, inputRead: 0, outputWritten: 5);
+      final session = await starting;
+      expect(process.specs.single.environment, {
+        'A': 'b',
+        'TWK_DRIVEN': '4242@2026-05-06T07:08:09.000Z',
+      });
+      expect(session.driven, isTrue);
+      await session.close();
+    });
+
+    test('the start fails at once, saying why, when the app did not take '
+        'the time offered (a `dart run` between)', () async {
+      final process = FakeProcess();
+      final service = FakeService()..driven = false;
+      await expectLater(
+        Session.start(
+          const ProcessSpec('app.dart'),
+          ports: SessionPorts(
+            process: process,
+            screen: (_, _) => FakeScreen(),
+            connect: (_) async => service,
+            clock: DrivenClock(),
+            driverPid: 4242,
+          ),
+        ),
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('not driven'),
+              contains('4242'),
+              contains('dart run'),
+            ),
+          ),
+        ),
+      );
+      expect(process.launched.killed, isTrue);
+    });
+
+    test('a session on real time sets no variable and starts from status, '
+        'and waitFor needs io there', () async {
+      final t = await started(driven: false);
+      expect(t.process.specs.single.environment, isEmpty);
+      expect(t.service.calls.any((c) => c.startsWith('status')), isTrue);
+      expect(t.service.calls.any((c) => c.startsWith('clock')), isFalse);
+      expect(t.session.driven, isFalse);
+      await expectLater(
+        t.session.waitFor((s) => s.contains('x')),
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            contains('io'),
+          ),
+        ),
+      );
+      // with io: the frames of real time are waited for, up to io
+      var done = false;
+      final wait = t.session.waitFor(
+        (s) => s.contains('late'),
+        io: const Duration(seconds: 5),
+      );
+      unawaited(wait.then((_) => done = true));
+      await pumpEventQueue();
+      expect(done, isFalse);
+      t.process.launched.terminal.app('late');
+      t.service.frame(frame: 2, inputRead: 0, outputWritten: 9);
+      expect((await wait).frame, 2);
+      await t.session.close();
+    });
+
+    test('a real-time wait ends at io on the driver clock', () async {
+      final t = await started(driven: false);
+      final wait = t.session.waitFor(
+        (s) => s.contains('never'),
+        io: const Duration(seconds: 2),
+      );
+      final failure = expectLater(
+        wait,
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            contains('within 2 s'),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 2));
+      await failure;
+      await t.session.close();
+    });
+
+    test('press moves the clock to the frame the input asked for, and to '
+        'nothing further', () async {
+      final t = await started();
+      final term = t.process.launched.terminal;
+      t.service.timers.add(1000000);
+      final press = t.session.press('a');
+      await pumpEventQueue();
+      t.service.input(
+        frame: 1,
+        inputRead: 3,
+        outputWritten: 5,
+        scheduled: true,
+        frameDue: 8333,
+        time: 100,
+      );
+      await pumpEventQueue();
+      // advanceTo the frame's time: the timer a second away is not fired
+      expect(t.service.calls.last, 'clock {op: advanceTo, to: 8333}');
+      expect(t.service.time, 8333);
+      expect(t.service.timers, [1000000]);
+      term.app('Z');
+      t.service.frame(frame: 2, inputRead: 3, outputWritten: 6);
+      expect((await press).frame, 2);
+      await t.session.close();
+    });
+
+    test(
+      'press on an input that asked for no frame leaves the clock be',
+      () async {
+        final t = await started();
+        final press = t.session.press('a');
+        await pumpEventQueue();
+        t.service.input(frame: 1, inputRead: 3, outputWritten: 5);
+        await press;
+        expect(
+          t.service.calls.where((c) => c.startsWith('clock {op: advance')),
+          isEmpty,
+        );
+        await t.session.close();
+      },
+    );
+
+    /// An app that draws a tick for each second its clock reaches, and
+    /// starts the next second's timer: an animation.
+    void spin(FakeService service, FakeTerminal term) {
+      service.timers.add(1000000);
+      service.onMove = (time) {
+        final text = 'tick${time ~/ 1000000}';
+        term.app(text);
+        service
+          ..statusWritten += text.length
+          ..frames += 1
+          ..frame(
+            frame: service.frames,
+            inputRead: 0,
+            outputWritten: service.statusWritten,
+          );
+        if (service.timers.isEmpty) {
+          service.timers.add(time + 1000000);
+        }
+      };
+    }
+
+    test('waitFor moves the clock from timer to timer until the screen is '
+        'what it waits for', () async {
+      final t = await started();
+      spin(t.service, t.process.launched.terminal);
+      final step = await t.session.waitFor((s) => s.contains('tick3'));
+      expect(step.screen, contains('tick3'));
+      expect(t.service.time, 3000000);
+      expect(
+        t.service.calls.where((c) => c.contains('advanceTo')),
+        hasLength(3),
+      );
+      await t.session.close();
+    });
+
+    test('waitFor sees a state that lasted one frame of the advance', () async {
+      final t = await started();
+      final term = t.process.launched.terminal;
+      // a move draws "blink" and "off" in two frames, in one advance
+      t.service.timers.add(1000000);
+      t.service.onMove = (time) {
+        for (final text in ['blink', 'off']) {
+          term.app(text);
+          t.service
+            ..statusWritten += text.length
+            ..frames += 1
+            ..frame(
+              frame: t.service.frames,
+              inputRead: 0,
+              outputWritten: t.service.statusWritten,
+            );
+        }
+      };
+      final step = await t.session.waitFor((s) => s.endsWith('blink'));
+      expect(step.screen, endsWith('blink'));
+      await t.session.close();
+    });
+
+    test('waitFor fails "not within" the budget of app time, with the timers '
+        'that wait', () async {
+      final t = await started();
+      spin(t.service, t.process.launched.terminal);
+      await expectLater(
+        t.session.waitFor(
+          (s) => s.contains('never'),
+          budget: const Duration(milliseconds: 2500),
+          what: 'the word',
+        ),
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('no the word within 2.5 s of app time'),
+              contains('lib/spinner.dart:40'),
+              contains('tick2'),
+            ),
+          ),
+        ),
+      );
+      // the clock went to the budget, not past it
+      expect(t.service.time, 2500000);
+      await t.session.close();
+    });
+
+    test('waitFor on a quiet app is "never" at once, with the frame, and '
+        'the closest line where it is told what is looked for', () async {
+      final t = await started();
+      await expectLater(
+        t.session.waitFor(
+          (s) => s.contains('Count: 9'),
+          near: 'Count: 9',
+          what: 'the count',
+        ),
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              startsWith('never: no the count at frame 1'),
+              contains('io:'),
+              contains('Screen at frame 1'),
+            ),
+          ),
+        ),
+      );
+      // nothing was moved to find out
+      expect(t.service.calls.where((c) => c.contains('advance')), isEmpty);
+      await t.session.close();
+    });
+
+    test('a quiet app waited on with io is given real time for the frames '
+        'that may still come, then is "never"', () async {
+      final t = await started();
+      final late = t.session.waitFor(
+        (s) => s.contains('late'),
+        io: const Duration(seconds: 3),
+      );
+      await pumpEventQueue();
+      t.process.launched.terminal.app('late');
+      t.service.frame(frame: 2, inputRead: 0, outputWritten: 9);
+      expect((await late).frame, 2);
+
+      final none = expectLater(
+        t.session.waitFor(
+          (s) => s.contains('absent'),
+          io: const Duration(seconds: 3),
+        ),
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(startsWith('never'), contains('3 s')),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 3));
+      await none;
+      await t.session.close();
+    });
+
+    test(
+      'waitFor returns the screen shown now without moving anything',
+      () async {
+        final t = await started();
+        final step = await t.session.waitFor((s) => s == 'start');
+        expect(step.frame, 1);
+        expect(
+          t.service.calls.where((c) => c.startsWith('clock')),
+          hasLength(1),
+        );
+        await t.session.close();
+      },
+    );
+
+    test('the app ending ends a waitFor', () async {
+      final t = await started();
+      spin(t.service, t.process.launched.terminal);
+      var exited = false;
+      t.service.onMove = (time) {
+        if (!exited) {
+          exited = true;
+          unawaited(t.process.launched.exit(1));
+          unawaited(t.service.close());
+        }
+        t.service.timers.add(time + 1000000);
+      };
+      await expectLater(
+        t.session.waitFor((s) => s.contains('x')),
+        throwsA(isA<AppEnded>()),
+      );
+    });
   });
 
   test('press returns at the frame that took the key in, not before, and '

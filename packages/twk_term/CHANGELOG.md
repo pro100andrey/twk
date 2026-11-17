@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Changed:
+
+- A `Pty`'s hang-up grace and the reapers of its program run in the root
+  zone, not the zone that made it: a driven app (`TWK_DRIVEN`) hosting a
+  shell sees its end on real time.
+
 Added:
 
 - `Pty.start(output: PtyOutput.terminal)` sets the slave's output flags a
