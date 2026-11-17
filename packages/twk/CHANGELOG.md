@@ -4,6 +4,12 @@
 
 Added:
 
+- Shortcuts work on any keyboard layout where the terminal has the kitty
+  keyboard protocol: a `KeyCombo` accepts a key with Ctrl, Alt or Super by
+  the key it is on a US layout too (`KeyEvent.baseChar`), so `ctrl+c` fires
+  on Ctrl and `с` of a Russian layout, and `KeyBindings` and `Shortcuts`
+  match by it when what the key types is bound to nothing there. Plain
+  typing keeps the layout's character. `KeyCombo.layoutOf`.
 - `ProgressTracker.of(context)`: a tracker on the app's clock
   (`AppBinding.of(context).twkApp.clock`), so a driven or fake clock moves
   its times; the constructor keeps the wall clock by default, for the `Cli`.

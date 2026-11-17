@@ -208,6 +208,7 @@ final class KeyEvent extends InputEvent {
     this.char = '',
     this.modifiers = 0,
     this.kind = KeyKind.press,
+    this.baseChar = '',
   });
 
   /// The key.
@@ -224,6 +225,15 @@ final class KeyEvent extends InputEvent {
   /// the terminal doesn't tell.
   final KeyKind kind;
 
+  /// The character the same physical key types on a US layout, where the
+  /// terminal tells ([KittyKeyboardFlags.alternateKeys]): `c` for Ctrl and
+  /// the key that types `с` on a Russian layout, whose [char] is `с`. ''
+  /// where it does not, which is most of the time: a terminal sends it
+  /// for keys that are escape sequences, shortcuts and, with
+  /// [KittyKeyboardFlags.allKeysAsEscapes], text. A shortcut matches by it
+  /// when [char] names no shortcut, so it works on any layout.
+  final String baseChar;
+
   /// Whether Ctrl is held ([Mod.ctrl]).
   bool get ctrl => modifiers & Mod.ctrl != 0;
 
@@ -239,17 +249,19 @@ final class KeyEvent extends InputEvent {
       other.code == code &&
       other.char == char &&
       other.modifiers == modifiers &&
-      other.kind == kind;
+      other.kind == kind &&
+      other.baseChar == baseChar;
 
   @override
-  int get hashCode => Object.hash(code, char, modifiers, kind);
+  int get hashCode => Object.hash(code, char, modifiers, kind, baseChar);
 
   @override
   String toString() {
     final name = code == KeyCode.char ? '"$char"' : code.name;
     final mod = modifiers != 0 ? ' mod=$modifiers' : '';
     final k = kind != KeyKind.press ? ' ${kind.name}' : '';
-    return 'Key($name$mod$k)';
+    final b = baseChar.isNotEmpty ? ' base="$baseChar"' : '';
+    return 'Key($name$mod$k$b)';
   }
 }
 
@@ -470,7 +482,8 @@ abstract final class KittyKeyboardFlags {
   /// A key's code comes with the key Shift makes of it and the key in the
   /// same place on a US layout (`CSI 97:65 ; 2 u`, `CSI 1089::99 ; 5 u`).
   /// The shifted key is what a key that types text types where nothing
-  /// else tells it ([associatedText]); the base layout key is not decoded.
+  /// else tells it ([associatedText]); the base layout key is
+  /// [KeyEvent.baseChar].
   static const alternateKeys = 4;
 
   /// Every key comes as an escape sequence: text typed (`CSI 97 u`, its

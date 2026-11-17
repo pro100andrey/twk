@@ -18,6 +18,13 @@ Changed:
 
 Added:
 
+- `KeyEvent.baseChar`: the key a kitty keyboard protocol terminal reports
+  with the alternate keys flag (`CSI 1089::99;5u`), the character of the
+  same key on a US layout: Ctrl and the key that types `с` is `c`.
+  `Terminal` pushes `KittyKeyboardFlags.alternateKeys` with disambiguation
+  always, whatever `TerminalOptions.kittyKeyboardFlags` says (an app that
+  set its own flags gets 4 added, as it gets 1); `TerminalInfo.
+  kittyKeyboardFlags` is 5 by default.
 - `TwkApp.quitting`: whether `quit` was called. `quit` has the settled
   acknowledgement (`onInputSettled`) go out, and `run` waits for one armed,
   before it hands the terminal back: a driver is told the app is quitting.

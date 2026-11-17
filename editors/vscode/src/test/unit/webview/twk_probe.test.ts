@@ -183,10 +183,10 @@ describe('what twk finds out about the twk terminal, switch by switch', function
     assert.equal((await foundWith('no color')).colorMode, 'none');
   });
 
-  it('everything: kitty keyboard with disambiguation, sixel images', async () => {
+  it('everything: kitty keyboard with disambiguation and alternate keys, sixel images', async () => {
     const f = await foundWith('everything');
     assert.equal(f.kittyKeyboard, true);
-    assert.equal(f.kittyKeyboardFlags, 1);
+    assert.equal(f.kittyKeyboardFlags, 5);
     assert.equal(f.graphics, 'sixel');
   });
 

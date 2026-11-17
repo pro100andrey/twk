@@ -137,16 +137,61 @@ void main() {
     });
 
     test('a shortcut is its unshifted key, modifiers kept, whatever its '
-        'text or shifted key, and the base layout key is not decoded', () {
+        'text or shifted key; the base layout key is kept apart', () {
       expect(
         parse('\x1b[97:65;6u\x1b[97;3;97u\x1b[1089::99;5u\x1b[97:65:97;10u'),
         [
           char('a', mods: Mod.ctrl | Mod.shift),
           char('a', mods: Mod.alt),
-          char('с', mods: Mod.ctrl),
-          char('a', mods: Mod.superKey | Mod.shift),
+          const KeyEvent(
+            KeyCode.char,
+            char: 'с',
+            modifiers: Mod.ctrl,
+            baseChar: 'c',
+          ),
+          const KeyEvent(
+            KeyCode.char,
+            char: 'a',
+            modifiers: Mod.superKey | Mod.shift,
+            baseChar: 'a',
+          ),
         ],
       );
+    });
+
+    test('the base layout key of a key is the one a US layout types: Ctrl '
+        'and Cyrillic or Greek letters, with Shift, with event types', () {
+      expect(
+        parse('\x1b[1099::121;5u\x1b[1089:1057:99;6u\x1b[952::104;5:3u'),
+        const [
+          KeyEvent(
+            KeyCode.char,
+            char: 'ы',
+            modifiers: Mod.ctrl,
+            baseChar: 'y',
+          ),
+          KeyEvent(
+            KeyCode.char,
+            char: 'с',
+            modifiers: Mod.ctrl | Mod.shift,
+            baseChar: 'c',
+          ),
+          KeyEvent(
+            KeyCode.char,
+            char: 'θ',
+            modifiers: Mod.ctrl,
+            kind: KeyKind.release,
+            baseChar: 'h',
+          ),
+        ],
+      );
+    });
+
+    test('a base key that is no character is none', () {
+      expect(parse('\x1b[1089::7;5u\x1b[1089::0;5u'), [
+        char('с', mods: Mod.ctrl),
+        char('с', mods: Mod.ctrl),
+      ]);
     });
 
     test('text that is no character falls back to the key', () {

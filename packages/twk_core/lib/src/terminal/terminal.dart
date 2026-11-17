@@ -381,10 +381,12 @@ final class TerminalOptions {
   final bool kittyKeyboard;
 
   /// The kitty keyboard protocol's flags pushed with [kittyKeyboard]
-  /// ([KittyKeyboardFlags] bits), [KittyKeyboardFlags.disambiguate]
-  /// among them whether or not they name it: the Escape key a sequence of
+  /// ([KittyKeyboardFlags] bits), [KittyKeyboardFlags.disambiguate] and
+  /// [KittyKeyboardFlags.alternateKeys] among them whether or not they
+  /// name them ([KeyEvent.baseChar]: shortcuts work on a Russian or Greek
+  /// layout). Disambiguate makes the Escape key a sequence of
   /// its own, which a terminal may send as a lone ESC all the same (see
-  /// [escapeTimeout]). By default that
+  /// [escapeTimeout]). By default those
   /// alone, and keys come as presses only. With
   /// [KittyKeyboardFlags.eventTypes] they come repeated and released too
   /// ([KeyEvent.kind]): what acts on keys then acts on presses and repeats
@@ -1710,9 +1712,12 @@ final class Terminal
   // --------------------------------------------------------------- modes --
 
   /// The kitty keyboard flags pushed ([TerminalOptions.kittyKeyboardFlags]):
-  /// those asked for, always with disambiguation.
+  /// those asked for, always with disambiguation and alternate keys (the
+  /// base layout key shortcuts match by on a non-Latin layout).
   static int _kittyFlags(TerminalOptions o) =>
-      o.kittyKeyboardFlags | KittyKeyboardFlags.disambiguate;
+      o.kittyKeyboardFlags |
+      KittyKeyboardFlags.disambiguate |
+      KittyKeyboardFlags.alternateKeys;
 
   /// The mouse may be reported on this screen (see
   /// [TerminalOptions.normalScreenMouse]).

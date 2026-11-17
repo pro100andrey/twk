@@ -1026,11 +1026,17 @@ final class InputParser {
         // types, Shift taken into it, as without the flags 4, 8 and 16; a
         // shortcut (Ctrl, Alt, Super) is its unshifted key, modifiers kept
         final typed = mods & ~Mod.shift == 0 ? _typedText(mods) : null;
+        // flag 4: the key in the same place on a US layout (third
+        // subparameter), which differs from the code on another layout
+        final base = _sub(0, 2);
         return KeyEvent(
           KeyCode.char,
           char: typed ?? String.fromCharCode(code),
           modifiers: typed == null ? mods : 0,
           kind: kind,
+          baseChar: base != 0 && _isTextCodePoint(base)
+              ? String.fromCharCode(base)
+              : '',
         );
     }
     return null;

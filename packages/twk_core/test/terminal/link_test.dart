@@ -115,7 +115,7 @@ void main() {
     // no shell of this process has it: Ctrl+Z stops nothing
     expect(term.stopsForShell, isFalse);
     expect(link.text, contains('\x1b[?1049h'));
-    expect(link.text, contains('\x1b[>1u'));
+    expect(link.text, contains('\x1b[>5u'));
     expect(link.raw, isTrue);
 
     final events = <InputEvent>[];

@@ -262,4 +262,57 @@ void main() {
     await t.press(specs.join(' '));
     expect(seen, ['tab', 'tab', 'enter', 'enter', 'escape', 'escape']);
   });
+
+  group('on another layout, a shortcut is the key by its place on a US '
+      'layout', () {
+    const ruCtrlC = KeyEvent(
+      KeyCode.char,
+      char: 'с',
+      modifiers: ctrl,
+      baseChar: 'c',
+    );
+
+    test('ctrl+c accepts Ctrl and the key that types с, and ctrl+с too', () {
+      expect(KeyCombo.parse('ctrl+c').accepts(ruCtrlC), isTrue);
+      expect(KeyCombo.parse('ctrl+с').accepts(ruCtrlC), isTrue);
+      expect(KeyCombo.parse('ctrl+x').accepts(ruCtrlC), isFalse);
+      expect(KeyCombo.parse('c').accepts(ruCtrlC), isFalse);
+      expect(KeyCombo.parse('alt+c').accepts(ruCtrlC), isFalse);
+    });
+
+    test('Shift is kept: ctrl+shift+c', () {
+      const e = KeyEvent(
+        KeyCode.char,
+        char: 'с',
+        modifiers: ctrl | shift,
+        baseChar: 'c',
+      );
+      expect(KeyCombo.parse('ctrl+C').accepts(e), isTrue);
+      expect(KeyCombo.parse('ctrl+c').accepts(e), isFalse);
+    });
+
+    test('text typed is its own character, not its place: Я is not Q', () {
+      const typed = KeyEvent(KeyCode.char, char: 'Я', baseChar: 'q');
+      const shifted = KeyEvent(
+        KeyCode.char,
+        char: 'я',
+        modifiers: shift,
+        baseChar: 'q',
+      );
+      expect(KeyCombo.parse('Q').accepts(typed), isFalse);
+      expect(KeyCombo.parse('Q').accepts(shifted), isFalse);
+      expect(KeyCombo.parse('shift+я').accepts(shifted), isTrue);
+    });
+
+    test('a release is no press', () {
+      const up = KeyEvent(
+        KeyCode.char,
+        char: 'с',
+        modifiers: ctrl,
+        kind: KeyKind.release,
+        baseChar: 'c',
+      );
+      expect(KeyCombo.parse('ctrl+c').accepts(up), isFalse);
+    });
+  });
 }
