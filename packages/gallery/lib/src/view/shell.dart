@@ -233,6 +233,7 @@ final class GalleryShellState extends State<GalleryShell>
     ]) {
       n.dispose();
     }
+    _store.dispose();
     super.dispose();
   }
 

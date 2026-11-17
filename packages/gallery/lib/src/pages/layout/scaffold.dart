@@ -4,11 +4,14 @@ part of 'layout.dart';
 /// What the Scaffold page keeps while the gallery runs: the controller,
 /// whose sidebar width and choice outlive a visit elsewhere, and the
 /// checkboxes and the count.
-final class _NotesState {
+final class _NotesState implements Disposable {
   final controller = ScaffoldController(sidebarWidth: 14);
   var inbox = true;
   var archive = false;
   var notes = 3;
+
+  @override
+  void dispose() => controller.dispose();
 }
 
 final class _Notes extends StatefulWidget {

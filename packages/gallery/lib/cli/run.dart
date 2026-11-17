@@ -137,6 +137,19 @@ final class _Run {
   /// Whether the program ended.
   var ended = false;
 
+  // the program's Cli, once it runs
+  Cli? _cli;
+
+  /// Ends the program's app where it still runs, so that its views are
+  /// disposed.
+  void close() {
+    if (_cli case final cli? when !ended) {
+      // its frames and futures run on the clock: moved on past them
+      clock.run(() => unawaited(cli.close()));
+      unawaited(clock.elapse(const Duration(seconds: 1)));
+    }
+  }
+
   /// Whether the clock is moving, and the time it moves to, in ms.
   var moving = false;
   var target = 0;
@@ -166,7 +179,10 @@ final class _Run {
       }
       unawaited(
         Cli.run(
-          (cli) => program(cli, const []),
+          (cli) {
+            _cli = cli;
+            return program(cli, const []);
+          },
           open: ({ansi, interactive}) => terminal,
           theme: CliTheme(data: ThemeData.terminal(brightness)),
           sourceLines: script.sourceLines,
@@ -251,6 +267,7 @@ final class _CliRunState extends State<CliRun> {
   @override
   void dispose() {
     _cancelWake();
+    _run?.close();
     _run = null;
     super.dispose();
   }

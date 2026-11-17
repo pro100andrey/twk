@@ -615,6 +615,14 @@ final class _PageHintsState extends State<PageHints> {
 /// names it.
 enum ToastKind { info, success, warning, error }
 
+/// What a page keeps in its state ([PageControl.state]) and holds
+/// controllers in: the gallery calls [dispose] when it ends. A controller
+/// kept itself (a `ChangeNotifier`) is disposed without it.
+abstract interface class Disposable {
+  /// Disposes what the object holds.
+  void dispose();
+}
+
 /// What a page's widget may ask of the gallery around it:
 /// `PageControl.of(context)`.
 abstract interface class PageControl {
