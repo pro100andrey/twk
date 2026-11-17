@@ -377,6 +377,28 @@ shows for 3 s, and a highlight on a timer are gone when it returns. To
 see them, pump by a duration shorter than theirs. An app with a periodic
 timer or a spinner is never idle: pump it by a duration instead.
 
+## What a test leaves behind
+
+`testTwk` fails a test that made a controller and never disposed it, as
+Flutter's leak tracker does: after the app quits and the test's tear-downs
+ran, each `TextEditingController`, `ScrollController`, `FocusNode`,
+`AnimationController`, `ValueNotifier`, and each `TabController`,
+`TreeController`, `TableController`, `SelectionController`, `SplitController`
+and the other controllers of twk's widgets that the test made is looked for
+among the disposed ones, and the failure names each with the stack that made
+it. A controller made in a test is disposed by it:
+
+```
+final name = TextEditingController();
+addTearDown(name.dispose);
+```
+
+The controller a widget makes for itself is the widget's to dispose, and a
+test that finds one undisposed has found a bug of the widget. An object that
+outlives the test on purpose (a singleton of the app) is no leak: say
+`testTwk(..., trackDisposables: false)` in that test. The check needs
+asserts, which `dart test` has on.
+
 ## When a test fails
 
 A failing matcher shows the screen as text (`styleAt` with its styles

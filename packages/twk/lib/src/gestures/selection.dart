@@ -202,6 +202,14 @@ final class SelectionArea extends StatefulWidget {
 /// );
 /// ```
 final class SelectionAreaController with ChangeNotifier {
+  /// A controller no widget has yet.
+  SelectionAreaController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
+
   final _hosts = ControllerHost<_SelectionAreaState>();
 
   /// Whether anything is selected.

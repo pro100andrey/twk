@@ -75,7 +75,12 @@ import 'pressable.dart';
 /// ```
 final class PopupController extends ChangeNotifier {
   /// A controller of a closed popup.
-  PopupController();
+  PopupController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   var _open = false;
 

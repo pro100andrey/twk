@@ -245,7 +245,12 @@ final class TableController extends ChangeNotifier {
        assert(sortColumn == null || sortColumn >= 0, 'a column of 0 or more'),
        _selectedColumn = selectedColumn,
        _sortColumn = sortColumn,
-       _widths = {...columnWidths};
+       _widths = {...columnWidths} {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   Object? _selectedKey;
 

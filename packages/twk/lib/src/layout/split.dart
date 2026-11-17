@@ -65,6 +65,10 @@ final class SplitController extends ChangeNotifier {
     : _fractions = fractions == null ? null : _normalized(fractions),
       _collapsed = {...collapsed} {
     _collapsed.forEach(RangeError.checkNotNegative);
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
   }
 
   List<double>? _fractions;

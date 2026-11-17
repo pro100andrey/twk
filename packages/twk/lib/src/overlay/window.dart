@@ -76,7 +76,12 @@ final class WindowController with ChangeNotifier {
     this._height = 12,
     this._minimised = false,
     this._maximised = false,
-  }) : assert(_width >= 0 && _height >= 0, 'a size of 0 or more');
+  }) : assert(_width >= 0 && _height >= 0, 'a size of 0 or more') {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   int _left;
   int _top;

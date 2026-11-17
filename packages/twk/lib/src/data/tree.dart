@@ -100,7 +100,12 @@ final class TreeController extends ChangeNotifier {
   /// Selects the node with [selectedKey], null for none, and expands those
   /// with the keys in [expanded].
   TreeController({this._selectedKey, Iterable<Object> expanded = const []})
-    : _expanded = {...expanded};
+    : _expanded = {...expanded} {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   Object? _selectedKey;
 

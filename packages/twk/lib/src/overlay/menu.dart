@@ -37,7 +37,8 @@ import 'package:twk_core/twk_core.dart'
 
 import '../editing/caret.dart' show clearRestCursor, restCursor;
 import '../focus/focus.dart';
-import '../foundation/change_notifier.dart' show ChangeNotifier, VoidCallback;
+import '../foundation/change_notifier.dart'
+    show ChangeNotifier, DisposalTracker, VoidCallback;
 import '../foundation/controller_host.dart';
 import '../foundation/helpers.dart';
 import '../framework/framework.dart';
@@ -261,6 +262,14 @@ final class MenuDivider extends MenuEntry {
 /// menus.open([1]);
 /// ```
 final class MenuController extends ChangeNotifier {
+  /// A controller no widget has yet.
+  MenuController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
+
   final _hosts = ControllerHost<_MenuHost>();
   var _isOpen = false;
   List<int> _path = const [];

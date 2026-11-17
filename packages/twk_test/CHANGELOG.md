@@ -24,6 +24,13 @@ Added:
 
 Breaking:
 
+- `testTwk(trackDisposables:)` is on by default, as Flutter's leak tracker
+  is: a test that makes a controller or notifier (a `TextEditingController`,
+  `ScrollController`, `FocusNode`, `AnimationController`, any
+  `ValueNotifier`, the controllers of twk's widgets) and does not dispose it
+  fails, naming it with the stack that made it. Dispose it with
+  `addTearDown(x.dispose)`, or pass `trackDisposables: false` where an object
+  outlives the test on purpose.
 - `FakeClock.stopwatch` is gone: `FakeClock.clock`, a `DrivenClock`, is what
   an app's `clock:` takes. `FakeClock` is that clock plus its zone and its
   microtasks; its other members are as they were. `FakeCliTerminal` keeps

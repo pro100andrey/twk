@@ -59,7 +59,12 @@ final class TabController extends ChangeNotifier {
         'initialIndex out of 0..${length - 1}',
       ),
       _length = length,
-      _index = initialIndex;
+      _index = initialIndex {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   int _length;
 

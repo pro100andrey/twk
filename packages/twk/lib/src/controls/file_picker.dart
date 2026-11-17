@@ -408,7 +408,12 @@ final class _NoFile implements Exception {
 /// ```
 final class FilePickerController extends ChangeNotifier {
   /// A controller that shows nothing until a picker has it.
-  FilePickerController();
+  FilePickerController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   final _hosts = ControllerHost<_FilePickerState>();
 

@@ -58,7 +58,12 @@ final class SelectionController<K> extends ChangeNotifier {
        assert(
          multiple || selected.length <= 1,
          'more than one selected in a single selection',
-       );
+       ) {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   /// Whether any number of items can be selected, rather than one.
   final bool multiple;

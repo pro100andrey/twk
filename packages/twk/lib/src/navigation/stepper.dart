@@ -133,7 +133,12 @@ final class Step {
 final class StepperController extends ChangeNotifier {
   /// A controller at the step [initialStep], from 0.
   StepperController({int initialStep = 0})
-    : _current = initialStep < 0 ? 0 : initialStep;
+    : _current = initialStep < 0 ? 0 : initialStep {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   final _hosts = ControllerHost<_StepperState>();
 

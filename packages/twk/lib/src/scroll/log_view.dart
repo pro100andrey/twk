@@ -120,7 +120,12 @@ final class LogController extends ChangeNotifier {
     this._where,
     this._query = '',
   }) : assert(maxLines > 0, 'a cap of 1 line or more'),
-       _maxLines = maxLines;
+       _maxLines = maxLines {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   // the sources of addOutput and followFile, cancelled with the controller
   final _sources = <LogSource>{};

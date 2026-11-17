@@ -102,6 +102,14 @@ final class Command {
 /// );
 /// ```
 final class CommandPaletteController extends ChangeNotifier {
+  /// A controller no widget has yet.
+  CommandPaletteController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
+
   final _hosts = ControllerHost<_CommandPaletteState>();
 
   /// Whether the palette is open.

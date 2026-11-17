@@ -51,6 +51,14 @@ import 'panel.dart';
 /// hint.show();
 /// ```
 final class TooltipController extends ChangeNotifier {
+  /// A controller no widget has yet.
+  TooltipController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
+
   final _hosts = ControllerHost<_TooltipState>();
   var _shown = false;
 

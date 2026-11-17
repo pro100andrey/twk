@@ -61,8 +61,8 @@ import 'screen_text.dart';
 /// layout that overflowed) and its errors (a build that threw), which its
 /// screen shows none of.
 ///
-/// With [trackDisposables] (off by default) the test also fails when, after
-/// the app is quit and the test's tear-downs ran (an
+/// With [trackDisposables] (on by default; `false` turns it off) the test
+/// also fails when, after the app is quit and the test's tear-downs ran (an
 /// `addTearDown(x.dispose)` counts), a controller or notifier made during
 /// it was never disposed (a `ScrollController`, a `TextEditingController`, a
 /// `FocusNode`, an `AnimationController`, any `ValueNotifier`, and the
@@ -91,7 +91,7 @@ void testTwk(
   String description,
   FutureOr<void> Function(TwkTester t) body, {
   int framesOnFailure = 3,
-  bool trackDisposables = false,
+  bool trackDisposables = true,
   bool failOnPendingTimers = true,
   bool failOnOverflow = true,
   Timeout? timeout,

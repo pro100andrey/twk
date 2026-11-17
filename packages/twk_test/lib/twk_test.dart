@@ -16,6 +16,7 @@ library;
 
 export 'package:twk_driver/twk_driver.dart' show compiledProgram;
 
+export 'src/disposing.dart' show disposing;
 export 'src/fake_clock.dart' show FakeClock;
 export 'src/fake_frame_clock.dart' show FakeFrameClock;
 export 'src/fake_stderr.dart' show FakeStderr;

@@ -43,6 +43,15 @@ Added:
 
 Breaking:
 
+- The controllers of the widgets join the `DisposalTracker` (`TabController`,
+  `TreeController`, `TableController`, `SelectionController`,
+  `SplitController`, `DockController`, `ExpansionController`,
+  `CalendarController`, `DirectoryTreeController`, `ScaffoldController`,
+  `StepperController`, `WindowController`, `PopupController`,
+  `MenuController`, `TooltipController`, `CommandPaletteController`,
+  `FilePickerController`, `LogController`, `SelectionAreaController`,
+  `ScrollPosition`), so `testTwk` reports the ones a test made and did not
+  dispose, now that it tracks by default (see twk_test).
 - The default theme is the terminal's own colors: without a `Theme`,
   `Theme.of` gives `ThemeData.terminalOf(context)` (`ThemeData.terminalOn`
   where the terminal told its background, `ThemeData.terminal` of its
