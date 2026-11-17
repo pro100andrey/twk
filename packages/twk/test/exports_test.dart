@@ -1,16 +1,19 @@
+// The analyzer resolves the packages once for the file, which takes seconds
+// on a quiet machine and longer on a loaded one.
+@Timeout(Duration(minutes: 3))
+library;
+
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:mirrors';
 
 import 'package:test/test.dart';
-import 'package:twk/cli.dart' show Cli;
 import 'package:twk/format.dart';
-import 'package:twk/hooks.dart' show HookWidget;
 import 'package:twk/log.dart';
-import 'package:twk/provider.dart' show Provider;
 // Imported so that this file fails to load when a library that twk.dart
 // exports is missing or does not compile.
+// ignore: unused_import
 import 'package:twk/twk.dart';
+import 'package:twk_api_names/export_surface.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
 
 import 'sample_app.dart' as sample;
@@ -71,9 +74,13 @@ const notExported = {
 };
 
 void main() {
-  final exported = _exported(
-    currentMirrorSystem().libraries[Uri.parse('package:twk/twk.dart')]!,
-  );
+  // one analysis for the file
+  final surface = ExportSurface.open();
+  late final Map<String, Declaration> exported;
+
+  setUpAll(() async {
+    exported = await surface.exports('package:twk/twk.dart');
+  });
 
   test('format.dart exports formatBytes and formatTook, for an app to write '
       'sizes and times as the widgets do', () {
@@ -119,39 +126,28 @@ void main() {
       ('format', {'ByteUnits', 'formatBytes', 'formatTook'}),
       ('log', {'LogData', 'LogLevel', 'LogRecord', 'LogSink', 'log'}),
     ]) {
-      final names = _exported(
-        currentMirrorSystem().libraries[Uri.parse(
-          'package:twk/$library.dart',
-        )]!,
-      );
-      expect(names.keys.map(MirrorSystem.getName), declared);
+      final names = await surface.exports('package:twk/$library.dart');
+      expect(names.keys, declared);
       expect(
         [
           for (final name in names.keys)
-            if (exported.containsKey(name)) MirrorSystem.getName(name),
+            if (exported.containsKey(name)) name,
         ],
         isEmpty,
         reason: 'twk.dart exports no name of $library.dart',
       );
     }
     for (final (library, widget) in [
-      ('cli', Cli),
-      ('hooks', HookWidget),
-      ('provider', Provider),
+      ('cli', 'Cli'),
+      ('hooks', 'HookWidget'),
+      ('provider', 'Provider'),
     ]) {
-      final names = _exported(
-        currentMirrorSystem().libraries[Uri.parse(
-          'package:twk/$library.dart',
-        )]!,
-      );
-      expect(names, contains(reflectClass(widget).simpleName));
+      final names = await surface.exports('package:twk/$library.dart');
+      expect(names, contains(widget));
       expect(
         [
           for (final d in names.values)
-            if (!(d.owner! as LibraryMirror).uri.path.startsWith(
-              'twk/src/$library/',
-            ))
-              _name(d),
+            if (!d.library.path.startsWith('twk/src/$library/')) d.name,
         ],
         isEmpty,
         reason: '$library.dart exports its own declarations only',
@@ -159,7 +155,7 @@ void main() {
       expect(
         [
           for (final name in names.keys)
-            if (exported.containsKey(name)) MirrorSystem.getName(name),
+            if (exported.containsKey(name)) name,
         ],
         isEmpty,
         reason: 'twk.dart exports no name of $library.dart',
@@ -167,37 +163,33 @@ void main() {
     }
   });
 
-  // an extension type is its representation type here (Color an int): the
-  // sample app below names those
   test('twk.dart exports the core types that public signatures name, and '
       'those a core class it exports is made with, but the render objects '
-      'of its widgets, and those of the log, which log.dart has', () {
+      'of its widgets, and those of the log, which log.dart has', () async {
     final named = <String, String>{};
     for (final d in exported.values) {
-      for (final (where, type) in [
-        if (_isIn(d, 'twk'))
-          ..._signature(d, _name(d))
+      for (final use in [
+        if (d.package == 'twk')
+          ...d.signature()
         // a core class twk.dart exports: what an app makes one with (a
         // HeadlessTerminal for a test)
-        else if (d is ClassMirror)
-          for (final c in d.declarations.values)
-            if (c is MethodMirror && c.isConstructor && !c.isPrivate)
-              ..._signature(c, _name(c)),
+        else if (d.isInterface)
+          ...d.constructorSignatures(),
       ]) {
-        for (final core in _coreTypes(type)) {
-          named.putIfAbsent(core, () => where);
+        for (final type in use.types) {
+          if (type.package == 'twk_core') {
+            named.putIfAbsent(type.name, () => use.where);
+          }
         }
       }
     }
     expect(named.keys, containsAll(notExported));
     // the log's names are in log.dart, which an app that logs imports
-    final logged = _exported(
-      currentMirrorSystem().libraries[Uri.parse('package:twk/log.dart')]!,
-    );
+    final logged = await surface.exports('package:twk/log.dart');
     expect({
       for (final MapEntry(:key, :value) in named.entries)
-        if (!exported.containsKey(MirrorSystem.getSymbol(key)) &&
-            !logged.containsKey(MirrorSystem.getSymbol(key)) &&
+        if (!exported.containsKey(key) &&
+            !logged.containsKey(key) &&
             !notExported.contains(key))
           key: value,
     }, isEmpty);
@@ -233,16 +225,15 @@ void main() {
       for (final part in parts) File('test/$part').readAsStringSync(),
     ].join('\n').replaceAll(RegExp('//.*'), '');
     final words = {for (final m in RegExp(r'\w+').allMatches(code)) m[0]};
-    final widget = reflectClass(Widget);
     expect([
       for (final d in exported.values)
-        if (!words.contains(_name(d)))
-          if (_isIn(d, 'twk_core'))
-            '${_name(d)}: name it in test/sample_app.dart or a part of it'
-          else if (d is ClassMirror &&
-              _isIn(d, 'twk') &&
-              d.isSubclassOf(widget))
-            '${_name(d)}: build it in test/sample_app/${_topic(d)}.dart',
+        if (!words.contains(d.name))
+          if (d.package == 'twk_core')
+            '${d.name}: name it in test/sample_app.dart or a part of it'
+          else if (d.isInterface &&
+              d.package == 'twk' &&
+              d.isSubclassOf('Widget', inPackage: 'twk'))
+            '${d.name}: build it in test/sample_app/${_topic(d)}.dart',
     ], isEmpty);
     expect(sample.snapshot(), 'snap');
     final clock = FakeClock();
@@ -256,112 +247,5 @@ void main() {
   });
 }
 
-/// The public declarations [library] exports by name: its own and those of
-/// the libraries it exports, through their show and hide lists.
-Map<Symbol, DeclarationMirror> _exported(LibraryMirror library) {
-  final names = {
-    for (final MapEntry(:key, :value) in library.declarations.entries)
-      if (!value.isPrivate) key: value,
-  };
-  for (final dependency in library.libraryDependencies) {
-    if (dependency.isExport) {
-      // the VM gives each name of a show or hide list a combinator of its
-      // own
-      final combinators = dependency.combinators;
-      final shown = {
-        for (final c in combinators)
-          if (c.isShow) ...c.identifiers,
-      };
-      final hidden = {
-        for (final c in combinators)
-          if (c.isHide) ...c.identifiers,
-      };
-      names.addAll(
-        _exported(dependency.targetLibrary!)..removeWhere(
-          (name, _) =>
-              hidden.contains(name) ||
-              combinators.any((c) => c.isShow) && !shown.contains(name),
-        ),
-      );
-    }
-  }
-  return names;
-}
-
-String _name(DeclarationMirror d) => MirrorSystem.getName(d.simpleName);
-
 /// The topic of the library that declares [d], `package:twk/src/<topic>/`.
-String _topic(DeclarationMirror d) =>
-    (d.owner! as LibraryMirror).uri.pathSegments[2];
-
-/// Whether [d] is declared in a library of [package].
-bool _isIn(DeclarationMirror d, String package) => switch (d.owner) {
-  final LibraryMirror l => l.uri.toString().startsWith('package:$package/'),
-  _ => false,
-};
-
-/// The types the public signature of [d] names, each with where: those of
-/// its fields, parameters and results, its supertypes and type bounds.
-Iterable<(String, TypeMirror)> _signature(
-  DeclarationMirror d,
-  String where,
-) sync* {
-  switch (d) {
-    case ClassMirror(:final superclass):
-      for (var s = superclass; s != null; s = s.superclass) {
-        yield ('$where (supertype)', s);
-        yield ('$where (supertype)', s.mixin);
-        // a mixin application is anonymous: its superclass is named too
-        if (s.mixin == s) {
-          break;
-        }
-      }
-      for (final i in d.superinterfaces) {
-        yield ('$where (supertype)', i);
-      }
-      for (final v in d.typeVariables) {
-        yield ('$where (bound)', v.upperBound);
-      }
-      for (final m in d.declarations.values) {
-        if (!m.isPrivate) {
-          yield* _signature(m, '$where.${_name(m)}');
-        }
-      }
-    case MethodMirror():
-      if (!d.isConstructor) {
-        yield (where, d.returnType);
-      }
-      for (final p in d.parameters) {
-        yield (where, p.type);
-      }
-    case VariableMirror():
-      yield (where, d.type);
-    case TypedefMirror():
-      yield (where, d.referent);
-  }
-}
-
-/// The names of the twk_core declarations [type] is or names in its type
-/// arguments, parameters and bounds.
-Set<String> _coreTypes(TypeMirror type, [Set<TypeMirror>? seen]) {
-  seen ??= {};
-  if (!seen.add(type)) {
-    return const {};
-  }
-  return switch (type) {
-    FunctionTypeMirror(:final returnType, :final parameters) => {
-      ..._coreTypes(returnType, seen),
-      for (final p in parameters) ..._coreTypes(p.type, seen),
-    },
-    ClassMirror(:final originalDeclaration, :final typeArguments) => {
-      if (_isIn(originalDeclaration, 'twk_core')) _name(originalDeclaration),
-      for (final a in typeArguments) ..._coreTypes(a, seen),
-    },
-    TypedefMirror(:final referent) => {
-      if (_isIn(type, 'twk_core')) _name(type),
-      ..._coreTypes(referent, seen),
-    },
-    TypeVariableMirror(:final upperBound) => _coreTypes(upperBound, seen),
-    _ => const {},
-  };
-}
+String _topic(Declaration d) => d.library.pathSegments[2];

@@ -76,6 +76,12 @@ Future<void> _run(TerminalBackend terminal, LogSink logs, Clock clock) =>
 String snapshot() =>
     renderToString(RenderGlyphs('snap'), 8, 1, styles: StyleTable());
 
+/// The core's extension [ClockElapsed] and extension type [StyleId], which
+/// no widget takes, named: a clock's reading as a [Duration] and the base
+/// style.
+(Duration, StyleId) elapsedAndBase(Clock clock) =>
+    (ClockElapsed(clock).elapsed, StyleId.base);
+
 final class SampleApp extends StatefulWidget {
   const SampleApp({super.key});
 

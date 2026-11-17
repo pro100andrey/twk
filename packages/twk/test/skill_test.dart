@@ -12,11 +12,14 @@ library;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:mirrors';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
+import 'package:twk_api_names/export_surface.dart';
 import 'package:twk_test/twk_test.dart';
+
+/// One analysis for the file.
+final surface = ExportSurface.open();
 
 final String skill = File('../../skills/twk/SKILL.md').readAsStringSync();
 
@@ -49,27 +52,12 @@ void write(Directory dir, String path, String text) => File('${dir.path}/$path')
   ..createSync(recursive: true)
   ..writeAsStringSync(text);
 
-/// The public names [library] exports: its own and those of the libraries
-/// it exports, through their show and hide lists.
-Set<String> exported(LibraryMirror library) => {
-  for (final MapEntry(:key, :value) in library.declarations.entries)
-    if (!value.isPrivate) MirrorSystem.getName(key),
-  for (final dependency in library.libraryDependencies)
-    if (dependency.isExport)
-      for (final name in exported(dependency.targetLibrary!))
-        if (_passes(dependency.combinators, name)) name,
-};
-
 /// The names twk and twk_test export, and the extension types the guide
 /// names.
-Set<String> twkNames() {
-  final libraries = currentMirrorSystem().libraries;
-  return {
-    ...exported(libraries[Uri.parse('package:twk/twk.dart')]!),
-    ...exported(libraries[Uri.parse('package:twk_test/twk_test.dart')]!),
-    ..._extensionTypes.keys,
-  };
-}
+Future<Set<String>> twkNames() async => {
+  ...(await surface.exports('package:twk/twk.dart')).keys,
+  ...(await surface.exports('package:twk_test/twk_test.dart')).keys,
+};
 
 /// The names in the code spans of [prose] and in the right lines of its
 /// `diff` blocks (those that start with `+`; the wrong ones, Flutter's,
@@ -87,20 +75,6 @@ Set<String> namedInProse() {
     for (final span in spans)
       for (final name in RegExp(r'\b[A-Z][a-z]\w*').allMatches(span)) name[0]!,
   }..removeAll(others);
-}
-
-/// The extension types the guide names, which mirrors do not see: this
-/// file compiles only while twk exports them.
-const Map<String, Color> _extensionTypes = {'Color': Color.blue};
-
-bool _passes(List<CombinatorMirror> combinators, String name) {
-  final symbol = MirrorSystem.getSymbol(name);
-  // the VM gives each name of a show or hide list a combinator of its own
-  final shows = combinators.where((c) => c.isShow);
-  return !combinators.any(
-        (c) => c.isHide && c.identifiers.contains(symbol),
-      ) &&
-      (shows.isEmpty || shows.any((c) => c.identifiers.contains(symbol)));
 }
 
 /// A count of Space, bound below a [Focus]; with [gated], bound only
@@ -269,7 +243,7 @@ Widget table(List<Entry> entries) => Table(
 
     test('the names it gives are exported by twk and twk_test, the rest by '
         "twk's cli, hooks or provider library or by twk_test's cli", () async {
-      final names = twkNames();
+      final names = await twkNames();
       final named = namedInProse();
       expect(named, isNotEmpty);
       expect(names, containsAll(['showDialog', 'closeDialog', 'showToast']));

@@ -25,6 +25,9 @@ dev_dependencies:
   path: ^1.9.1
   pro_lints: ^6.2.0
   test: ^1.33.0
+  # the export surface from the analyzer's element model, for exports tests
+  twk_api_names:
+    path: ../../tool/api_names
   # the gallery in a browser: web/main.dart, test/web/
   twk_web:
     path: ../twk_web
