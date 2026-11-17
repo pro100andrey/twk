@@ -3,6 +3,7 @@ library;
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:twk_core/twk_core.dart';
 
 /// A [Clock] that stands still until [advance], [advanceTo] or
@@ -16,6 +17,12 @@ import 'package:twk_core/twk_core.dart';
 /// determinism; it is what lets a first frame, due at once, run without
 /// whoever drives the clock. Pass `wakesItself: false` where the caller
 /// runs what is due, as a test's fake clock does between its microtasks.
+///
+/// A timer remembers the stack that started it only with
+/// `recordStacks: true`, which [describeTimers] and [waiting] report
+/// (a stack for every timer is a cost where allocations are measured, so
+/// it is off by default); the stack goes when the timer fires or is
+/// cancelled.
 ///
 /// It queues no microtasks: the code it calls runs them as it normally
 /// does.
@@ -33,7 +40,12 @@ final class DrivenClock implements Clock {
   /// A clock at zero with no timers. [maxFired] bounds how many timers one
   /// move may fire, a guard against a periodic timer of a tiny period or
   /// one that starts another with no wait, which would never let it end.
-  DrivenClock({this.maxFired = 10000000, this.wakesItself = true});
+  /// [recordStacks] makes each timer keep the stack that started it.
+  DrivenClock({
+    this.maxFired = 10000000,
+    this.wakesItself = true,
+    this.recordStacks = false,
+  });
 
   /// The most timers one [advance], [advanceTo] or [advanceToNext] fires
   /// before it throws a [StateError] that names the timers waiting.
@@ -43,11 +55,21 @@ final class DrivenClock implements Clock {
   /// zone, or waits for the next move.
   final bool wakesItself;
 
+  /// Whether a timer keeps the stack that started it, for [describeTimers]
+  /// and [waiting] to name where; off, they say when and what kind only.
+  final bool recordStacks;
+
   var _now = 0;
   var _created = 0;
   var _moving = false;
   Timer? _wake;
   final _timers = <_DrivenTimer>[];
+
+  // Where the timers were started, kept here and not in a field of each
+  // timer: a timer is the object a measure counts a frame by.
+  late final Map<_DrivenTimer, StackTrace>? _stacks = recordStacks
+      ? Map.identity()
+      : null;
 
   @override
   int get elapsedMicroseconds => _now;
@@ -61,6 +83,11 @@ final class DrivenClock implements Clock {
   /// Not while the clock moves ([advance] and its kin), whose caller sees
   /// the result. While null, a timer pays one test of it.
   void Function()? onChange;
+
+  /// How many stacks the clock holds, one for each timer that waits where
+  /// it records them, none where it does not.
+  @visibleForTesting
+  int get recordedStacks => _stacks?.length ?? 0;
 
   /// How many timers wait, periodic ones included.
   int get pendingTimers => _timers.length;
@@ -204,7 +231,7 @@ final class DrivenClock implements Clock {
   /// The timers that wait, the next due first: when each is due in
   /// microseconds of the clock, whether it is periodic, and the line of
   /// the code that started it (the first outside the SDK and the clocks),
-  /// null where none is known.
+  /// null where none is known, as where `recordStacks` is off.
   List<({int due, bool periodic, String? created})> get waiting {
     int byDue(_DrivenTimer a, _DrivenTimer b) =>
         a._due != b._due ? a._due - b._due : a._order - b._order;
@@ -213,20 +240,23 @@ final class DrivenClock implements Clock {
         (
           due: t._due,
           periodic: t._each != null,
-          created: _callers(
-            t._started,
-          ).where((l) => !l.startsWith('AppBinding.start')).firstOrNull,
+          created: switch (_stacks?[t]) {
+            final stack? => _callers(
+              stack,
+            ).where((l) => !l.startsWith('AppBinding.start')).firstOrNull,
+            _ => null,
+          },
         ),
     ];
   }
 
   /// The timers that wait, one a line, the next due first: when each is
-  /// due, its period where it is periodic, and where it was started, the
-  /// first lines of its stack outside the SDK and the clocks; `no timer
-  /// waits` while none does.
+  /// due, its period where it is periodic, and, with `recordStacks: true`,
+  /// where it was started, the first lines of its stack outside the SDK and
+  /// the clocks; `no timer waits` while none does.
   ///
   /// ```dart
-  /// final clock = DrivenClock(wakesItself: false);
+  /// final clock = DrivenClock(wakesItself: false, recordStacks: true);
   /// clock.timer(const Duration(seconds: 2), () {});
   /// assert(clock.describeTimers().startsWith('a timer due in 2.000 s'));
   /// ```
@@ -240,11 +270,13 @@ final class DrivenClock implements Clock {
         ? 'a timer'
         : 'a periodic timer, every ${_seconds(t._period)},';
     String head(_DrivenTimer t) =>
-        '${kind(t)} due in ${_seconds(t._due - _now)}, started at';
+        '${kind(t)} due in ${_seconds(t._due - _now)}'
+        '${_stacks?[t] == null ? '' : ', started at'}';
     return [
       for (final t in [..._timers]..sort(byDue)) ...[
         head(t),
-        for (final frame in _callers(t._started)) '  $frame',
+        if (_stacks?[t] case final stack?)
+          for (final frame in _callers(stack)) '  $frame',
       ],
     ].join('\n');
   }
@@ -267,16 +299,13 @@ final class DrivenClock implements Clock {
 final class _DrivenTimer implements Timer {
   _DrivenTimer(this._clock, int micros, this._once, this._each)
     : _period = micros < 0 ? 0 : micros,
-      _order = _clock._created++,
-      _started = StackTrace.current {
+      _order = _clock._created++ {
     _due = _clock._now + _period;
+    _clock._stacks?[this] = StackTrace.current;
   }
 
   final DrivenClock _clock;
   final int _period;
-
-  /// Where it was started, which a failure that waited on it names.
-  final StackTrace _started;
 
   final void Function()? _once;
   final void Function(Timer timer)? _each;
@@ -296,6 +325,7 @@ final class _DrivenTimer implements Timer {
   @override
   void cancel() {
     if (_clock._timers.remove(this)) {
+      _clock._stacks?.remove(this);
       _clock._changed();
     }
   }
@@ -309,6 +339,7 @@ final class _DrivenTimer implements Timer {
       each(this);
     } else {
       _clock._timers.remove(this);
+      _clock._stacks?.remove(this);
       _once!();
     }
   }

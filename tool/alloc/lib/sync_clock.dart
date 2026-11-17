@@ -4,12 +4,19 @@ library;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:twk/twk.dart' show DrivenClock;
 import 'package:twk_core/twk_core.dart' show Clock;
 
 /// A clock that moves only by [elapse], and the zone ([run]) whose timers
 /// and microtasks it owns, as twk_test's `FakeClock`, but synchronous:
 /// [elapse] runs the microtasks, then each timer due in the order of their
 /// times with the microtasks after it, and returns, awaiting nothing.
+///
+/// The timers are a [DrivenClock]'s, one queue for both, with no stack kept
+/// per timer (`recordStacks: false`) and no wake of its own
+/// (`wakesItself: false`): what a measure counts as the app's is a stack a
+/// timer, which the profiler must not see. What this adds is the zone and
+/// the microtask drain.
 ///
 /// `FakeClock` lets the real event loop run after each timer (an awaited
 /// `Future.delayed`), for a test whose app waits on what completes
@@ -26,13 +33,9 @@ final class SyncClock implements Clock {
     _zone = Zone.current.fork(
       specification: ZoneSpecification(
         createTimer: (_, _, zone, duration, callback) =>
-            _SyncTimer(this, duration, zone.bindCallbackGuarded(callback)),
+            _driven.timer(duration, zone.bindCallbackGuarded(callback)),
         createPeriodicTimer: (_, _, zone, period, callback) =>
-            _SyncTimer.periodic(
-              this,
-              period,
-              zone.bindUnaryCallbackGuarded(callback),
-            ),
+            _driven.periodic(period, zone.bindUnaryCallbackGuarded(callback)),
         scheduleMicrotask: (_, _, zone, task) =>
             _microtasks.add(zone.bindCallbackGuarded(task)),
       ),
@@ -40,14 +43,11 @@ final class SyncClock implements Clock {
   }
 
   late final Zone _zone;
-
-  var _now = 0;
-  var _created = 0;
-  final _timers = <_SyncTimer>[];
+  final _driven = DrivenClock(wakesItself: false);
   final _microtasks = ListQueue<void Function()>(64);
 
   /// How far the clock has moved since it was created.
-  Duration get elapsed => Duration(microseconds: _now);
+  Duration get elapsed => Duration(microseconds: _driven.elapsedMicroseconds);
 
   /// Runs [body] in the clock's zone and returns what it returns; the
   /// microtasks it schedules run at the next [elapse].
@@ -57,14 +57,12 @@ final class SyncClock implements Clock {
   /// reaches its time — those due together in the order they were started
   /// — with the microtasks run before the first and after each one.
   void elapse(Duration duration) {
-    final end = _now + duration.inMicroseconds;
+    final end = _driven.elapsedMicroseconds + duration.inMicroseconds;
     _runMicrotasks();
-    for (var next = _next(end); next != null; next = _next(end)) {
-      _now = next._due;
-      next._fire();
+    while (_driven.fireNext(end)) {
       _runMicrotasks();
     }
-    _now = end;
+    _driven.moveTo(end);
   }
 
   void _runMicrotasks() {
@@ -73,83 +71,14 @@ final class SyncClock implements Clock {
     }
   }
 
-  /// The timer to fire next, if one is due by [end].
-  _SyncTimer? _next(int end) {
-    _SyncTimer? next;
-    for (var i = 0; i < _timers.length; i++) {
-      final t = _timers[i];
-      if (t._due <= end &&
-          (next == null ||
-              t._due < next._due ||
-              (t._due == next._due && t._order < next._order))) {
-        next = t;
-      }
-    }
-    return next;
-  }
-
   @override
-  int get elapsedMicroseconds => _now;
+  int get elapsedMicroseconds => _driven.elapsedMicroseconds;
 
   @override
   Timer timer(Duration after, void Function() callback) =>
-      _SyncTimer(this, after, callback);
+      _driven.timer(after, callback);
 
   @override
   Timer periodic(Duration every, void Function(Timer) callback) =>
-      _SyncTimer.periodic(this, every, callback);
-}
-
-final class _SyncTimer implements Timer {
-  _SyncTimer(SyncClock clock, Duration duration, void Function() callback)
-    : this._(clock, duration.inMicroseconds, callback, null);
-
-  _SyncTimer.periodic(
-    SyncClock clock,
-    Duration period,
-    void Function(Timer timer) callback,
-  ) : this._(
-        clock,
-        // one that fires at once would keep the clock in place
-        period.inMicroseconds < 1 ? 1 : period.inMicroseconds,
-        null,
-        callback,
-      );
-
-  _SyncTimer._(this._clock, int micros, this._once, this._each)
-    : _period = micros < 0 ? 0 : micros,
-      _order = _clock._created++ {
-    _due = _clock._now + _period;
-    _clock._timers.add(this);
-  }
-
-  final SyncClock _clock;
-  final int _period;
-  final void Function()? _once;
-  final void Function(Timer timer)? _each;
-  late int _due;
-  int _order;
-  var _tick = 0;
-
-  @override
-  int get tick => _tick;
-
-  @override
-  bool get isActive => _clock._timers.contains(this);
-
-  @override
-  void cancel() => _clock._timers.remove(this);
-
-  void _fire() {
-    _tick++;
-    final each = _each;
-    if (each != null) {
-      _due += _period;
-      _order = _clock._created++;
-      each(this);
-    } else {
-      _clock._timers.remove(this);
-      _once!();
-    }
-  }
+      _driven.periodic(every, callback);
 }

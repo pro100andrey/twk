@@ -387,10 +387,10 @@ void main() {
         '--reporter=x',
       ]);
 
-      final none = fake(['tool/alloc/pubspec.yaml']);
+      final none = fake(['tool/frame_scenarios/pubspec.yaml']);
       expect(await tests(none.context, cpus), 0);
       expect(none.ran, isEmpty);
-      expect(none.log.single, 'tool/alloc: skipped, no test/');
+      expect(none.log.single, 'tool/frame_scenarios: skipped, no test/');
     });
 
     test('browser runs the tests in the Chrome found, CHROME_EXECUTABLE '

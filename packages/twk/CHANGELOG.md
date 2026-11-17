@@ -161,6 +161,10 @@ Added:
 
 Changed:
 
+- `DrivenClock(recordStacks:)`: a timer keeps the stack that started it, for
+  `describeTimers` and `waiting`, only when asked (off by default; on for
+  twk_test's `FakeClock` and a driven app's clock), so a clock where
+  allocations are measured pays no stack a timer.
 - `LogView(wrap: true)` wraps a line's text in a column of its own right
   of its time and level, not back under them at the left edge.
 - Debug runs assert, with a hint, on what was lost or wrong without a

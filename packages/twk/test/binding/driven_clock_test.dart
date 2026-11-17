@@ -287,7 +287,7 @@ void main() {
   group('describeTimers', () {
     test('says when each is due, whether it is periodic and where it was '
         'started; and that none waits', () {
-      final clock = DrivenClock(wakesItself: false);
+      final clock = DrivenClock(wakesItself: false, recordStacks: true);
       expect(clock.describeTimers(), 'no timer waits');
       clock
         ..periodic(_ms * 500, (_) {})
@@ -303,6 +303,53 @@ void main() {
       expect(text, contains('a timer due in 1.900 s, started at'));
       expect(text, contains('driven_clock_test.dart'));
       expect(text, isNot(contains('driven_clock.dart')));
+    });
+  });
+
+  group('recordStacks', () {
+    test('off by default: a timer names when it is due, not where it was '
+        'started', () {
+      final clock = DrivenClock(wakesItself: false)
+        ..periodic(_ms * 500, (_) {})
+        ..timer(const Duration(seconds: 2), () {});
+      expect(
+        clock.describeTimers(),
+        'a periodic timer, every 0.500 s, due in 0.500 s\n'
+        'a timer due in 2.000 s',
+      );
+      expect(clock.waiting.map((t) => t.created), [null, null]);
+    });
+
+    test('a stack goes when its timer fires or is cancelled, and is no longer '
+        'listed', () {
+      final clock = DrivenClock(wakesItself: false, recordStacks: true);
+      final once = clock.timer(_ms, () {});
+      final cancelled = clock.timer(_ms * 5, () {});
+      final each = clock.periodic(_ms * 2, (_) {});
+      expect(clock.recordedStacks, 3);
+      clock.advance(_ms);
+      expect(clock.recordedStacks, 2);
+      expect(once.isActive, isFalse);
+      cancelled.cancel();
+      expect(clock.recordedStacks, 1);
+      expect(clock.waiting, hasLength(1));
+      clock.advance(_ms * 10);
+      // a periodic timer keeps its stack for as long as it waits
+      expect(clock.recordedStacks, 1);
+      each.cancel();
+      expect(clock.recordedStacks, 0);
+      expect(clock.describeTimers(), 'no timer waits');
+    });
+
+    test('off: none is held', () {
+      final clock = DrivenClock(wakesItself: false)..timer(_ms, () {});
+      expect(clock.recordedStacks, 0);
+    });
+
+    test('on: the first line outside the clocks is where it was started', () {
+      final clock = DrivenClock(wakesItself: false, recordStacks: true)
+        ..timer(_ms, () {});
+      expect(clock.waiting.single.created, contains('driven_clock_test.dart'));
     });
   });
 

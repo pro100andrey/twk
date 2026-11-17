@@ -72,7 +72,7 @@ final class FakeClock {
 
   // timers due now wait for the next elapse, as the tests expect: nothing
   // here wakes by itself
-  final _driven = DrivenClock(wakesItself: false);
+  final _driven = DrivenClock(wakesItself: false, recordStacks: true);
 
   var _elapsing = false;
   final _microtasks = Queue<void Function()>();

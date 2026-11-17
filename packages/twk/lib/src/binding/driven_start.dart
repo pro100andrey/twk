@@ -96,7 +96,7 @@ final class DrivenStart {
       }
       start = instant;
     }
-    return DrivenStart._(DrivenClock(), start, Zone.current);
+    return DrivenStart._(DrivenClock(recordStacks: true), start, Zone.current);
   }
 
   /// Completes where a VM service runs and throws a [StateError] where
