@@ -62,6 +62,10 @@ enum TerminalMode {
   /// arrow keys.
   alternateScroll(1007),
 
+  /// SGR mouse reports (mode 1006) give the pointer in pixels, not cells
+  /// (SGR-Pixels); only with a cell's size known to the emulator.
+  mousePixels(1016),
+
   /// Mouse reports in urxvt form (`CSI b ; x ; y M`).
   mouseUrxvt(1015),
 

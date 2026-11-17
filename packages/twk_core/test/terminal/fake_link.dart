@@ -4,13 +4,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:twk_core/src/terminal/link.dart' show DrainingLink;
+import 'package:twk_core/src/terminal/link.dart'
+    show DrainingLink, PixelSizedLink;
 import 'package:twk_core/terminal.dart';
 
 /// The terminal a shell serves: what it was given to write, whether it is
 /// in raw mode, its size, what it declares it does; input and resizes go in
 /// by hand.
-final class FakeLink implements DeclaringLink, DrainingLink {
+final class FakeLink implements DeclaringLink, DrainingLink, PixelSizedLink {
   FakeLink({
     this.columns = 20,
     this.lines = 4,
@@ -40,6 +41,10 @@ final class FakeLink implements DeclaringLink, DrainingLink {
 
   @override
   int? get eraseChar => 0x7F;
+
+  /// What the tty says a cell is in pixels; null for no pixels.
+  @override
+  ({int width, int height})? cellPixelSize;
 
   /// Whether the console is in raw mode, and every change of it.
   var raw = false;

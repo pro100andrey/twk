@@ -277,6 +277,35 @@ void main() {
       );
     });
 
+    test('SGR-Pixels: the cell origin and the offset, clamped to the cell; '
+        'only in SGR', () {
+      const e = MouseEvent(MouseKind.down, 3, 1, offsetX: 4, offsetY: 5);
+      List<int>? pix(MouseEvent e, MouseEncoding enc) => mouseSequence(
+        e,
+        MouseProtocol.buttons,
+        enc,
+        cellWidth: 8,
+        cellHeight: 16,
+      );
+      expect(
+        String.fromCharCodes(pix(e, MouseEncoding.sgr)!),
+        '\x1b[<0;29;22M',
+      );
+      expect(
+        String.fromCharCodes(
+          pix(
+            const MouseEvent(MouseKind.down, 0, 0, offsetX: 99, offsetY: -3),
+            MouseEncoding.sgr,
+          )!,
+        ),
+        '\x1b[<0;8;1M',
+      );
+      expect(
+        pix(e, MouseEncoding.urxvt),
+        mouseSequence(e, MouseProtocol.buttons, MouseEncoding.urxvt),
+      );
+    });
+
     test('X10, UTF-8 and urxvt encodings', () {
       expect(
         mouseSequence(down, MouseProtocol.buttons, MouseEncoding.x10),

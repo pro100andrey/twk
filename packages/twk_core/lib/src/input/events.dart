@@ -322,6 +322,8 @@ final class MouseEvent extends InputEvent {
     this.y, {
     this.button = 0,
     this.modifiers = 0,
+    this.offsetX,
+    this.offsetY,
   });
 
   /// What the mouse did.
@@ -344,6 +346,16 @@ final class MouseEvent extends InputEvent {
   /// (many take Shift with the mouse for their own selection).
   final int modifiers;
 
+  /// How many pixels right of the cell's left edge the pointer is, where
+  /// the terminal reports pixels (SGR-Pixels, mode 1016) and the cell's
+  /// size is known: 0 up to the cell's width less one. Null where it is
+  /// not known: most terminals report whole cells.
+  final int? offsetX;
+
+  /// How many pixels below the cell's top edge the pointer is; null as
+  /// [offsetX] is.
+  final int? offsetY;
+
   @override
   bool operator ==(Object other) =>
       other is MouseEvent &&
@@ -351,13 +363,18 @@ final class MouseEvent extends InputEvent {
       other.x == x &&
       other.y == y &&
       other.button == button &&
-      other.modifiers == modifiers;
+      other.modifiers == modifiers &&
+      other.offsetX == offsetX &&
+      other.offsetY == offsetY;
 
   @override
-  int get hashCode => Object.hash(kind, x, y, button, modifiers);
+  int get hashCode =>
+      Object.hash(kind, x, y, button, modifiers, offsetX, offsetY);
 
   @override
-  String toString() => 'Mouse(${kind.name} $x,$y b$button m$modifiers)';
+  String toString() =>
+      'Mouse(${kind.name} $x,$y b$button m$modifiers'
+      '${offsetX == null ? '' : ' +$offsetX,+$offsetY'})';
 }
 
 /// Text pasted into the terminal, all in one event: what bracketed paste

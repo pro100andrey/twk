@@ -46,6 +46,7 @@ const _layers = <(String, List<String>)>[
       'terminal/isolate_input.dart',
       'terminal/link.dart',
       'terminal/outbox.dart',
+      'terminal/pixel_size.dart',
       'terminal/plain.dart',
       'terminal/posix_input.dart',
       'terminal/posix_output.dart',

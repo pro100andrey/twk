@@ -43,6 +43,22 @@ final class InputParser {
   /// A parser with no bytes fed yet.
   InputParser();
 
+  /// A cell's width in pixels, 0 where not known: what [pixelMouse]'s
+  /// reports are divided by. Set by `Terminal` from what the terminal and
+  /// the tty tell, and by an in-band resize report that carries the
+  /// window's pixels.
+  var cellPixelWidth = 0;
+
+  /// A cell's height in pixels (see [cellPixelWidth]).
+  var cellPixelHeight = 0;
+
+  /// Whether the terminal reports the mouse in pixels (SGR-Pixels, mode
+  /// 1016): then a report's coordinates are divided by the cell's size
+  /// ([cellPixelWidth], [cellPixelHeight]) into the cell and the offset in
+  /// it ([MouseEvent.offsetX]); while that size is not known the
+  /// coordinates are taken for cells. False by default.
+  var pixelMouse = false;
+
   // the bytes the reads before left undecoded: [_len] of [_store], which
   // a read's bytes are copied into (a Uint8List's as one block)
   var _store = Uint8List(256);
@@ -899,6 +915,9 @@ final class InputParser {
     final count = _paramCount;
     if (prefix == 0x3C && (fin == 0x4D || fin == 0x6D)) {
       // M, m
+      if (pixelMouse && cellPixelWidth > 0 && cellPixelHeight > 0) {
+        return _pixelReport(_p(0), _p(1), _p(2), fin == 0x6D);
+      }
       return _sgrMouse(_p(0), _p(1), _p(2), fin == 0x6D);
     }
     if (prefix == 0x3F) {
@@ -967,7 +986,18 @@ final class InputParser {
         return const FocusEvent(false);
       case 0x74: // t
         if (_p(0) == 48 && count >= 3) {
-          return ResizeEvent(_p(2), _p(1));
+          final rows = _p(1);
+          final cols = _p(2);
+          if (count >= 5 && rows > 0 && cols > 0) {
+            // the window's pixels: the cell's size, as of now
+            final w = _p(4) ~/ cols;
+            final h = _p(3) ~/ rows;
+            if (w > 0 && h > 0) {
+              cellPixelWidth = w;
+              cellPixelHeight = h;
+            }
+          }
+          return ResizeEvent(cols, rows);
         }
         return null;
       case 0x7E: // ~
@@ -1181,6 +1211,25 @@ final class InputParser {
         ? _kittyKeypadKeys[k]
         : null;
     return key == null ? null : KeyEvent(key, modifiers: mods, kind: kind);
+  }
+
+  /// An SGR-Pixels report (`CSI < b ; x ; y M`, 1-based pixels): the cell
+  /// it is in and the pixels into that cell.
+  MouseEvent _pixelReport(int cb, int x, int y, bool release) {
+    final px = x < 1 ? 0 : x - 1;
+    final py = y < 1 ? 0 : y - 1;
+    final cx = px ~/ cellPixelWidth;
+    final cy = py ~/ cellPixelHeight;
+    final cell = _sgrMouse(cb, cx + 1, cy + 1, release) as MouseEvent;
+    return MouseEvent(
+      cell.kind,
+      cell.x,
+      cell.y,
+      button: cell.button,
+      modifiers: cell.modifiers,
+      offsetX: px - cx * cellPixelWidth,
+      offsetY: py - cy * cellPixelHeight,
+    );
   }
 
   // called from two places since X10's reports came, where AOT inlined

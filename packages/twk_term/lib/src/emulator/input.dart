@@ -259,12 +259,18 @@ String _ctrl(String char) {
 }
 
 /// The report of [event] under [protocol] in [encoding]; null when the
-/// protocol doesn't report it or its coordinates can't be encoded.
+/// protocol doesn't report it or its coordinates can't be encoded. With a
+/// [cellWidth] and [cellHeight] (pixels; both above 0) and [encoding]
+/// [MouseEncoding.sgr] the position is in pixels (SGR-Pixels, mode 1016):
+/// the cell's origin plus the event's offset in it
+/// ([MouseEvent.offsetX], the cell's middle where it has none).
 List<int>? mouseSequence(
   MouseEvent event,
   MouseProtocol protocol,
-  MouseEncoding encoding,
-) {
+  MouseEncoding encoding, {
+  int cellWidth = 0,
+  int cellHeight = 0,
+}) {
   if (protocol == MouseProtocol.off) {
     return null;
   }
@@ -317,8 +323,14 @@ List<int>? mouseSequence(
       code |= 16;
     }
   }
-  final x = event.x + 1;
-  final y = event.y + 1;
+  var x = event.x + 1;
+  var y = event.y + 1;
+  if (encoding == MouseEncoding.sgr && cellWidth > 0 && cellHeight > 0) {
+    final ox = (event.offsetX ?? cellWidth ~/ 2).clamp(0, cellWidth - 1);
+    final oy = (event.offsetY ?? cellHeight ~/ 2).clamp(0, cellHeight - 1);
+    x = event.x * cellWidth + ox + 1;
+    y = event.y * cellHeight + oy + 1;
+  }
   switch (encoding) {
     case MouseEncoding.sgr:
       return '\x1b[<$code;$x;$y${release ? 'm' : 'M'}'.codeUnits;

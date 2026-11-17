@@ -71,6 +71,7 @@ final class TerminalInfo {
     this.notifications = NotificationProtocol.none,
     this.multiplexer = Multiplexer.none,
     this.plain = false,
+    this.pixelMouse = false,
     this.pointerNames,
     this.progressReports = false,
     this.bidi = BidiReordering.app,
@@ -141,6 +142,14 @@ final class TerminalInfo {
   /// Whether the terminal reports its size as input (DEC mode 2048),
   /// which is then turned on: no signal is watched for it.
   final bool inBandResize;
+
+  /// Whether the mouse is reported in pixels (SGR-Pixels, DEC mode 1016),
+  /// which is then turned on with the mouse reports: the terminal says it
+  /// has the mode and a cell's size is known ([TerminalCaps.cellPixelWidth]),
+  /// and [TerminalOptions.pixelMouse] allows it. The input parser divides
+  /// the pixels into cells and sets [MouseEvent.offsetX] and
+  /// [MouseEvent.offsetY].
+  final bool pixelMouse;
 
   /// Whether the terminal has grapheme cluster widths (DEC mode 2027),
   /// which are then turned on.
@@ -274,6 +283,7 @@ final class TerminalInfo {
       'version=$terminalVersion '
       'declared=${declaredBrightness?.name} palette=${palette.length} '
       'inBandResize=$inBandResize mode2027=$graphemeMode '
+      'pixelMouse=$pixelMouse '
       'kittyKeyboard=$kittyKeyboard flags=$kittyKeyboardFlags '
       'answered=$answeredQueries '
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
@@ -318,6 +328,7 @@ final class TerminalOptions {
     this.alternateScreen = true,
     this.mouse = true,
     this.mouseMotion = false,
+    this.pixelMouse = true,
     this.normalScreenMouse = false,
     this.bracketedPaste = true,
     this.focusEvents = true,
@@ -353,6 +364,12 @@ final class TerminalOptions {
   /// Whether, with [mouse], motion without a pressed button is reported
   /// too, as [MouseTracking.motion] (mode 1003; chatty). False by default.
   final bool mouseMotion;
+
+  /// Whether the mouse is reported in pixels (SGR-Pixels, mode 1016) where
+  /// the terminal has it and a cell's size is known: the events then carry
+  /// the pointer's offset in its cell ([MouseEvent.offsetX]). True by
+  /// default; the cells they name are the same.
+  final bool pixelMouse;
 
   /// Whether the mouse is reported on the normal screen too
   /// ([alternateScreen] false), as [mouse] says and
@@ -914,7 +931,12 @@ final class Terminal
     this._inputTrace,
     this._outputTrace,
   ]) : _out = _outbox(_link, _outputTrace),
-       _bytesRead = _probed.read;
+       _bytesRead = _probed.read {
+    _parser
+      ..pixelMouse = info.pixelMouse
+      ..cellPixelWidth = info.caps.cellPixelWidth
+      ..cellPixelHeight = info.caps.cellPixelHeight;
+  }
 
   /// How long a sequence that has surely started (with the kitty protocol,
   /// ESC and any byte after it) may wait for the rest of its bytes.
@@ -1371,6 +1393,8 @@ final class Terminal
     var version = '';
     var cellWidth = 0;
     var cellHeight = 0;
+    var areaWidth = 0;
+    var areaHeight = 0;
     int? bidiMode;
     var secondary = const <int>[];
     var unitId = '';
@@ -1434,6 +1458,9 @@ final class Terminal
                 secondary = [
                   for (final p in m[1]!.split(';')) int.tryParse(p) ?? 0,
                 ];
+              } else if (_textAreaReply.firstMatch(s) case final m?) {
+                areaHeight = int.parse(m[1]!);
+                areaWidth = int.parse(m[2]!);
               } else {
                 final m = _cellSizeReply.firstMatch(s)!;
                 cellHeight = int.parse(m[1]!);
@@ -1491,7 +1518,7 @@ final class Terminal
         '${screenLike ? '' : _modeQueries}'
         '\x1b]10;?\x1b\\\x1b]11;?\x1b\\\x1b]12;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-        '\x1b[16t${askName ? _kittyGraphicsQuery : ''}'
+        '\x1b[16t\x1b[14t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
         // the Linux console may take it for DA1
         '${term == 'linux' ? '' : '\x1b[>c\x1b[=c'}';
@@ -1524,6 +1551,23 @@ final class Terminal
     }
 
     bool supported(int mode) => modes[mode]?.supported ?? false;
+    // a cell's size: its own answer (CSI 16 t), else the tty's pixels, else
+    // the text area's (CSI 14 t) over the size in cells
+    if (cellWidth <= 0 || cellHeight <= 0) {
+      cellWidth = cellHeight = 0;
+      final tty = link is PixelSizedLink ? link.cellPixelSize : null;
+      if (tty != null) {
+        cellWidth = tty.width;
+        cellHeight = tty.height;
+      } else if (areaWidth > 0 && areaHeight > 0) {
+        final w = areaWidth ~/ link.columns;
+        final h = areaHeight ~/ link.lines;
+        if (w > 0 && h > 0) {
+          cellWidth = w;
+          cellHeight = h;
+        }
+      }
+    }
     final program = env['TERM_PROGRAM'] ?? '';
 
     var color = colorModeFor(env, windows: link.windows);
@@ -1629,6 +1673,8 @@ final class Terminal
       palette: palette,
       inBandResize: supported(2048),
       graphemeMode: supported(2027),
+      pixelMouse:
+          o.pixelMouse && supported(1016) && cellWidth > 0 && cellHeight > 0,
       kittyKeyboard: kitty,
       kittyKeyboardFlags: _kittyFlags(o),
       answeredQueries: answered,
@@ -1664,7 +1710,7 @@ final class Terminal
   /// reports, and BDSM.
   static const _modeQueries =
       '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
-      '\x1b[?2031\$p$bidiModeQuery';
+      '\x1b[?2031\$p\x1b[?1016\$p$bidiModeQuery';
 
   /// kitty's graphics query: a 1x1 image it would show, answered with
   /// `APC G i=31 ; OK ST` where the protocol is there.
@@ -1676,6 +1722,9 @@ final class Terminal
 
   /// `CSI 6 ; height ; width t`: a cell's size in pixels.
   static final _cellSizeReply = RegExp(r'^\x1b\[6;(\d+);(\d+)t$');
+
+  /// `CSI 4 ; height ; width t`: the text area's size in pixels.
+  static final _textAreaReply = RegExp(r'^\x1b\[4;(\d+);(\d+)t$');
 
   /// `CSI 8 ; Ps $ y`: the answer about BDSM ([bidiModeQuery]).
   static final _bidiModeReply = RegExp(r'^\x1b\[8;(\d+)\$y$');
@@ -1748,6 +1797,7 @@ final class Terminal
     return s.startsWith('\x1b_G') ||
         s.startsWith('\x1bP>|') ||
         _cellSizeReply.hasMatch(s) ||
+        _textAreaReply.hasMatch(s) ||
         _bidiModeReply.hasMatch(s) ||
         _secondaryReply.hasMatch(s) ||
         _unitIdReply.hasMatch(s);
@@ -1786,7 +1836,13 @@ final class Terminal
     }
     _mouseTracking = tracking;
     if (!_suspended) {
-      _writeString(mouseTrackingSequence(from, tracking));
+      _writeString(
+        mouseTrackingSequence(
+          from,
+          tracking,
+          pixels: info.pixelMouse,
+        ),
+      );
       _tellLost();
     }
   }
@@ -1801,7 +1857,13 @@ final class Terminal
     if (o.alternateScreen) {
       sb.write('\x1b[2J'); // the inline region erases only its own rows
     }
-    sb.write(mouseTrackingSequence(MouseTracking.off, _mouseTracking));
+    sb.write(
+      mouseTrackingSequence(
+        MouseTracking.off,
+        _mouseTracking,
+        pixels: info.pixelMouse,
+      ),
+    );
     if (o.bracketedPaste) {
       sb.write('\x1b[?2004h');
     }
@@ -1917,7 +1979,13 @@ final class Terminal
       sb.write('\x1b[?2004l');
     }
     sb
-      ..write(mouseTrackingSequence(_mouseTracking, MouseTracking.off))
+      ..write(
+        mouseTrackingSequence(
+          _mouseTracking,
+          MouseTracking.off,
+          pixels: info.pixelMouse,
+        ),
+      )
       // autowrap (the presenter turns it off), cursor visible with the
       // user's own cursor shape
       ..write('\x1b[?7h\x1b[0 q\x1b[?25h');
@@ -2097,8 +2165,25 @@ final class Terminal
     _resizes = _link.resizes.listen((_) => _checkSize());
   }
 
+  /// Asks the tty for a cell's size again, where the link can tell
+  /// ([PixelSizedLink]) and the pixel mouse is on: a font change resizes the
+  /// window's pixels. An in-band resize report carries them itself (the
+  /// parser takes them).
+  void _refreshCellSize() {
+    final link = _link;
+    if (info.pixelMouse && link is PixelSizedLink) {
+      final tty = link.cellPixelSize;
+      if (tty != null) {
+        _parser
+          ..cellPixelWidth = tty.width
+          ..cellPixelHeight = tty.height;
+      }
+    }
+  }
+
   /// Reports a size other than the last one.
   void _checkSize() {
+    _refreshCellSize();
     final w = _link.columns;
     final h = _link.lines;
     if (w != width || h != height) {

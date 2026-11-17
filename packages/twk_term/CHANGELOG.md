@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Added:
+
+- SGR-Pixels (mode 1016): `TerminalMode.mousePixels`, answered by DECRQM;
+  with it set and a cell size known, `sendMouse` and `mouseSequence`
+  (`cellWidth:`, `cellHeight:`) report pixels: the cell's origin plus the
+  event's `offsetX` and `offsetY` (the cell's middle without them).
+
 Changed:
 
 - A `Pty`'s hang-up grace and the reapers of its program run in the root

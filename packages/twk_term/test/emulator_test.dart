@@ -584,6 +584,32 @@ void main() {
       expect(r.t.mouseEncoding, MouseEncoding.x10);
     });
 
+    test('SGR-Pixels (1016): DECRQM, and a report in pixels where a cell '
+        'size is known', () {
+      final r = fed(r'\e[?1016$p\e[?1002h\e[?1006h');
+      expect(r.takeSent(), r'\e[?1016;2$y');
+      r.t
+        ..cellPixelWidth = 10
+        ..cellPixelHeight = 20;
+      const e = MouseEvent(MouseKind.down, 9, 2, offsetX: 5, offsetY: 7);
+      // not asked for: cells
+      r.t.sendMouse(e);
+      expect(r.takeSent(), r'\e[<0;10;3M');
+      r.feed(r'\e[?1016h\e[?1016$p');
+      expect(r.takeSent(), r'\e[?1016;1$y');
+      r.t.sendMouse(e);
+      expect(r.takeSent(), r'\e[<0;96;48M');
+      // without an offset the cell's middle
+      r.t.sendMouse(const MouseEvent(MouseKind.up, 0, 0));
+      expect(r.takeSent(), r'\e[<0;6;11m');
+      // a cell size not known: cells
+      r.t.cellPixelWidth = 0;
+      r.t.sendMouse(e);
+      expect(r.takeSent(), r'\e[<0;10;3M');
+      r.feed(r'\e[?1016l');
+      expect(r.t.mode(TerminalMode.mousePixels), isFalse);
+    });
+
     test('several modes in one sequence; XTSAVE and XTRESTORE', () {
       final r = fed(r'\e[?1;2004;1004h');
       expect(r.t.mode(TerminalMode.cursorKeys), isTrue);

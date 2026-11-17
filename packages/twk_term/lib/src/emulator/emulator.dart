@@ -856,7 +856,17 @@ final class TerminalEmulator {
       }
       return false;
     }
-    final bytes = mouseSequence(event, protocol, mouseEncoding);
+    final pixels =
+        mode(TerminalMode.mousePixels) &&
+        cellPixelWidth > 0 &&
+        cellPixelHeight > 0;
+    final bytes = mouseSequence(
+      event,
+      protocol,
+      mouseEncoding,
+      cellWidth: pixels ? cellPixelWidth : 0,
+      cellHeight: pixels ? cellPixelHeight : 0,
+    );
     if (bytes == null) {
       return false;
     }

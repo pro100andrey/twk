@@ -92,15 +92,21 @@ enum MouseTracking {
 /// mode of [from] off, that of [to] on (terminals keep one of them on at a
 /// time, and some turn any of them off with the reset of another), SGR
 /// coordinates on with the first and off with the last; empty when they
-/// are the same.
-String mouseTrackingSequence(MouseTracking from, MouseTracking to) {
+/// are the same. With [pixels], SGR-Pixels (mode 1016) is switched with
+/// the SGR coordinates: the terminal then reports the pointer in pixels,
+/// which the input parser divides into cells and offsets.
+String mouseTrackingSequence(
+  MouseTracking from,
+  MouseTracking to, {
+  bool pixels = false,
+}) {
   if (from == to) {
     return '';
   }
   const off = MouseTracking.off;
   return switch ((from, to)) {
-    (off, _) => '\x1b[?${to.mode}h\x1b[?1006h',
-    (_, off) => '\x1b[?${from.mode}l\x1b[?1006l',
+    (off, _) => '\x1b[?${to.mode}h\x1b[?1006h${pixels ? '\x1b[?1016h' : ''}',
+    (_, off) => '\x1b[?${from.mode}l${pixels ? '\x1b[?1016l' : ''}\x1b[?1006l',
     _ => '\x1b[?${from.mode}l\x1b[?${to.mode}h',
   };
 }

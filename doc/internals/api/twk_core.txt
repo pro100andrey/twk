@@ -55,6 +55,7 @@ terminal.dart class MouseEvent
 terminal.dart class MouseTrackingBackend
 terminal.dart class PasteEvent
 terminal.dart class Pen
+terminal.dart class PixelSizedLink
 terminal.dart class ResizeEvent
 terminal.dart class StyleTable
 terminal.dart class SuspendableBackend
@@ -161,6 +162,7 @@ twk_core.dart class ParentData
 twk_core.dart class PasteEvent
 twk_core.dart class Pen
 twk_core.dart class PipelineOwner
+twk_core.dart class PixelSizedLink
 twk_core.dart class PresentStats
 twk_core.dart class Presenter
 twk_core.dart class RenderBox

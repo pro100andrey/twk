@@ -18,6 +18,17 @@ Changed:
 
 Added:
 
+- Pixel mouse: where the terminal answers DECRQM for SGR-Pixels (mode
+  1016) and a cell's size is known, the mouse is reported in pixels and
+  `InputParser` divides them into the cell and `MouseEvent.offsetX` and
+  `offsetY` (pixels into the cell; null where the terminal reports cells).
+  `TerminalOptions.pixelMouse` (true) turns it off, `TerminalInfo.pixelMouse`
+  says. A cell's size now comes from `CSI 16 t`, else the tty
+  (`ws_xpixel`, `ws_ypixel`; the `PixelSizedLink` the process's own link is,
+  read again at each resize), else `CSI 14 t` over the size in cells, so
+  `TerminalCaps.cellPixelWidth` is known on more terminals; an in-band
+  resize with the window's pixels updates it. `mouseTrackingSequence(pixels:)`.
+
 - The probe asks the tertiary device attributes (DA3, `CSI = c`, after DA2,
   not of the Linux console) and reads the unit id it answers
   (`DCS ! | hex ST`): a terminal that answers Terminology's (`~~TY`) is shown
