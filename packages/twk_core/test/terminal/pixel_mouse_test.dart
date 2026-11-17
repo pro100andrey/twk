@@ -227,5 +227,73 @@ void main() {
       ]);
       await clock.runUntil(term.close);
     });
+
+    group("a link that cannot tell the tty's pixels", () {
+      Future<(Terminal, FakeLink, List<InputEvent>)> start(
+        String answers,
+      ) async {
+        final link = FakeLink();
+        final term = await open(link, answers);
+        final events = <InputEvent>[];
+        term.events.listen(events.add);
+        return (term, link, events);
+      }
+
+      test('asks again at a resize and divides by the answer', () async {
+        final (term, link, events) = await start('$_on$_cellSize');
+        final before = link.text.length;
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        expect(link.text.substring(before), contains('\x1b[16t'));
+        // until the answer comes the old size stands
+        link.type('\x1b[<0;41;81M');
+        await clock.flushMicrotasks();
+        // the font was zoomed: a cell is 20x40 now
+        link.type('\x1b[6;40;20t\x1b[4;120;300t');
+        await clock.flushMicrotasks();
+        link.type('\x1b[<0;41;81M');
+        await clock.flushMicrotasks();
+        expect(events, [
+          const ResizeEvent(30, 6),
+          const MouseEvent(MouseKind.down, 4, 4, offsetX: 0, offsetY: 0),
+          const MouseEvent(MouseKind.down, 2, 2, offsetX: 0, offsetY: 0),
+        ]);
+        await clock.runUntil(term.close);
+      });
+
+      test('takes the text area over the cells where CSI 16 t is not '
+          'answered', () async {
+        final (term, link, events) = await start('$_on$_cellSize');
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        // 240 x 600 pixels over 30 x 6 cells: 20 x 40
+        link.type('\x1b[4;240;600t');
+        await clock.flushMicrotasks();
+        link.type('\x1b[<0;41;81M');
+        await clock.flushMicrotasks();
+        expect(
+          events.last,
+          const MouseEvent(MouseKind.down, 2, 2, offsetX: 0, offsetY: 0),
+        );
+        await clock.runUntil(term.close);
+      });
+
+      test('is not asked at a resize where the pixel mouse is off', () async {
+        final link = FakeLink();
+        final term = await open(
+          link,
+          '$_on$_cellSize',
+          options: const TerminalOptions(
+            probeTimeout: Duration(seconds: 5),
+            pixelMouse: false,
+          ),
+        );
+        final before = link.text.length;
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        expect(link.text.substring(before), isNot(contains('16t')));
+        await clock.runUntil(term.close);
+      });
+    });
   });
 }

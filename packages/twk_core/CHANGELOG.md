@@ -11,6 +11,10 @@ Breaking:
 
 Changed:
 
+- The pixel mouse's cell size stays current over a link that cannot read the
+  tty's pixels (a socket, ssh): each resize asks the terminal again (CSI 16 t,
+  CSI 14 t over the size in cells where there is no cell size), the old size
+  standing until the answer comes, which is not delivered as input.
 - `KeyEvent ==` and `hashCode` leave `baseChar` out (it says which key a
   layout's character is on, not which key it is), so `key == ctrlC` holds
   on a Russian layout too; `kittyCode` shares a field with `modifiers`,

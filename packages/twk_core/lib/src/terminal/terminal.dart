@@ -2104,6 +2104,9 @@ final class Terminal
   Timer? _lateCursorTimer;
 
   void _deliver(InputEvent e) {
+    if (_takeSizeReply(e)) {
+      return;
+    }
     if (e is CursorReport) {
       final asked = _cursorAsked;
       if (asked != null && !asked.isCompleted) {
@@ -2165,20 +2168,69 @@ final class Terminal
     _resizes = _link.resizes.listen((_) => _checkSize());
   }
 
-  /// Asks the tty for a cell's size again, where the link can tell
-  /// ([PixelSizedLink]) and the pixel mouse is on: a font change resizes the
-  /// window's pixels. An in-band resize report carries them itself (the
-  /// parser takes them).
+  /// Takes a cell's size again while the pixel mouse is on: a font change
+  /// resizes the window's pixels. From the tty where the link can tell
+  /// ([PixelSizedLink]); otherwise the terminal is asked again (CSI 16 t,
+  /// and CSI 14 t over the size in cells where it has no cell size), and the
+  /// old size stands until the answer comes ([_takeSizeReply]). An in-band
+  /// resize report carries the pixels itself (the parser takes them).
   void _refreshCellSize() {
-    final link = _link;
-    if (info.pixelMouse && link is PixelSizedLink) {
-      final tty = link.cellPixelSize;
-      if (tty != null) {
-        _parser
-          ..cellPixelWidth = tty.width
-          ..cellPixelHeight = tty.height;
-      }
+    if (!info.pixelMouse || _closed || _suspended) {
+      return;
     }
+    final link = _link;
+    final tty = link is PixelSizedLink ? link.cellPixelSize : null;
+    if (tty != null) {
+      _parser
+        ..cellPixelWidth = tty.width
+        ..cellPixelHeight = tty.height;
+      return;
+    }
+    _sizeReplies = 2;
+    _cellAnswered = false;
+    _writeString('\x1b[16t\x1b[14t');
+  }
+
+  /// How many answers to the last re-ask ([_refreshCellSize]) may still
+  /// come: they are taken here, not delivered as input.
+  var _sizeReplies = 0;
+
+  /// Whether CSI 16 t answered the last re-ask: the text area then is not
+  /// needed.
+  var _cellAnswered = false;
+
+  /// Takes [e] if it is an answer to the re-ask for a cell's size.
+  bool _takeSizeReply(InputEvent e) {
+    if (_sizeReplies == 0 || e is! UnknownSequence) {
+      return false;
+    }
+    final s = String.fromCharCodes(e.bytes);
+    if (_cellSizeReply.firstMatch(s) case final m?) {
+      _sizeReplies--;
+      final h = int.parse(m[1]!);
+      final w = int.parse(m[2]!);
+      if (w > 0 && h > 0) {
+        _cellAnswered = true;
+        _parser
+          ..cellPixelWidth = w
+          ..cellPixelHeight = h;
+      }
+      return true;
+    }
+    if (_textAreaReply.firstMatch(s) case final m?) {
+      _sizeReplies--;
+      if (!_cellAnswered) {
+        final w = int.parse(m[2]!) ~/ _link.columns;
+        final h = int.parse(m[1]!) ~/ _link.lines;
+        if (w > 0 && h > 0) {
+          _parser
+            ..cellPixelWidth = w
+            ..cellPixelHeight = h;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   /// Reports a size other than the last one.
