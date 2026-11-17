@@ -4,6 +4,10 @@ twk_driver.dart class AppError
 twk_driver.dart class AppEvent
 twk_driver.dart class AppServicePort
 twk_driver.dart class ByteLog
+twk_driver.dart class Cast
+twk_driver.dart class CastEvent
+twk_driver.dart class CastHeader
+twk_driver.dart class CastWriter
 twk_driver.dart class Cells
 twk_driver.dart class ClockControl
 twk_driver.dart class ClockStatus
@@ -25,6 +29,8 @@ twk_driver.dart class SessionPorts
 twk_driver.dart class Step
 twk_driver.dart class TerminalPort
 twk_driver.dart class TimerInfo
+twk_driver.dart class Trace
+twk_driver.dart class TraceOptions
 twk_driver.dart class VmAppClient
 twk_driver.dart class VmQueries
 twk_driver.dart function compiledProgram
