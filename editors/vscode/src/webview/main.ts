@@ -137,11 +137,25 @@ term.attachCustomKeyEventHandler((e) => {
   if ((e.ctrlKey || e.metaKey) && e.altKey && e.code === 'KeyR') {
     return false;
   }
-  const sent = emulation?.key({ key: e.key, code: e.code, ctrl: e.ctrlKey, alt: e.altKey, shift: e.shiftKey, meta: e.metaKey });
+  const sent = emulation?.key({
+    key: e.key,
+    code: e.code,
+    ctrl: e.ctrlKey,
+    alt: e.altKey,
+    shift: e.shiftKey,
+    meta: e.metaKey,
+    type: e.type === 'keyup' ? 'release' : e.repeat ? 'repeat' : 'press',
+    location: e.location,
+    capsLock: e.getModifierState('CapsLock'),
+    numLock: e.getModifierState('NumLock'),
+    composing: e.isComposing,
+  });
   if (sent === undefined) {
     return true;
   }
-  if (e.type === 'keydown') {
+  // a key is sent on its keydown (a repeat is one too) or its keyup; its keypress, which
+  // follows a keydown that did not prevent it, is xterm.js's to leave
+  if (e.type !== 'keypress') {
     e.preventDefault();
     post({ type: 'input', data: sent, binary: false });
   }

@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- The twk terminal speaks all of kitty's keyboard protocol to an app that pushes it (`TerminalOptions.kittyKeyboardFlags`): event types (repeat and release of keys), alternate keys (the shifted key and the key of a US layout), all keys as escape codes (text, Enter, Tab, Backspace, modifier, lock, media and keypad keys) and associated text; `CSI ? u` tells them back.
+
 - The sequence log saved to a file for a bug report: the log panel's Save… button, or twk: Save the Sequence Log of the twk Terminal to a File. A `.cast` gets the bytes with their times (asciicast: the app's output, what the terminal sent, the notes as markers) which `twk decode`, `twk play` and the replay here read; any other name gets the rows as text as `twk decode` prints them, as the bar's filter shows them.
 
 - Review fixes: Type a Recording's Keys holds nothing back inside a paste but the start of its end marker, as `twk record --replay` does (an Escape or the start of a string at the end of an event is typed at its time); a recording's marker is not left (and the command says so) once the recording has ended; the status bar's subscriptions to a terminal go with it; a busy Test from a Recording opens no progress notification; a group signal that fails other than with ESRCH falls back to the process.

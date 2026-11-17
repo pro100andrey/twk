@@ -232,4 +232,23 @@ describe('what twk finds out about the twk terminal, switch by switch', function
     await app.done();
     assert.deepEqual(lines.slice(1), ['key escape "" 0', 'key char "c" 4', 'key char "x" 2', 'key enter "" 1', 'key char "a" 0', 'key char "q" 4']);
   });
+
+  it('kitty keyboard, all flags pushed over twk: the text, its release, Enter, a release of an arrow and a shortcut as escape codes, read back as those keys', async () => {
+    const app = await run(choiceOf('everything', {}).capabilities, ['keys']);
+    assert.equal((await app.found()).kittyKeyboard, true);
+    // the app pushed disambiguation, and the person's terminal setting pushes the rest on it
+    await new Promise<void>((resolve) => app.t.term.write('\x1b[>31u', resolve));
+    assert.equal(app.t.emulation.key({ key: 'a', code: 'KeyA', ctrl: false, alt: false, shift: false, meta: false }), '\x1b[97;;97u');
+    const key = (k: string, code: string, mods: Partial<KeyPress> = {}): KeyPress => ({ key: k, code, ctrl: false, alt: false, shift: false, meta: false, ...mods });
+    app.t.press(key('Shift', 'ShiftLeft', { shift: true }), '');
+    app.t.press(key('A', 'KeyA', { shift: true }), 'A');
+    app.t.press(key('A', 'KeyA', { shift: true, type: 'release' }), '');
+    app.t.press(key('Enter', 'Enter'), '\r');
+    app.t.press(key('ArrowUp', 'ArrowUp', { type: 'release' }), '');
+    app.t.press(key('c', 'KeyC', { ctrl: true }), '\x03');
+    app.t.press(key('q', 'KeyQ', { ctrl: true }), '\x11');
+    const lines = await app.lines(7);
+    await app.done();
+    assert.deepEqual(lines.slice(1), ['key char "A" 0', 'key char "A" 0', 'key enter "" 0', 'key up "" 0', 'key char "c" 4', 'key char "q" 4']);
+  });
 });

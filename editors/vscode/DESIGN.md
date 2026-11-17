@@ -797,8 +797,8 @@ What the tests cover:
   toggles picked), the emulation's pure parts (`emulation.test.ts`, 6:
   DECRQM denied, XTVERSION and the cell size, colour queries, an app's
   requests parsed, links only to the web and mail, the progress's text)
-  and kitty's keyboard protocol (`kitty_keyboard.test.ts`, 3: the stacks,
-  the keys encoded, those left to xterm.js); the emulation on
+  and kitty's keyboard protocol (`kitty_keyboard.test.ts`, 22: the stacks,
+  the keys encoded for each flag and for the flags together, those left to xterm.js); the emulation on
   @xterm/headless (`answers.test.ts`, 7: twk's probe answered in order,
   DA1 last; kitty keyboard pushed and popped per screen; off; no
   synchronized output; no answers; the requests on and off; links); and
@@ -1747,7 +1747,7 @@ The switches, each held to what twk finds by a twk app in the unit tests
 | colours: 24-bit, 256, 16, none | environment (`COLORTERM`, `TERM`, `NO_COLOR`) | trueColor, ansi256, ansi16, none |
 | answers off (`no answers`) | DECRQM denied "not recognised", OSC 10/11/4 queries and DA1 dropped, nothing of the webview's | answered false (after the probe's timeout) |
 | synchronized output off | DECRQM 2026 "not recognised" | sync off |
-| kitty keyboard | the webview answers `CSI ? u` with the flags in force, keeps the flags pushed, popped and set (`CSI > u`, `CSI < u`, `CSI = u`), one stack per screen, and encodes keys as disambiguation says (flag 1, what twk pushes; more is not done, the flags told back say so): Escape, Ctrl and Alt keys, modified Enter, Tab and Backspace as `CSI code ; mods u`, by the key's place for letters and digits; Meta (Cmd) left to VS Code | kittyKeyboard, flags 1; the keys read back as Escape, Ctrl+C, Alt+X, Shift+Enter, Ctrl+Q |
+| kitty keyboard | the webview answers `CSI ? u` with the flags in force, keeps the flags pushed, popped and set (`CSI > u`, `CSI < u`, `CSI = u`), one stack per screen, and encodes keys as the flags ask, all five (`core/kitty_keyboard.ts`; the flags told back are those pushed, masked to 31). 1, disambiguation (what twk pushes): Escape, Ctrl and Alt keys, modified Enter, Tab and Backspace as `CSI code ; mods u`, by the key's place for letters and digits (a layout does not change the code unless 4 is on), and F13 to F24 (57376 and on); 2, event types: `:2` a repeat and `:3` a release after the modifiers (`CSI 97 ; 5:3 u`; the legacy forms `CSI 1 ; 1:3 A`, `CSI 3 ; 1:2 ~`, a press of those left to xterm.js, which sends the same), the text keys released as `CSI u` and repeated as their text, Enter, Tab and Backspace never released without 8, and without 2 a repeat a press and a release nothing (the page's `keydown`/`repeat`/`keyup`); 4, alternate keys: `CSI code : shifted : base u`, the code the layout's lower case (`1089` for `с`), the shifted key where Shift is held, the base layout key (a US layout's, from `KeyboardEvent.code`) where it differs, as `CSI 1089::99;5u`; macOS Option's letters stay by place; 8, all keys: text, Enter, Tab and Backspace as `CSI u`, the modifier keys alone (57441 to 57453, AltGr 57453, the modifier in the press's own field), lock, Print Screen, Pause, Menu and some media keys, the keypad's own codes (57399 and on, by `location` 3; Num Lock off by what the key does), Caps Lock and Num Lock among the modifiers (64, 128); 16, associated text, with 8: the code points the key typed after the modifiers (`CSI 97 ; 2 ; 65 u`), for a press and a repeat of text without Ctrl or Alt. Meta (Cmd) and a key in an input method's composition are left to VS Code and xterm.js | kittyKeyboard, flags 1; the keys read back as Escape, Ctrl+C, Alt+X, Shift+Enter, Ctrl+Q; and with all flags pushed the text, its release, Enter, an arrow's release and a shortcut read back (`twk_probe.test.ts`) |
 | images: none, sixel, iTerm2 | declared; shown by `@xterm/addon-image` 0.9.0 (sixel and IIP; the page's CSP allows its WebAssembly and blob: images) | graphics none, sixel, iterm2 |
 | cell size | `CSI 16 t` answered with the screen element's size per cell | 9x18 (the test's), 0x0 off |
 | notifications | declared `osc777`, else `none`; OSC 777 `notify` shown as VS Code's notification | osc777 / none |
@@ -1964,9 +1964,12 @@ What the repository offers for the wished features:
   traffic with times, decoded; recorded as asciicast for `twk play`;
   replayed into a terminal of its own; the screen copied as text.
 
-Left for later: kitty keyboard's flags beyond disambiguation (event
-types, all keys as escape codes, alternate keys, text), the
-external-terminal flavour of B (`twk shell` already is).
+Left for later: the external-terminal flavour of B (`twk shell` already
+is). Kitty keyboard's flags beyond disambiguation (event types, alternate
+keys, all keys as escape codes, associated text) are done, part 3 of the
+table below; what twk_core does not read of them: the base layout key
+(`CSI 1089::99 ; 5 u` is Ctrl+с for it, not Ctrl+C), and key releases of
+the keypad and modifier keys, which are no `KeyEvent`.
 
 ## 2g. Golden screens
 
