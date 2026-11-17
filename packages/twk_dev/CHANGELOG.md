@@ -20,6 +20,9 @@ Fixed:
 
 Added:
 
+- `twk create --template=app`: a `driverTest` beside the `testTwk` ones
+  (`test/app_template_driver_test.dart`, tagged `process`): starts the app,
+  presses a key, reads the screen and quits with Ctrl+Q.
 - `twk tape`: `Wait Widget <Type>`, `Wait Text "<text>"` and `Click "<text>"`
   for a twk app (`Run dart <file>`): the tape waits for what the app's widget
   tree has and clicks a widget, after the tap check of twk_driver (a click on
