@@ -95,6 +95,7 @@ void main() {
       'frameDue',
       'time',
       'nextDue',
+      'stats',
     ]);
     expect(frame['version'], 1);
     expect(frame['frame'], frames + 1);
@@ -108,6 +109,16 @@ void main() {
     expect(frame['frameDue'], isNull);
     expect(frame['time'], isA<int>());
     expect(frame['nextDue'], isNull);
+    final stats = app.stats;
+    expect(frame['stats'], {
+      'micros': stats.lastMicros,
+      'build': stats.lastBuildMicros,
+      'layout': stats.lastLayoutMicros,
+      'paint': stats.lastPaintMicros,
+      'present': stats.lastPresentMicros,
+      'bytes': stats.lastBytes,
+    });
+    expect(stats.lastBytes, greaterThan(0));
     // everything in it is JSON
     expect(jsonDecode(jsonEncode(frame)), frame);
   });
@@ -120,6 +131,9 @@ void main() {
     final frame = of('twk.frame').single;
     expect(frame['drawn'], isFalse);
     expect(frame['outputWritten'], t.terminal.bytesWritten);
+    expect(frame.containsKey('stats'), isTrue);
+    expect(frame['stats'], isNull);
+    expect(jsonDecode(jsonEncode(frame)), frame);
   });
 
   testTwk('a key that changes nothing is acknowledged by twk.input, with no '
@@ -134,6 +148,7 @@ void main() {
     final ack = of('twk.input').first;
     expect(ack['inputRead'], 1);
     expect(ack['frame'], frames);
+    expect(ack.containsKey('stats'), isFalse);
     expect(ack['drawn'], isFalse);
     expect(ack['scheduled'], isFalse);
   });

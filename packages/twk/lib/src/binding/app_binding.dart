@@ -2099,10 +2099,14 @@ final class DebugAids {
   /// terminal), `inputPending`, `scheduled` and `frameDue` (a frame is
   /// asked for, and when it is due, in microseconds of the app's clock),
   /// `time` (the app's clock), `nextDue`, null: no timer of the app's
-  /// clock is known, and `quitting` (`TwkApp.quitting`). Off by default;
-  /// off, a frame's work gains a test of this flag and the app arms no
-  /// timer for input; on, a post, which does nothing while no client
-  /// listens to the `Extension` stream.
+  /// clock is known, and `quitting` (`TwkApp.quitting`). `twk.frame` also
+  /// carries `stats`: for a drawn frame `micros`, `build`, `layout`,
+  /// `paint` and `present` (the microseconds the frame and its stages took)
+  /// and `bytes` (what it wrote), from `TwkApp.stats`; null for a frame
+  /// that wrote nothing. `twk.input` and `ext.twk.status` do not carry it.
+  /// Off by default; off, a frame's work gains a test of this flag and the
+  /// app arms no timer for input; on, a post, which does nothing while no
+  /// client listens to the `Extension` stream.
   bool get frameEvents => _frameEvents;
   var _frameEvents = false;
   set frameEvents(bool on) {
@@ -2124,7 +2128,20 @@ final class DebugAids {
     final app = _binding.twkApp;
     final drawn = app.stats.frames != _framesDrawn;
     _framesDrawn = app.stats.frames;
-    AppBinding.postEvent('twk.frame', _frameData(drawn, _frameInputRead));
+    final stats = app.stats;
+    AppBinding.postEvent('twk.frame', {
+      ..._frameData(drawn, _frameInputRead),
+      'stats': drawn
+          ? {
+              'micros': stats.lastMicros,
+              'build': stats.lastBuildMicros,
+              'layout': stats.lastLayoutMicros,
+              'paint': stats.lastPaintMicros,
+              'present': stats.lastPresentMicros,
+              'bytes': stats.lastBytes,
+            }
+          : null,
+    });
   }
 
   /// Posts `twk.input`: what was read or dispatched did not, or does not

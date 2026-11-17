@@ -4,6 +4,10 @@
 
 Added:
 
+- `twk.frame` carries `stats` (`micros`, `build`, `layout`, `paint`,
+  `present`, `bytes`, from `TwkApp.stats`) for a drawn frame, null for an
+  undrawn one; built only while `frameEvents` is on. `twk.input` and
+  `ext.twk.status` do not carry it.
 - `ext.twk.status`: where the app is, as `twk.frame` carries it (without
   `drawn`), `inputRead` sampled afresh, nothing changed: the baseline a
   driver starts from. `twk.frame`, `twk.input` and it carry `quitting`
