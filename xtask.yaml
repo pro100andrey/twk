@@ -567,6 +567,10 @@ tasks:
     # shows in the diff of a pull request. It also fails a name too general
     # for an export that has no exception, and an exception that matches no
     # name (tool/api_names/banned_names.txt, each with its reason).
+    # A failure here is a stale list, not a flake: the run names each file it
+    # rewrote ("STALE doc/internals/api/<package>.txt"), a second run passes
+    # because the file is written, and the file is to be committed with the
+    # change that exported the names.
     desc: write the published packages' public names; fail if stale or too general
     gate: [handover, ci]
     needs: [get]
