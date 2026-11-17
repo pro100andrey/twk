@@ -24,6 +24,7 @@ const topics = [
   'data',
   'debug',
   'editing',
+  'finders',
   'focus',
   'foundation',
   'framework',

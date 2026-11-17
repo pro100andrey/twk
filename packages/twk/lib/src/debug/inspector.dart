@@ -18,7 +18,10 @@ import 'package:twk_core/twk_core.dart'
         kCont,
         kWide;
 
+import '../finders/finders.dart';
+import '../finders/whole_text.dart';
 import '../framework/framework.dart';
+import '../text/text.dart' show Text;
 
 /// Gives the elements and the render objects of an app ids, and describes
 /// them as JSON ([Element.describe], [RenderObject.describe]).
@@ -130,8 +133,9 @@ final class Inspector {
   /// (`render`) and type (`name`); once laid out, its `constraints`
   /// (`minWidth`, `maxWidth`, `minHeight`, `maxHeight`, null for no limit)
   /// and `size` (`width`, `height`); its `offset` (`x`, `y`) in its parent
-  /// and `global`, on the screen (of the region in the inline mode). Only
-  /// `id` for a node without one.
+  /// and `global`, on the screen (of the region in the inline mode), and
+  /// `shown`, the cells of it the screen shows ([shown]: `x`, `y`, `width`,
+  /// `height`; null for none). Only `id` for a node without one.
   Map<String, Object?> layout(Object node) {
     final o = renderObjectOf(node);
     if (o == null) {
@@ -154,7 +158,50 @@ final class Inspector {
       if (c != null) 'size': {'width': o.width, 'height': o.height},
       'offset': {'x': at.dx, 'y': at.dy},
       'global': {'x': gx, 'y': gy},
+      'shown': _rect(shown(o)),
     };
+  }
+
+  /// The elements [finder] finds in the app's tree, as `ext.twk.find`
+  /// answers: `count` and `matches`, each with its `id`, widget `type`,
+  /// `key` (as the tree has it, null for none), `text` (the whole text of a
+  /// [Text], null of any other widget), `rect` (the cells of its render
+  /// object, null before it is laid out) and `shown` ([shown]). The finder
+  /// has the app's element and those below it to choose from.
+  Map<String, Object?> find(ElementFinder finder) {
+    final app = this.app();
+    final found = app == null ? <Element>[] : finder.evaluate(app);
+    return {
+      'count': found.length,
+      'matches': [
+        for (final e in found)
+          {
+            'id': idOf(e),
+            'type': '${e.widget.runtimeType}',
+            'key': e.describe().key,
+            'text': switch (e.widget) {
+              final Text t => wholeText(t),
+              _ => null,
+            },
+            'rect': _laidOut(e.renderObject),
+            'shown': _rect(
+              e.renderObject == null ? null : shown(e.renderObject!),
+            ),
+          },
+      ],
+    };
+  }
+
+  static Map<String, int>? _rect(ShownRect? r) => r == null
+      ? null
+      : {'x': r.x, 'y': r.y, 'width': r.width, 'height': r.height};
+
+  static Map<String, int>? _laidOut(RenderObject? o) {
+    if (o == null || o.constraints == null) {
+      return null;
+    }
+    final (x, y) = o.globalOffset;
+    return {'x': x, 'y': y, 'width': o.width, 'height': o.height};
   }
 
   /// What is at [x], [y] of the screen (of the region in the inline
@@ -296,41 +343,17 @@ const _highlightColor = Color.rgb(0, 128, 255);
 const _edgeAlpha = 0xC0;
 const _insideAlpha = 0x40;
 
-/// The cells of [target] the screen shows, from (x0, y0) to (x1, y1)
-/// exclusive, in the coordinates of the root: its bounds cut off where an
-/// ancestor cuts it off, as paint cuts it; null for none, or while it is
-/// detached.
-(int, int, int, int)? _shownOf(RenderObject target) {
-  if (target.owner == null) {
-    return null;
-  }
-  final (gx, gy) = target.globalOffset;
-  var x0 = gx;
-  var y0 = gy;
-  var x1 = gx + target.width;
-  var y1 = gy + target.height;
-  var ax = gx;
-  var ay = gy;
-  for (var o = target; o.parent != null; o = o.parent!) {
-    ax -= o.parentData.dx;
-    ay -= o.parentData.dy;
-    final p = o.parent!;
-    x0 = x0 > ax ? x0 : ax;
-    y0 = y0 > ay ? y0 : ay;
-    x1 = x1 < ax + p.width ? x1 : ax + p.width;
-    y1 = y1 < ay + p.height ? y1 : ay + p.height;
-  }
-  return x0 < x1 && y0 < y1 ? (x0, y0, x1, y1) : null;
-}
-
 /// Whether the outline over [target] ([paintHighlight]) reaches the cells
 /// [x], [y], [w] × [h] of the root.
 bool highlightReaches(RenderObject target, int x, int y, int w, int h) {
-  final shown = _shownOf(target);
-  if (shown == null) {
+  final cells = shown(target);
+  if (cells == null) {
     return false;
   }
-  final (x0, y0, x1, y1) = shown;
+  final x0 = cells.x;
+  final y0 = cells.y;
+  final x1 = x0 + cells.width;
+  final y1 = y0 + cells.height;
   return x0 < x + w && x < x1 && y0 < y + h && y < y1;
 }
 
@@ -340,13 +363,16 @@ bool highlightReaches(RenderObject target, int x, int y, int w, int h) {
 /// kept, its edges more than the cells inside them, a two-column glyph
 /// cut by the outline tinted whole; nothing while it is detached.
 void paintHighlight(PaintContext ctx, RenderObject target) {
-  final shown = _shownOf(target);
-  if (shown == null) {
+  final rect = shown(target);
+  if (rect == null) {
     return;
   }
   final canvas = ctx.canvas;
   final (cx0, cy0, cx1, cy1) = canvas.clipBounds;
-  final (sx0, sy0, sx1, sy1) = shown;
+  final sx0 = rect.x;
+  final sy0 = rect.y;
+  final sx1 = sx0 + rect.width;
+  final sy1 = sy0 + rect.height;
   final x0 = sx0 > cx0 ? sx0 : cx0;
   final y0 = sy0 > cy0 ? sy0 : cy0;
   final x1 = sx1 < cx1 ? sx1 : cx1;

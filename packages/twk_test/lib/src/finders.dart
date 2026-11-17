@@ -5,8 +5,6 @@
 /// ([FinderTester]).
 library;
 
-import 'dart:math';
-
 import 'package:meta/meta.dart' show internal;
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
@@ -34,27 +32,19 @@ typedef CellRect = ({int x, int y, int width, int height});
 /// ```
 const find = Finders._();
 
-/// The string of [text], or its spans joined.
-String _shown(Text text) =>
-    text.data ?? [for (final s in text.spans!) s.text].join();
-
 /// What [find] is.
 final class Finders {
   const Finders._();
 
   /// The widgets of exactly the type [type], not of its subtypes.
-  Finder byType(Type type) =>
-      _WidgetFinder('type $type', (w) => w.runtimeType == type);
+  Finder byType(Type type) => Finder._(ElementFinder.type(type));
 
   /// The widgets whose key is [key].
-  Finder byKey(Key key) => _WidgetFinder('key $key', (w) => w.key == key);
+  Finder byKey(Key key) => Finder._(ElementFinder.key(key));
 
   /// The [Text]s that show [text]: their string, or their spans joined
   /// ([Text.rich]).
-  Finder text(String text) => _WidgetFinder(
-    'text "$text"',
-    (w) => w is Text && _shown(w) == text,
-  );
+  Finder text(String text) => Finder._(ElementFinder.text(text));
 
   /// The [Text]s whose string, or their spans joined ([Text.rich]), has a
   /// match of [pattern] in it, a [String] or a [RegExp]. `t.rect` then says
@@ -68,40 +58,54 @@ final class Finders {
   ///   expect(find.textContaining(RegExp(r'^\d+ of')), findsOneWidget);
   /// });
   /// ```
-  Finder textContaining(Pattern pattern) => _WidgetFinder(
-    'text containing ${pattern is RegExp ? pattern.pattern : '"$pattern"'}',
-    (w) => w is Text && pattern.allMatches(_shown(w)).isNotEmpty,
-  );
+  Finder textContaining(Pattern pattern) => Finder._(switch (pattern) {
+    final RegExp re => ElementFinder.textMatches(re),
+    _ => ElementFinder.textContaining(pattern.toString()),
+  });
 
   /// The widgets [predicate] is true of, named [description] in messages.
+  /// Only in the process of the test: it cannot be sent to the app as data
+  /// ([Finder.toJson] throws).
   Finder byWidgetPredicate(
     bool Function(Widget widget) predicate, {
     String description = 'widgets a predicate takes',
-  }) => _WidgetFinder(description, predicate);
+  }) => Finder._(_PredicateFinder(description, predicate));
 
   /// The widgets [matching] finds below those [of] finds, in the order of
   /// the tree.
-  Finder descendant({required Finder of, required Finder matching}) =>
-      _DescendantFinder(of, matching);
+  Finder descendant({required Finder of, required Finder matching}) => Finder._(
+    ElementFinder.descendant(of: of._finder, matching: matching._finder),
+  );
 
   /// The widgets [matching] finds above those [of] finds: above the first
   /// from the nearest up, then above the next.
-  Finder ancestor({required Finder of, required Finder matching}) =>
-      _AncestorFinder(of, matching);
+  Finder ancestor({required Finder of, required Finder matching}) => Finder._(
+    ElementFinder.ancestor(of: of._finder, matching: matching._finder),
+  );
 }
 
 /// What picks elements out of the app's tree: out of the candidates it is
 /// given ([apply]), all of the app's when it is evaluated in a test
 /// ([evaluate]). Its [description] names it in messages: `type Text`.
-abstract class Finder {
-  /// Lets a subclass be constant.
-  const Finder();
+///
+/// It is a value of twk's [ElementFinder], the same code the app's
+/// `ext.twk.find` evaluates over the wire, where [toJson] sends it.
+final class Finder {
+  const Finder._(this._finder);
+
+  final ElementFinder _finder;
 
   /// What it finds, for messages: `type Text`, `text "Save"`.
-  String get description;
+  String get description => _finder.description;
 
   /// The elements this finds among [candidates], in their order.
-  Iterable<Element> apply(Iterable<Element> candidates);
+  Iterable<Element> apply(Iterable<Element> candidates) =>
+      _finder.apply(candidates);
+
+  /// This as the JSON `ext.twk.find` takes. An [UnsupportedError] naming
+  /// what cannot cross the wire: a [Finders.byWidgetPredicate], a key that
+  /// is no [ValueKey] of a [String] or an int, a [RegExp] with flags.
+  Object? toJson() => _finder.toJson();
 
   /// The elements this finds in the app of the test running ([testTwk]):
   /// among those of the widget [TwkTester.pumpWidget] showed and the
@@ -118,16 +122,37 @@ abstract class Finder {
   }
 
   /// The first of what this finds.
-  Finder get first => _IndexFinder(this, 0, 'the first of $description');
+  Finder get first => Finder._(_finder.first);
 
   /// The last of what this finds.
-  Finder get last => _IndexFinder(this, -1, 'the last of $description');
+  Finder get last => Finder._(_finder.last);
 
   /// What this finds at [index], from 0.
-  Finder at(int index) => _IndexFinder(this, index, '$description at $index');
+  Finder at(int index) => Finder._(_finder.at(index));
 
   @override
   String toString() => description;
+}
+
+/// The widgets [_test] takes; in-process only.
+final class _PredicateFinder extends ElementFinder {
+  const _PredicateFinder(this.description, this._test);
+
+  @override
+  final String description;
+
+  final bool Function(Widget widget) _test;
+
+  @override
+  Iterable<Element> apply(Iterable<Element> candidates) =>
+      candidates.where((e) => _test(e.widget));
+
+  @override
+  Object? toJson() => throw UnsupportedError(
+    '$description: find.byWidgetPredicate stays in the process of the '
+    'test; find the widget by find.byType, find.byKey, find.text or '
+    'find.textContaining to send it to the app',
+  );
 }
 
 /// Matches a [Finder] that finds no widget.
@@ -191,8 +216,8 @@ final class _Finds extends Matcher {
 
 /// What a [TwkTester] reads of the widget a [Finder] finds, and how it
 /// clicks one. Each finds in the tester's app, as [Finder.evaluate] does,
-/// and takes one widget: a [StateError] names what it found when it found
-/// none or more.
+/// and takes one widget: a [StateError] says what it found when it found
+/// none, or more (their number, and the first five).
 ///
 /// A button clicked where it is laid out:
 ///
@@ -217,7 +242,8 @@ extension FinderTester on TwkTester {
       [] => throw StateError('$finder finds no widget'),
       _ => throw StateError(
         '$finder finds ${found.length} widgets, not one: '
-        '${found.map(_describe).join('; ')}',
+        '${found.take(5).map(_describe).join('; ')}'
+        '${found.length > 5 ? '; and ${found.length - 5} more' : ''}',
       ),
     };
   }
@@ -289,111 +315,16 @@ extension FinderTester on TwkTester {
     if (o == null || o.constraints == null) {
       throw StateError('$finder finds $e, which is not laid out');
     }
-    var (left, top) = o.globalOffset;
-    var right = left + o.width;
-    var bottom = top + o.height;
-    for (var a = o.parent; a != null; a = a.parent) {
-      final (x, y) = a.globalOffset;
-      left = max(left, x);
-      top = max(top, y);
-      right = min(right, x + a.width);
-      bottom = min(bottom, y + a.height);
-    }
-    if (left >= right || top >= bottom) {
+    final cells = shown(o);
+    if (cells == null) {
       throw StateError('$finder finds ${_describe(e)}, which shows no cell');
     }
+    final (:x, :y, :width, :height) = cells;
     return click(
-      left + (right - left - 1) ~/ 2,
-      top + (bottom - top - 1) ~/ 2,
+      x + (width - 1) ~/ 2,
+      y + (height - 1) ~/ 2,
       button: button,
     );
-  }
-}
-
-/// The widgets [_test] takes.
-final class _WidgetFinder extends Finder {
-  const _WidgetFinder(this.description, this._test);
-
-  @override
-  final String description;
-
-  final bool Function(Widget widget) _test;
-
-  @override
-  Iterable<Element> apply(Iterable<Element> candidates) =>
-      candidates.where((e) => _test(e.widget));
-}
-
-/// What [_matching] finds below what [_of] finds.
-final class _DescendantFinder extends Finder {
-  const _DescendantFinder(this._of, this._matching);
-
-  final Finder _of;
-  final Finder _matching;
-
-  @override
-  String get description => '$_matching below $_of';
-
-  @override
-  Iterable<Element> apply(Iterable<Element> candidates) {
-    final all = candidates.toList();
-    final above = _of.apply(all).toSet();
-    bool below(Element e) {
-      var found = false;
-      e.visitAncestorElements((a) {
-        found = above.contains(a);
-        return !found;
-      });
-      return found;
-    }
-
-    return _matching.apply(all.where(below));
-  }
-}
-
-/// What [_matching] finds above what [_of] finds, from the nearest up.
-final class _AncestorFinder extends Finder {
-  const _AncestorFinder(this._of, this._matching);
-
-  final Finder _of;
-  final Finder _matching;
-
-  @override
-  String get description => '$_matching above $_of';
-
-  @override
-  Iterable<Element> apply(Iterable<Element> candidates) {
-    final all = candidates.toSet();
-    final above = <Element>{};
-    for (final e in _of.apply(all)) {
-      // up to the app's widget
-      e.visitAncestorElements((a) {
-        if (!all.contains(a)) {
-          return false;
-        }
-        above.add(a);
-        return true;
-      });
-    }
-    return _matching.apply(above);
-  }
-}
-
-/// What [_finder] finds at [_index], from the last back when negative.
-final class _IndexFinder extends Finder {
-  const _IndexFinder(this._finder, this._index, this.description);
-
-  final Finder _finder;
-  final int _index;
-
-  @override
-  final String description;
-
-  @override
-  Iterable<Element> apply(Iterable<Element> candidates) {
-    final found = _finder.apply(candidates).toList();
-    final i = _index < 0 ? found.length + _index : _index;
-    return [if (i >= 0 && i < found.length) found[i]];
   }
 }
 

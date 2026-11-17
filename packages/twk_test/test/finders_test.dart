@@ -197,7 +197,7 @@ void main() {
     final found = failure(find.byType(Tile), findsOneWidget);
     expect(found.take(5), [
       'Expected: finds one widget',
-      '  Actual: _WidgetFinder:<type Tile>',
+      '  Actual: Finder:<type Tile>',
       '   Which: finds 2:',
       '            Tile at (2, 2), 6×1',
       "            Tile-[<'save'>] at (3, 3), 6×1",
@@ -212,7 +212,7 @@ void main() {
     final none = failure(find.text('x'), findsNWidgets(2));
     expect(none.take(4), [
       'Expected: finds 2 widgets',
-      '  Actual: _WidgetFinder:<text "x">',
+      '  Actual: Finder:<text "x">',
       '   Which: finds none',
       '',
     ]);
@@ -317,6 +317,129 @@ void main() {
         ),
       ),
     );
+  });
+
+  testTwk('an action on more than one widget fails with their number and the '
+      'first five', (t) async {
+    await t.pumpWidget(
+      Column(children: [for (var i = 0; i < 7; i++) Tile('t$i')]),
+      size: (20, 8),
+    );
+    expect(
+      () => t.element(find.byType(Tile)),
+      throwsA(
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          'type Tile finds 7 widgets, not one: '
+              'Tile at (8, 0), 4×1; Tile at (8, 1), 4×1; '
+              'Tile at (8, 2), 4×1; Tile at (8, 3), 4×1; '
+              'Tile at (8, 4), 4×1; and 2 more',
+        ),
+      ),
+    );
+    expect(
+      () => t.clickOn(find.byType(Tile)),
+      throwsA(
+        isA<StateError>().having(
+          (e) => e.message,
+          'message',
+          startsWith('type Tile finds 7 widgets, not one: '),
+        ),
+      ),
+    );
+  });
+
+  testTwk('a finder is data: toJson writes each kind, and a finder that '
+      'cannot cross the wire says so', (t) {
+    expect(find.text('Save').toJson(), {'text': 'Save'});
+    expect(find.textContaining('Sa').toJson(), {'textContaining': 'Sa'});
+    expect(find.textContaining(RegExp('^Sa', caseSensitive: false)).toJson(), {
+      'textMatches': {'source': '^Sa', 'caseSensitive': false},
+    });
+    expect(find.byType(Tile).toJson(), {'type': 'Tile'});
+    expect(find.byKey(const Key('save')).toJson(), {
+      'key': {'value': 'save'},
+    });
+    expect(find.byKey(const ValueKey<int>(3)).toJson(), {
+      'key': {'value': 3},
+    });
+    expect(
+      find
+          .descendant(of: find.byType(Menu), matching: find.text('Save'))
+          .at(2)
+          .toJson(),
+      {
+        'at': 2,
+        'of': {
+          'descendant': {'text': 'Save'},
+          'of': {'type': 'Menu'},
+        },
+      },
+    );
+    expect(
+      find
+          .ancestor(of: find.text('a'), matching: find.byType(Menu))
+          .last
+          .toJson(),
+      {
+        'last': {
+          'ancestor': {'type': 'Menu'},
+          'of': {'text': 'a'},
+        },
+      },
+    );
+    expect(find.text('a').first.toJson(), {
+      'first': {'text': 'a'},
+    });
+    expect(
+      () => find
+          .byWidgetPredicate((w) => true, description: 'every one')
+          .toJson(),
+      throwsA(
+        isA<UnsupportedError>().having(
+          (e) => e.message,
+          'message',
+          allOf(contains('every one'), contains('byWidgetPredicate')),
+        ),
+      ),
+    );
+    expect(
+      () => find
+          .descendant(
+            of: find.byType(Menu),
+            matching: find.byWidgetPredicate((w) => true),
+          )
+          .toJson(),
+      throwsA(isA<UnsupportedError>()),
+      reason: 'a predicate inside another finder',
+    );
+    expect(
+      () => find.byKey(const ObjectKey(1)).toJson(),
+      throwsA(isA<UnsupportedError>()),
+    );
+    expect(
+      () => find.textContaining(RegExp('a', multiLine: true)).toJson(),
+      throwsA(isA<UnsupportedError>()),
+    );
+  });
+
+  testTwk('a finder read back from its JSON finds what it did', (t) async {
+    await t.pumpWidget(const Menu(), size: (20, 6));
+    final app = find.byType(Menu).evaluate().single;
+    for (final finder in [
+      find.byType(Tile),
+      find.byKey(const Key('save')),
+      find.text('Menu'),
+      find.textContaining(RegExp('^q', caseSensitive: false)),
+      find.descendant(of: find.byType(Tile), matching: find.byType(Text)),
+      find.ancestor(of: find.text('Save 0'), matching: find.byType(Padding)),
+      find.byType(Text).last,
+      find.byType(Text).at(1),
+    ]) {
+      final back = ElementFinder.fromJson(finder.toJson());
+      expect(back.evaluate(app), finder.evaluate(), reason: '$finder');
+    }
   });
 
   testTwk('rect gives the cells of the widget on the screen, its render '

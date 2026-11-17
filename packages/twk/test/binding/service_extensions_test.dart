@@ -239,6 +239,7 @@ void main() {
         'size': {'width': 6, 'height': 1},
         'offset': {'x': 0, 'y': 0},
         'global': {'x': 3, 'y': 1},
+        'shown': {'x': 3, 'y': 1, 'width': 6, 'height': 1},
       });
       final line = named(tree, 'Line');
       final render = await call(t, 'ext.twk.layout', {
@@ -885,6 +886,276 @@ void main() {
     });
   });
 
+  group('ext.twk.find', () {
+    /// The matches of [finder] in [t]'s app, over the extension.
+    Future<Json> find(TwkTester t, Object finder) =>
+        call(t, 'ext.twk.find', {'finder': jsonEncode(finder)});
+
+    /// The texts of the matches of [finder].
+    Future<List<Object?>> texts(TwkTester t, Object finder) async => [
+      for (final m in (await find(t, finder))['matches']! as List<Object?>)
+        (m! as Json)['text'],
+    ];
+
+    testTwk('answers the version, the frame, the count, and for each match '
+        'its id, type, key, full text, rect and the cells shown', (t) async {
+      await t.pumpWidget(app(left: 3), size: (20, 5));
+      final answer = await find(t, {
+        'key': {'value': 'header'},
+      });
+      expect(answer['version'], 1);
+      expect(answer['frame'], t.binding.twkApp.framesRun);
+      expect(answer['count'], 1);
+      final tree = await call(t, 'ext.twk.tree');
+      final text = named(tree, 'Text');
+      expect(answer['matches'], [
+        {
+          'id': text['id'],
+          'type': 'Text',
+          'key': "[<'header'>]",
+          'text': 'header',
+          'rect': {'x': 3, 'y': 1, 'width': 6, 'height': 1},
+          'shown': {'x': 3, 'y': 1, 'width': 6, 'height': 1},
+        },
+      ]);
+      expect(await find(t, {'text': 'nothing'}), containsPair('count', 0));
+    });
+
+    testTwk('text, textContaining and textMatches find a Text by its whole '
+        'text, a rich one by its spans joined, past the 24 columns the tree '
+        'cuts it at', (t) async {
+      const long = 'a text of far more than twenty-four columns';
+      await t.pumpWidget(
+        const Column(
+          children: [
+            Text(long),
+            Text.rich([Span('Sa'), Span('ve')]),
+            Text('Other'),
+          ],
+        ),
+        size: (50, 4),
+      );
+      expect(await texts(t, {'text': long}), [long]);
+      expect(await texts(t, {'text': 'Save'}), ['Save']);
+      expect(await texts(t, {'text': 'Sav'}), isEmpty);
+      expect(await texts(t, {'textContaining': 'ave'}), ['Save']);
+      expect(await texts(t, {'textContaining': 'than twenty'}), [long]);
+      expect(
+        await texts(t, {
+          'textMatches': {'source': '^s', 'caseSensitive': false},
+        }),
+        ['Save'],
+      );
+      expect(
+        await texts(t, {
+          'textMatches': {'source': '^s', 'caseSensitive': true},
+        }),
+        isEmpty,
+      );
+      final tree = await call(t, 'ext.twk.tree');
+      expect(
+        named(tree, 'Text')['properties'].toString(),
+        isNot(contains('columns')),
+        reason: 'the tree cuts it off',
+      );
+    });
+
+    testTwk('type compares the type with its arguments as a string: Box<int> '
+        'is no Box<String>, and Box is neither', (t) async {
+      await t.pumpWidget(
+        const Column(
+          children: [
+            Box<String>(Text('s')),
+            Box<int>(Text('i')),
+            Text('plain'),
+          ],
+        ),
+        size: (20, 4),
+      );
+      Future<List<String>> types(String name) async => [
+        for (final m
+            in (await find(t, {'type': name}))['matches']! as List<Object?>)
+          (m! as Json)['type']! as String,
+      ];
+      expect(await types('Box<String>'), ['Box<String>']);
+      expect(await types('Box<int>'), ['Box<int>']);
+      expect(await types('Box'), isEmpty);
+      expect(await types('Text'), ['Text', 'Text', 'Text']);
+    });
+
+    testTwk('key finds a ValueKey of a string or an int, not one of the other '
+        'type', (t) async {
+      await t.pumpWidget(
+        const Column(
+          children: [
+            Text('a', key: ValueKey<String>('k')),
+            Text('b', key: ValueKey<int>(3)),
+            Text('c', key: ValueKey<num>(4)),
+          ],
+        ),
+        size: (20, 4),
+      );
+      expect(
+        await texts(t, {
+          'key': {'value': 'k'},
+        }),
+        ['a'],
+      );
+      expect(
+        await texts(t, {
+          'key': {'value': 3},
+        }),
+        ['b'],
+      );
+      expect(
+        await texts(t, {
+          'key': {'value': 4},
+        }),
+        isEmpty,
+      );
+      expect(
+        await texts(t, {
+          'key': {'value': '3'},
+        }),
+        isEmpty,
+      );
+    });
+
+    testTwk('descendant and ancestor are strictly below and above; at, first '
+        'and last pick by index', (t) async {
+      await t.pumpWidget(
+        const Column(
+          children: [
+            Box<int>(Box<int>(Text('deep'))),
+            Text('x'),
+            Text('y'),
+            Text('z'),
+          ],
+        ),
+        size: (20, 5),
+      );
+      Future<int> count(Object f) async => (await find(t, f))['count']! as int;
+      // the outer Box<int> has one Box<int> below it, the inner none
+      expect(
+        await count({
+          'descendant': {'type': 'Box<int>'},
+          'of': {'type': 'Box<int>'},
+        }),
+        1,
+      );
+      expect(
+        await count({
+          'ancestor': {'type': 'Box<int>'},
+          'of': {'type': 'Box<int>'},
+        }),
+        1,
+      );
+      expect(
+        await count({
+          'descendant': {'type': 'Text'},
+          'of': {'type': 'Box<int>'},
+        }),
+        1,
+      );
+      expect(
+        await texts(t, {
+          'at': 2,
+          'of': {'type': 'Text'},
+        }),
+        ['y'],
+      );
+      expect(
+        await texts(t, {
+          'first': {'type': 'Text'},
+        }),
+        ['deep'],
+      );
+      expect(
+        await texts(t, {
+          'last': {'type': 'Text'},
+        }),
+        ['z'],
+      );
+      expect(
+        await texts(t, {
+          'at': 9,
+          'of': {'type': 'Text'},
+        }),
+        isEmpty,
+      );
+    });
+
+    testTwk('node finds the element an earlier answer gave that id, and is '
+        'refused once it has left the tree', (t) async {
+      await t.pumpWidget(app(), size: (20, 5));
+      final line = (await find(t, {'type': 'Line'}))['matches']! as List;
+      final id = (line.single as Json)['id']! as int;
+      final again = await find(t, {'node': id});
+      expect((again['matches']! as List).single, line.single);
+      await t.pumpWidget(app(second: false), size: (20, 5));
+      final response = await t.binding.callServiceExtension('ext.twk.find', {
+        'finder': jsonEncode({'node': id}),
+      });
+      expect(response.errorCode, ServiceExtensionResponse.extensionError);
+      expect(
+        jsonDecode(response.errorDetail!),
+        {'message': 'no node $id in the app any more'},
+      );
+    });
+
+    testTwk('shown is the rectangle the ancestors clip, null where no cell '
+        'shows', (t) async {
+      await t.pumpWidget(
+        const Stack(
+          children: [
+            Positioned(left: 9, width: 14, child: Text('a long label')),
+            Positioned(top: 5, height: 1, child: Text('below')),
+          ],
+        ),
+        size: (12, 3),
+      );
+      final matches =
+          (await find(t, {'type': 'Text'}))['matches']! as List<Object?>;
+      expect((matches[0]! as Json)['rect'], {
+        'x': 9,
+        'y': 0,
+        'width': 14,
+        'height': 1,
+      });
+      expect((matches[0]! as Json)['shown'], {
+        'x': 9,
+        'y': 0,
+        'width': 3,
+        'height': 1,
+      });
+      expect((matches[1]! as Json)['shown'], isNull);
+    });
+
+    testTwk('answers a finder missing or none of the kinds with an error', (
+      t,
+    ) async {
+      await t.pumpWidget(app(), size: (20, 5));
+      expect(await error(t, 'ext.twk.find'), (
+        ServiceExtensionResponse.invalidParams,
+        'no finder',
+      ));
+      for (final bad in [
+        '{"wat": 1}',
+        '[1]',
+        '{"text": 3}',
+        'not json',
+        '{"key": {"value": 1.5}}',
+        '{"node": 3}'.replaceAll('3', '"x"'),
+      ]) {
+        final (code, message) = await error(t, 'ext.twk.find', {
+          'finder': bad,
+        });
+        expect(code, ServiceExtensionResponse.invalidParams, reason: bad);
+        expect(message, startsWith('finder: '), reason: bad);
+      }
+    });
+  });
+
   group('registration', () {
     test('registers nothing in product mode', () {
       final names = <String>[];
@@ -915,6 +1186,7 @@ void main() {
         'ext.twk.properties',
         'ext.twk.layout',
         'ext.twk.select',
+        'ext.twk.find',
         'ext.twk.highlight',
         'ext.twk.flags',
         'ext.twk.reassemble',
@@ -970,6 +1242,16 @@ void main() {
     final product = await _extensionsOver(inspectedInProduct);
     expect(product.extensions.where((e) => e.startsWith('ext.twk.')), isEmpty);
   }, timeout: const Timeout(Duration(minutes: 2)));
+}
+
+/// A widget of a type with an argument, showing [child].
+final class Box<T> extends StatelessWidget {
+  const Box(this.child, {super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => child;
 }
 
 /// A count, shown as text, or in brackets as text inside another widget.

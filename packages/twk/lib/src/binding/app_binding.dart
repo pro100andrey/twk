@@ -61,6 +61,7 @@ import '../debug/frame_overlay.dart';
 import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
+import '../finders/finders.dart' show ElementFinder;
 import '../focus/focus.dart';
 import '../foundation/constants.dart'
     show debugAssertsEnabled, kDebugMode, kReleaseMode;
@@ -788,6 +789,7 @@ final class AppBinding implements FrameClock {
     'ext.twk.properties',
     'ext.twk.layout',
     'ext.twk.select',
+    'ext.twk.find',
     'ext.twk.highlight',
     'ext.twk.flags',
     'ext.twk.reassemble',
@@ -846,6 +848,19 @@ final class AppBinding implements FrameClock {
   ///   not where the inline region is on it: the row that far from the
   ///   cursor's in the region (`Presenter.cursorRow`), or `y` itself where
   ///   the app does not know where its cursor is.
+  /// * `ext.twk.find`, `finder`: the elements of the app's widget and
+  ///   below it that a finder ([ElementFinder]) finds, as JSON in the
+  ///   parameter: `frame`, the number of frames the app has run, `count`,
+  ///   and `matches` in the order of the tree, each with `id`, `type` (its
+  ///   widget's `runtimeType`), `key` (as the tree has it, or null), `text`
+  ///   (the whole of a `Text`'s, not cut at the tree's 24 columns; null for
+  ///   any other widget), `rect` (the cells of its render object, null
+  ///   before it is laid out) and `shown` (the part of them the screen
+  ///   shows, `shown`, null for none), each a rectangle of `x`, `y`,
+  ///   `width` and `height`. A `finder` that is none of the kinds is
+  ///   [ServiceExtensionResponse.invalidParams]; a `node` of it that has
+  ///   left the tree is [ServiceExtensionResponse.extensionError].
+  /// * `ext.twk.layout` also answers `shown`, as `ext.twk.find` does.
   /// * `ext.twk.highlight`, `id`: has the render object of that node, as
   ///   in `ext.twk.layout`, outlined ([DebugAids.highlight]), or, without
   ///   `id`, none: `id`, null for none, and `render`.
@@ -961,6 +976,8 @@ final class AppBinding implements FrameClock {
         return inspector.layout(_node(params));
       case 'ext.twk.select':
         return inspector.select(_int(params, 'x'), _selectedRow(params));
+      case 'ext.twk.find':
+        return _find(params);
       case 'ext.twk.highlight':
         final node = params.containsKey('id') ? _node(params) : null;
         final o = debug.highlight = node == null
@@ -982,6 +999,30 @@ final class AppBinding implements FrameClock {
         return const {};
     }
     throw ArgumentError.value(method, 'method', 'not a service extension');
+  }
+
+  /// What `ext.twk.find` answers for the finder in `finder`.
+  Map<String, Object?> _find(Map<String, String> params) {
+    final text =
+        params['finder'] ?? (throw const _ExtensionError.params('no finder'));
+    final ElementFinder finder;
+    try {
+      finder = ElementFinder.fromJson(
+        jsonDecode(text),
+        nodeOf: (id) => switch (_inspector.nodeOf(id)) {
+          final Element e => e,
+          _ => null,
+        },
+      );
+    } on FormatException catch (e) {
+      throw _ExtensionError.params('finder: ${e.message}');
+    }
+    try {
+      return {'frame': twkApp.framesRun, ..._inspector.find(finder)};
+      // ignore: avoid_catching_errors, a node that left the tree
+    } on StateError catch (e) {
+      throw _ExtensionError.gone(e.message);
+    }
   }
 
   /// The record `ext.twk.log` adds.

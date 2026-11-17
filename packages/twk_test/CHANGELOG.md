@@ -9,6 +9,16 @@ Breaking:
   microtasks; its other members are as they were. `FakeCliTerminal` keeps
   `fakeClock:`.
 
+Changed:
+
+- `find.*` build twk's `ElementFinder` values and evaluate them with its
+  code: `Finder` is a final class that wraps one and has `toJson`, which
+  `ext.twk.find` takes. `find.byWidgetPredicate`'s `toJson` throws, naming
+  it. `Finder` can no longer be extended.
+- `element`, `widget`, `state`, `renderObject`, `rect` and `clickOn` on a
+  finder that finds more than one widget fail with their number and the
+  first five. `clickOn` cuts the cells with twk's `shown`.
+
 Fixed:
 
 - `matchesScreenFile` writes `<file>.actual` only where a failure is

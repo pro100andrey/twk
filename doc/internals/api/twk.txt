@@ -208,6 +208,7 @@ twk.dart class EdgeInsetsTween
 twk.dart class Effect
 twk.dart class EffectCell
 twk.dart class Element
+twk.dart class ElementFinder
 twk.dart class ErrorWidget
 twk.dart class ExcludeFocus
 twk.dart class ExcludeSemantics
@@ -605,6 +606,7 @@ twk.dart function showDialog
 twk.dart function showFilePicker
 twk.dart function showKeyHelp
 twk.dart function showToast
+twk.dart function shown
 twk.dart function stringWidth
 twk.dart function stripAnsi
 twk.dart function thumbSteps
@@ -642,6 +644,7 @@ twk.dart typedef PointerEventListener
 twk.dart typedef PopInvokedWithResultCallback
 twk.dart typedef RouteFactory
 twk.dart typedef RoutePredicate
+twk.dart typedef ShownRect
 twk.dart typedef SlotLayout
 twk.dart typedef SourceLines
 twk.dart typedef StartTimer

@@ -179,13 +179,21 @@ find nothing before the app's first frame or once it ended.
   above, the nearest first, up to the widget `pumpWidget` showed.
 - `.first`, `.last` and `.at(index)` pick one of what a finder finds.
 
+A finder is a value of twk's `ElementFinder`, the code the app's
+`ext.twk.find` evaluates over the wire, and `finder.toJson()` is what that
+takes. `byType` compares `Type`s here and `runtimeType.toString()` there (the
+same unless two classes of one name from two libraries are in the tree, which
+there both match), and `byKey` crosses the wire for a `ValueKey` of a `String`
+or an int only. `find.byWidgetPredicate` stays in the process of the test: its
+`toJson` throws, naming it.
+
 `findsNothing`, `findsOneWidget`, `findsWidgets` and `findsNWidgets(n)` count
 what a finder finds: `expect(find.text('Save'), findsOneWidget)`. A count that
 fails lists what was found, each with its cells (`Tile-[<'save'>] at (3, 3),
 6×1`), then the widget tree.
 
-The tester reads the one widget a finder finds, a `StateError` naming what it
-found when it found none or more: `t.element(finder)`, `t.widget<T>(finder)`,
+The tester reads the one widget a finder finds, a `StateError` saying what it
+found when it found none, or more (their number, and the first five): `t.element(finder)`, `t.widget<T>(finder)`,
 `t.state<T>(finder)`, `t.renderObject<T>(finder)` (of the widget, or of the
 nearest widget below it that has one), and `t.rect(finder)`, its cells `(x:,
 y:, width:, height:)` as it was laid out last: those of the screen, or in the

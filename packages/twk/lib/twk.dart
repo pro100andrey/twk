@@ -119,6 +119,7 @@ export 'src/controls/controls.dart';
 export 'src/data/data.dart';
 export 'src/debug/debug.dart';
 export 'src/editing/editing.dart';
+export 'src/finders/finders.dart';
 export 'src/focus/focus.dart';
 export 'src/foundation/foundation.dart';
 export 'src/framework/framework.dart';

@@ -23,6 +23,7 @@ part 'sample_app/controls.dart';
 part 'sample_app/data.dart';
 part 'sample_app/debug.dart';
 part 'sample_app/editing.dart';
+part 'sample_app/finders.dart';
 part 'sample_app/focus.dart';
 part 'sample_app/foundation.dart';
 part 'sample_app/framework.dart';
@@ -114,6 +115,7 @@ final class _SampleAppState extends State<SampleApp> {
               ..._data(),
               ..._debug(),
               ..._editing(),
+              ..._finders(),
               ..._focus(),
               ..._foundation(),
               ..._framework(),

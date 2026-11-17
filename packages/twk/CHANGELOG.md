@@ -20,6 +20,15 @@ Added:
 
 Added:
 
+- `ElementFinder`, a finder as a value (`text`, `textContaining`,
+  `textMatches`, `type`, `key`, `descendant`, `ancestor`, `first`, `last`,
+  `at`) with `apply`, `evaluate`, `toJson` and `fromJson`, and `shown`, the
+  cells of a render object the screen shows (the inspector's outline and
+  twk_test's `clickOn` use it).
+- `ext.twk.find`: the elements a finder given as JSON finds in the app, with
+  each one's id, type, key, whole text, rect and the cells shown; also a
+  `node` the tree gave an id earlier. `ext.twk.layout` answers `shown` too.
+  The inspector's version stays 1.
 - `ext.twk.flags` `frameEvents`: the events `twk.frame` (after every frame,
   drawn or not) and `twk.input` (after a read of the terminal or an event) with
   the bytes of input the app took in, the bytes it wrote, and whether a frame
