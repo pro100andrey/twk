@@ -600,7 +600,8 @@ final class _Area extends LeafRenderObjectWidget {
       ..style = style
       ..placeholderStyle = a.placeholderStyle ?? theme.muted
       ..selectionStyle = a.selectionStyle ?? theme.selection
-      ..cursorShape = a.cursorShape;
+      ..cursorShape = a.cursorShape
+      ..cursorColor = theme.cursorColor;
   }
 }
 
@@ -715,6 +716,18 @@ final class _RenderTextArea extends RenderObject {
   set cursorShape(CursorShape s) {
     if (s != _cursorShape) {
       _cursorShape = s;
+      markNeedsPaint();
+    }
+  }
+
+  Color? _cursorColor;
+
+  /// The color of the terminal's cursor at the caret, [ThemeData.cursorColor];
+  /// null leaves it to the terminal.
+  Color? get cursorColor => _cursorColor;
+  set cursorColor(Color? c) {
+    if (c != _cursorColor) {
+      _cursorColor = c;
       markNeedsPaint();
     }
   }
@@ -1084,7 +1097,7 @@ final class _RenderTextArea extends RenderObject {
     }
     canvas.restore();
     if (_focused && y >= 0 && y < height) {
-      showCaret(ctx, this, column, y, shape: _cursorShape);
+      showCaret(ctx, this, column, y, shape: _cursorShape, color: _cursorColor);
     } else {
       hideCaret(ctx, this);
     }

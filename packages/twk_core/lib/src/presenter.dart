@@ -521,6 +521,42 @@ final class Presenter {
   CursorShape? _shapeSent = CursorShape.terminalDefault; // null: unknown
   var _cursorShown = true; // assume the terminal shows it until we hide it
 
+  /// The color of the visible cursor (`OSC 12`); null leaves it to the
+  /// terminal (`OSC 112` puts that back after a color was set).
+  ///
+  /// An RGB color is written as it is. A palette entry ([Color.isIndexed])
+  /// is written as the RGB the core knows for it ([StyleTable.rgbOf]): the
+  /// terminal's own where it told it (OSC 4), xterm's default palette
+  /// where it did not, so only an RGB color is exact on every terminal.
+  /// [Color.defaultColor] is the terminal's own. Nothing is written
+  /// where the styles show no colors ([ColorMode.none]).
+  ///
+  /// Written like [cursorShape]: with the cursor, when it changes.
+  Color? cursorColor;
+
+  // the RGB (0xRRGGBB) written last: _noColor for the terminal's own,
+  // _unknownColor where that is not known (after [invalidate], when one
+  // was written before)
+  int _colorSent = _noColor;
+  var _colorEverSent = false;
+  static const _noColor = -1;
+  static const _unknownColor = -2;
+
+  /// Whether a cursor color was ever written (`OSC 12`): what a terminal
+  /// must put back (`OSC 112`) when the program ends or hands it over.
+  bool get cursorColorWritten => _colorEverSent;
+
+  int _wantedColor() {
+    final c = cursorColor;
+    if (c == null || styles.colorMode == ColorMode.none) {
+      return _noColor;
+    }
+    if (c.isRgb) {
+      return c.value & 0xFFFFFF;
+    }
+    return c.isIndexed ? (styles.rgbOf(c) ?? _noColor) : _noColor;
+  }
+
   // declared scroll for the next frame
   var _scrollTop = 0;
   var _scrollBottom = 0;
@@ -619,6 +655,7 @@ final class Presenter {
     _forgetScreen();
     _cursorShown = true;
     _shapeSent = null;
+    _colorSent = _colorEverSent ? _unknownColor : _noColor;
   }
 
   /// The cells on screen are unknown (first frame, resize); the cursor
@@ -936,11 +973,15 @@ final class Presenter {
     if (cursorVisible && w > 0 && h > 0) {
       final cx = cursorX.clamp(0, w - 1);
       final cy = cursorY.clamp(0, h - 1);
+      final color = cursorColor == null && _colorSent == _noColor
+          ? _noColor
+          : _wantedColor();
       if (bodyChanged ||
           !_cursorShown ||
           _cx != cx ||
           _cy != cy ||
-          cursorShape != _shapeSent) {
+          cursorShape != _shapeSent ||
+          color != _colorSent) {
         // nothing drawn: the shown cursor jumps once, so hiding it around
         // the move prevents no flicker
         final keepShown = hidden && !bodyChanged;
@@ -954,6 +995,18 @@ final class Presenter {
             ..csi(cursorShape.code, 0x20) // CSI n SP q
             ..byte(0x71);
           _shapeSent = cursorShape;
+        }
+        if (color != _colorSent) {
+          if (color == _noColor) {
+            out.ascii('\x1b]112\x1b\\');
+          } else {
+            out
+              ..ascii('\x1b]12;#')
+              ..ascii(color.toRadixString(16).padLeft(6, '0'))
+              ..ascii('\x1b\\');
+            _colorEverSent = true;
+          }
+          _colorSent = color;
         }
         if (!keepShown) {
           out.ascii('\x1b[?25h');

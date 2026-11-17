@@ -702,6 +702,17 @@ void main() {
       expect(r.takeSent(), r'\e[?997;1n');
     });
 
+    test('the cursor color an app sets (OSC 12) and gives back (OSC 112), '
+        'as twk writes them, closed by ST', () {
+      final r = fed(r'\e]12;#ff5f00\e\');
+      expect(r.t.cursorColor, 0xFF5F00);
+      expect(r.events.whereType<ColorsChanged>(), hasLength(1));
+      r.feed(r'\e]112\e\');
+      expect(r.t.cursorColor, isNot(0xFF5F00));
+      expect(r.t.cursorColor, r.t.foregroundColor);
+      expect(r.events.whereType<ColorsChanged>(), hasLength(2));
+    });
+
     test('the palette, asked and set (OSC 4, 104)', () {
       final r = fed(r'\e]4;1;?^G\e]4;1;rgb:12/34/56;2;?^G\e]4;1;?^G');
       expect(

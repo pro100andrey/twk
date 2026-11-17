@@ -13,6 +13,10 @@ Breaking:
 
 Added:
 
+- `ThemeData.cursorColor` (null, the terminal's own, by default): the color
+  of the terminal's cursor while a `TextField` or `TextArea` has the caret
+  (`OSC 12`), for a terminal that paints a block cursor in the text color of
+  the cell under it. `showCaret` takes `color`.
 - `DrivenClock`, a `Clock` that moves only when told to (`advance`,
   `advanceTo`, `advanceToNext`): timers by due time, then by creation; those
   due now run by themselves; `pendingTimers`, `nextDue`, `describeTimers`,

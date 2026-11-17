@@ -11,6 +11,13 @@ Breaking:
 
 Added:
 
+- `Presenter.cursorColor`: the visible cursor's color, written with the
+  cursor when it changes (`OSC 12`), `OSC 112` putting the terminal's own back
+  once one was written. An RGB color is sent as it is, a palette color as the
+  RGB the core knows for it (the terminal's, where it told it, else xterm's),
+  nothing where colors are off. `Presenter.cursorColorWritten`; `TwkApp` has
+  the terminal give it back on exit and when it is handed over.
+  `setTerminalState` with an empty `sequence` writes nothing.
 - `Clock` (an `int` of microseconds, `timer`, `periodic`; `ClockElapsed`
   reads it as a `Duration`) and `SystemClock`, the real one, the default.
 

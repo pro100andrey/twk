@@ -325,7 +325,8 @@ final class HeadlessTerminal
   /// what sets each and what puts it back.
   final _states = <Object, (String, String)>{};
 
-  /// Writes [sequence] to [frames], or, while [suspended], on [resume].
+  /// Writes [sequence] to [frames] (nothing for an empty one: a state
+  /// that is only put back), or, while [suspended], on [resume].
   /// [restore] is written when it is suspended or closed. [refresh] is not
   /// kept: no timer is started.
   @override
@@ -343,7 +344,7 @@ final class HeadlessTerminal
       return;
     }
     _states[key] = (sequence, restore);
-    if (!_suspended) {
+    if (!_suspended && sequence.isNotEmpty) {
       _emit(ascii.encode(sequence));
     }
   }

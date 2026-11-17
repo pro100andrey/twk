@@ -102,6 +102,7 @@ final class ThemeData {
     this._shadeAlpha,
     this.palette = const {},
     this.pointerMode = PointerMode.auto,
+    this.cursorColor,
     this.glyphs = Glyphs.unicode,
   }) : assert(
          _shadeAlpha == null || (_shadeAlpha >= 0 && _shadeAlpha <= 1),
@@ -157,6 +158,7 @@ final class ThemeData {
       _shadeAlpha = null,
       palette = const {},
       pointerMode = PointerMode.auto,
+      cursorColor = null,
       glyphs = Glyphs.unicode;
 
   /// The terminal's own colors on a terminal that told its default
@@ -283,6 +285,10 @@ final class ThemeData {
       shadeAlpha: a.shadeAlpha + (b.shadeAlpha - a.shadeAlpha) * t,
       palette: t < 0.5 ? a.palette : b.palette,
       pointerMode: t < 0.5 ? a.pointerMode : b.pointerMode,
+      cursorColor: switch ((a.cursorColor, b.cursorColor)) {
+        (final x?, final y?) => Color.lerp(x, y, t),
+        _ => t < 0.5 ? a.cursorColor : b.cursorColor,
+      },
       glyphs: Glyphs.lerp(a.glyphs, b.glyphs, t),
     );
   }
@@ -307,6 +313,19 @@ final class ThemeData {
 
   /// Whether the widgets set the pointer's shape at all.
   bool get setsPointerShapes => pointerMode != PointerMode.off;
+
+  /// The color of the terminal's cursor while a text field or area has the
+  /// caret: null by default, the terminal's own, which is not touched.
+  ///
+  /// Some terminals paint a block cursor in the text color of the cell
+  /// under it, which changes as it moves and can be the background's;
+  /// a color here (sent as `OSC 12` with the caret, and put back with
+  /// `OSC 112` when the app ends or hands the terminal over) keeps it one.
+  /// An RGB color is exact; a palette color is sent as the RGB the core
+  /// knows for it, the terminal's own where it told it, xterm's else (see
+  /// `Presenter.cursorColor`). `copyWith` keeps it where it is not given:
+  /// it cannot set it back to null.
+  final Color? cursorColor;
 
   /// The marks widgets draw (checks, cursor bars, a scrollbar's thumb and
   /// track, a gauge's line, the spinner) by what they mean:
@@ -582,6 +601,7 @@ final class ThemeData {
     double? shadeAlpha,
     Map<int, int>? palette,
     PointerMode? pointerMode,
+    Color? cursorColor,
     Glyphs? glyphs,
   }) => ThemeData(
     brightness: brightness ?? this.brightness,
@@ -608,6 +628,8 @@ final class ThemeData {
     shadeAlpha: shadeAlpha ?? _shadeAlpha,
     palette: palette ?? this.palette,
     pointerMode: pointerMode ?? this.pointerMode,
+    cursorColor: cursorColor ?? this.cursorColor,
+
     glyphs: glyphs ?? this.glyphs,
   );
 
@@ -637,6 +659,7 @@ final class ThemeData {
       other.shade == shade &&
       other.shadeAlpha == shadeAlpha &&
       other.pointerMode == pointerMode &&
+      other.cursorColor == cursorColor &&
       other.glyphs == glyphs &&
       TerminalBrightness._samePalette(other.palette, palette);
 
@@ -669,6 +692,7 @@ final class ThemeData {
         for (final e in palette.entries) Object.hash(e.key, e.value),
       ]),
       pointerMode,
+      cursorColor,
       glyphs,
     ),
   );

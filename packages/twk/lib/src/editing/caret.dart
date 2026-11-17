@@ -11,6 +11,7 @@ import 'package:meta/meta.dart' show internal;
 import 'package:twk_core/twk_core.dart'
     show
         ClusterScan,
+        Color,
         CursorShape,
         PaintContext,
         Presenter,
@@ -171,12 +172,12 @@ void measureClusters(
 /// The render object whose caret each presenter shows.
 final _holders = Expando<RenderObject>('caret');
 
-/// Shows the terminal's cursor in [shape] at [x], [y] of [object], which
-/// is being painted with [ctx]: from this frame on it stays there, whatever
-/// else repaints, until [object] shows it elsewhere or hides it, or
-/// another object shows it. Where an ancestor cuts that cell off (it is
-/// outside the ancestor's bounds), the cursor is hidden instead
-/// ([hideCaret]).
+/// Shows the terminal's cursor in [shape] and [color] at [x], [y] of
+/// [object], which is being painted with [ctx]: from this frame on it
+/// stays there, whatever else repaints, until [object] shows it elsewhere
+/// or hides it, or another object shows it. Where an ancestor cuts that
+/// cell off (it is outside the ancestor's bounds), the cursor is hidden
+/// instead ([hideCaret]).
 ///
 /// One object holds the cursor at a time, the last to show it, and only
 /// it hides it: of objects that show it while they have the focus and
@@ -190,12 +191,19 @@ final _holders = Expando<RenderObject>('caret');
 /// that the cursor goes with it, or is hidden, when such a repaint cuts it
 /// off, the object that holds it is painted however it is cut off
 /// ([RenderObject.paintedWhenCutOff]) until it hides it.
+///
+/// [color] is the cursor's color (`OSC 12`, `Presenter.cursorColor`); null
+/// is the terminal's own, which an object that showed another color before
+/// puts back. Hidden ([hideCaret]) the cursor keeps the color it had. A
+/// text field or area passes `ThemeData.cursorColor`, which an object of an
+/// app's own can too.
 void showCaret(
   PaintContext ctx,
   RenderObject object,
   int x,
   int y, {
   CursorShape shape = CursorShape.bar,
+  Color? color,
 }) {
   final cell = _onScreen(object, x, y);
   if (cell == null) {
@@ -214,7 +222,8 @@ void showCaret(
     ..cursorVisible = true
     ..cursorX = cx
     ..cursorY = cy
-    ..cursorShape = shape;
+    ..cursorShape = shape
+    ..cursorColor = color;
 }
 
 /// Where the cell [x], [y] of [object] is on the screen; null when it is

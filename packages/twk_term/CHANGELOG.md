@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Added:
+
+- A test of the cursor color twk writes (`OSC 12` with `#rrggbb`, `OSC 112`):
+  the emulator already keeps it as `cursorColor`.
+
 Fixed:
 
 - `TerminalView.canRequestFocus` is `bool?`, null by default: a `focusNode`

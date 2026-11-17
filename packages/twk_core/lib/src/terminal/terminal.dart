@@ -803,8 +803,10 @@ abstract interface class TerminalStateBackend implements TerminalBackend {
   /// waits for that. With [refresh], [sequence] is written again each time
   /// that long has passed since, for a terminal that takes a state away
   /// when it isn't told again (Ghostty drops a progress after 15 s). Both
-  /// are ASCII. Ignored once closed, and for plain output
-  /// ([TerminalInfo.plain]).
+  /// are ASCII. An empty [sequence] writes nothing: a state something
+  /// else already set (the cursor's color, which the presenter writes
+  /// with its frames) that is only put back. Ignored once closed, and for
+  /// plain output ([TerminalInfo.plain]).
   void setTerminalState(
     Object key,
     String sequence,
@@ -1793,7 +1795,9 @@ final class Terminal
       });
     }
     if (!_suspended) {
-      _writeString(sequence);
+      if (sequence.isNotEmpty) {
+        _writeString(sequence);
+      }
       _tellLost();
     }
   }

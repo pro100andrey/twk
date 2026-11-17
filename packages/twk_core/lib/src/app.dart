@@ -1065,8 +1065,18 @@ final class TwkApp {
       _writeInRow(bytes.length);
     } else if (!_plain) {
       terminal.write(bytes);
+      if (!_colorRestore && screen.presenter.cursorColorWritten) {
+        // the terminal puts the cursor's color back on every way out
+        _colorRestore = true;
+        if (terminal case final TerminalStateBackend backend) {
+          backend.setTerminalState(#cursorColor, '', '\x1b]112\x1b\\');
+        }
+      }
     }
   }
+
+  // whether the terminal was told to put the cursor's color back
+  var _colorRestore = false;
 
   /// Plain output: writes rows [from, to) of [surface] as lines of text
   /// ([_textRows]); for the [last] frame without the blank lines that end
