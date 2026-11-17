@@ -39,15 +39,16 @@ the other guides leave out, from the notes written for coding agents.
   and logs it; the app goes on. An error thrown by a key binding, an
   `InputListener` or a mouse callback ends the app with a `WidgetError`
   that names the widget path (`KeyBindings → Focus`).
-- Without a `Theme`, widgets use twk's own theme of the terminal's
-  brightness: `ThemeData.dark` on a dark terminal, `ThemeData.light` on a
-  light one (RGB, brought down to 256 or 16 colors where the terminal has
-  no more); on a terminal that does not say its background, as
-  `testTwk`'s unless `pumpWidget(backgroundRgb:)` gives one, the
-  terminal's own colors. `Theme.terminal(child:)` gives the terminal's own colors
-  instead (`ThemeData.terminal`: `primary` is `Color.blue`, `muted` is
-  dim, `selection` the grey 237 of the 256 colors, 253 on a light
-  terminal), `Theme(data: ThemeData.nord, child:)` a preset.
+- Without a `Theme`, widgets are in the terminal's own colors
+  (`ThemeData.terminalOn` where the terminal told its background, text
+  color and palette, `ThemeData.terminal` of its brightness where it did
+  not; in `testTwk`, unless `pumpWidget(backgroundRgb:)` gives a
+  background). `Theme.terminal(child:)` asks for the same where a `Theme`
+  above says otherwise (`ThemeData.terminal`: `primary` is `Color.blue`,
+  `muted` is grey 245, `selection` the grey 237 of the 256 colors, 252 on
+  a light terminal), `Theme(data: ThemeData.dark, child:)` pins twk's dark
+  theme, `Theme.adaptive` twk's dark and light by the terminal's
+  brightness, `Theme(data: ThemeData.nord, child:)` a preset.
 - The marks widgets draw (check, cross, cursor bar, expanders, a
   scrollbar's thumb and track, a gauge's line, the spinner) are the
   theme's `Glyphs`, named by meaning: `Glyphs.unicode` by default,

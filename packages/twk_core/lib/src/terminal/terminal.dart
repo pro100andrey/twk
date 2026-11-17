@@ -75,6 +75,7 @@ final class TerminalInfo {
     this.progressReports = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
+    this.cursorRgb,
     this.terminalVersion = '',
     Map<int, int> palette = const {},
     Map<String, String> settings = const {},
@@ -107,6 +108,10 @@ final class TerminalInfo {
 
   /// The terminal's default background (OSC 11), for alpha blending.
   final int? backgroundRgb;
+
+  /// The terminal's cursor color (OSC 12), `0xRRGGBB`; null where it did
+  /// not answer the query (Konsole answers OSC 10 and 11 but not 12).
+  final int? cursorRgb;
 
   /// The first 16 palette entries the terminal told (OSC 4), RGB by index
   /// (0..15), for alpha blending ([StyleTable.setPaletteRgb]): a palette
@@ -1344,6 +1349,7 @@ final class Terminal
     final modes = <int, ModeReport>{};
     int? fg;
     int? bg;
+    int? cursor;
     final palette = <int, int>{};
     var kitty = false;
     var ambiguous = 1;
@@ -1385,6 +1391,8 @@ final class Terminal
               fg = rgb;
             case ColorReport(:final which, :final rgb) when which == 11:
               bg = rgb;
+            case ColorReport(:final which, :final rgb) when which == 12:
+              cursor = rgb;
             case ColorReport(:final which, :final rgb, :final index)
                 when which == 4:
               if (index < 16) {
@@ -1465,7 +1473,7 @@ final class Terminal
     // TERM_PROGRAM
     final asked =
         '${screenLike ? '' : _modeQueries}'
-        '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
+        '\x1b]10;?\x1b\\\x1b]11;?\x1b\\\x1b]12;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
         '\x1b[16t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
@@ -1593,6 +1601,7 @@ final class Terminal
       colorMode: color,
       foregroundRgb: fg,
       backgroundRgb: bg,
+      cursorRgb: cursor,
       palette: palette,
       inBandResize: supported(2048),
       graphemeMode: supported(2027),
@@ -2016,9 +2025,10 @@ final class Terminal
   void _askColors() {
     final fg = info.foregroundRgb == null ? '' : '\x1b]10;?\x1b\\';
     final bg = info.backgroundRgb == null ? '' : '\x1b]11;?\x1b\\';
+    final cursor = info.cursorRgb == null ? '' : '\x1b]12;?\x1b\\';
     final entries = [for (final i in info.palette.keys) '$i;?'];
     final palette = entries.isEmpty ? '' : '\x1b]4;${entries.join(';')}\x1b\\';
-    _writeString('$fg$bg$palette');
+    _writeString('$fg$bg$cursor$palette');
   }
 
   // --------------------------------------------------------------- resize --

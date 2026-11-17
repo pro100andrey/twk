@@ -517,8 +517,8 @@ final class DeviceAttributes extends InputEvent {
   final List<int> params;
 }
 
-/// Reply to OSC 10/11 (foreground/background color query) or OSC 4 (a
-/// palette entry: [which] 4, the entry's [index]).
+/// Reply to OSC 10, 11 or 12 (the foreground, background or cursor color
+/// query) or OSC 4 (a palette entry: [which] 4, the entry's [index]).
 ///
 /// Each channel is scaled to 8 bits from the 1 to 4 hex digits the
 /// terminal answers with (`rgb:ffff/8080/0000`).
@@ -527,7 +527,7 @@ final class ColorReport extends InputEvent {
   const ColorReport(this.which, this.rgb, {this.index = 0});
 
   /// The color the reply is about, as its OSC number: 10 the default
-  /// foreground, 11 the default background, 4 a palette entry.
+  /// foreground, 11 the default background, 12 the cursor, 4 a palette entry.
   final int which;
 
   /// The color, 0xRRGGBB.

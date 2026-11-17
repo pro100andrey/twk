@@ -603,6 +603,7 @@ final class AppBinding implements FrameClock {
   // the default background and text color the terminal told, 0xRRGGBB
   late int? _background = twkApp.terminal.info.backgroundRgb;
   late int? _foreground = twkApp.terminal.info.foregroundRgb;
+  late int? _cursor = twkApp.terminal.info.cursorRgb;
 
   // the entries of the 16 colors the terminal told, RGB by index; a new
   // map at each report, so that TerminalBrightness tells it changed
@@ -614,6 +615,7 @@ final class AppBinding implements FrameClock {
     final background? => ThemeData.terminalOn(
       background,
       foreground: _foreground,
+      cursor: _cursor,
       palette: _palette,
     ),
     null => ThemeData.terminal(_brightness),
@@ -1556,6 +1558,10 @@ final class AppBinding implements FrameClock {
     }
     if (event case ColorReport(which: 10, :final rgb) when rgb != _foreground) {
       _foreground = rgb;
+      _brightnessState?._changed();
+    }
+    if (event case ColorReport(which: 12, :final rgb) when rgb != _cursor) {
+      _cursor = rgb;
       _brightnessState?._changed();
     }
     if (event case ColorReport(which: 4, :final index, :final rgb)
@@ -2669,6 +2675,7 @@ final class _BrightnessState extends State<_Brightness> {
     known: widget.binding._brightnessKnown,
     background: widget.binding._background,
     foreground: widget.binding._foreground,
+    cursor: widget.binding._cursor,
     palette: widget.binding._palette,
     child: widget.child,
   );

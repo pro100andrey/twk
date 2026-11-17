@@ -17,7 +17,7 @@ import 'package:twk/twk.dart';
 Future<void> main() => runApp(
   // Catppuccin's dark flavor on a dark terminal, its light one on a light
   // one, switched when the terminal reports another color scheme; without
-  // a Theme, ThemeData.dark and ThemeData.light
+  // a Theme, the terminal's own colors
   const Theme.adaptive(
     dark: ThemeData.catppuccinMocha,
     light: ThemeData.catppuccinLatte,
@@ -57,16 +57,18 @@ final class Status extends StatelessWidget {
 - `Theme(data: ThemeData.nord, child:)` sets one theme. Built in:
   `ThemeData.dark`, `.light`, `.nord`, `.catppuccinMocha`,
   `.catppuccinLatte`.
-- Without a `Theme`, the widgets use twk's own: `ThemeData.dark` on a
-  terminal with a dark background, `ThemeData.light` on a light one,
-  switched as soon as the terminal reports that its color scheme
-  changed. Its colors are RGB, brought down to 256 or 16 where the
-  terminal shows no more. A terminal that does not answer for its
-  background gets its own colors, as under `Theme.terminal`, their greys
-  for the side its `COLORFGBG` names (rxvt, Konsole), dark where it names
-  none: a guess, and an inherited variable can be stale (in tmux, after a
-  profile changed), so it never picks twk's themes, whose dark theme on a
-  light terminal would be light text on white.
+- Without a `Theme`, the widgets are in the terminal's own colors
+  (`ThemeData.terminalOf`, as under `Theme.terminal`): the app reads as
+  part of the user's terminal and keeps their scheme (Solarized, a light
+  one, Breeze). Where the terminal told its background, text color and
+  palette, `ThemeData.terminalOn` mixes the greys from them and takes a
+  bright palette entry where the normal one reads under 4.5 against the
+  background; where it told no background, `ThemeData.terminal` has greys
+  of the 256 colors, for the side its `COLORFGBG` names (rxvt, Konsole),
+  dark where it names none. The text cursor of a `TextField` is the
+  terminal's own cursor color where it answers an `OSC 12` query, else its
+  text color. An app that wants one look on every terminal says so with
+  `Theme(data: ThemeData.dark, child:)` or another preset.
 - `Theme.adaptive(dark:, light:, child:)` chooses the dark and the light
   theme, as the app above does.
 - `Theme.terminal(child:)` uses the terminal's own colors

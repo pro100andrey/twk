@@ -722,9 +722,10 @@ final class InputParser {
     return 0;
   }
 
-  // "11;rgb:RRRR/GGGG/BBBB" or "4;N;rgb:…", 1 to 4 hex digits per channel
+  // "11;rgb:RRRR/GGGG/BBBB" (10, 11 or 12) or "4;N;rgb:…", 1 to 4 hex
+  // digits per channel
   static final _colorReply = RegExp(
-    r'^(1[01]|4;(\d{1,3}));'
+    r'^(1[0-2]|4;(\d{1,3}));'
     r'rgb:([0-9a-fA-F]{1,4})/([0-9a-fA-F]{1,4})/([0-9a-fA-F]{1,4})$',
   );
 

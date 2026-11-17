@@ -337,9 +337,9 @@ final class TwkTester {
   /// mouse reported on the normal screen too ([mouse]); [lines] and [cell]
   /// still read the whole screen, [viewportLines] the rectangle alone. The
   /// terminal has the kitty keyboard protocol on with [kittyKeyboard] (see
-  /// [press]) and the default background [backgroundRgb] (unknown when
-  /// null), and the app runs inside [multiplexer]
-  /// (`TerminalInfo.multiplexer`). The
+  /// [press]) and the default background [backgroundRgb], text color
+  /// [foregroundRgb] and cursor color [cursorRgb] (unknown when null), and
+  /// the app runs inside [multiplexer] (`TerminalInfo.multiplexer`). The
   /// terminal shows desktop notifications in [notifications]
   /// (`TerminalInfo.notifications`): by default none, and
   /// [AppBinding.notify] writes nothing. It shows images with [graphics]
@@ -369,6 +369,8 @@ final class TwkTester {
     Viewport? viewport,
     bool kittyKeyboard = false,
     int? backgroundRgb,
+    int? foregroundRgb,
+    int? cursorRgb,
     Multiplexer multiplexer = Multiplexer.none,
     NotificationProtocol notifications = NotificationProtocol.none,
     GraphicsProtocol graphics = GraphicsProtocol.none,
@@ -394,6 +396,8 @@ final class TwkTester {
         viewport: viewport,
         kittyKeyboard: kittyKeyboard,
         backgroundRgb: backgroundRgb,
+        foregroundRgb: foregroundRgb,
+        cursorRgb: cursorRgb,
         multiplexer: multiplexer,
         notifications: notifications,
         graphics: graphics,
@@ -439,6 +443,8 @@ final class TwkTester {
     required Viewport? viewport,
     required bool kittyKeyboard,
     required int? backgroundRgb,
+    required int? foregroundRgb,
+    required int? cursorRgb,
     required Multiplexer multiplexer,
     required NotificationProtocol notifications,
     required GraphicsProtocol graphics,
@@ -498,6 +504,8 @@ final class TwkTester {
         height: height,
         kittyKeyboard: kittyKeyboard,
         backgroundRgb: backgroundRgb,
+        foregroundRgb: foregroundRgb,
+        cursorRgb: cursorRgb,
         multiplexer: multiplexer,
         notifications: notifications,
         pointerShapes: pointerShapes,

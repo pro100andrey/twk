@@ -11,6 +11,11 @@ Breaking:
 
 Added:
 
+- `TerminalInfo.cursorRgb`, the terminal's cursor color (OSC 12), null where
+  it did not answer: the probe asks `OSC 12 ; ?` with the default colors,
+  and again after a `ColorSchemeReport` where it was answered. The input
+  parser reads `OSC 12` replies as `ColorReport(which: 12)`.
+  `HeadlessTerminal(cursorRgb:)`. The probe's bytes change by that query.
 - `Presenter.cursorColor`: the visible cursor's color, written with the
   cursor when it changes (`OSC 12`), `OSC 112` putting the terminal's own back
   once one was written. An RGB color is sent as it is, a palette color as the

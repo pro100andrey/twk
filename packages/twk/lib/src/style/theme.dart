@@ -180,11 +180,17 @@ final class ThemeData {
   /// xterm's blue on black is 2.2, its bright blue 4.4. Solarized's
   /// bright blue is a grey, its blue kept.
   ///
+  /// [cursorColor] is the terminal's [cursor] (OSC 12) where it told it,
+  /// else its [foreground], else null: a terminal that answers no OSC 12
+  /// query still gets a cursor of its own text color, which a block cursor
+  /// over a cell of another color would otherwise change as it moves.
+  ///
   /// The theme's [ThemeData.palette] is a copy of the map given, which a
   /// change to that map after leaves as it was.
   factory ThemeData.terminalOn(
     int background, {
     int? foreground,
+    int? cursor,
     Map<int, int> palette = const {},
   }) {
     final told = palette.isEmpty
@@ -224,6 +230,10 @@ final class ThemeData {
       selectionIdle: Style(bg: grey(0.1)),
       hover: Style(bg: grey(0.13)),
       palette: told,
+      cursorColor: switch (cursor ?? foreground) {
+        final rgb? => rgbColor(rgb),
+        null => null,
+      },
     );
   }
 
@@ -316,6 +326,8 @@ final class ThemeData {
 
   /// The color of the terminal's cursor while a text field or area has the
   /// caret: null by default, the terminal's own, which is not touched.
+  /// [ThemeData.terminalOn] sets it to the terminal's cursor color where it
+  /// told it (OSC 12), else to its text color.
   ///
   /// Some terminals paint a block cursor in the text color of the cell
   /// under it, which changes as it moves and can be the background's;
@@ -743,10 +755,11 @@ Style _fg(Color? color, Style fallback) =>
 /// own colors. The widgets that read it are rebuilt when it changes, the
 /// others are not.
 ///
-/// Without one an app is in twk's own themes, as under a [Theme.adaptive]
-/// of the defaults: [ThemeData.dark] on a dark terminal, [ThemeData.light]
-/// on a light one; on a terminal that does not say which it is, in its
-/// own colors.
+/// Without one an app is in the terminal's own colors, as under a
+/// [Theme.terminal]: [ThemeData.terminalOn] where the terminal told its
+/// background, [ThemeData.terminal] where it did not. An app that wants
+/// one look on every terminal says so with [ThemeData.dark] or another
+/// preset, or [Theme.adaptive] for twk's dark and light.
 ///
 /// An app in Nord, its text read from the theme:
 ///
@@ -807,21 +820,16 @@ final class Theme extends StatelessWidget {
   /// Whether it gives the terminal's own colors.
   final bool _terminal;
 
-  /// The theme at [context]: that of the nearest [Theme]; without one
-  /// [ThemeData.dark] on a dark terminal and [ThemeData.light] on a light
-  /// one, and the terminal's own colors ([ThemeData.terminal]) where the
-  /// terminal did not say which it is ([TerminalBrightness.isKnown]): on a
-  /// light terminal taken for dark the text of [ThemeData.dark] would be
-  /// light grey on white, the terminal's own colors are right on either.
-  /// [context] depends on it, as on an [InheritedWidget].
+  /// The theme at [context]: that of the nearest [Theme]; without one the
+  /// terminal's own colors ([ThemeData.terminalOf]): [ThemeData.terminalOn]
+  /// where the terminal told its background, [ThemeData.terminal] of its
+  /// brightness where it did not. The app reads as part of the user's
+  /// terminal and keeps its color scheme; one that wants the same look
+  /// everywhere says so with `Theme(data: ThemeData.dark, ...)` or another
+  /// preset. [context] depends on it, as on an [InheritedWidget].
   static ThemeData of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_ThemeScope>()?.data ??
-      (TerminalBrightness.isKnown(context)
-          ? switch (TerminalBrightness.of(context)) {
-              Brightness.dark => ThemeData.dark,
-              Brightness.light => ThemeData.light,
-            }
-          : ThemeData.terminalOf(context));
+      ThemeData.terminalOf(context);
 
   @override
   Widget build(BuildContext context) {
@@ -875,6 +883,7 @@ final class TerminalBrightness extends InheritedWidget {
     this.known = true,
     this.background,
     this.foreground,
+    this.cursor,
     this.palette = const {},
     super.key,
   });
@@ -896,6 +905,10 @@ final class TerminalBrightness extends InheritedWidget {
   /// The terminal's default text color as it told it (OSC 10),
   /// `0xRRGGBB`; null where it did not.
   final int? foreground;
+
+  /// The terminal's cursor color as it told it (OSC 12), `0xRRGGBB`; null
+  /// where it did not (Konsole answers OSC 10 but not 12).
+  final int? cursor;
 
   /// The entries of the terminal's 16 colors it told (OSC 4), RGB
   /// (`0xRRGGBB`) by index; empty where it told none.
@@ -948,6 +961,7 @@ final class TerminalBrightness extends InheritedWidget {
       known != oldWidget.known ||
       background != oldWidget.background ||
       foreground != oldWidget.foreground ||
+      cursor != oldWidget.cursor ||
       !_samePalette(palette, oldWidget.palette);
 
   static bool _samePalette(Map<int, int> a, Map<int, int> b) =>
@@ -963,10 +977,16 @@ final class _TerminalBrightnessElement extends InheritedElement {
   ThemeData? _theme;
 
   ThemeData get theme => _theme ??= switch (widget as TerminalBrightness) {
-    TerminalBrightness(:final background?, :final foreground, :final palette) =>
+    TerminalBrightness(
+      :final background?,
+      :final foreground,
+      :final cursor,
+      :final palette,
+    ) =>
       ThemeData.terminalOn(
         background,
         foreground: foreground,
+        cursor: cursor,
         palette: palette,
       ),
     final terminal => ThemeData.terminal(terminal.brightness),

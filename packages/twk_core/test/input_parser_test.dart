@@ -346,6 +346,14 @@ void main() {
           .having((c) => c.rgb, 'rgb', 0x89b4fa),
     );
     expect((c1.which, c1.index), (11, 0));
+    final c12 = parse('\x1b]12;rgb:ffff/8888/0000\x1b\\').single;
+    expect(
+      c12,
+      isA<ColorReport>()
+          .having((c) => c.which, 'which', 12)
+          .having((c) => c.rgb, 'rgb', 0xff8800),
+    );
+    expect(parse('\x1b]13;rgb:ff/ff/ff\x07').single, isA<UnknownSequence>());
     expect(parse('\x1b]4;256;rgb:ff/ff/ff\x07').single, isA<UnknownSequence>());
     expect(parse('\x1b[48;40;120;800;1600t'), [const ResizeEvent(120, 40)]);
     final p = InputParser()..expectCursorReport = true;

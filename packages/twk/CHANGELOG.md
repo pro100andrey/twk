@@ -4,6 +4,14 @@
 
 Breaking:
 
+- The default theme is the terminal's own colors: without a `Theme`,
+  `Theme.of` gives `ThemeData.terminalOf(context)` (`ThemeData.terminalOn`
+  where the terminal told its background, `ThemeData.terminal` of its
+  brightness where it did not), not `ThemeData.dark` or `ThemeData.light`
+  by brightness. An app looks as the user's terminal does and keeps their
+  color scheme; one that wants one look everywhere says so with
+  `Theme(data: ThemeData.dark, ...)`, and `Theme.adaptive` keeps its
+  meaning.
 - `clock:` of `runApp`, `AppBinding` and `ProgressTracker` takes a `Clock`
   (twk.dart exports it), not a `Stopwatch`; `ProgressTracker.clock` is one.
   `AppBinding.startTimer`, `startPeriodic` and the timer of a frame callback
@@ -13,6 +21,12 @@ Breaking:
 
 Added:
 
+- `ThemeData.terminalOn(cursor:)` and `TerminalBrightness.cursor`: the
+  terminal's cursor color (OSC 12). The theme's `cursorColor` there is the
+  cursor color the terminal told, else its text color (Konsole answers
+  OSC 10 but not 12), else null; `ThemeData.terminal` leaves it null. The
+  binding takes a `ColorReport` of OSC 12 live.
+- twk_test: `pumpWidget(foregroundRgb:, cursorRgb:)`.
 - `ThemeData.cursorColor` (null, the terminal's own, by default): the color
   of the terminal's cursor while a `TextField` or `TextArea` has the caret
   (`OSC 12`), for a terminal that paints a block cursor in the text color of

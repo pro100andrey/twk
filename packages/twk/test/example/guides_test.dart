@@ -173,15 +173,16 @@ ctrl+z undo   ctrl+s save   ctrl+q quit
     expect(t, styleAt(2, 2, hasFg(ThemeData.catppuccinLatte.success.fg!)));
   });
 
-  testTwk('theming: without a Theme, the dark theme on a dark terminal', (
-    t,
-  ) async {
+  testTwk("theming: without a Theme, the terminal's own colors", (t) async {
     await t.pumpWidget(
       const Status(),
       size: (30, 8),
       backgroundRgb: 0x16181d,
     );
-    expect(t, styleAt(2, 2, hasFg(ThemeData.dark.success.fg!)));
+    expect(
+      t,
+      styleAt(2, 2, hasFg(ThemeData.terminalOn(0x16181d).success.fg!)),
+    );
   });
 
   testTwk('glyphs: the report in ASCII with a check of its own', (t) async {

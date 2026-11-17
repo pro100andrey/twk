@@ -78,10 +78,11 @@ final class HeadlessTerminal
   /// A terminal [width] x [height] cells, 80 x 24 by default, that tells
   /// an app what the other parameters say: [TerminalInfo.caps] (`caps`),
   /// how it measures text (`textMode`, `ambiguousWidth`), its colors
-  /// (`colorMode`, `foregroundRgb`, `backgroundRgb`, `palette`), whether
-  /// it speaks the kitty keyboard protocol (`kittyKeyboard`), and the rest
-  /// as the class comment says. [options] chooses the screen mode;
-  /// `cursorColumn` is where the cursor starts in the inline mode;
+  /// (`colorMode`, `foregroundRgb`, `backgroundRgb`, `cursorRgb`,
+  /// `palette`), whether it speaks the kitty keyboard protocol
+  /// (`kittyKeyboard`), and the rest as the class comment says. [options]
+  /// chooses the screen mode; `cursorColumn` is where the cursor starts in
+  /// the inline mode;
   /// `settings` are the app's settings it sets, as a terminal of the
   /// process's sets those of its environment ([TerminalInfo.settings]).
   HeadlessTerminal({
@@ -93,6 +94,7 @@ final class HeadlessTerminal
     ColorMode colorMode = ColorMode.trueColor,
     int? foregroundRgb,
     int? backgroundRgb,
+    int? cursorRgb,
     Map<int, int> palette = const {},
     bool kittyKeyboard = false,
     this.options = const TerminalOptions(),
@@ -112,6 +114,7 @@ final class HeadlessTerminal
          colorMode: colorMode,
          foregroundRgb: foregroundRgb,
          backgroundRgb: backgroundRgb,
+         cursorRgb: cursorRgb,
          palette: palette,
          inBandResize: false,
          graphemeMode: false,
