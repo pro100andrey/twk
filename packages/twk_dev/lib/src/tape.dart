@@ -140,7 +140,10 @@ final class TapeRunner {
     TapeClock? clock,
     this.check = false,
     void Function(String line)? report,
-  }) : _log = log ?? stderr.writeln,
+    this.program,
+    Future<AppServicePort> Function(Uri uri)? connect,
+  }) : _connectTo = connect ?? _connect,
+       _log = log ?? stderr.writeln,
        _report = report ?? stdout.writeln,
        _clock = clock ?? TapeClock();
 
@@ -159,9 +162,11 @@ final class TapeRunner {
 
   final void Function(String line) _log;
 
-  /// How often a Wait for a widget looks at the app's tree, on the tape's
-  /// clock.
-  static const widgetPoll = Duration(milliseconds: 50);
+  /// What starts the program in place of a pseudo-terminal, a port a test
+  /// gives for a fake; null for the pty. What connects to its VM service
+  /// is the other (`connect`).
+  final ProcessPort? program;
+  final Future<AppServicePort> Function(Uri uri) _connectTo;
 
   late Session _session;
 
@@ -307,12 +312,15 @@ final class TapeRunner {
       _session = await Session.compose(
         spec,
         process: RecordingProcessPort(
-          app ? PtyProcessPort(dart: command.first) : const PtyCommandPort(),
+          program ??
+              (app
+                  ? PtyProcessPort(dart: command.first)
+                  : const PtyCommandPort()),
           now: () => _now,
           recorded: _recorded,
         ),
         screen: screens,
-        connect: app ? _connect : null,
+        connect: app ? _connectTo : null,
         clock: _clock,
         // the first frame of an app, which may be compiled first
         timeout: const Duration(minutes: 1),
@@ -508,23 +516,53 @@ final class TapeRunner {
     }
   }
 
-  /// Waits until the app's tree has what [step] looks for, polling it
-  /// ([widgetPoll]), but no longer than its timeout.
+  /// Waits until the app's tree has what [step] looks for, but no longer
+  /// than its timeout on the tape's clock: the tree is asked once, and again
+  /// after each frame the app draws, as twk_test's `waitForFinder` does.
   Future<void> _waitNode(WaitNodeStep step) async {
     final timeout = step.timeout ?? _timeout;
     final end = _clock.elapsed + timeout;
     try {
       while (true) {
-        if ((await _session.find(step.finder)).isNotEmpty) {
+        final seen = _session.frame;
+        final found = await _find(step);
+        if (found.isNotEmpty) {
           return;
         }
-        if (_clock.elapsed >= end) {
+        final left = end - _clock.elapsed;
+        if (left <= Duration.zero) {
           throw _timedOut(step, step.source, timeout, ended: false);
         }
-        await _pause(widgetPoll);
+        try {
+          // a frame after the one the tree was read at, its screen not
+          // looked at: only that the app drew
+          await Future.any([
+            _session.waitForScreen(
+              (_) => _session.frame != seen,
+              timeout: left,
+              what: step.source,
+            ),
+            _stop.future,
+          ]);
+        } on AppEnded {
+          rethrow;
+        } on DriverError {
+          throw _timedOut(step, step.source, timeout, ended: false);
+        }
+        if (_stop.isCompleted) {
+          throw const _Stopped();
+        }
       }
     } on AppEnded {
       throw _timedOut(step, step.source, timeout, ended: true);
+    }
+  }
+
+  Future<List<Found>> _find(WaitNodeStep step) async {
+    try {
+      return await _session.find(step.finder);
+    } on AppEnded {
+      rethrow;
     } on DriverError catch (e) {
       throw _failed(step, e.message);
     }

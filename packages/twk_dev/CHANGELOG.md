@@ -19,7 +19,10 @@ Added:
   for a twk app (`Run dart <file>`): the tape waits for what the app's widget
   tree has and clicks a widget, after the tap check of twk_driver (a click on
   what is covered, hidden or takes no click fails the tape, saying why). On a
-  program that is no twk app they fail with "not a twk app".
+  program that is no twk app they fail with "not a twk app". `Click Key "<id>"`
+  clicks the widget with that `ValueKey` (a bare whole number is an int key).
+  The two Waits look at the tree after each frame the app draws, not every
+  50 ms (`TapeRunner.widgetPoll` is gone).
 
 Changed:
 

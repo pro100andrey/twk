@@ -119,6 +119,9 @@ Wait@5s Widget "Map<String, int>"
 Wait Text "Saved # ok"
 Click "Save"
 Click@200ms 'Cancel'
+Click Key "save"
+Click@1s Key 3
+Click "Key"
 Wait "Widget"
 ''');
 
@@ -128,6 +131,9 @@ Wait "Widget"
         'wait node Text "Saved # ok" {text: Saved # ok}',
         'click "Save" {text: Save}',
         'click "Cancel" {text: Cancel} @200ms',
+        'click Key "save" {key: {value: save}}',
+        'click Key 3 {key: {value: 3}} @1000ms',
+        'click "Key" {text: Key}',
         'wait screen "Widget" Widget',
       ]);
     });
@@ -143,10 +149,13 @@ Wait "Widget"
         'Wait+Line Widget Tabs':
             '1: Wait+Line takes a /regular expression/ '
             'or "text"',
-        'Click': '1: Click takes the quoted text of a widget: Click "Save"',
-        'Click Save':
-            '1: Click takes the quoted text of a widget: Click '
-            '"Save"',
+        'Click': '1: $_clickUsage',
+        'Click Save': '1: $_clickUsage',
+        'Click Key': '1: $_clickUsage',
+        'Click Key "a" "b"': '1: $_clickUsage',
+        'Click Key save':
+            '1: Click Key takes a quoted id, or a whole number: Click Key '
+            '"save"',
       };
       for (final MapEntry(:key, :value) in cases.entries) {
         expect(
@@ -522,3 +531,7 @@ Wait "Widget"
     }
   });
 }
+
+const _clickUsage =
+    'Click takes the quoted text of a widget or its key: Click "Save", '
+    'Click Key "save"';

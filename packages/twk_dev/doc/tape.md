@@ -101,9 +101,11 @@ matches, or `"<text>"` shows; past the timeout the tape fails
 for a twk app: waits until the app's widget tree has a widget of that type
 (`runtimeType.toString()`, exactly: `Tabs`, `"DropDown<String>"`), or a `Text`
 whose whole text is `<text>`; past the timeout the tape fails, with the
-screen. The app's tree is looked at every 50 ms of the tape's clock.
+screen. The tree is looked at when the step starts and after each frame the
+app draws, as twk_test's `waitForFinder` does: the wait ends on the frame that
+shows the widget, and the timeout runs on the tape's clock.
 
-### `Click[@<time>] "<text>"`
+### `Click[@<time>] "<text>"`, `Click[@<time>] Key "<id>"`
 
 for a twk app: clicks the one `Text` whose whole text is `<text>` (a button's
 label, say), the typing speed (or `@<time>`) after. Before the click the tape
@@ -112,6 +114,11 @@ be shown, nothing else on top of it (`covered by Text (node 5)`), something
 there that takes a click, the app asking for the mouse. A click that would not
 reach it fails the tape, saying why; so does one on text that is on none or on
 more than one widget.
+
+`Click Key "<id>"` clicks the one widget whose key is `ValueKey('<id>')`; an id
+that is a bare whole number (`Click Key 3`) is the `ValueKey<int>`, a quoted
+one always a `String`. No widget with that key, or two, fails the tape the same
+way, with the screen.
 
 A tape of a twk app is one whose `Run` is `dart <file.dart>` (or a kernel,
 `.dill`) and that has a `Wait Widget`, `Wait Text` or `Click`: its program is

@@ -21,6 +21,7 @@ import 'theme.dart';
 /// Run dart example/tally.dart     # the program; sh by default
 /// Wait /q quit/                   # Wait+Line, Wait@5s, Wait "text"
 /// Wait Widget Tabs                # twk apps: Wait Text "Saved", Click "Save"
+///                                 # or Click Key "save"
 /// Type "+"                        # Type@200ms
 /// Down 2                          # Enter, Tab, Space, Ctrl+C, Alt+x, ...
 /// Sleep 1.5s                      # 500ms, 2 (seconds), 1m
@@ -206,7 +207,8 @@ final class WaitNodeStep extends TapeStep {
 }
 
 /// Clicks the one widget [finder] finds, after checking that a click
-/// there reaches it (`Session.tap`): `Click "<text>"`. Only for a program
+/// there reaches it (`Session.tap`): `Click "<text>"`, `Click Key "<id>"`.
+/// Only for a program
 /// that is a twk app.
 final class ClickStep extends TapeStep {
   /// `Click "Save"`.
@@ -215,7 +217,7 @@ final class ClickStep extends TapeStep {
   /// What is clicked.
   final ElementFinder finder;
 
-  /// The statement's word as the tape wrote it: `"Save"`.
+  /// The statement's word as the tape wrote it: `"Save"`, `Key "save"`.
   final String source;
 
   /// The time after the click; null for the typing speed.
@@ -460,19 +462,7 @@ final class _Parser {
         }
         _steps.add(ScreenshotStep(_line, path));
       case 'Click':
-        final words = _words(rest);
-        if (words.length != 1 || !words.single.quoted) {
-          _error('Click takes the quoted text of a widget: Click "Save"');
-        }
-        final text = words.single.text;
-        _steps.add(
-          ClickStep(
-            _line,
-            ElementFinder.text(text),
-            '"$text"',
-            delay: delay,
-          ),
-        );
+        _click(rest, delay);
       case 'Wait' || 'Wait+Screen' || 'Wait+Line':
         _wait(word, rest, delay);
       default:
@@ -493,6 +483,50 @@ final class _Parser {
         }
         _steps.add(KeyStep(_line, word, key, count: count, delay: delay));
     }
+  }
+
+  /// `Click "<text>"` and `Click Key "<id>"`: [rest] after the word.
+  void _click(String rest, Duration? delay) {
+    const usage =
+        'Click takes the quoted text of a widget or its key: Click "Save", '
+        'Click Key "save"';
+    final byKey = RegExp(r'^Key(?:\s+(.*))?$').firstMatch(rest);
+    final words = _words(byKey == null ? rest : byKey[1] ?? '');
+    if (words.length != 1 || words.single.regex) {
+      _error(usage);
+    }
+    final w = words.single;
+    if (byKey == null) {
+      if (!w.quoted) {
+        _error(usage);
+      }
+      _steps.add(
+        ClickStep(
+          _line,
+          ElementFinder.text(w.text),
+          '"${w.text}"',
+          delay: delay,
+        ),
+      );
+      return;
+    }
+    // a quoted id is a String key, a bare whole number an int one
+    final number = w.quoted ? null : int.tryParse(w.text);
+    if (!w.quoted && number == null) {
+      _error(
+        'Click Key takes a quoted id, or a whole number: Click Key "save"',
+      );
+    }
+    _steps.add(
+      ClickStep(
+        _line,
+        ElementFinder.fromJson({
+          'key': {'value': number ?? w.text},
+        }),
+        w.quoted ? 'Key "${w.text}"' : 'Key $number',
+        delay: delay,
+      ),
+    );
   }
 
   void _wait(String word, String rest, Duration? timeout) {
