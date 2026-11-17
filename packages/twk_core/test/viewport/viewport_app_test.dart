@@ -121,7 +121,7 @@ void main() {
       term,
       maxFps: 1000,
       viewport: view,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     root = Panel(app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 90))), [
@@ -334,7 +334,7 @@ void main() {
       t,
       maxFps: 1000,
       viewport: const Viewport.fixed(15, 4, 10, 3),
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     final panel = Panel(a.screen.styles.pen(const Pen(attrs: Attr.bold)), [

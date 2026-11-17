@@ -59,7 +59,7 @@ final class _Run {
         maxFps: 1000,
         logs: logs,
         screenReader: screenReader,
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ).run(app);
     });
   }

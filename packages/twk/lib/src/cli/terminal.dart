@@ -1,41 +1,18 @@
 /// The terminal a [Cli] writes to and reads from: [CliTerminal], the
-/// process's own by default, and the [CliClock] its time is kept by.
+/// process's own by default, and the `Clock` its time is kept by.
 ///
 /// @docImport 'cli.dart';
 library;
 
 import 'dart:async';
 
-import 'package:twk_core/twk_core.dart' show Terminal;
+import 'package:twk_core/twk_core.dart' show Clock, SystemClock, Terminal;
 
 import '../../twk.dart' show TerminalBackend, TerminalOptions;
 import '../platform/platform.dart' as platform;
 import 'capabilities.dart';
 
-/// Where a [Cli]'s time comes from and where the timers of its inline
-/// session run: the wall clock ([CliClock.system]), or one a test moves by
-/// hand (the fake terminal's, `package:twk_test/cli.dart`).
-abstract interface class CliClock {
-  /// The wall clock: [run] runs its body as it is, [stopwatch] is a new
-  /// [Stopwatch].
-  const factory CliClock.system() = _SystemClock;
-
-  /// A stopwatch on this clock, started.
-  Stopwatch stopwatch();
-
-  /// Runs [body] where the timers it starts are this clock's.
-  R run<R>(R Function() body);
-}
-
-final class _SystemClock implements CliClock {
-  const _SystemClock();
-
-  @override
-  Stopwatch stopwatch() => Stopwatch()..start();
-
-  @override
-  R run<R>(R Function() body) => body();
-}
+final Clock _wall = SystemClock();
 
 /// The terminal a [Cli] talks through: where lines go ([out], [err]),
 /// where a plain prompt reads them ([readLine]), what both can do
@@ -111,8 +88,15 @@ abstract class CliTerminal {
   /// ends.
   void interrupt();
 
-  /// Where the time of the session and its timers comes from.
-  CliClock get clock => const CliClock.system();
+  /// Where the time of the session and its timers comes from: the wall
+  /// clock by default, one a test moves by hand in the fake terminal
+  /// (`package:twk_test/cli.dart`).
+  Clock get clock => _wall;
+
+  /// Runs [body] where the code of the inline session runs: as it is, or in
+  /// the zone of the fake clock that [clock] is, whose microtasks and
+  /// timers a test then moves.
+  R run<R>(R Function() body) => body();
 
   /// Flushes [out] and [err] where they buffer.
   Future<void> flush();

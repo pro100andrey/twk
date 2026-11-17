@@ -248,7 +248,7 @@ void main() {
         maxFps: 1000,
         logs: LogSink(),
         screenReader: true,
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ),
     );
     await clock.elapse(const Duration(milliseconds: 30));
@@ -275,7 +275,7 @@ void main() {
         maxFps: 1000,
         logs: LogSink(),
         screenReader: true,
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ),
     );
     Future<void> settle() => clock.elapse(const Duration(milliseconds: 30));

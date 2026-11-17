@@ -95,7 +95,7 @@ void main() {
       final clock = FakeClock();
       final term = clock.run(() => HeadlessTerminal(width: 20, height: 4));
       final binding = clock.run(
-        () => AppBinding(term, clock: clock.stopwatch)..reassemble(),
+        () => AppBinding(term, clock: clock.clock)..reassemble(),
       );
       final ran = clock.run(() => binding.run(const _Counter()));
       await clock.elapse(const Duration(milliseconds: 50));

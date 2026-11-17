@@ -56,7 +56,7 @@ Future<List<String>> _drawn(HeadlessTerminal term, String text) async {
   final ui = TwkApp(
     term,
     maxFps: 1000,
-    clock: clock.stopwatch,
+    clock: clock.clock,
     environment: const {},
   );
   final done = clock.run(
@@ -329,7 +329,7 @@ void main() {
       final ui = TwkApp(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       final done = clock.run(

@@ -22,15 +22,15 @@ List<String> rows(TwkTester t) => [
 /// A tracker on a fake clock, and the clock.
 (ProgressTracker, FakeClock) tracked() {
   final clock = FakeClock();
-  final tracker = ProgressTracker(clock: clock.stopwatch);
+  final tracker = ProgressTracker(clock: clock.clock);
   addTearDown(tracker.dispose);
   return (tracker, clock);
 }
 
-/// A tracker on the clock of the app [t] runs (`t.clock.stopwatch`, which
+/// A tracker on the clock of the app [t] runs (`t.clock.clock`, which
 /// it hands the app), so that its fake clock moves the times.
 ProgressTracker onApp(TwkTester t) {
-  final tracker = ProgressTracker(clock: t.clock.stopwatch);
+  final tracker = ProgressTracker(clock: t.clock.clock);
   addTearDown(tracker.dispose);
   return tracker;
 }
@@ -443,7 +443,7 @@ void main() {
       expect(t.lines, ['Download 250/s']);
     });
 
-    testTwk('a tracker handed no clock keeps its own stopwatch when a list '
+    testTwk('a tracker handed no clock keeps its own when a list '
         'shows it, and one handed a clock keeps that: nothing swaps it', (
       t,
     ) async {
@@ -463,7 +463,7 @@ void main() {
       expect(tracker.clock, isNot(same(t.binding.twkApp.clock)));
       // the wall clock's time, not the 10 s the app's moved
       expect(task.elapsed, lessThan(const Duration(seconds: 5)));
-      final given = Stopwatch();
+      final given = SystemClock();
       final kept = ProgressTracker(clock: given);
       addTearDown(kept.dispose);
       await t.pumpWidget(ProgressList(tracker: kept));

@@ -36,12 +36,12 @@ void main() {
 
   /// An app on [terminal], on the clock, whose events ask for a frame.
   void start(TerminalBackend terminal, {void Function(InputEvent)? onEvent}) {
-    app = TwkApp(terminal, maxFps: 1000, clock: clock.stopwatch)
+    app = TwkApp(terminal, maxFps: 1000, clock: clock.clock)
       ..onInputSettled = () =>
           settled.add((app.inputRead, app.framesRun, app.scheduled));
     probe = Probe(
       app.screen.styles.pen(const Pen()),
-      clock: clock.stopwatch,
+      clock: clock.clock,
     );
     done = clock.run(
       () => app.run(

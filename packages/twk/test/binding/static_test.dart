@@ -291,7 +291,7 @@ final class _Inline {
           term,
           maxFps: 1000,
           logs: logs,
-          clock: clock.stopwatch,
+          clock: clock.clock,
         ).run(Probe(key: _key, builder)),
         stderr: () => _err,
       );

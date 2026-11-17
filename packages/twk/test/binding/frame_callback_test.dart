@@ -154,7 +154,7 @@ void main() {
     final binding = clock.run(
       () => AppBinding(
         HeadlessTerminal(width: 10, height: 1),
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ),
     );
     final calls = <(String, Duration)>[];

@@ -2,7 +2,7 @@
 
 import 'dart:math' as math;
 
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 import 'package:twk_term/twk_term.dart';
 
 import '../../../scripted_shell.dart';

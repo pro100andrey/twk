@@ -521,7 +521,7 @@ final class TwkTester {
         clearInlineOnExit: clearInlineOnExit,
         logs: logs,
         exitOnCtrlC: exitOnCtrlC,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         startTime: startTime,
         environment: environment,
       );

@@ -344,9 +344,10 @@ final class TerminalReport {
 }
 
 Future<TerminalReport> _probe(CliTerminal terminal) async {
-  final watch = terminal.clock.stopwatch();
+  // the terminal's clock: the wall clock but in a test's fake terminal
+  final started = terminal.clock.elapsedMicroseconds;
   final backend = await terminal.openInline();
-  watch.stop();
+  final probed = terminal.clock.elapsedMicroseconds - started;
   try {
     final info = backend.info;
     return TerminalReport(
@@ -360,7 +361,7 @@ Future<TerminalReport> _probe(CliTerminal terminal) async {
       cellWidth: info.caps.cellPixelWidth,
       cellHeight: info.caps.cellPixelHeight,
       answered: info.answeredQueries,
-      probeMilliseconds: watch.elapsedMilliseconds,
+      probeMilliseconds: probed ~/ 1000,
     );
   } finally {
     await backend.close();

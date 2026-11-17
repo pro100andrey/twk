@@ -58,7 +58,13 @@ export 'package:twk_core/twk_core.dart'
         ResizeEvent;
 // what an app runs on
 export 'package:twk_core/twk_core.dart'
-    show BidiReordering, TerminalBackend, Viewport;
+    show
+        BidiReordering,
+        Clock,
+        ClockElapsed,
+        SystemClock,
+        TerminalBackend,
+        Viewport;
 // render objects of an app's own, and how they describe themselves
 export 'package:twk_core/twk_core.dart'
     show

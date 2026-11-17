@@ -99,7 +99,7 @@ void main() {
       app = TwkApp(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       root = Lines(app.screen.styles.pen(const Pen()), ['one']);
@@ -216,7 +216,7 @@ void main() {
       app = TwkApp(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       root = Lines(app.screen.styles.pen(const Pen()), lines);
@@ -292,7 +292,7 @@ void main() {
       app = TwkApp(
         plain,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       root = Lines(app.screen.styles.pen(const Pen()), ['one']);

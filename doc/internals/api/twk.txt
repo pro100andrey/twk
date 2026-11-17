@@ -1,6 +1,5 @@
 cli.dart class Cli
 cli.dart class CliCapabilities
-cli.dart class CliClock
 cli.dart class CliLive
 cli.dart class CliProgress
 cli.dart class CliSession
@@ -148,6 +147,7 @@ twk.dart class ChildListElement
 twk.dart class Chip
 twk.dart class ChipList
 twk.dart class Choice
+twk.dart class Clock
 twk.dart class ClusterScan
 twk.dart class ColorSchemeReport
 twk.dart class ColorTween
@@ -202,6 +202,7 @@ twk.dart class DragTarget
 twk.dart class DragTargetDetails
 twk.dart class DragUpdateDetails
 twk.dart class Draggable
+twk.dart class DrivenClock
 twk.dart class EdgeInsets
 twk.dart class EdgeInsetsTween
 twk.dart class Effect
@@ -441,6 +442,7 @@ twk.dart class StyleTween
 twk.dart class Suggestion
 twk.dart class Switch
 twk.dart class SwitcherTransition
+twk.dart class SystemClock
 twk.dart class TabBar
 twk.dart class TabBarView
 twk.dart class TabController
@@ -566,6 +568,7 @@ twk.dart enum UnmatchedKeys
 twk.dart enum WindowFrame
 twk.dart enum WrapAlignment
 twk.dart enum WrapCrossAlignment
+twk.dart extension ClockElapsed
 twk.dart extension FocusManagerKeys
 twk.dart extension StringStyles
 twk.dart extension TextBoundaries

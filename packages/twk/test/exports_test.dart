@@ -246,7 +246,7 @@ void main() {
     expect(sample.snapshot(), 'snap');
     final clock = FakeClock();
     final logged = await clock.elapseUntil(
-      clock.run(() => sample.runInMemory(clock: clock.stopwatch)),
+      clock.run(() => sample.runInMemory(clock: clock.clock)),
     );
     expect([
       for (final r in logged)

@@ -4,6 +4,8 @@ library;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:twk_core/twk_core.dart' show Clock;
+
 /// A clock that moves only by [elapse], and the zone ([run]) whose timers
 /// and microtasks it owns, as twk_test's `FakeClock`, but synchronous:
 /// [elapse] runs the microtasks, then each timer due in the order of their
@@ -17,7 +19,7 @@ import 'dart:collection';
 /// complete in microtasks of the zone, which this clock runs. What it
 /// allocates itself is what a real event loop does for a timer or a
 /// microtask: the callback bound to the zone, and the timer.
-final class SyncClock {
+final class SyncClock implements Clock {
   /// A clock at zero, with no timers, whose zone is a child of the zone
   /// it is created in.
   SyncClock() {
@@ -86,8 +88,16 @@ final class SyncClock {
     return next;
   }
 
-  /// A stopwatch on this clock, running since it was created.
-  late final Stopwatch stopwatch = _SyncStopwatch(this);
+  @override
+  int get elapsedMicroseconds => _now;
+
+  @override
+  Timer timer(Duration after, void Function() callback) =>
+      _SyncTimer(this, after, callback);
+
+  @override
+  Timer periodic(Duration every, void Function(Timer) callback) =>
+      _SyncTimer.periodic(this, every, callback);
 }
 
 final class _SyncTimer implements Timer {
@@ -142,54 +152,4 @@ final class _SyncTimer implements Timer {
       _once!();
     }
   }
-}
-
-/// A [Stopwatch] whose time is a [SyncClock]'s.
-final class _SyncStopwatch implements Stopwatch {
-  _SyncStopwatch(this._clock) : _startedAt = _clock._now;
-
-  final SyncClock _clock;
-  int? _startedAt;
-  var _counted = 0;
-
-  @override
-  int get frequency => 1000000;
-
-  @override
-  bool get isRunning => _startedAt != null;
-
-  @override
-  void start() => _startedAt ??= _clock._now;
-
-  @override
-  void stop() {
-    final startedAt = _startedAt;
-    if (startedAt != null) {
-      _counted += _clock._now - startedAt;
-      _startedAt = null;
-    }
-  }
-
-  @override
-  void reset() {
-    _counted = 0;
-    if (_startedAt != null) {
-      _startedAt = _clock._now;
-    }
-  }
-
-  @override
-  int get elapsedTicks => elapsedMicroseconds;
-
-  @override
-  int get elapsedMicroseconds {
-    final startedAt = _startedAt;
-    return _counted + (startedAt == null ? 0 : _clock._now - startedAt);
-  }
-
-  @override
-  int get elapsedMilliseconds => elapsedMicroseconds ~/ 1000;
-
-  @override
-  Duration get elapsed => Duration(microseconds: elapsedMicroseconds);
 }

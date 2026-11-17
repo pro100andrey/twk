@@ -178,7 +178,7 @@ traffic keeps its keys, which then protect nothing new. Time is read on
 the server's `clock`, a stopwatch per connection by default, and the
 deadlines (`loginTimeout`, the second a connection waits for the client
 after its session) run on its `timers`, `Timer.new` by default: a test
-gives it a fake clock's (`clock: fake.stopwatch, timers: (d, f) =>
+gives it a fake clock's (`clock: fake.clock, timers: (d, f) =>
 fake.run(() => Timer(d, f))`), whose time moves only when the test says.
 
 ### The post-quantum key exchange

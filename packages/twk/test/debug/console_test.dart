@@ -706,7 +706,7 @@ void main() {
           term,
           maxFps: 1000,
           logs: sink,
-          clock: clock.stopwatch,
+          clock: clock.clock,
         ),
       );
       final done = clock.run(

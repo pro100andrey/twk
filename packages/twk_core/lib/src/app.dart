@@ -23,6 +23,7 @@ import 'dart:typed_data';
 
 import 'byte_sink.dart';
 import 'canvas.dart';
+import 'clock.dart';
 import 'input/events.dart';
 import 'line_encoder.dart';
 import 'log.dart';
@@ -193,7 +194,7 @@ final class TwkApp {
   /// mode, [viewport] makes the app a fixed rectangle of the screen (see
   /// [TwkApp]). [framesInRow], [timeline] and [serveLogs] are debug aids,
   /// by default on when `TWK_DEBUG` names `frames`, `timeline` or `logs`.
-  /// [clock] spaces the frames, by default a [Stopwatch] started here.
+  /// [clock] spaces the frames, by default a [SystemClock] started here.
   ///
   /// [environment] is where those defaults are read from, `TWK_LOG` and
   /// `TWK_DEBUG` ([debugNames]), here and nowhere else. Null, the default,
@@ -220,7 +221,7 @@ final class TwkApp {
     bool? framesInRow,
     bool? timeline,
     bool? serveLogs,
-    Stopwatch? clock,
+    Clock? clock,
     Map<String, String>? environment,
   }) {
     final on = environment ?? _environmentOn(terminal);
@@ -254,8 +255,8 @@ final class TwkApp {
     required bool? framesInRow,
     required bool? timeline,
     required bool? serveLogs,
-    required Stopwatch? clock,
-  }) : clock = clock ?? (Stopwatch()..start()),
+    required Clock? clock,
+  }) : clock = clock ?? SystemClock(),
        maxInputFps = _inputFps(maxFps, maxInputFps, terminal.info.remote),
        logs = logs ?? LogSink(path: environment['TWK_LOG']),
        _plain = terminal.info.plain,
@@ -354,9 +355,11 @@ final class TwkApp {
     return fps < maxFps ? maxFps : fps;
   }
 
-  /// What frames are spaced by: the gap of [maxFps] passes on it. By
-  /// default a started [Stopwatch]; a test gives one its fake clock moves.
-  final Stopwatch clock;
+  /// What frames are spaced by: the gap of [maxFps] passes on it, and the
+  /// timer of a frame that waits is its. By default a [SystemClock]
+  /// started with the app; a test, or a driver, gives one that moves when
+  /// it says so.
+  final Clock clock;
 
   /// Inline mode: the most rows the region grows to; null for the
   /// terminal's height (which limits it anyway).
@@ -507,6 +510,9 @@ final class TwkApp {
   void Function()? onInputSettled;
   Timer? _settleTimer;
 
+  // A real root-zone timer on purpose, not the [clock]'s: it marks a turn
+  // of the event loop (what a read or an event queued has run), not a time
+  // of the app, and a driven clock that stands still must not hold it.
   void _settleSoon() {
     if (onInputSettled != null) {
       // armed again by what is dispatched: after the zero-delay work the
@@ -568,6 +574,11 @@ final class TwkApp {
     screen.presenter,
   );
   late final void Function() _runFrame = _frame;
+
+  // [_runFrame] bound to [_zone], made again where that changes: a frame
+  // request allocates nothing, and the frame runs in the app's zone, its
+  // errors going to the zone's handler, whichever zone moves the clock
+  late void Function() _zoneFrame = _zone.bindCallbackGuarded(_runFrame);
 
   /// Inline mode: what was committed and is not written yet, oldest first
   /// ([commit]).
@@ -673,6 +684,7 @@ final class TwkApp {
     runZonedGuarded(
       () {
         _zone = Zone.current;
+        _zoneFrame = _zone.bindCallbackGuarded(_runFrame);
         owner.root = root;
         void dispatch(InputEvent e) {
           var event = e;
@@ -1318,9 +1330,9 @@ final class TwkApp {
     final wait = _lastFrameAt + gap - now;
     _frameDue = wait > 0 ? _lastFrameAt + gap : now;
     // frames run in the app's zone even when requested from outside it
-    _frameTimer = _zone.createTimer(
+    _frameTimer = clock.timer(
       wait > 0 ? Duration(microseconds: wait) : Duration.zero,
-      _runFrame,
+      _zoneFrame,
     );
   }
 

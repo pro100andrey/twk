@@ -4,6 +4,8 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:twk_core/twk_core.dart' show Clock, ClockElapsed, SystemClock;
+
 import 'auth.dart';
 import 'connection.dart';
 import 'keys.dart';
@@ -57,7 +59,7 @@ final class SshServer {
   /// from the one address of it, and one client's failures would refuse
   /// them all: such a server exempts that address, or takes no penalty
   /// and leaves the limit to what is in front of it. Each connection's keys
-  /// change after [rekeyLimit], its time read on [clock] too (a stopwatch
+  /// change after [rekeyLimit], its time read on [clock] too (a `SystemClock`
   /// of the connection's by default; a test's runs on a fake clock), and
   /// its deadlines on [timers]
   /// (`Timer.new` by default; see [SshConnection]). [version] is what the
@@ -74,7 +76,7 @@ final class SshServer {
     SshPenalty? penalty = const SshPenalty(),
     bool Function(InternetAddress address)? penaltyExempt,
     SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
-    Stopwatch? clock,
+    Clock? clock,
     SshTimers? timers,
     String version = 'twk_ssh_0.1',
     void Function(Object error, StackTrace stack)? onError,
@@ -95,7 +97,7 @@ final class SshServer {
       maxUnauthenticated,
       penalty,
       penaltyExempt,
-      clock ?? (Stopwatch()..start()),
+      clock ?? SystemClock(),
       (client) => SshConnection(
         client,
         hostKeys: hostKeys,
@@ -121,7 +123,7 @@ final class SshServer {
   /// Whether an address is never refused for [penalty].
   final bool Function(InternetAddress address)? penaltyExempt;
 
-  final Stopwatch _clock;
+  final Clock _clock;
 
   // the addresses refused, each until a time on _clock; and how many were
   // held after the last sweep of those past their time, the next sweep

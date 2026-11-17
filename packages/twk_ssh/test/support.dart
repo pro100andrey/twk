@@ -8,6 +8,7 @@ import 'package:cipherlib/cipherlib.dart' show MLKEM;
 import 'package:dartssh2/dartssh2.dart';
 import 'package:pinenacl/ed25519.dart' as ed25519;
 import 'package:test/test.dart';
+import 'package:twk_core/twk_core.dart' show Clock;
 import 'package:twk_ssh/src/crypto.dart';
 import 'package:twk_ssh/src/packet.dart';
 import 'package:twk_ssh/src/wire.dart';
@@ -80,7 +81,7 @@ Future<SshServer> serve({
   SshPenalty? penalty = const SshPenalty(),
   bool Function(InternetAddress address)? penaltyExempt,
   SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
-  Stopwatch? clock,
+  Clock? clock,
   SshTimers? timers,
 }) async {
   final server = await SshServer.bind(

@@ -12,8 +12,11 @@ import 'package:twk_core/twk_core.dart'
     show
         BorderType,
         BoxConstraints,
+        Clock,
+        ClockElapsed,
         PaintContext,
         RenderObject,
+        SystemClock,
         TextSegmenter,
         fitText;
 
@@ -133,19 +136,19 @@ enum ProgressColumn {
 final class ProgressTracker extends ChangeNotifier {
   /// A tracker without tasks, whose tasks' [ProgressTask.rate] is over
   /// [rateWindow], reading the time on [clock]; without one, on a
-  /// stopwatch of its own, started now.
+  /// `SystemClock` of its own, started now.
   ProgressTracker({
     this.rateWindow = const Duration(seconds: 5),
-    Stopwatch? clock,
+    Clock? clock,
   }) : assert(rateWindow > Duration.zero, 'a window of no time'),
-       clock = clock ?? (Stopwatch()..start());
+       clock = clock ?? SystemClock();
 
   /// How far back a task's [ProgressTask.rate] looks.
   final Duration rateWindow;
 
   /// What the times of its tasks are read on: the clock it was
   /// constructed with, or its own stopwatch.
-  final Stopwatch clock;
+  final Clock clock;
 
   final _tasks = <ProgressTask>[];
 

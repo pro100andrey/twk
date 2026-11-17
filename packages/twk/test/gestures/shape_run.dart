@@ -27,7 +27,7 @@ final class ShapeRun {
         pointerShapes: shows,
       );
       unawaited(
-        AppBinding(term, maxFps: 1000, clock: clock.stopwatch)
+        AppBinding(term, maxFps: 1000, clock: clock.clock)
             .run(app)
             .then<void>(
               (_) => _ended = true,

@@ -211,37 +211,22 @@ final _progressList = GalleryPage(
   },
 );
 
-/// A stopwatch at the time it is set to: the gallery's, as the tracker
-/// reads it, so that a route's `t=` stills the times it shows.
-final class _Watch implements Stopwatch {
+/// A clock at the time it is set to: the gallery's, as the tracker reads
+/// it, so that a route's `t=` stills the times it shows. It starts no
+/// timers: the tracker asks it for none.
+final class _Watch implements Clock {
   Duration at = Duration.zero;
-
-  @override
-  Duration get elapsed => at;
 
   @override
   int get elapsedMicroseconds => at.inMicroseconds;
 
   @override
-  int get elapsedMilliseconds => at.inMilliseconds;
+  Timer timer(Duration after, void Function() callback) =>
+      throw UnsupportedError('a still clock starts no timer');
 
   @override
-  int get elapsedTicks => at.inMicroseconds;
-
-  @override
-  int get frequency => 1000000;
-
-  @override
-  bool get isRunning => true;
-
-  @override
-  void reset() {}
-
-  @override
-  void start() {}
-
-  @override
-  void stop() {}
+  Timer periodic(Duration every, void Function(Timer) callback) =>
+      throw UnsupportedError('a still clock starts no timer');
 }
 
 /// The downloads and the build in a ProgressList, ticked on the gallery's

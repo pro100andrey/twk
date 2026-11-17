@@ -2,7 +2,7 @@
 // (../../cli/run.dart), in a terminal's frame. It reads the process's
 // stdio through dart:io, which a browser has not: cli_stage_web.dart is
 // the stage there.
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 
 import '../../cli/check.dart' as check;
 import '../../cli/create.dart' as create;

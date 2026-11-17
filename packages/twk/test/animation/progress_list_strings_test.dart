@@ -16,7 +16,7 @@ void main() {
   group('ProgressList with strings', () {
     testTwk('writes the time left and the tasks not shown in them, and '
         'again when they change', (t) async {
-      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      final tracker = ProgressTracker(clock: t.clock.clock);
       addTearDown(tracker.dispose);
       tracker
         ..add('a', total: 100).start()
@@ -40,7 +40,7 @@ void main() {
     testTwk('takes the room the words need where it takes what it needs', (
       t,
     ) async {
-      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      final tracker = ProgressTracker(clock: t.clock.clock);
       addTearDown(tracker.dispose);
       tracker.add('a', total: 100).start();
       Widget list(TwkStrings strings) => TwkLocalizations(
@@ -65,7 +65,7 @@ void main() {
     });
 
     testTwk('takes the room of a longer count of tasks not shown', (t) async {
-      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      final tracker = ProgressTracker(clock: t.clock.clock);
       addTearDown(tracker.dispose);
       for (var i = 0; i < 10; i++) {
         tracker.add('a$i');
@@ -93,7 +93,7 @@ void main() {
     });
 
     testTwk('writes English without TwkLocalizations', (t) async {
-      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      final tracker = ProgressTracker(clock: t.clock.clock);
       addTearDown(tracker.dispose);
       tracker.add('a', total: 100).start();
       await t.pumpWidget(

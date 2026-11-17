@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Breaking:
+
+- `TwkApp(clock:)` takes a `Clock`, not a `Stopwatch`; `TwkApp.clock` is a
+  `Clock`. A frame that waits is started with `clock.timer`, in the app's
+  zone as before, so a clock that moves when told to spaces the frames and
+  holds the timers.
+
+Added:
+
+- `Clock` (an `int` of microseconds, `timer`, `periodic`; `ClockElapsed`
+  reads it as a `Duration`) and `SystemClock`, the real one, the default.
+
 Added:
 
 - `CountingBackend`, which `Terminal` and `HeadlessTerminal` implement: the

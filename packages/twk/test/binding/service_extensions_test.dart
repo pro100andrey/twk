@@ -935,7 +935,7 @@ void main() {
       final second = t.clock.run(
         () => AppBinding(
           HeadlessTerminal(width: 10, height: 1),
-          clock: t.clock.stopwatch,
+          clock: t.clock.clock,
         ),
       );
       final ran = t.clock.run(() => second.run(const Text('second')));

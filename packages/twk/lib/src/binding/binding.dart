@@ -8,6 +8,7 @@ library;
 import 'source_excerpt.dart';
 
 export 'app_binding.dart';
+export 'driven_clock.dart' show DrivenClock;
 export 'error_widget.dart';
 export 'source_excerpt.dart' show SourceExcerpt;
 export 'static.dart';

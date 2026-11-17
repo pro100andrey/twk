@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Breaking:
+
+- `FakeClock.stopwatch` is gone: `FakeClock.clock`, a `DrivenClock`, is what
+  an app's `clock:` takes. `FakeClock` is that clock plus its zone and its
+  microtasks; its other members are as they were. `FakeCliTerminal` keeps
+  `fakeClock:`.
+
 Fixed:
 
 - `matchesScreenFile` writes `<file>.actual` only where a failure is

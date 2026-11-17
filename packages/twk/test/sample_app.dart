@@ -37,9 +37,9 @@ part 'sample_app/text.dart';
 
 /// Runs the app in a viewport of a terminal in memory until it painted
 /// its first frame and took a `q`; returns what it logged. Its frames are
-/// spaced by [clock]: a test hands it a fake clock's stopwatch, and runs
-/// this in that clock's zone.
-Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
+/// spaced by [clock], by default the system's: a test hands it a fake
+/// clock's clock, and runs this in that clock's zone.
+Future<List<LogRecord>> runInMemory({Clock? clock}) async {
   final terminal = HeadlessTerminal(
     width: 122,
     height: 82,
@@ -57,11 +57,11 @@ Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
     bidi: BidiReordering.terminal,
   )..type('q');
   final logs = LogSink();
-  await _run(terminal, logs, clock);
+  await _run(terminal, logs, clock ?? SystemClock());
   return logs.records;
 }
 
-Future<void> _run(TerminalBackend terminal, LogSink logs, Stopwatch clock) =>
+Future<void> _run(TerminalBackend terminal, LogSink logs, Clock clock) =>
     runApp(
       const SampleApp(),
       viewport: const Viewport.fixed(1, 1, 120, 80),

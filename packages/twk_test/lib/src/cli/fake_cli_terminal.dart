@@ -3,10 +3,10 @@ library;
 
 import 'dart:convert';
 
-import 'package:twk/cli.dart'
-    show CliCapabilities, CliClock, CliMode, CliTerminal;
+import 'package:twk/cli.dart' show CliCapabilities, CliMode, CliTerminal;
 import 'package:twk/twk.dart'
     show
+        Clock,
         ColorMode,
         HeadlessTerminal,
         TerminalBackend,
@@ -79,7 +79,7 @@ final class FakeCliTerminal extends CliTerminal {
     List<String> lines = const [],
     List<String> input = const [],
     List<String> answers = const [],
-    FakeClock? fakeClock,
+    this.fakeClock,
     this.progressReports = false,
   }) : capabilities = CliCapabilities(
          ansi: ansi,
@@ -95,9 +95,6 @@ final class FakeCliTerminal extends CliTerminal {
        _lines = [...lines],
        _input = [...input],
        _answers = [...answers],
-       clock = fakeClock == null
-           ? const CliClock.system()
-           : _FakeCliClock(fakeClock),
        screen = Vt(
          width,
          height,
@@ -180,8 +177,17 @@ final class FakeCliTerminal extends CliTerminal {
   /// Told of each question as it shows, before an answer is typed.
   void Function(String question)? onPrompt;
 
+  /// The clock that times the session, if the test gave one.
+  final FakeClock? fakeClock;
+
   @override
-  final CliClock clock;
+  Clock get clock => fakeClock?.clock ?? super.clock;
+
+  @override
+  R run<R>(R Function() body) {
+    final fake = fakeClock;
+    return fake == null ? body() : fake.run(body);
+  }
 
   /// The output: its `toString` is everything written to it, outside an
   /// inline session.
@@ -356,58 +362,4 @@ final class _Sink implements StringSink {
 
   @override
   void writeln([Object? object = '']) => write('$object\n');
-}
-
-final class _FakeCliClock implements CliClock {
-  _FakeCliClock(this.clock);
-
-  final FakeClock clock;
-
-  @override
-  Stopwatch stopwatch() => _ClockStopwatch(clock);
-
-  @override
-  R run<R>(R Function() body) => clock.run(body);
-}
-
-/// A stopwatch that reads [clock], started when made.
-final class _ClockStopwatch implements Stopwatch {
-  _ClockStopwatch(this.clock) : _start = clock.elapsed;
-
-  final FakeClock clock;
-  Duration _start;
-  Duration? _stoppedAt;
-
-  @override
-  Duration get elapsed => (_stoppedAt ?? clock.elapsed) - _start;
-
-  @override
-  int get elapsedMicroseconds => elapsed.inMicroseconds;
-
-  @override
-  int get elapsedMilliseconds => elapsed.inMilliseconds;
-
-  @override
-  int get elapsedTicks => elapsedMicroseconds;
-
-  @override
-  int get frequency => 1000000;
-
-  @override
-  bool get isRunning => _stoppedAt == null;
-
-  @override
-  void reset() => _start = _stoppedAt ?? clock.elapsed;
-
-  @override
-  void start() {
-    final stopped = _stoppedAt;
-    if (stopped != null) {
-      _start += clock.elapsed - stopped;
-      _stoppedAt = null;
-    }
-  }
-
-  @override
-  void stop() => _stoppedAt ??= clock.elapsed;
 }

@@ -38,7 +38,7 @@ void main() {
     final term = clock.run(() => VtTerminal(height: 6, history: [r'$ app']));
     final key = GlobalKey<ProbeState>();
     final done = clock.run(
-      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch).run(
+      () => AppBinding(term, maxFps: 1000, clock: clock.clock).run(
         Probe(
           key: key,
           (_) => column(const [Label('one'), Label('two')]),
@@ -104,7 +104,7 @@ void main() {
       final done = clock.run(
         () => AppBinding(
           term,
-          clock: clock.stopwatch,
+          clock: clock.clock,
         ).run(Probe(key: key, (_) => const Label('x'))),
       );
       await clock.settle();
@@ -339,36 +339,34 @@ void main() {
 
   test('what a LayoutBuilder removes is disposed in the frame that lays it '
       'out, which asks for no other', () async {
-    // the frame loop schedules each frame with a timer in the app's zone
-    var frames = 0;
+    // the frames the app has run, read from its binding
+    late AppBinding binding;
+    int frames() => binding.twkApp.framesRun;
     final disposedIn = <int>[];
     final run = Run(
       LayoutBuilder(
-        builder: (context, c) => c.maxWidth > 6
-            ? Probe(
-                (_) => const Label('wide'),
-                onDispose: () => disposedIn.add(frames),
-              )
-            : const Label('narrow'),
+        builder: (context, c) {
+          binding = AppBinding.of(context);
+          return c.maxWidth > 6
+              ? Probe(
+                  (_) => const Label('wide'),
+                  onDispose: () => disposedIn.add(frames()),
+                )
+              : const Label('narrow');
+        },
       ),
       width: 8,
       height: 1,
-      zone: ZoneSpecification(
-        createTimer: (self, parent, zone, duration, f) {
-          frames++;
-          return parent.createTimer(zone, duration, f);
-        },
-      ),
     );
     await run.settle();
     expect(run.rows, ['wide']);
-    final before = frames;
+    final before = frames();
     run.term.resize(6, 1);
     run.vt.resize(6, 1);
     await run.settle();
     expect(run.rows, ['narrow']);
     expect(disposedIn, [before + 1]);
-    expect(frames, before + 1);
+    expect(frames(), before + 1);
     run.term.type('\x03');
     await run.ended();
   });
@@ -548,7 +546,7 @@ void main() {
       () => runApp(
         Probe(key: key, (_) => const Label('x')),
         terminal: term,
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ),
     );
     await clock.settle();

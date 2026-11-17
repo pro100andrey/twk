@@ -19,6 +19,8 @@ import 'package:twk_core/twk_core.dart'
         BidiReordering,
         BoxConstraints,
         Brightness,
+        Clock,
+        ClockElapsed,
         ClusterScan,
         Color,
         ColorReport,
@@ -142,8 +144,9 @@ enum ScreenMode {
 /// [stopOnCtrlZ] [AppBinding.stopOnCtrlZ], [restCursor]
 /// [AppBinding.restCursor].
 /// [clock] is the app's clock, which spaces its frames (`TwkApp.clock`),
-/// a stopwatch started here by default: a test hands it the stopwatch of
-/// a fake clock it moves, and runs the app in that clock's zone.
+/// a `SystemClock` started here by default: a test hands it the clock of
+/// a fake clock it moves (`DrivenClock`), and runs the app in that
+/// clock's zone.
 ///
 /// The binding places no `Overlay` around [app]: an app that shows
 /// dialogs, menus, tooltips or toasts puts one at its root, above its own
@@ -175,7 +178,7 @@ Future<void> runApp(
   bool restCursor = true,
   bool? screenReader,
   BidiReordering? bidi,
-  Stopwatch? clock,
+  Clock? clock,
   ErrorReporter? onError,
 }) async {
   final fullscreen = mode == ScreenMode.fullscreen;
@@ -302,7 +305,7 @@ Future<void> runApp(
 final class AppBinding implements FrameClock {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
   /// [maxInputFps], [maxInlineRows], [clearInlineOnExit], [logs] and [clock]
-  /// (the app's clock, a new stopwatch by default); [exitOnCtrlC],
+  /// (the app's clock, a new `SystemClock` by default); [exitOnCtrlC],
   /// [stopOnCtrlZ], [restCursor] and [screenReader] are as [runApp] takes
   /// them. [run] runs an app on it. `startTime` is what [now] is when
   /// [clock] reads zero, which a test fixes; null (the default) leaves
@@ -340,7 +343,7 @@ final class AppBinding implements FrameClock {
     this.exitOnCtrlC = true,
     this.stopOnCtrlZ = true,
     this.restCursor = true,
-    Stopwatch? clock,
+    Clock? clock,
     this._startTime,
     bool? screenReader,
     Map<String, String>? environment,
@@ -398,7 +401,7 @@ final class AppBinding implements FrameClock {
   /// Starts a timer that calls [callback] after [duration] on the app's
   /// clock, in the zone its frames run in (an error the callback throws ends
   /// the app, as one of a frame's), wherever it is called from: a
-  /// test's body, outside the fake clock's zone, gets a fake timer that
+  /// test's body, outside the fake clock's zone, gets a timer of the clock that
   /// `pump` and `elapse` move, as a widget's own code does. Every timer
   /// the library starts goes through it or [startPeriodic], none through
   /// `Timer` itself, but the polls of `tailFile` and
@@ -415,12 +418,12 @@ final class AppBinding implements FrameClock {
   /// without an app there is no input, so only a hand-made tree reaches
   /// one.
   Timer startTimer(Duration duration, void Function() callback) =>
-      _zone.createTimer(duration, callback);
+      twkApp.clock.timer(duration, _zone.bindCallbackGuarded(callback));
 
   /// Starts a timer that calls [callback] every [period], on the app's
   /// clock and in the zone the app runs in, as [startTimer] does.
   Timer startPeriodic(Duration period, void Function(Timer) callback) =>
-      _zone.createPeriodicTimer(period, callback);
+      twkApp.clock.periodic(period, _zone.bindUnaryCallbackGuarded(callback));
 
   /// Told of every error the binding reports, in addition to what happens
   /// to it: see [ErrorReporter]. Null (the default) tells no one.
@@ -1199,9 +1202,9 @@ final class AppBinding implements FrameClock {
     if (first != null) {
       _dueAt = first;
       final wait = first - twkApp.clock.elapsedMicroseconds;
-      _dueTimer = _zone.createTimer(
+      _dueTimer = twkApp.clock.timer(
         Duration(microseconds: wait > 0 ? wait : 0),
-        _due,
+        _zone.bindCallbackGuarded(_due),
       );
     }
   }
@@ -1225,7 +1228,8 @@ final class AppBinding implements FrameClock {
   // the TwkApp runs it at the start of each frame
   void _beforeLayout() {
     _zone = Zone.current;
-    final now = twkApp.clock.elapsed;
+    final micros = twkApp.clock.elapsedMicroseconds;
+    final now = Duration(microseconds: micros);
     _framing = true;
     if (debug._frameEvents) {
       debug._frameBegins();
@@ -1233,7 +1237,7 @@ final class AppBinding implements FrameClock {
     _frameTime = now;
     _framesBegun++;
     if (_callbacks.isNotEmpty) {
-      _callFrameCallbacks(now.inMicroseconds);
+      _callFrameCallbacks(micros);
     }
     if (_buildScheduled) {
       _buildScheduled = false;

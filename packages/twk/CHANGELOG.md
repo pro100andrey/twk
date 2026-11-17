@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+Breaking:
+
+- `clock:` of `runApp`, `AppBinding` and `ProgressTracker` takes a `Clock`
+  (twk.dart exports it), not a `Stopwatch`; `ProgressTracker.clock` is one.
+  `AppBinding.startTimer`, `startPeriodic` and the timer of a frame callback
+  start their timers on it. `CliClock` and `CliTerminal.clock`'s `stopwatch`
+  and `run` are gone: `CliTerminal.clock` is a `Clock`, and `CliTerminal.run`
+  is where the inline session's code runs.
+
+Added:
+
+- `DrivenClock`, a `Clock` that moves only when told to (`advance`,
+  `advanceTo`, `advanceToNext`): timers by due time, then by creation; those
+  due now run by themselves; `pendingTimers`, `nextDue`, `describeTimers`,
+  and a cap on the timers one move fires.
+
 Added:
 
 - `ext.twk.flags` `frameEvents`: the events `twk.frame` (after every frame,

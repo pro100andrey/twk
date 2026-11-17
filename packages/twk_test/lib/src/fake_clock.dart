@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:meta/meta.dart';
 import 'package:test/test.dart' show TestFailure;
+import 'package:twk/twk.dart' show DrivenClock;
 
 // Examples can assume:
 // import 'dart:async';
@@ -18,11 +19,12 @@ import 'package:test/test.dart' show TestFailure;
 /// and microtasks it owns: a timer started there fires when [elapse]
 /// reaches its time, a microtask runs when the clock flushes them
 /// ([flushMicrotasks]), which [elapse] does after every timer. Its
-/// [stopwatch] reads it.
+/// [clock], a [DrivenClock], is what an app's binding takes as its own
+/// time: the timers of the zone and the app's are one queue.
 ///
 /// Code outside the zone keeps real time. In the zone, only the timers and
 /// microtasks are fake: `Stopwatch()` and `DateTime.now()` read real time
-/// (an app's `AppBinding.now()` is on [stopwatch]).
+/// (an app's `AppBinding.now()` is on [clock]).
 /// A future completed outside the zone resumes the code of the zone that
 /// awaits it in a microtask of the real event loop (the SDK keeps some
 /// completed in the root zone, as `StreamSubscription.cancel` returns):
@@ -47,7 +49,7 @@ import 'package:test/test.dart' show TestFailure;
 /// loop the app should not have, notices by its time.
 ///
 /// A [TwkTester] runs its app on one ([TwkTester.clock]); an app run by
-/// hand runs on one when its binding reads [stopwatch] and is started in
+/// hand runs on one when its binding reads [clock] and is started in
 /// the zone ([elapseUntil] has it).
 final class FakeClock {
   /// A clock at zero, with no timers, whose zone is a child of the zone
@@ -56,13 +58,9 @@ final class FakeClock {
     _zone = Zone.current.fork(
       specification: ZoneSpecification(
         createTimer: (_, _, zone, duration, callback) =>
-            _FakeTimer(this, duration, zone.bindCallbackGuarded(callback)),
+            _driven.timer(duration, zone.bindCallbackGuarded(callback)),
         createPeriodicTimer: (_, _, zone, period, callback) =>
-            _FakeTimer.periodic(
-              this,
-              period,
-              zone.bindUnaryCallbackGuarded(callback),
-            ),
+            _driven.periodic(period, zone.bindUnaryCallbackGuarded(callback)),
         scheduleMicrotask: (_, parent, zone, task) => _letGo
             ? parent.scheduleMicrotask(zone, task)
             : _microtasks.add(zone.bindCallbackGuarded(task)),
@@ -72,10 +70,11 @@ final class FakeClock {
 
   late final Zone _zone;
 
-  var _now = 0;
+  // timers due now wait for the next elapse, as the tests expect: nothing
+  // here wakes by itself
+  final _driven = DrivenClock(wakesItself: false);
+
   var _elapsing = false;
-  var _created = 0;
-  final _timers = <_FakeTimer>[];
   final _microtasks = Queue<void Function()>();
 
   // the microtasks go to the real event loop: the test is over
@@ -97,16 +96,23 @@ final class FakeClock {
     }
   }
 
+  /// The clock an app reads: the timers it starts are the zone's, in the
+  /// one queue [elapse] moves.
+  DrivenClock get clock => _driven;
+
   /// How far the clock has moved since it was created.
-  Duration get elapsed => Duration(microseconds: _now);
+  Duration get elapsed => Duration(microseconds: _driven.elapsedMicroseconds);
 
   /// Called before the clock moves on: what was done so far was done at
   /// [elapsed].
   @internal
-  void Function()? beforeMove;
+  void Function()? get beforeMove => _driven.beforeMove;
+
+  @internal
+  set beforeMove(void Function()? value) => _driven.beforeMove = value;
 
   /// How many timers wait to fire, periodic ones included.
-  int get pendingTimers => _timers.length;
+  int get pendingTimers => _driven.pendingTimers;
 
   /// The timers that wait, one a line, the next due first: when each is
   /// due, its period where it is periodic, and where it was started, the
@@ -119,46 +125,12 @@ final class FakeClock {
   /// clock.run(() => Timer(const Duration(seconds: 2), () {}));
   /// assert(clock.describeTimers().startsWith('a timer due in 2.000 s'));
   /// ```
-  String describeTimers() {
-    if (_timers.isEmpty) {
-      return 'no timer waits';
-    }
-    int byDue(_FakeTimer a, _FakeTimer b) =>
-        a._due != b._due ? a._due - b._due : a._order - b._order;
-    String kind(_FakeTimer t) => t._each == null
-        ? 'a timer'
-        : 'a periodic timer, every '
-              '${_seconds(Duration(microseconds: t._period))},';
-    String head(_FakeTimer t) =>
-        '${kind(t)} due in '
-        '${_seconds(Duration(microseconds: t._due - _now))}, started at';
-    return [
-      for (final t in [..._timers]..sort(byDue)) ...[
-        head(t),
-        for (final frame in _callers(t._started)) '  $frame',
-      ],
-    ].join('\n');
-  }
-
-  /// The first [count] frames of [stack] that are neither the SDK's nor
-  /// this clock's: where the code that started a timer is.
-  static List<String> _callers(StackTrace stack, {int count = 3}) => [
-    for (final line in '$stack'.split('\n'))
-      if (line.trim().isNotEmpty &&
-          !line.contains('(dart:') &&
-          !line.contains('fake_clock.dart'))
-        line.replaceFirst(RegExp(r'^#\d+\s+'), ''),
-  ].take(count).toList();
+  String describeTimers() => _driven.describeTimers();
 
   /// The time on the clock ([elapsed]) the next timer fires at; null while
   /// none waits.
   Duration? get nextTimerDue {
-    int? due;
-    for (final t in _timers) {
-      if (due == null || t._due < due) {
-        due = t._due;
-      }
-    }
+    final due = _driven.nextDue;
     return due == null ? null : Duration(microseconds: due);
   }
 
@@ -199,14 +171,12 @@ final class FakeClock {
     }
     _elapsing = true;
     try {
-      final end = _now + duration.inMicroseconds;
+      final end = _driven.elapsedMicroseconds + duration.inMicroseconds;
       await flushMicrotasks();
-      for (var next = _next(end); next != null; next = _next(end)) {
-        _moveTo(next._due);
-        next._fire();
+      while (_driven.fireNext(end)) {
         await flushMicrotasks();
       }
-      _moveTo(end);
+      _driven.moveTo(end);
     } finally {
       _elapsing = false;
     }
@@ -240,7 +210,7 @@ final class FakeClock {
   /// final clock = FakeClock();
   /// final term = clock.run(() => HeadlessTerminal(width: 20, height: 2));
   /// final done = clock.run(
-  ///   () => AppBinding(term, clock: clock.stopwatch).run(const Text('hi')),
+  ///   () => AppBinding(term, clock: clock.clock).run(const Text('hi')),
   /// );
   /// await clock.elapse(const Duration(milliseconds: 30));
   /// term.type('\x03');
@@ -259,10 +229,10 @@ final class FakeClock {
     unawaited(
       future.then<void>((_) => done = true, onError: (Object _) => done = true),
     );
-    final end = _now + within.inMicroseconds;
+    final end = _driven.elapsedMicroseconds + within.inMicroseconds;
     await flushMicrotasks();
     while (!done) {
-      final left = end - _now;
+      final left = end - _driven.elapsedMicroseconds;
       if (left <= 0) {
         final timers = switch (pendingTimers) {
           0 => 'no timer waits',
@@ -283,146 +253,4 @@ final class FakeClock {
 
   static String _seconds(Duration d) =>
       '${(d.inMicroseconds / 1e6).toStringAsFixed(3)} s';
-
-  void _moveTo(int now) {
-    if (now != _now) {
-      beforeMove?.call();
-      _now = now;
-    }
-  }
-
-  /// The timer to fire next, if one is due by [end].
-  _FakeTimer? _next(int end) {
-    _FakeTimer? next;
-    for (final t in _timers) {
-      if (t._due <= end &&
-          (next == null ||
-              t._due < next._due ||
-              (t._due == next._due && t._order < next._order))) {
-        next = t;
-      }
-    }
-    return next;
-  }
-
-  /// A stopwatch on this clock, running since it was created: until it is
-  /// stopped or reset it reads [elapsed].
-  late final Stopwatch stopwatch = _FakeStopwatch(this);
-}
-
-final class _FakeTimer implements Timer {
-  _FakeTimer(FakeClock clock, Duration duration, void Function() callback)
-    : this._(clock, duration.inMicroseconds, callback, null);
-
-  _FakeTimer.periodic(
-    FakeClock clock,
-    Duration period,
-    void Function(Timer timer) callback,
-  ) : this._(
-        clock,
-        // one that fires at once would keep the clock in place
-        period.inMicroseconds < 1 ? 1 : period.inMicroseconds,
-        null,
-        callback,
-      );
-
-  _FakeTimer._(this._clock, int micros, this._once, this._each)
-    : _period = micros < 0 ? 0 : micros,
-      _order = _clock._created++,
-      _started = StackTrace.current {
-    _due = _clock._now + _period;
-    _clock._timers.add(this);
-  }
-
-  final FakeClock _clock;
-  final int _period;
-
-  /// Where it was started, which a failure that waited on it names.
-  final StackTrace _started;
-
-  /// What a timer that fires once calls, and what a periodic one calls.
-  final void Function()? _once;
-  final void Function(Timer timer)? _each;
-
-  late int _due;
-
-  /// Orders timers due together: the one started, or fired, first first.
-  int _order;
-  var _tick = 0;
-
-  @override
-  int get tick => _tick;
-
-  @override
-  bool get isActive => _clock._timers.contains(this);
-
-  @override
-  void cancel() => _clock._timers.remove(this);
-
-  void _fire() {
-    _tick++;
-    final each = _each;
-    if (each != null) {
-      _due += _period;
-      _order = _clock._created++;
-      each(this);
-    } else {
-      _clock._timers.remove(this);
-      _once!();
-    }
-  }
-}
-
-/// A [Stopwatch] whose time is a [FakeClock]'s.
-final class _FakeStopwatch implements Stopwatch {
-  _FakeStopwatch(this._clock) : _startedAt = _clock._now;
-
-  final FakeClock _clock;
-
-  /// When it was started last; null while stopped.
-  int? _startedAt;
-
-  /// What it counted before it was stopped last.
-  var _counted = 0;
-
-  @override
-  int get frequency => 1000000;
-
-  @override
-  bool get isRunning => _startedAt != null;
-
-  @override
-  void start() => _startedAt ??= _clock._now;
-
-  @override
-  void stop() {
-    final startedAt = _startedAt;
-    if (startedAt != null) {
-      _counted += _clock._now - startedAt;
-      _startedAt = null;
-    }
-  }
-
-  @override
-  void reset() {
-    _counted = 0;
-    if (_startedAt != null) {
-      _startedAt = _clock._now;
-    }
-  }
-
-  @override
-  int get elapsedTicks => elapsedMicroseconds;
-
-  @override
-  int get elapsedMicroseconds {
-    final startedAt = _startedAt;
-    return _counted + (startedAt == null ? 0 : _clock._now - startedAt);
-  }
-
-  @override
-  int get elapsedMilliseconds => elapsedMicroseconds ~/ 1000;
-
-  @override
-  Duration get elapsed => Duration(microseconds: elapsedMicroseconds);
 }

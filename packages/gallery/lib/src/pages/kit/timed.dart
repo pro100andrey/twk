@@ -1,6 +1,6 @@
 // What builds on the gallery's clock, so that a route's `t=` stills it:
 // a builder, a State, and where a cycle stands.
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 
 import '../../motion.dart';
 import 'kept.dart';

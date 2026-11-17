@@ -6,7 +6,7 @@
 // a new page that dissolves in.
 import 'dart:convert';
 
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 import 'package:twk_core/twk_core.dart' show clipboardSequence;
 import 'package:twk_rich/twk_rich.dart';
 

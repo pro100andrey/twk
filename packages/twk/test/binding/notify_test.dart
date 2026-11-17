@@ -47,7 +47,7 @@ void main() {
       ),
     );
     final binding = clock.run(
-      () => AppBinding(terminal, maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(terminal, maxFps: 1000, clock: clock.clock),
     );
     final done = clock.run(() => binding.run(const _Build()));
     await clock.settle();
@@ -100,7 +100,7 @@ void main() {
       ),
     );
     final binding = clock.run(
-      () => AppBinding(_Bare(term), maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(_Bare(term), maxFps: 1000, clock: clock.clock),
     );
     final done = clock.run(() => binding.run(const _Build()));
     await clock.settle();

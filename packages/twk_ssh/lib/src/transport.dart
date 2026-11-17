@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
+import 'package:twk_core/twk_core.dart' show Clock, ClockElapsed, SystemClock;
 
 import 'crypto.dart';
 import 'keys.dart';
@@ -74,7 +75,7 @@ final class SshTransport {
   /// The transport of a client's socket, proving itself with [hostKeys],
   /// its version line naming [version]; the messages above it go to
   /// [onMessage], and [onClose] is called once it ends. It rekeys after
-  /// [rekeyLimit], its time read on [clock] (a new stopwatch by default;
+  /// [rekeyLimit], its time read on [clock] (a `SystemClock` by default;
   /// a test's runs on a fake clock), and gives up a key exchange the
   /// client doesn't finish by a deadline set on [timers] (`Timer.new` by
   /// default). [onReleased] is called when what was held is sent.
@@ -86,11 +87,11 @@ final class SshTransport {
     this.onClose,
     this.onReleased,
     this.rekeyLimit = const SshRekeyLimit(),
-    Stopwatch? clock,
+    Clock? clock,
     SshTimers? timers,
   }) : _hostKeys = {for (final k in hostKeys) k.algorithm: k},
        _serverVersion = 'SSH-2.0-$version',
-       _clock = clock ?? (Stopwatch()..start()),
+       _clock = clock ?? SystemClock(),
        _timers = timers ?? Timer.new {
     if (_hostKeys.isEmpty) {
       throw ArgumentError.value(hostKeys, 'hostKeys', 'no host key');
@@ -132,7 +133,7 @@ final class SshTransport {
   /// When the server starts a key exchange.
   final SshRekeyLimit rekeyLimit;
 
-  final Stopwatch _clock;
+  final Clock _clock;
   final SshTimers _timers;
   Timer? _kexTimer;
 

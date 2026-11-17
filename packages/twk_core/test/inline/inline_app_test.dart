@@ -158,7 +158,7 @@ void main() {
       maxFps: 1000,
       maxInlineRows: maxRows,
       clearInlineOnExit: clear,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     app.owner.onError = onError;
@@ -482,7 +482,7 @@ void main() {
       app = TwkApp(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       root = Lines(app.screen.styles.pen(const Pen()), ['live']);

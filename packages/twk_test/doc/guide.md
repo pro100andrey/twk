@@ -98,7 +98,7 @@ The app's timers, frames and the pause after a lone ESC wait for the clock, a
 
 Only timers and microtasks of the app are fake: `Stopwatch()` and
 `DateTime.now()` read real time in the app too. The binding spaces frames by
-`AppBinding(clock:)`, which the tester sets to `t.clock.stopwatch`, and its
+`AppBinding(clock:)`, which the tester sets to `t.clock.clock`, and its
 wall time, `AppBinding.now()`, is `pumpWidget(startTime:)`
 (`TwkTester.defaultStartTime` by default) moved on by that clock: what an app
 draws of the time from it is the same on every run. Code of the test itself

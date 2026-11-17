@@ -83,7 +83,8 @@ final class CliProgress {
   CliProgress(this._cli, String message)
     : _message = message,
       _look = _Look.of(_cli),
-      _clock = _cli.terminal.clock.stopwatch() {
+      _clock = _cli.terminal.clock,
+      _startedAt = _cli.terminal.clock.elapsedMicroseconds {
     switch (_look) {
       case _Look.live:
         unawaited(
@@ -107,7 +108,9 @@ final class CliProgress {
 
   final Cli _cli;
   final _Look _look;
-  final Stopwatch _clock;
+  final Clock _clock;
+  final int _startedAt;
+  int? _stoppedAt;
   String _message;
 
   // the message written last, in the lines look
@@ -129,7 +132,9 @@ final class CliProgress {
   String get message => _message;
 
   /// How long it has gone on, or went on until it was closed.
-  Duration get elapsed => _clock.elapsed;
+  Duration get elapsed => Duration(
+    microseconds: (_stoppedAt ?? _clock.elapsedMicroseconds) - _startedAt,
+  );
 
   /// Says [message] while the operation goes on: shown in place of the
   /// last one where it is live, written as a line on a terminal that does
@@ -162,7 +167,7 @@ final class CliProgress {
       return;
     }
     _done = true;
-    _clock.stop();
+    _stoppedAt ??= _clock.elapsedMicroseconds;
     _live?.remove();
   }
 
@@ -227,7 +232,7 @@ final class CliProgress {
       return;
     }
     _done = true;
-    _clock.stop();
+    _stoppedAt ??= _clock.elapsedMicroseconds;
     final theme = _cli.theme;
     final line = [
       if (done)
@@ -239,7 +244,7 @@ final class CliProgress {
         Span(
           _cli.strings.tookIn(
             formatTook(
-              _clock.elapsed,
+              elapsed,
               decimalSeparator: _cli.strings.decimalSeparator,
             ),
           ),
@@ -278,7 +283,7 @@ final class CliProgress {
 
   Widget _view() => _SpinnerView(
     message: _oneLine(_message),
-    clock: _clock,
+    elapsed: () => elapsed,
     hint: _cli.theme.hint,
   );
 }
@@ -305,7 +310,7 @@ Future<T> runTasks<T>(
   int? maxBarWidth = 30,
   ByteUnits byteUnits = ByteUnits.decimal,
 }) async {
-  final tracker = ProgressTracker(clock: cli.terminal.clock.stopwatch());
+  final tracker = ProgressTracker(clock: cli.terminal.clock);
   final shown = columns ?? ProgressList.defaultColumns;
   var look = _Look.of(cli);
   CliSession? session;
@@ -471,18 +476,18 @@ final class _Ticks {
   }
 }
 
-/// A spinner, [message] and the time so far on [clock] (`⠹ Building
+/// A spinner, [message] and the time so far, [elapsed], (`⠹ Building
 /// (1.2 s)`), the message cut off with an ellipsis where the row is short;
 /// the terminal's tab shows a progress going on.
 final class _SpinnerView extends StatefulWidget {
   const _SpinnerView({
     required this.message,
-    required this.clock,
+    required this.elapsed,
     required this.hint,
   });
 
   final String message;
-  final Stopwatch clock;
+  final Duration Function() elapsed;
   final Style hint;
 
   @override
@@ -521,7 +526,7 @@ final class _SpinnerViewState extends State<_SpinnerView> {
           ),
           Text(
             ' (${formatTook(
-              widget.clock.elapsed,
+              widget.elapsed(),
               decimalSeparator: TwkStrings.of(context).decimalSeparator,
             )})',
             style: widget.hint,

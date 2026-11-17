@@ -93,7 +93,7 @@ void main() {
     final app = TwkApp(
       term,
       maxFps: 1000,
-      clock: _clock.stopwatch,
+      clock: _clock.clock,
       environment: const {},
     );
     final styles = app.screen.styles;

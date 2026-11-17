@@ -92,7 +92,7 @@ Future<void> _run(FakeClock clock, _FailingTerminal term, Widget app) =>
       () => AppBinding(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       ).run(app),
     );

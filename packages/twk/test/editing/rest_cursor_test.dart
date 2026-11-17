@@ -58,7 +58,7 @@ void main() {
       () => AppBinding(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         restCursor: false,
       ),
     );

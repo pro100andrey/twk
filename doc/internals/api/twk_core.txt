@@ -119,6 +119,7 @@ twk_core.dart class BoxTitle
 twk_core.dart class ByteSink
 twk_core.dart class Canvas
 twk_core.dart class CellKeeper
+twk_core.dart class Clock
 twk_core.dart class ClusterScan
 twk_core.dart class ColorReport
 twk_core.dart class ColorSchemeReport
@@ -191,6 +192,7 @@ twk_core.dart class StackParentData
 twk_core.dart class StyleTable
 twk_core.dart class Surface
 twk_core.dart class SuspendableBackend
+twk_core.dart class SystemClock
 twk_core.dart class Terminal
 twk_core.dart class TerminalBackend
 twk_core.dart class TerminalCaps
@@ -258,6 +260,7 @@ twk_core.dart enum TextWrap
 twk_core.dart enum TraceDirection
 twk_core.dart enum WrapAlignment
 twk_core.dart enum WrapCrossAlignment
+twk_core.dart extension ClockElapsed
 twk_core.dart extension PipelineTextOrder
 twk_core.dart extension type Color
 twk_core.dart extension type StyleId
