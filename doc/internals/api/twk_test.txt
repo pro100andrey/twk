@@ -1,6 +1,16 @@
 cli.dart class FakeCliTerminal
 cli.dart class FakeClock
 cli.dart class Vt
+driver.dart class DriverApp
+driver.dart class DriverError
+driver.dart class DriverScreen
+driver.dart class DriverTester
+driver.dart class ExitResult
+driver.dart class Found
+driver.dart class Step
+driver.dart const terminalProfiles
+driver.dart function driverTest
+driver.dart function profileEnvironment
 twk_test.dart class FakeClock
 twk_test.dart class FakeFrameClock
 twk_test.dart class FakeStderr

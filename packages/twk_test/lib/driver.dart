@@ -1,3 +1,6 @@
+// Examples can assume:
+// import 'package:test/test.dart';
+
 /// Tests of a twk app as a real process in a pseudo-terminal: [driverTest]
 /// starts it ([DriverTester.start]), drives it as a user does ([DriverApp]),
 /// and reads its screen with the matchers and its widgets with the finders

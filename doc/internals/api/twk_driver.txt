@@ -29,5 +29,6 @@ twk_driver.dart class VmAppClient
 twk_driver.dart class VmQueries
 twk_driver.dart function compiledProgram
 twk_driver.dart function foundOf
+twk_driver.dart function treeText
 twk_driver.dart function watchExtensions
 twk_driver.dart typedef Json

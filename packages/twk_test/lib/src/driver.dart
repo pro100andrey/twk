@@ -22,7 +22,6 @@ import 'screen_text.dart';
 
 // Examples can assume:
 // import 'package:test/test.dart';
-// import 'package:twk_test/driver.dart';
 
 /// How a terminal presents itself to the app a test starts, by a name: the
 /// environment the app reads its colors from (`TERM`, `COLORTERM`,
