@@ -40,7 +40,7 @@ final class McpResult {
 
 /// A tool the server offers: its [name], what it does, the JSON Schema of
 /// its arguments, and [call].
-abstract interface class McpTool {
+abstract class McpTool {
   /// The name a client calls it by.
   String get name;
 
@@ -53,6 +53,10 @@ abstract interface class McpTool {
   /// Runs it with [arguments], an object that is the schema's. Anything it
   /// throws is the tool's failure.
   Future<McpResult> call(JsonMap arguments);
+
+  /// Called when the server ends (its input did): a tool that holds
+  /// something running lets go of it. Nothing by default.
+  Future<void> end() async {}
 }
 
 /// The JSON-RPC error codes of the protocol.
@@ -236,25 +240,35 @@ class McpServer {
     void Function(String line) output,
   ) async {
     var chain = Future<void>.value();
-    await for (final line
-        in utf8.decoder.bind(input).transform(const LineSplitter())) {
-      if (line.trim().isEmpty) {
-        continue;
+    try {
+      await for (final line
+          in utf8.decoder.bind(input).transform(const LineSplitter())) {
+        if (line.trim().isEmpty) {
+          continue;
+        }
+        chain = chain.then((_) async {
+          String? reply;
+          try {
+            reply = await handleLine(line);
+          } on Object catch (e) {
+            // one request that breaks does not silence the ones after it
+            reply = _internalError(line, e);
+          }
+          if (reply != null) {
+            output(reply);
+          }
+        });
       }
-      chain = chain.then((_) async {
-        String? reply;
+      await chain;
+    } finally {
+      for (final tool in _tools.values) {
         try {
-          reply = await handleLine(line);
-        } on Object catch (e) {
-          // one request that breaks does not silence the ones after it
-          reply = _internalError(line, e);
+          await tool.end();
+        } on Object {
+          // the others are let go all the same
         }
-        if (reply != null) {
-          output(reply);
-        }
-      });
+      }
     }
-    await chain;
   }
 
   /// The answer to a request [line] that [error] escaped from: an internal

@@ -6,12 +6,13 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/terminal.dart' show LogLevel, LogRecord;
 import 'package:twk_dev/src/mcp.dart';
 import 'package:twk_dev/src/mcp/app_tools.dart' show AppLauncher;
 import 'package:twk_dev/src/mcp/jsonrpc.dart';
 import 'package:twk_driver/twk_driver.dart';
 
-final class _Echo implements McpTool {
+final class _Echo extends McpTool {
   _Echo(this.name, this._run);
 
   @override
@@ -362,6 +363,81 @@ void _more() {
       expect(jsonEncode(again), isNot(contains('running already')));
       await call('stop_app');
     });
+
+    test('the end of the input stops the app that runs', () async {
+      final launcher = _LiveLauncher();
+      final server = twkMcpServer(launcher: launcher);
+      final file = File('test/mcp_protocol_test.dart').absolute.path;
+      final input = StreamController<List<int>>();
+      final out = <String>[];
+      final served = server.serve(input.stream, out.add);
+      input.add(
+        utf8.encode(
+          '${jsonEncode({
+            'jsonrpc': '2.0',
+            'id': 1,
+            'method': 'tools/call',
+            'params': {
+              'name': 'start_app',
+              'arguments': {'program': file},
+            },
+          })}\n',
+        ),
+      );
+      await input.close();
+      await served;
+      expect(launcher.process.killed, isTrue);
+    });
+  });
+
+  group('logs', () {
+    test(
+      'gives the records of the twk.log events since the last call',
+      () async {
+        final launcher = _LiveLauncher();
+        final server = twkMcpServer(launcher: launcher);
+        final file = File('test/mcp_protocol_test.dart').absolute.path;
+        Future<String> call(String tool) async {
+          final r =
+              (await _ask(server, 'tools/call', {
+                    'name': tool,
+                    'arguments': {if (tool == 'start_app') 'program': file},
+                  }))['result']!
+                  as JsonMap;
+          return (((r['content']! as List).single as JsonMap)['text']!)
+              as String;
+        }
+
+        void post(int from, int to) => launcher.events.add(
+          AppEvent('twk.log', {
+            'records': [
+              for (var i = from; i < to; i++)
+                LogRecord(DateTime(2026), LogLevel.info, 'r$i').toJson(),
+            ],
+          }),
+        );
+
+        await call('start_app');
+        expect(await call('logs'), 'no log records');
+        post(0, 2);
+        await pumpEventQueue();
+        final first = await call('logs');
+        expect(first, allOf(contains('r0'), contains('r1')));
+        expect(await call('logs'), 'no log records');
+        post(2, 3);
+        await pumpEventQueue();
+        final next = await call('logs');
+        expect(next, contains('r2'));
+        expect(next, isNot(contains('r1')));
+        // more than the session keeps between two calls: the newest it has
+        post(3, 80);
+        await pumpEventQueue();
+        final many = (await call('logs')).split('\n');
+        expect(many.last, contains('r79'));
+        expect(many.length, 50);
+        await call('stop_app');
+      },
+    );
   });
 }
 
@@ -426,6 +502,60 @@ final class _StubbornProcess implements ProcessPort {
   }
 }
 
+/// A program that stays, and notes its kill.
+final class _Live implements Launched {
+  @override
+  // the type is the fake's, which the interface's would hide from a test
+  // ignore: omit_obvious_property_types
+  final _Terminal terminal = _Terminal();
+
+  var killed = false;
+
+  @override
+  Future<int?> get exitCode => Completer<int?>().future;
+
+  @override
+  Future<Uri> get serviceUri async => Uri.parse('http://fake/');
+
+  @override
+  Future<void> kill() async => killed = true;
+}
+
+/// A launcher of one program that stays, whose app posts what the test
+/// adds to [events].
+final class _LiveLauncher extends AppLauncher {
+  final process = _Live();
+  // closed with the test's process: nothing outlives it
+  // ignore: close_sinks
+  final events = StreamController<AppEvent>.broadcast();
+
+  @override
+  Future<Session> start(
+    ProcessSpec spec,
+    void Function(VmAppClient client) attached,
+  ) {
+    scheduleMicrotask(() => process.terminal.say('hello'));
+    return Session.start(
+      spec,
+      driven: false,
+      timeout: const Duration(seconds: 5),
+      ports: SessionPorts(
+        process: _LiveProcess(process),
+        connect: (_) async => _Service(events.stream),
+      ),
+    );
+  }
+}
+
+final class _LiveProcess implements ProcessPort {
+  _LiveProcess(this._launched);
+
+  final _Live _launched;
+
+  @override
+  Future<Launched> spawn(ProcessSpec spec) async => _launched;
+}
+
 final class _StubbornLauncher extends AppLauncher {
   @override
   Future<Session> start(
@@ -444,6 +574,10 @@ final class _StubbornLauncher extends AppLauncher {
 
 /// An app service whose app is at its first frame.
 final class _Service implements AppServicePort {
+  _Service([this._events = const Stream.empty()]);
+
+  final Stream<AppEvent> _events;
+
   @override
   Future<Map<String, Object?>> call(
     String method, [
@@ -464,7 +598,7 @@ final class _Service implements AppServicePort {
   };
 
   @override
-  Stream<AppEvent> get events => const Stream.empty();
+  Stream<AppEvent> get events => _events;
 
   @override
   Future<void> get done => Completer<void>().future;

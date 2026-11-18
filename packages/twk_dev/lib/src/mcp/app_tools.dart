@@ -3,15 +3,12 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:twk/twk.dart' show ElementFinder;
-import 'package:twk_core/twk_core.dart' show LocalAddress;
 import 'package:twk_driver/twk_driver.dart';
 
-import '../logs.dart' show formatLine;
 import '../project.dart' show projectOf;
 import 'jsonrpc.dart';
 
@@ -127,8 +124,9 @@ List<McpTool> appTools({AppLauncher? launcher}) {
     ),
     _Tool(
       'logs',
-      "The app's log records since the last call (or the start), as "
-          '`twk logs` writes them.',
+      "The app's log records since the last call (or the start), one per "
+          'line: time, level, message. Only the last 50 records are kept, so '
+          'call often enough.',
       {},
       (_) async => host.logs(),
     ),
@@ -139,6 +137,7 @@ List<McpTool> appTools({AppLauncher? launcher}) {
           'hidden) when it had exited by itself.',
       {},
       (_) => host.stop(),
+      onEnd: host.end,
     ),
   ];
 }
@@ -193,13 +192,14 @@ final JsonMap _finder = {
       'matches none or more than one node fails.',
 };
 
-final class _Tool implements McpTool {
+final class _Tool extends McpTool {
   _Tool(
     this.name,
     this.description,
     JsonMap properties,
     this._run, {
     List<String> required = const [],
+    this.onEnd,
   }) : inputSchema = {
          'type': 'object',
          'properties': properties,
@@ -216,6 +216,12 @@ final class _Tool implements McpTool {
   final JsonMap inputSchema;
 
   final Future<McpResult> Function(JsonMap args) _run;
+
+  /// What the tool lets go of when the server ends.
+  final Future<void> Function()? onEnd;
+
+  @override
+  Future<void> end() async => onEnd?.call();
 
   @override
   Future<McpResult> call(JsonMap arguments) async {
@@ -262,9 +268,7 @@ final class AppHost {
   final AppLauncher _launcher;
   Session? _session;
   VmAppClient? _client;
-  final _log = <String>[];
-  Socket? _logSocket;
-  var _generation = 0;
+  var _given = <String>[];
 
   Session _open() =>
       _session ??
@@ -291,13 +295,6 @@ final class AppHost {
       program,
       arguments: [...?(arguments as List?)?.cast<String>()],
       workingDirectory: project,
-      // the log is served (for `twk logs`, and for the logs tool)
-      environment: {
-        'TWK_DEBUG': {
-          ...(Platform.environment['TWK_DEBUG'] ?? '').split(','),
-          'logs',
-        }.where((a) => a.isNotEmpty).join(','),
-      },
       width: _intOf(args, 'width', 80),
       height: _intOf(args, 'height', 24),
     );
@@ -309,48 +306,36 @@ final class AppHost {
       rethrow;
     }
     _session = session;
-    _log.clear();
-    unawaited(_follow(project, ++_generation));
+    _given = [];
     return answer();
   }
 
-  /// Reads the app's log as it serves it, into [_log], until the app ends.
-  Future<void> _follow(String project, int generation) async {
-    final file = LocalAddress.fileOf('logs', project);
-    final session = _session;
-    for (var i = 0; i < 100 && generation == _generation; i++) {
-      if (session == null || session.ended) {
-        return;
-      }
-      final address = LocalAddress.read(file);
-      if (address != null) {
-        try {
-          final socket = await address.connect();
-          _logSocket = socket;
-          socket.write('${address.token}\n');
-          unawaited(socket.done.then<void>((_) {}, onError: (Object _) {}));
-          await for (final line
-              in utf8.decoder.bind(socket).transform(const LineSplitter())) {
-            if (generation != _generation) {
-              return;
-            }
-            _log.add(formatLine(line, color: false));
-          }
-          return;
-        } on Object {
-          // not served yet, or left behind by an app that ended
-        }
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-    }
-  }
-
-  /// The log records since the last call.
+  /// The log records since the last call: the session's tail of the
+  /// app's `twk.log` events (the last 50), less what the last call gave. A
+  /// call that comes after more than that many new records has lost the
+  /// oldest.
   McpResult logs() {
-    _open();
-    final text = _log.isEmpty ? 'no log records' : _log.join('\n');
-    _log.clear();
-    return McpResult(text);
+    final tail = _open().log;
+    // the new records are what follows the longest end of the last tail
+    // that the start of this one repeats
+    var seen = 0;
+    for (
+      var k = tail.length < _given.length ? tail.length : _given.length;
+      k > 0;
+      k--
+    ) {
+      var same = true;
+      for (var i = 0; i < k && same; i++) {
+        same = _given[_given.length - k + i] == tail[i];
+      }
+      if (same) {
+        seen = k;
+        break;
+      }
+    }
+    final fresh = tail.sublist(seen);
+    _given = tail;
+    return McpResult(fresh.isEmpty ? 'no log records' : fresh.join('\n'));
   }
 
   /// Ends the app and reports what it left behind.
@@ -373,10 +358,18 @@ final class AppHost {
     );
   }
 
+  /// Ends the app that is running when the server ends, and says nothing.
+  Future<void> end() async {
+    if (_session != null) {
+      try {
+        await stop();
+      } on Object {
+        // gone, or going: nothing is left to stop
+      }
+    }
+  }
+
   void _forget() {
-    _generation++;
-    unawaited(_logSocket?.close());
-    _logSocket = null;
     _session = null;
     _client = null;
   }

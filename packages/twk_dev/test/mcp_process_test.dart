@@ -81,11 +81,13 @@ final class _Client {
 
   Future<void> close() async {
     await process.stdin.close();
+    // the server stops the app it runs when its input ends; one that does
+    // not end in time is killed, so a failed test leaves nothing behind
     await process.exitCode.timeout(
       const Duration(seconds: 30),
       onTimeout: () {
-        process.kill();
-        return -1;
+        process.kill(ProcessSignal.sigkill);
+        return process.exitCode;
       },
     );
   }
@@ -156,13 +158,13 @@ void main() {
     expect(await client.ok('elapse', {'ms': 500}), contains('Saved: 1'));
     expect(await client.ok('screen'), contains('Count: 2'));
 
-    // the log comes over a socket of its own, as it comes
+    // the log comes as the app posts it (the twk.log events)
     final logs = StringBuffer();
     await waitUntil(() async {
       logs.writeln(await client.ok('logs'));
       return '$logs'.contains('saved 1');
     }, 'the record of the save in the log');
-    expect('$logs', contains('info    saved 1'));
+    expect('$logs', contains('info saved 1'));
     expect(await client.ok('logs'), 'no log records');
 
     // what a failure says

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Changed:
+
+- `twk mcp`: the `logs` tool reads the app's log from the driver session
+  (the `twk.log` events) instead of a socket of its own, and the app is no
+  longer started with `TWK_DEBUG=logs`. It gives up the level padding of
+  `twk logs` (`info saved`, not `info    saved`), and the records older than
+  the session's last 50 when more than that come between two calls.
+
+Fixed:
+
+- `twk mcp` stops the app it runs when its input ends (it was left running).
+
 Fixed:
 
 - `twk mcp`: `stop_app` forgets the app also when ending it fails (the
