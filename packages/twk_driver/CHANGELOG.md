@@ -11,6 +11,10 @@ Added:
 
 Fixed:
 
+- On macOS `Session.close` read the tty's modes with Linux's layout and called
+  every app that quit raw: `SessionPorts.macos`, `Session.compose` and
+  `Session.attach` now follow the platform unless told, and the macOS ISIG
+  mask is 0x80 (it was ECHOKE's 0x1).
 - Two waits at once (`waitFor`, `waitForScreen`, a press) each end at their
   own deadline: a wait lent the session's `timeout` to itself and put it
   back when it ended, so a second wait overwrote the first's bound and the

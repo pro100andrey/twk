@@ -4,7 +4,7 @@ library;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io' show pid;
+import 'dart:io' show Platform, pid;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -138,6 +138,18 @@ int _lflag(Uint8List termios, {required bool macos}) => macos
     ? ByteData.sublistView(termios).getUint64(24, Endian.host)
     : ByteData.sublistView(termios).getUint32(12, Endian.host);
 
+/// What is wrong with the terminal attributes [termios] an app left, in the
+/// layout of macOS or Linux: null when the tty is in cooked mode (ICANON, ECHO
+/// and ISIG set), else the sentence that says it is not.
+String? rawModeProblem(Uint8List termios, {required bool macos}) {
+  final lflag = _lflag(termios, macos: macos);
+  final (icanon, echo, isig) = macos ? (0x100, 0x8, 0x80) : (0x2, 0x8, 0x1);
+  if (lflag & icanon != 0 && lflag & echo != 0 && lflag & isig != 0) {
+    return null;
+  }
+  return 'the tty was left in raw mode (c_lflag 0x${lflag.toRadixString(16)})';
+}
+
 /// The ports a session is made of, each replaceable by a fake.
 final class SessionPorts {
   /// Ports; none given is the real one.
@@ -146,9 +158,10 @@ final class SessionPorts {
     this.screen,
     this.connect,
     Clock? clock,
-    this.macos = false,
+    bool? macos,
     int? driverPid,
-  }) : process = process ?? PtyProcessPort(),
+  }) : macos = macos ?? Platform.isMacOS,
+       process = process ?? PtyProcessPort(),
        clock = clock ?? SystemClock(),
        driverPid = driverPid ?? pid;
 
@@ -165,7 +178,8 @@ final class SessionPorts {
   /// The time the driver's own timeouts run on.
   final Clock clock;
 
-  /// Whether the terminal's attributes are macOS's (`c_lflag` 64 bits).
+  /// Whether the terminal's attributes are macOS's (`c_lflag` 64 bits); the
+  /// platform's by default.
   final bool macos;
 
   /// The process id `TWK_DRIVEN` names: the driver's own, which the app
@@ -272,7 +286,7 @@ final class Session {
     Duration timeout = const Duration(seconds: 20),
     bool driven = false,
     DateTime? startTime,
-    bool macos = false,
+    bool? macos,
     int? driverPid,
     TraceOptions? trace,
   }) async {
@@ -302,7 +316,7 @@ final class Session {
       screen,
       clock ?? SystemClock(),
       timeout,
-      macos,
+      macos ?? Platform.isMacOS,
       me,
       connect: connect,
       driven: driven,
@@ -325,7 +339,7 @@ final class Session {
     Clock? clock,
     Duration timeout = const Duration(seconds: 20),
     bool driven = false,
-    bool macos = false,
+    bool? macos,
     TraceOptions? trace,
   }) {
     if (driven && service == null) {
@@ -340,7 +354,7 @@ final class Session {
       screen,
       clock ?? SystemClock(),
       timeout,
-      macos,
+      macos ?? Platform.isMacOS,
       pid,
       service: service,
       driven: driven,
@@ -1462,15 +1476,9 @@ final class Session {
     if (byItself) {
       final modes = _terminal.modesAtEnd;
       if (modes != null) {
-        final lflag = _lflag(modes, macos: _macos);
-        final (icanon, echo, isig) = _macos
-            ? (0x100, 0x8, 0x1)
-            : (0x2, 0x8, 0x1);
-        if (lflag & icanon == 0 || lflag & echo == 0 || lflag & isig == 0) {
-          problems.add(
-            'the tty was left in raw mode '
-            '(c_lflag 0x${lflag.toRadixString(16)})',
-          );
+        final raw = rawModeProblem(modes, macos: _macos);
+        if (raw != null) {
+          problems.add(raw);
         }
       }
       if (_screen.frame.alternateScreen) {
