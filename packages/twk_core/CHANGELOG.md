@@ -11,6 +11,20 @@ Breaking:
 
 Changed:
 
+- A repaint boundary (or the root) repaints the places of what was marked
+  in it, each on its own, not one band of rows across its whole width that
+  holds them all: a row of text changed beside an unchanged panel no longer
+  repaints the panel, nor has the presenter compare its cells. A place is a
+  marked object's cells; places that meet are one; a parent whose children
+  may paint over each other (a stack), or that paints over the child, takes
+  the place across all of it; rows across, as before, where a wide glyph
+  lies across a place's side, under an underlay, where the boundary is
+  overlapped or marked whole, and past 8 places. Hawk TUI's dashboard (the
+  bench's `dash`): 84 -> 68 us a frame.
+- A mark below a `RenderEffect` (twk's `RepaintBoundary`, the effects)
+  forgets what it kept of its child in O(1), its spans emptied once before
+  they are read, not on every mark: a list of 40 changing rows in a
+  boundary laid out in 15 us again, not 26.
 - kitty's protocol: an image that replaces another is placed before the
   old one is deleted, not after, so that a terminal that draws in between
   (Konsole, whose images a synchronized update does not hold) never shows
