@@ -33,9 +33,10 @@ enum BlockMode {
   octant(2, 4),
 
   /// Eight pixels a cell, two across and four down, drawn as braille dots
-  /// in one colour on what is under the cell: a pixel at least half as
-  /// bright as white is a dot, in the mean of the colours of the dots. The
-  /// finest, and the one most fonts have, but one colour a cell.
+  /// in one colour on what is under the cell: a pixel brighter than the
+  /// luma that parts the image's in two best (Otsu's method, a transparent
+  /// pixel counted as black) is a dot, in the mean of the colours of the
+  /// dots. The finest, and the one most fonts have, but one colour a cell.
   braille(2, 4),
 
   /// One pixel a cell, drawn as the character of ` .:-=+*#%@` that is as
@@ -205,6 +206,9 @@ final class BlockImage {
       return rgb;
     }
 
+    final threshold = mode == BlockMode.braille
+        ? _inkThreshold(pixels, at)
+        : _brailleThreshold;
     final cells = <BlockCell>[];
     for (var row = 0; row < rows; row++) {
       for (var column = 0; column < columns; column++) {
@@ -214,7 +218,7 @@ final class BlockImage {
           _blockCell(mode, [
             for (var dy = 0; dy < down; dy++)
               for (var dx = 0; dx < across; dx++) at(x + dx, y + dy),
-          ]),
+          ], threshold: threshold),
         );
       }
     }
@@ -323,8 +327,53 @@ final Map<int, List<int>> _splits = {
 /// The ramp of the ascii mode, from the darkest to the brightest pixel.
 const _ramp = ' .:-=+*#%@';
 
-/// A pixel `0xRRGGBB` as bright as at least this (of 255) is ink in braille.
+/// A pixel `0xRRGGBB` as bright as at least this (of 255) is ink in braille
+/// where the image is of one luma alone ([_inkThreshold]).
 const _brailleThreshold = 128;
+
+/// The luma (of 255) from which a pixel of [pixels] is ink in braille: the
+/// one that parts its lumas best in two (Otsu's method: the most variance
+/// between the two parts), a pixel not drawn ([at] negative) counted as
+/// black, as the terminal's background under a dot is taken to be; one
+/// luma alone parts nothing, and takes [_brailleThreshold]. A fixed half of
+/// white left a colour darker than it out, the purple of a picture on a
+/// dark background, which is no less there.
+int _inkThreshold(Bitmap pixels, int Function(int x, int y) at) {
+  final counts = Int32List(256);
+  for (var y = 0; y < pixels.height; y++) {
+    for (var x = 0; x < pixels.width; x++) {
+      final c = at(x, y);
+      counts[c < 0 ? 0 : _luma(c)]++;
+    }
+  }
+  var total = 0;
+  var sum = 0;
+  for (var l = 0; l < 256; l++) {
+    total += counts[l];
+    sum += l * counts[l];
+  }
+  var below = 0;
+  var belowSum = 0;
+  var best = 0.0;
+  var threshold = -1;
+  for (var l = 0; l < 255; l++) {
+    below += counts[l];
+    belowSum += l * counts[l];
+    final above = total - below;
+    if (below == 0 || above == 0) {
+      continue;
+    }
+    final mean0 = belowSum / below;
+    final mean1 = (sum - belowSum) / above;
+    final between = below * above * (mean0 - mean1) * (mean0 - mean1);
+    if (between > best) {
+      best = between;
+      threshold = l;
+    }
+  }
+  // ink is above the part: from the luma after it
+  return threshold < 0 ? _brailleThreshold : threshold + 1;
+}
 
 int _luma(int rgb) =>
     (299 * (rgb >> 16) + 587 * (rgb >> 8 & 0xFF) + 114 * (rgb & 0xFF)) ~/ 1000;
@@ -390,8 +439,13 @@ final Map<int, _Sums> _sums = {
   for (final n in const [4, 6, 8]) n: _Sums(n),
 };
 
-/// The cell of [mode] showing [pixels] (row by row, -1 for one not drawn).
-BlockCell _blockCell(BlockMode mode, List<int> pixels) {
+/// The cell of [mode] showing [pixels] (row by row, -1 for one not drawn);
+/// in braille a pixel of at least [threshold] luma is a dot.
+BlockCell _blockCell(
+  BlockMode mode,
+  List<int> pixels, {
+  int threshold = _brailleThreshold,
+}) {
   switch (mode) {
     case BlockMode.half:
       return _half(pixels[0], pixels[1]);
@@ -403,7 +457,7 @@ BlockCell _blockCell(BlockMode mode, List<int> pixels) {
     case BlockMode.braille:
       var lit = 0;
       for (var i = 0; i < pixels.length; i++) {
-        if (pixels[i] >= 0 && _luma(pixels[i]) >= _brailleThreshold) {
+        if (pixels[i] >= 0 && _luma(pixels[i]) >= threshold) {
           lit |= 1 << i;
         }
       }

@@ -26,7 +26,10 @@ Added:
   `.quadrant`, for `Image` and `BlockImage` where the terminal shows no
   images: 6, 8, 8 and 1 pixels a cell (`BlockMode.across` and `.down`). Sextants
   and octants pick the cell's best two colours as quadrants do, braille shows
-  the bright pixels as dots in one colour, ascii a ramp of characters. The
+  as dots in one colour the pixels brighter than the luma that parts the
+  image's best in two (Otsu's method, transparent counted as black), so that
+  a dark colour on a darker ground keeps its dots; ascii a ramp of
+  characters. The
   glyphs are `Marker`'s (twk's charts), not tables of their own.
 - `Image` draws in sextants by default where the terminal is known to draw
   them itself (`TerminalInfo.sextants`, twk_core's `sextantsFor`: kitty,
