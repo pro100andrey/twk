@@ -497,5 +497,135 @@ void main() {
       expect(copies, ['abcdefghij\n']);
       expect(t.lines.first, 'ghij');
     });
+
+    testTwk('reads where the selection is and selects between two places, '
+        'whichever comes first, across a Text and a Selectable', (t) async {
+      final controller = SelectionAreaController();
+      addTearDown(controller.dispose);
+      final first = GlobalKey();
+      var told = 0;
+      controller.addListener(() => told++);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: SelectionArea(
+            controller: controller,
+            child: column([
+              Text('hello', key: first),
+              const Grid(['one two', 'three']),
+            ]),
+          ),
+        ),
+        size: (8, 4),
+      );
+      final text = first.currentContext!.findRenderObject()!;
+      final grid = lastGrid!;
+      expect(controller.start, isNull);
+      expect(controller.end, isNull);
+      expect(
+        controller.select(
+          (object: grid, offset: 3),
+          (
+            object: text,
+            offset: 2,
+          ),
+        ),
+        isTrue,
+      );
+      await t.pump();
+      expect(told, 1);
+      expect(controller.text, 'llo\none');
+      expect(grid.selection, (0, 3));
+      expect(controller.start!.object, same(text));
+      expect(controller.start!.offset, 2);
+      expect(controller.end!.object, same(grid));
+      expect(controller.end!.offset, 3);
+      expect(marked(t, 0, 5), '..xxx');
+      // an offset past the text is its end; selecting again replaces
+      expect(
+        controller.select(
+          (object: grid, offset: 4),
+          (
+            object: grid,
+            offset: 99,
+          ),
+        ),
+        isTrue,
+      );
+      await t.pump();
+      expect(told, 1, reason: 'still something selected');
+      expect(controller.text, 'two\nthree');
+      expect(marked(t, 0, 5), '.....');
+      expect(grid.selection, (4, 13));
+      // one place: nothing
+      expect(
+        controller.select(
+          (object: text, offset: 1),
+          (
+            object: text,
+            offset: 1,
+          ),
+        ),
+        isFalse,
+      );
+      expect(controller.hasSelection, isFalse);
+      expect(told, 2);
+    });
+
+    testTwk('selectAll selects all the text of the area, the excluded '
+        'left out', (t) async {
+      final controller = SelectionAreaController();
+      addTearDown(controller.dispose);
+      await t.pumpWidget(
+        Theme.terminal(
+          child: SelectionArea(
+            controller: controller,
+            child: column(const [
+              ExcludeSelection(child: Text('gutter')),
+              Text('hello'),
+              Grid(['one', 'two']),
+            ]),
+          ),
+        ),
+        size: (8, 5),
+      );
+      controller.selectAll();
+      await t.pump();
+      expect(controller.hasSelection, isTrue);
+      expect(controller.text, 'hello\none\ntwo');
+      expect(lastGrid!.selection, (0, 7));
+      expect(marked(t, 0, 6), '......');
+      expect(marked(t, 1, 5), 'xxxxx');
+    });
+
+    testTwk('carries a selection across a change of the content: the '
+        'objects it was in gone, it is selected in the new ones', (t) async {
+      final controller = SelectionAreaController();
+      addTearDown(controller.dispose);
+      final keys = {
+        for (final l in ['one', 'two', 'ONE', 'TWO']) l: GlobalKey(),
+      };
+      Widget app(List<String> lines) => Theme.terminal(
+        child: SelectionArea(
+          controller: controller,
+          child: column([for (final l in lines) Text(l, key: keys[l])]),
+        ),
+      );
+      await t.pumpWidget(app(['one', 'two']), size: (8, 3));
+      await drag(t, (1, 0), [(1, 1)]);
+      expect(controller.text, 'ne\ntw');
+      final (start, end) = (controller.start!, controller.end!);
+      expect((start.offset, end.offset), (1, 2));
+      await t.pumpWidget(app(['ONE', 'TWO']), size: (8, 3));
+      expect(controller.start, isNull, reason: 'its objects are gone');
+      RenderObject object(String l) =>
+          keys[l]!.currentContext!.findRenderObject()!;
+      final done = controller.select(
+        (object: object('ONE'), offset: start.offset),
+        (object: object('TWO'), offset: end.offset),
+      );
+      await t.pump();
+      expect(done, isTrue);
+      expect(controller.text, 'NE\nTW');
+    });
   });
 }

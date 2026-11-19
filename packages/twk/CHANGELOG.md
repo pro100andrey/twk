@@ -4,6 +4,12 @@
 
 Added:
 
+- `SelectionAreaController.select(start, end)`, `selectAll()`, `start` and
+  `end`: select between two places (`SelectionPoint`, a `RenderParagraph` or
+  `Selectable` and an offset in its text) or all the text from outside, and
+  read where the selection is, so an app that changes its content (folds a
+  file) carries the selection across it. Flutter's `SelectionArea` has
+  `selectAll` and a `SelectableRegionState` to the same ends.
 - `ExcludeSelection`: a subtree a `SelectionArea` above it leaves out, its
   `Text`s and `Selectable`s neither selected nor copied (line numbers, a
   gutter); a `SelectionArea` inside selects on its own. As Flutter's

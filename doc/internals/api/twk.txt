@@ -646,6 +646,7 @@ twk.dart typedef PointerEventListener
 twk.dart typedef PopInvokedWithResultCallback
 twk.dart typedef RouteFactory
 twk.dart typedef RoutePredicate
+twk.dart typedef SelectionPoint
 twk.dart typedef ShownRect
 twk.dart typedef SlotLayout
 twk.dart typedef SourceLines

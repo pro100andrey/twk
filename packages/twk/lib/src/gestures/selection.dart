@@ -78,7 +78,7 @@ export 'selectable.dart' hide selectInSelectable;
 /// that what is copied. While something is
 /// selected, [copyKey] and [clearKey] are among the keys a `KeyHintsBar`
 /// shows (`copy`, `clear`). A [controller] tells whether something is
-/// selected and what, and clears it, from outside.
+/// selected, what and where, and selects and clears from outside.
 ///
 /// It gets every press over it, anywhere in its bounds, as a [Listener]
 /// does, and the drags no `GestureDetector` inside it takes: one that
@@ -226,6 +226,34 @@ final class SelectionAreaController with ChangeNotifier {
   /// included); empty while nothing is.
   String get text => _hosts.host?._text ?? '';
 
+  /// Where the selection starts: the paragraph of a [Text] or the
+  /// [Selectable], and the offset in its text (UTF-16 code units, the
+  /// range [Selectable.selection] has); null while nothing is selected.
+  /// The first of what is selected in the order of the tree.
+  SelectionPoint? get start => _hosts.host?._start;
+
+  /// Where the selection ends, as [start] says it: the last of what is
+  /// selected in the order of the tree, the offset after its last
+  /// character.
+  SelectionPoint? get end => _hosts.host?._end;
+
+  /// Selects from [start] to [end], the Texts and Selectables between
+  /// them whole, as a drag from one to the other does; whichever comes
+  /// first in the order of the tree is the start. Offsets past the text
+  /// are its end. Replaces what was selected; nothing is copied. Whether
+  /// anything is selected: not where an object is none of the area's, or
+  /// not laid out yet (the frame that shows it comes first), or the two
+  /// are one place.
+  ///
+  /// What an app that changes its content keeps the selection across it
+  /// with: read [start] and [end] before, and select between the same
+  /// places of the objects it has after, once they are drawn.
+  bool select(SelectionPoint start, SelectionPoint end) =>
+      _hosts.host?._selectBetween(start, end) ?? false;
+
+  /// Selects all the text of the area.
+  void selectAll() => _hosts.host?._selectAll();
+
   /// Clears the selection, a drag under way selecting nothing more.
   void clear() => _hosts.host?._clear();
 
@@ -331,6 +359,11 @@ final class _RenderExcludeSelection extends RenderObject
     }
   }
 }
+
+/// A place in what a [SelectionArea] selects in: [object], the
+/// `RenderParagraph` of a [Text] or a [Selectable], and the [offset] in its
+/// text, in UTF-16 code units.
+typedef SelectionPoint = ({RenderObject object, int offset});
 
 /// What is selected in below the area (the paragraph of a [Text], a
 /// [Selectable]), and the cell of the area its top left is at.
@@ -765,6 +798,19 @@ final class _SelectionAreaState extends State<SelectionArea> {
     final aLast =
         a > focus.index || (a == focus.index && anchor.end >= focus.end);
     final (to, end) = aLast ? (a, anchor.end) : (focus.index, focus.end);
+    _select(_between(placed, from, start, to, end));
+    _selectedByPress = _selected.isNotEmpty;
+  }
+
+  /// What is selected from [start] of the text of the [from]th of [placed]
+  /// to [end] of the [to]th, the ones between whole.
+  Map<RenderObject, (int, int)> _between(
+    List<_Placed> placed,
+    int from,
+    int start,
+    int to,
+    int end,
+  ) {
     final selected = <RenderObject, (int, int)>{};
     for (var i = from; i <= to; i++) {
       final p = placed[i].object;
@@ -774,8 +820,69 @@ final class _SelectionAreaState extends State<SelectionArea> {
         selected[p] = (s, e);
       }
     }
+    return selected;
+  }
+
+  /// Where the selection starts, null while nothing is selected.
+  SelectionPoint? get _start {
+    for (final MapEntry(key: o, value: (s, _)) in _selected.entries) {
+      if (o.owner != null) {
+        return (object: o, offset: s);
+      }
+    }
+    return null;
+  }
+
+  /// Where the selection ends, null while nothing is selected.
+  SelectionPoint? get _end {
+    SelectionPoint? end;
+    for (final MapEntry(key: o, value: (_, e)) in _selected.entries) {
+      if (o.owner != null) {
+        end = (object: o, offset: e);
+      }
+    }
+    return end;
+  }
+
+  /// Selects from [start] to [end], whichever comes first in the order of
+  /// the tree; whether it did.
+  bool _selectBetween(SelectionPoint start, SelectionPoint end) {
+    _letGoOfDrag();
+    final placed = _placed();
+    final a = placed.indexWhere((p) => identical(p.object, start.object));
+    final b = placed.indexWhere((p) => identical(p.object, end.object));
+    if (a < 0 || b < 0) {
+      _select(const {});
+      return false;
+    }
+    int at(int i, int offset) =>
+        offset.clamp(0, _textOf(placed[i].object).length);
+    final sa = at(a, start.offset);
+    final sb = at(b, end.offset);
+    final aFirst = a < b || (a == b && sa <= sb);
+    final selected = aFirst
+        ? _between(placed, a, sa, b, sb)
+        : _between(placed, b, sb, a, sa);
     _select(selected);
-    _selectedByPress = _selected.isNotEmpty;
+    return selected.isNotEmpty;
+  }
+
+  /// Selects all of the text of the area.
+  void _selectAll() {
+    _letGoOfDrag();
+    final placed = _placed();
+    if (placed.isEmpty) {
+      return;
+    }
+    _select(
+      _between(
+        placed,
+        0,
+        0,
+        placed.length - 1,
+        _textOf(placed.last.object).length,
+      ),
+    );
   }
 
   /// Selects [selected]: the Texts whose part changed are built again, the
@@ -809,10 +916,14 @@ final class _SelectionAreaState extends State<SelectionArea> {
 
   /// Clears the selection, a drag under way selecting nothing more.
   void _clear() {
+    _letGoOfDrag();
+    _select(const {});
+  }
+
+  void _letGoOfDrag() {
     _stopDrag();
     _anchor = null;
     _selectedByPress = false;
-    _select(const {});
   }
 
   /// Copies what is selected, if anything is, to the system clipboard.
