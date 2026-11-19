@@ -4,12 +4,19 @@
 
 Added:
 
+- `ExcludeSelection`: a subtree a `SelectionArea` above it leaves out, its
+  `Text`s and `Selectable`s neither selected nor copied (line numbers, a
+  gutter); a `SelectionArea` inside selects on its own. As Flutter's
+  `SelectionContainer.disabled`.
 - `twk.log` (`frameEvents` on): the records of `TwkApp.logs` (what the
   console and `twk logs` show) as one event per turn of the event loop,
   posted before the next `twk.frame`, `twk.input` or `twk.scheduled`:
   `{version, records: [LogRecord.toJson]}`. Off, nothing is kept or posted.
 
 Changed:
+- A drag of a `SelectionArea` that goes over a child of a `Selectable`, on
+  its cell too, selects in the child: the Selectable was taken first, and
+  the child, the comment under a code line, was never selected in.
 - `PointerEvent.subX` and `subY` use the terminal's live cell size
   (`MouseTrackingBackend.cellPixels`), not the probe's: after a font zoom the
   position inside a cell was wrong.

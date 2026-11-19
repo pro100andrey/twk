@@ -211,6 +211,7 @@ twk.dart class Element
 twk.dart class ElementFinder
 twk.dart class ErrorWidget
 twk.dart class ExcludeFocus
+twk.dart class ExcludeSelection
 twk.dart class ExcludeSemantics
 twk.dart class Expanded
 twk.dart class ExpansionController

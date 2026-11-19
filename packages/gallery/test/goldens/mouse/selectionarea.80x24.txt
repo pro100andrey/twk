@@ -15,10 +15,10 @@ text
 │                             next.                                              │
 │   FOCUS AND KEYS 5      ·                                                   ·  │
 │     Focus, FocusS…          copied: nothing                                    │
-│     ActiveItem          · └                                              ┘  ·  │
-│     ExcludeFocus    ▐                                              44 × 8      │
-│     KeyBindings,…   ▐──────────────────────────────────────────────────────────│
-│     Shortcuts, Ac…     selected in       two Texts  a painted log              │
+│     ActiveItem            └                                              ┘     │
+│     ExcludeFocus    ▐──────────────────────────────────────────────────────────│
+│     KeyBindings,…   ▐  selected in       two Texts  a painted log              │
+│     Shortcuts, Ac…                       a numbered listing                    │
 │                        copy on release  ▐  ●▌                                  │
 │   NAVIGATION     5     style             the theme's  reverse                  │
 │     Navigator                                                                  │
@@ -40,10 +40,10 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaagggggggpppppgggggggggggggggggggggggggggggggggggggggggggggg│
 │aaadddddadddaddddazaaagggogggggggggggggggggggggggggggggggggggggggggggggggggggogg│
 │aaaaannnnnnannnnnnnaaagggggggmmmmmmmgmmmmmmmgggggggggggggggggggggggggggggggggggg│
-│aaaaannnnnnnnnnaaaaaaagggogoggggggggggggggggggggggggggggggggggggggggggggggoggogg│
-│aaaaannnnnnnnnnnnaaaadggggggggggggggggggggggggggggggggggggggggggggggCCgCgCgggggg│
-│aaaaannnnnnnnnnnnnaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnnnannnaaaggmmmmmmmmgmmggggggrsssrsssssrhvhvvvvvvvhvvvhggggggggggggg│
+│aaaaannnnnnnnnnaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
+│aaaaannnnnnnnnnnnaaaadoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
+│aaaaannnnnnnnnnnnnaaadggmmmmmmmmgmmggggggrsssrsssssrhvhvvvvvvvhvvvhggggggggggggg│
+│aaaaannnnnnnnnnannnaaaggggggggggggggggggghvhvvvvvvvvhvvvvvvvhggggggggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmmgmmgmmmmmmmggwxxywgggggggggggggggggggggggggggggggggg│
 │aaaddddddddddaaaaazaaaggmmmmmggggggggggggrsssrsssssssrhvvvvvvvhggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
@@ -69,7 +69,6 @@ p #e6e8eb on #16181d
 q #5fa8ff on #2b4566
 r on #2b4566
 s bold #e6e8eb on #2b4566
-C #747a83 on #16181d
 v #8b929c on #13151a
 w #5fa8ff on #16181d
 x on #5fa8ff

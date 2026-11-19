@@ -336,7 +336,7 @@ Widget build(BuildContext context) {
 
 | option | values | starts at |
 | --- | --- | --- |
-| selected in | two Texts, a painted log | two Texts |
+| selected in | two Texts, a painted log, a numbered listing | two Texts |
 | copy on release | on, off | true |
 | style | the theme's, reverse | the theme's |
 

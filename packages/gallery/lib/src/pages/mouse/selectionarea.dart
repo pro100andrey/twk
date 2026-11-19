@@ -5,8 +5,8 @@ part of 'mouse.dart';
 const _selectionareaView = ChoiceOption<String>(
   'view',
   'selected in',
-  values: ['texts', 'log'],
-  labels: ['two Texts', 'a painted log'],
+  values: ['texts', 'log', 'listing'],
+  labels: ['two Texts', 'a painted log', 'a numbered listing'],
 );
 
 /// The SelectionArea page's `copy` option.
@@ -38,6 +38,7 @@ final _selectionareaPage = GalleryPage(
           reverse: o(_selectionareaStyle) == 'reverse',
         )
       : _Selection(
+          listing: o(_selectionareaView) == 'listing',
           copyOnRelease: o(_selectionareaCopy),
           reverse: o(_selectionareaStyle) == 'reverse',
         ),
@@ -52,14 +53,25 @@ const _readsMouse =
     'An app that reads the mouse keeps the terminal from selecting its '
     'text, so it selects the text itself.';
 
+const _numbers = '1\n2\n3';
+
+const _lines = 'void main() {\n  run();\n}';
+
 const _copiedLine =
     "                _copied.isEmpty ? 'nothing' : "
     r"_copied.replaceAll('\n', ' '),";
 
 /// Two paragraphs the mouse selects, and what was copied last.
 final class _Selection extends StatefulWidget {
-  const _Selection({required this.copyOnRelease, required this.reverse});
+  const _Selection({
+    required this.listing,
+    required this.copyOnRelease,
+    required this.reverse,
+  });
 
+  /// Lines with their numbers left out of the selection, in place of the
+  /// two paragraphs.
+  final bool listing;
   final bool copyOnRelease;
   final bool reverse;
 
@@ -88,15 +100,23 @@ final class _SelectionState extends State<_Selection> {
               _copied = text;
               _copies++;
             }),
-            child: const Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 1,
-              children: [
-                Text(_readsMouse),
-                Text('A drag goes on from one paragraph to the next.'),
-              ],
-            ),
+            child: widget.listing
+                ? const Row(
+                    spacing: 1,
+                    children: [
+                      ExcludeSelection(child: Text(_numbers)),
+                      Text(_lines),
+                    ],
+                  )
+                : const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 1,
+                    children: [
+                      Text(_readsMouse),
+                      Text('A drag goes on from one paragraph to the next.'),
+                    ],
+                  ),
           ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,18 +157,29 @@ String _selectionCode(Options o) => [
   if (o(_selectionareaStyle) == 'reverse')
     '          style: const Style(attrs: Attr.reverse),',
   '          onCopy: (text) => setState(() => _copied = text),',
-  '          child: const Column(',
-  '            mainAxisSize: .min,',
-  '            crossAxisAlignment: .start,',
-  '            spacing: 1,',
-  '            children: [',
-  '              Text(',
-  "                'An app that reads the mouse keeps the terminal from '",
-  "                'selecting its text, so it selects the text itself.',",
-  '              ),',
-  "              Text('A drag goes on from one paragraph to the next.'),",
-  '            ],',
-  '          ),',
+  if (o(_selectionareaView) == 'listing') ...[
+    '          child: const Row(',
+    '            spacing: 1,',
+    '            children: [',
+    '              // the numbers are not selected nor copied',
+    r"              ExcludeSelection(child: Text('1\n2\n3')),",
+    r"              Text('void main() {\n  run();\n}'),",
+    '            ],',
+    '          ),',
+  ] else ...[
+    '          child: const Column(',
+    '            mainAxisSize: .min,',
+    '            crossAxisAlignment: .start,',
+    '            spacing: 1,',
+    '            children: [',
+    '              Text(',
+    "                'An app that reads the mouse keeps the terminal from '",
+    "                'selecting its text, so it selects the text itself.',",
+    '              ),',
+    "              Text('A drag goes on from one paragraph to the next.'),",
+    '            ],',
+    '          ),',
+  ],
   '        ),',
   '        // what was copied, in the width the label leaves',
   '        Row(',

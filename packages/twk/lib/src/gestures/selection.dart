@@ -10,8 +10,11 @@ import 'dart:math' show max, min;
 import 'package:twk_core/twk_core.dart'
     show
         Axis,
+        BoxConstraints,
         HitTestBehavior,
+        PaintContext,
         RenderObject,
+        RenderObjectWithChildMixin,
         RenderParagraph,
         clipboardSequence;
 
@@ -21,6 +24,7 @@ import '../focus/focus.dart' show KeyBindings, KeyCombo;
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
 import '../framework/framework.dart';
+import '../layout/one_child.dart';
 import '../scroll/scrollable.dart' show ScrollPosition, Scrollable;
 import '../style/style.dart';
 import '../text/widgets.dart' show Text;
@@ -43,7 +47,9 @@ export 'selectable.dart' hide selectInSelectable;
 /// triple one when it comes in the same cell within [multiClickInterval] of
 /// the release before it. A render object of an app's own that is a
 /// [Selectable] (a painted log, a code view) is selected in as a Text is,
-/// in its place in the order of the tree.
+/// in its place in the order of the tree, its children after it, and
+/// where the mouse is over a child and its own cell both, it is the
+/// child's.
 ///
 /// A drag past the top or bottom of the vertical [Scrollable] the mouse
 /// selects in scrolls it on, every 50 ms while it stays there, by the rows
@@ -107,6 +113,7 @@ export 'selectable.dart' hide selectInSelectable;
 ///
 ///  * [SelectionAreaController], what is selected, read from outside.
 ///  * [Selectable], a render object of an app's own selected in.
+///  * [ExcludeSelection], a subtree left out of what is selected.
 final class SelectionArea extends StatefulWidget {
   /// Lets the Texts and Selectables below [child] be selected.
   const SelectionArea({
@@ -246,6 +253,85 @@ final class SelectionAreaController with ChangeNotifier {
   }
 }
 
+/// Shows [child], which the [SelectionArea] above it leaves out: its
+/// [Text]s and [Selectable]s are neither selected nor copied, as if they
+/// were not there.
+///
+/// What is not part of the text (line numbers, a gutter, a heading over a
+/// section) goes in it, and the mouse still goes through it: a drag that
+/// starts or passes over it selects the Texts nearest the mouse outside it,
+/// by rows first. A [SelectionArea] inside selects in its own text, apart:
+/// a drag in it is its own, as a drag in a `GestureDetector` is, and the
+/// area above has nothing selected by the press.
+///
+/// As Flutter's `SelectionContainer.disabled`.
+///
+/// A listing whose line numbers are not copied with its lines:
+///
+/// ```dart
+/// SelectionArea(
+///   child: Row(
+///     children: const [
+///       ExcludeSelection(child: Text('1\n2')),
+///       Text(' first\n second'),
+///     ],
+///   ),
+/// )
+/// ```
+final class ExcludeSelection extends SingleChildRenderObjectWidget {
+  /// Leaves [child] out of what the [SelectionArea] above selects.
+  const ExcludeSelection({super.key, super.child});
+
+  @override
+  SingleChildRenderObjectElement createElement() => OneChildElement(this);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderExcludeSelection();
+}
+
+/// What [ExcludeSelection] puts in the render tree: its child, as big as
+/// the child is; the area does not look in it.
+final class _RenderExcludeSelection extends RenderObject
+    with RenderObjectWithChildMixin {
+  @override
+  void performLayout(BoxConstraints c) {
+    final child = this.child;
+    if (child == null) {
+      width = c.minWidth;
+      height = c.minHeight;
+      return;
+    }
+    child.layout(c, parentUsesSize: true);
+    width = child.width;
+    height = child.height;
+  }
+
+  @override
+  int computeMinIntrinsicWidth(int height) =>
+      child?.getMinIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMaxIntrinsicWidth(int height) =>
+      child?.getMaxIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMinIntrinsicHeight(int width) =>
+      child?.getMinIntrinsicHeight(width) ?? 0;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) =>
+      child?.getMaxIntrinsicHeight(width) ?? 0;
+
+  @override
+  void paint(PaintContext ctx) {
+    final child = this.child;
+    if (child != null) {
+      paintChild(ctx, child);
+    }
+  }
+}
+
 /// What is selected in below the area (the paragraph of a [Text], a
 /// [Selectable]), and the cell of the area its top left is at.
 typedef _Placed = ({RenderObject object, int x, int y});
@@ -371,6 +457,9 @@ final class _SelectionAreaState extends State<SelectionArea> {
     }
     final placed = <_Placed>[];
     void visit(RenderObject o, int x, int y) {
+      if (o is _RenderExcludeSelection) {
+        return;
+      }
       if (o is RenderParagraph && (_mine[o] ?? false)) {
         if (o.width > 0 && o.height > 0) {
           placed.add((object: o, x: x, y: y));
@@ -398,7 +487,9 @@ final class _SelectionAreaState extends State<SelectionArea> {
   }
 
   /// The edge a click at [x], [y] of the area makes by [_unit]: in the
-  /// paragraph there, or else in the nearest one, by rows first.
+  /// paragraph there (the last of those that overlap there, as the one
+  /// painted over the others: a child of a [Selectable] over it), or else in
+  /// the nearest one, by rows first.
   _Edge? _edgeAt(List<_Placed> placed, int x, int y) {
     var best = -1;
     var bestRows = 0;
@@ -409,7 +500,10 @@ final class _SelectionAreaState extends State<SelectionArea> {
       final columns = _outside(x, left, object.width);
       if (best < 0 ||
           rows < bestRows ||
-          (rows == bestRows && columns < bestColumns)) {
+          (rows == bestRows && columns < bestColumns) ||
+          // one inside another, or one over another: the one the mouse is
+          // over is the later of them, a Selectable's child over it
+          (rows == 0 && columns == 0 && bestRows == 0 && bestColumns == 0)) {
         best = i;
         bestRows = rows;
         bestColumns = columns;
