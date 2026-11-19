@@ -219,7 +219,7 @@ void main() {
       expect(decodeGif(cut).frames, hasLength(1));
     });
 
-    test('a frame of invalid data after a first is refused, not dropped', () {
+    test('a frame of invalid data after a first is refused when reached', () {
       final bytes = gifBytes(2, 1, palette, [
         GifImage(2, 1, [0, 0]),
         GifImage(2, 1, [0, 0]),
@@ -227,7 +227,12 @@ void main() {
       // the last frame's LZW data, up to its block's end and the trailer
       final bad = Uint8List.fromList(bytes)
         ..fillRange(bytes.length - 4, bytes.length - 2, 0xFF);
-      expect(() => decodeGif(bad), throwsFormatException);
+      final image = decodeGif(bad);
+      expect(image.frameCount, 2, reason: 'not dropped');
+      expect(argb(image.bitmapAt(0)), [red, red]);
+      expect(() => image.bitmapAt(1), throwsFormatException);
+      expect(() => image.bitmapAt(1), throwsFormatException, reason: 'again');
+      expect(argb(image.bitmapAt(0)), [red, red], reason: 'the first still');
     });
 
     test('a size past the screen is refused', () {
@@ -304,6 +309,82 @@ void main() {
         () => decodeAnimation(Uint8List.fromList([1, 2, 3])),
         throwsFormatException,
       );
+    });
+  });
+
+  group('AnimatedImage composed as it is reached', () {
+    /// Frames of 4 × 4 that draw, over each other, a growing square, now
+    /// leaving it, now restoring the screen to what it was, now clearing it.
+    final bytes = gifBytes(4, 4, palette, [
+      for (var i = 0; i < 12; i++)
+        GifImage(
+          2,
+          2,
+          List.filled(4, i % 3),
+          left: i % 3,
+          top: i % 2,
+          disposal: i % 4,
+          transparent: i % 5 == 4 ? 3 : null,
+          delayCs: 5,
+        ),
+    ]);
+
+    test('any order of reaching them gives the canvases in order', () {
+      final expected = canvases(bytes);
+      final image = decodeGif(bytes, windowBytes: 3 * 4 * 4 * 4);
+      // from the end, jumps forward and back, each frame again
+      for (final i in [11, 3, 3, 7, 0, 5, 11, 10, 2, 9, 1, 8, 4, 6, 0]) {
+        expect(argb(image.bitmapAt(i)), expected[i], reason: 'frame $i');
+      }
+    });
+
+    test('a bitmap given is not drawn on by the frames after it', () {
+      final image = decodeGif(bytes, windowBytes: 0);
+      final first = argb(image.bitmapAt(0));
+      image.bitmapAt(11);
+      expect(argb(image.bitmapAt(0)), first);
+    });
+
+    test('only a window of the frames is kept, one at least', () {
+      final composed = <int>[];
+      var next = 0;
+      AnimatedImage make(int windowBytes) => AnimatedImage.composed(
+        width: 10,
+        height: 10,
+        delays: List.filled(20, const Duration(milliseconds: 10)),
+        windowBytes: windowBytes,
+        compose: () {
+          composed.add(next++);
+          return Bitmap(10, 10);
+        },
+        rewind: () => next = 0,
+      );
+      // a frame is 400 bytes
+      final image = make(1000);
+      for (var i = 0; i < 20; i++) {
+        image.bitmapAt(i);
+        expect(image.keptFrames, lessThanOrEqualTo(2));
+      }
+      expect(composed, List.generate(20, (i) => i), reason: 'each once');
+      image
+        ..bitmapAt(19)
+        ..bitmapAt(18);
+      expect(composed, hasLength(20), reason: 'the last two are kept');
+      image.bitmapAt(0);
+      expect(composed.length, 21, reason: 'composed again from the first');
+      expect(make(0).keptFrames, 0);
+      expect((make(0)..bitmapAt(5)).keptFrames, 1);
+    });
+
+    test('a long animation is not composed up front', () {
+      final big = gifBytes(2, 2, palette, [
+        for (var i = 0; i < 300; i++) GifImage(2, 2, List.filled(4, i % 4)),
+      ]);
+      final image = decodeGif(big);
+      expect(image.frameCount, 300);
+      expect(image.keptFrames, 1, reason: 'the first, which is checked');
+      image.bitmapAt(100);
+      expect(image.keptFrames, 101, reason: 'within the window');
     });
   });
 

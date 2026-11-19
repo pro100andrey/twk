@@ -20,30 +20,41 @@ bool isGif(List<int> bytes) =>
 /// The most frames a GIF may have.
 const int _maxFrames = 1 << 14;
 
-/// Decodes the frames of a GIF file, each composed on the logical screen
-/// as its disposal method says (none, leave, restore to the background,
-/// restore to the previous), transparent pixels leaving what is under them,
-/// the screen starting transparent. Interlaced frames and local colour
-/// tables are read. A frame's delay is its graphic control extension's (a
-/// delay of 10 ms or less shows for 100 ms, as browsers show it), and the
-/// plays are those its NETSCAPE2.0 loop count asks for, a count of repeats
-/// after the first play ([AnimatedImage.loops]; one play where the file has
-/// none).
+/// Reads a GIF file as frames composed on the logical screen as each's
+/// disposal method says (none, leave, restore to the background, restore to
+/// the previous), transparent pixels leaving what is under them, the screen
+/// starting transparent. Interlaced frames and local colour tables are
+/// read. A frame's delay is its graphic control extension's (a delay of
+/// 10 ms or less shows for 100 ms, as browsers show it), and the plays are
+/// those its NETSCAPE2.0 loop count asks for, a count of repeats after the
+/// first play ([AnimatedImage.loops]; one play where the file has none).
 ///
-/// A file cut short after its first frame decodes to the frames it has.
+/// The file is read through once, for its frames' places and delays, and
+/// the first frame is composed; the others when [AnimatedImage.bitmapAt]
+/// reaches them, so that a long animation is not in memory whole.
+///
+/// [windowBytes] is how much of the composed frames are kept
+/// ([AnimatedImage.windowBytes]).
+///
+/// A file cut short after its first frame has the frames before the cut.
 ///
 /// Throws a [FormatException] when [bytes] are not a GIF file, hold no
-/// frame, or have a frame that does not decode or whose data is invalid.
+/// frame, have a frame outside the screen, or have a first frame that does
+/// not decode. A later frame whose data is invalid throws it from
+/// [AnimatedImage.bitmapAt].
 ///
 /// ```dart
 /// final gif = decodeGif(File('spinner.gif').readAsBytesSync());
-/// print('${gif.frames.length} frames, ${gif.duration} a play');
+/// print('${gif.frameCount} frames, ${gif.duration} a play');
 /// ```
 ///
 /// See also:
 ///
 ///  * `decodeImage`, which reads the first frame of a GIF.
-AnimatedImage decodeGif(Uint8List bytes) {
+AnimatedImage decodeGif(
+  Uint8List bytes, {
+  int windowBytes = AnimatedImage.defaultWindowBytes,
+}) {
   if (!isGif(bytes)) {
     throw const FormatException('Not a GIF file');
   }
@@ -59,17 +70,12 @@ AnimatedImage decodeGif(Uint8List bytes) {
   if (flags & 0x80 != 0) {
     globalColors = r.take(3 << ((flags & 7) + 1));
   }
-  final canvas = Bitmap(width, height);
-  final frames = <ImageFrame>[];
+  final frames = <_GifFrame>[];
   var loops = 1;
   // the graphic control of the next image
   var delay = 0;
   var disposal = 0;
   var transparent = -1;
-  // what the previous frame asks of the canvas before the next draws
-  var lastDisposal = 0;
-  var lastRect = (0, 0, 0, 0);
-  Uint8List? restore;
   try {
     for (var ended = false; !ended;) {
       switch (r.u8()) {
@@ -115,44 +121,29 @@ AnimatedImage decodeGif(Uint8List bytes) {
           if (w == 0 || h == 0 || left + w > width || top + h > height) {
             throw const FormatException('GIF frame outside its screen');
           }
-          if (frames.length >= _maxFrames ||
-              (frames.length + 1) * width * height > maxImagePixels) {
+          if (frames.length >= _maxFrames) {
             throw const FormatException('GIF of too many frames');
           }
           final colors = packed & 0x80 != 0
               ? r.take(3 << ((packed & 7) + 1))
               : globalColors;
-          final indices = _lzw(r, w * h);
-          // what the previous frame leaves under this one
-          switch (lastDisposal) {
-            case 2:
-              _clear(canvas, lastRect);
-            case 3:
-              if (restore != null) {
-                canvas.pixels.setAll(0, restore);
-              }
-          }
-          restore = disposal == 3 ? Uint8List.fromList(canvas.pixels) : null;
-          _draw(
-            canvas,
-            indices,
-            colors,
-            (left, top, w, h),
-            interlaced: packed & 0x40 != 0,
-            transparent: transparent,
-          );
+          // the LZW data: its minimum code size, then sub-blocks; read
+          // when the frame is composed
+          final data = r.pos;
+          r
+            ..u8()
+            ..skipBlocks();
           frames.add(
-            ImageFrame(
-              Bitmap.fromRgba(
-                width,
-                height,
-                Uint8List.fromList(canvas.pixels),
-              ),
-              frameDelay(delay * 10000),
+            _GifFrame(
+              rect: (left, top, w, h),
+              interlaced: packed & 0x40 != 0,
+              colors: colors,
+              data: data,
+              disposal: disposal,
+              transparent: transparent,
+              delay: frameDelay(delay * 10000),
             ),
           );
-          lastDisposal = disposal;
-          lastRect = (left, top, w, h);
           delay = 0;
           disposal = 0;
           transparent = -1;
@@ -168,7 +159,98 @@ AnimatedImage decodeGif(Uint8List bytes) {
   if (frames.isEmpty) {
     throw const FormatException('GIF without a frame');
   }
-  return AnimatedImage(frames, loops: loops);
+  final composer = _GifComposer(bytes, width, height, frames);
+  final image = AnimatedImage.composed(
+    width: width,
+    height: height,
+    delays: [for (final f in frames) f.delay],
+    compose: composer.next,
+    rewind: composer.rewind,
+    loops: loops,
+    windowBytes: windowBytes,
+  );
+  // a first frame that does not decode is refused here
+  return image..bitmapAt(0);
+}
+
+/// What the file says of one frame, read ahead of composing it.
+final class _GifFrame {
+  _GifFrame({
+    required this.rect,
+    required this.interlaced,
+    required this.colors,
+    required this.data,
+    required this.disposal,
+    required this.transparent,
+    required this.delay,
+  });
+
+  /// Left, top, width and height on the screen.
+  final (int, int, int, int) rect;
+  final bool interlaced;
+  final Uint8List? colors;
+
+  /// Where its LZW data starts in the file.
+  final int data;
+  final int disposal;
+  final int transparent;
+  final Duration delay;
+}
+
+/// Composes the frames of a GIF one after the other on one screen: what
+/// the one before asks of it, then the next drawn.
+final class _GifComposer {
+  _GifComposer(this.bytes, this.width, this.height, this.frames)
+    : canvas = Bitmap(width, height);
+
+  final Uint8List bytes;
+  final int width;
+  final int height;
+  final List<_GifFrame> frames;
+  final Bitmap canvas;
+  var _at = 0;
+  _GifFrame? _last;
+  // the screen before a frame that is to be restored to it
+  Uint8List? _restore;
+
+  void rewind() {
+    canvas.pixels.fillRange(0, canvas.pixels.length, 0);
+    _at = 0;
+    _last = null;
+    _restore = null;
+  }
+
+  /// The screen with the next frame composed, as a bitmap of its own.
+  Bitmap next() {
+    final frame = frames[_at];
+    final indices = _lzw(
+      _Reader(bytes)..pos = frame.data,
+      frame.rect.$3 * frame.rect.$4,
+    );
+    // what the previous frame leaves under this one
+    if (_last case final last?) {
+      switch (last.disposal) {
+        case 2:
+          _clear(canvas, last.rect);
+        case 3:
+          if (_restore case final restore?) {
+            canvas.pixels.setAll(0, restore);
+          }
+      }
+    }
+    _restore = frame.disposal == 3 ? Uint8List.fromList(canvas.pixels) : null;
+    _draw(
+      canvas,
+      indices,
+      frame.colors,
+      frame.rect,
+      interlaced: frame.interlaced,
+      transparent: frame.transparent,
+    );
+    _last = frame;
+    _at++;
+    return Bitmap.fromRgba(width, height, Uint8List.fromList(canvas.pixels));
+  }
 }
 
 /// Makes [rect], left, top, width and height, of [canvas] transparent.

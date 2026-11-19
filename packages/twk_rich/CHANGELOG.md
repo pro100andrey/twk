@@ -26,6 +26,16 @@ Added:
   `TickerMode` that is off an animation stands on the frame it shows (a
   kitty one stopped by the terminal) and goes on from it when the mode is on
   again.
+- An animation's memory is bounded: `AnimatedImage` composes a GIF's or
+  APNG's frames as `bitmapAt` reaches them and keeps a window of the last
+  (`windowBytes`, 32 MB, a parameter of `decodeGif`, `decodeApng` and
+  `decodeAnimation`) instead of every frame up front (500 frames of 800 x 600
+  were 1 GB before the first showed). Breaking: `AnimatedImage.frames` is
+  gone for `frameCount`, `delays`, `bitmapAt(i)` and `frameAt`; a later
+  frame whose data is invalid throws from `bitmapAt`, not from `decodeGif`
+  (the first frame is still decoded at once). `Image` keeps what it drew of
+  each frame drawn one by one (16 MB, the least recently shown dropped)
+  instead of every frame for ever.
 - `BlockMode.sextant`, `.octant`, `.braille` and `.ascii` beside `.half` and
   `.quadrant`, for `Image` and `BlockImage` where the terminal shows no
   images: 6, 8, 8 and 1 pixels a cell (`BlockMode.across` and `.down`). Sextants

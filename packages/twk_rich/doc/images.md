@@ -58,15 +58,29 @@ screen as its disposal method says (leave, background to transparent,
 previous), a transparent index leaving what is under it, interlaced frames
 and local colour tables read, the delay of each (one of 10 ms or less shows
 for 100 ms, as browsers show it) and the plays of a NETSCAPE2.0 extension. A
-file that goes wrong after its first frame has the frames before. `isGif(bytes)`
+file cut short after its first frame has the frames before the cut. `isGif(bytes)`
 
 ## `animated`
 
-`AnimatedImage(frames, loops:)`: the `ImageFrame`s (`bitmap`, the whole canvas
-at that frame, and `delay`) of a GIF or APNG, one for a still image;
-`loops`, the plays (0 for ever), `duration` of one, `indexAt(elapsed)` and
-`frameAt` the frame showing that long after the start, `nextChangeAfter` when
-the next frame starts
+`AnimatedImage` of a GIF or APNG (one frame for a still image): `frameCount`,
+`delays`, `loops` (the plays, 0 for ever), `duration` of one play,
+`indexAt(elapsed)` and `nextChangeAfter` read from the delays alone. The
+pictures are composed as they are reached: `bitmapAt(i)` is the whole canvas
+at frame i, composed on the frames before it, in order, and only the last
+`windowBytes` of them are kept (32 MB, `decodeGif(bytes, windowBytes:)`; a
+frame at least), so that 500 frames of 800 x 600 take a window's memory, not a
+gigabyte, and nothing is composed before it is shown. A frame past the window
+is composed again from the first: free in the order of playing, dear for a
+jump back. `frameAt(elapsed)` is the `ImageFrame` (`bitmap`, `delay`) showing
+that long after the start. A frame whose data does not decode throws a
+`FormatException` from `bitmapAt`; the first is checked by `decodeGif` and
+`decodeApng`. `AnimatedImage(frames)` is one of frames already in memory,
+`AnimatedImage.composed` one whose frames a function makes.
+
+`Image` keeps what it drew of each frame (the encoded frame for a protocol,
+or its blocks) for the frames drawn one by one, 16 MB at most, the least
+recently shown dropped and made again when shown again; the frames kept on a
+kitty terminal (`ImageKeep`) are not in it.
 
 ## `jpeg`
 

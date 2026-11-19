@@ -145,6 +145,21 @@ void main() {
       });
     }
 
+    test('the frames reached backwards are those reached in order', () {
+      for (final name in ['anim_over', 'anim_background']) {
+        final inOrder = decodeApng(fixture('$name.apng'));
+        final image = decodeApng(fixture('$name.apng'), windowBytes: 0);
+        for (var i = inOrder.frameCount - 1; i >= 0; i--) {
+          expect(
+            image.bitmapAt(i).pixels,
+            inOrder.bitmapAt(i).pixels,
+            reason: '$name frame $i',
+          );
+        }
+        expect(image.keptFrames, 1);
+      }
+    });
+
     test('anim_default: an IDAT before the first fcTL is no frame', () {
       final image = decodeApng(fixture('anim_default.apng'));
       expect(image.frames, hasLength(3), reason: 'the three after it');

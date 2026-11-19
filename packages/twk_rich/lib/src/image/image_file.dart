@@ -44,13 +44,14 @@ enum ImageFormat {
 Bitmap decodeImage(Uint8List bytes) => switch (ImageFormat.of(bytes)) {
   ImageFormat.png => decodePng(bytes),
   ImageFormat.jpeg => decodeJpeg(bytes),
-  ImageFormat.gif => decodeGif(bytes).frames.first.bitmap,
+  ImageFormat.gif => decodeGif(bytes).bitmapAt(0),
   null => throw const FormatException('Not a PNG, JPEG or GIF file'),
 };
 
 /// The frames of the PNG, JPEG or GIF file [bytes]: those of an animated
-/// GIF ([decodeGif]) or APNG ([decodeApng]), one frame for any other
-/// image, with no delay.
+/// GIF ([decodeGif]) or APNG ([decodeApng]), composed as they are reached
+/// and [windowBytes] of them kept at most, one frame for any other image,
+/// with no delay.
 ///
 /// Throws a [FormatException] for a file of none of the formats, or one
 /// that does not decode.
@@ -59,15 +60,17 @@ Bitmap decodeImage(Uint8List bytes) => switch (ImageFormat.of(bytes)) {
 /// final image = decodeAnimation(File('spinner.gif').readAsBytesSync());
 /// print(image.isAnimated ? 'plays ${image.duration}' : 'still');
 /// ```
-AnimatedImage decodeAnimation(Uint8List bytes) =>
-    switch (ImageFormat.of(bytes)) {
-      ImageFormat.png => decodeApng(bytes),
-      ImageFormat.gif => decodeGif(bytes),
-      ImageFormat.jpeg => AnimatedImage([
-        ImageFrame(decodeJpeg(bytes), Duration.zero),
-      ]),
-      null => throw const FormatException('Not a PNG, JPEG or GIF file'),
-    };
+AnimatedImage decodeAnimation(
+  Uint8List bytes, {
+  int windowBytes = AnimatedImage.defaultWindowBytes,
+}) => switch (ImageFormat.of(bytes)) {
+  ImageFormat.png => decodeApng(bytes, windowBytes: windowBytes),
+  ImageFormat.gif => decodeGif(bytes, windowBytes: windowBytes),
+  ImageFormat.jpeg => AnimatedImage([
+    ImageFrame(decodeJpeg(bytes), Duration.zero),
+  ]),
+  null => throw const FormatException('Not a PNG, JPEG or GIF file'),
+};
 
 /// The size in pixels of the PNG, JPEG or GIF file [bytes], read from its
 /// header (IHDR, the first frame's SOF, or the logical screen) without

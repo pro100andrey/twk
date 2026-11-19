@@ -7,6 +7,7 @@ import 'package:twk_core/twk_core.dart'
 import 'animated.dart';
 import 'bitmap.dart';
 import 'blocks.dart';
+import 'byte_cache.dart';
 import 'files_io.dart' if (dart.library.js_interop) 'files_web.dart';
 import 'image_file.dart';
 import 'protocols.dart';
@@ -429,8 +430,9 @@ final class RenderImage extends RenderObject {
   ({int width, int height})? _size;
   AnimatedImage? _animation;
 
-  /// What each frame drew last, by its index; null where not yet.
-  List<_Drawn?>? _drawn;
+  /// What each frame drew last, by its index, as much as [_drawnBytes]
+  /// allows; null where none yet.
+  ByteCache<_Drawn>? _drawn;
 
   /// The animation as one kitty image of all its frames, for a terminal
   /// that plays them; null where not drawn so.
@@ -634,13 +636,14 @@ final class RenderImage extends RenderObject {
       return;
     }
     final index = _frameIndex();
-    final drawn = _drawn ??= List.filled(_frames.frames.length, null);
+    final drawn = _drawn ??= ByteCache(_drawnBytes);
     var d = drawn[index];
     if (d == null ||
         d.protocol != protocol ||
         d.boxWidth != width ||
         d.boxHeight != height) {
-      d = drawn[index] = _draw(protocol, index);
+      d = _draw(protocol, index);
+      drawn[index] = d;
     }
     final canvas = ctx.canvas;
     final x = _alignment.dx(width - d.columns);
@@ -671,7 +674,7 @@ final class RenderImage extends RenderObject {
   /// The frame [index] scaled to the box and encoded for [protocol], or in
   /// blocks.
   _Drawn _draw(GraphicsProtocol protocol, int index) {
-    final pixels = _frames.frames[index].bitmap;
+    final pixels = _frames.bitmapAt(index);
     final cell = _cell;
     switch (protocol) {
       case GraphicsProtocol.none:
@@ -734,7 +737,7 @@ final class RenderImage extends RenderObject {
   /// image to its cells: the pixels short of them are transparent, so that
   /// it keeps its aspect.
   (EncodedImage, int, int) _png(int index) {
-    final pixels = _frames.frames[index].bitmap;
+    final pixels = _frames.bitmapAt(index);
     final cell = _cell;
     final f = CellFit(
       pixels.width,
@@ -764,7 +767,7 @@ final class RenderImage extends RenderObject {
       pixelWidth: first.pixelWidth,
       pixelHeight: first.pixelHeight,
       animation: ImageAnimation.loading(
-        animation.frames.first.delay,
+        animation.delays.first,
         loops: animation.loops,
       ),
     );
@@ -777,6 +780,13 @@ final class RenderImage extends RenderObject {
       image: image,
     );
   }
+
+  /// What the frames drawn one by one are kept for at most, encoded: the
+  /// least recently shown go first, and are made again where shown again.
+  /// The frames kept on a kitty terminal ([ImageKeep]) are not in it: they
+  /// are within [_kittyBytes] decoded, and made again they would be sent
+  /// again.
+  static const int _drawnBytes = 16 << 20;
 
   /// How long a paint makes frames of a kitty animation for, a frame at
   /// least, so that the app goes on drawing while a long one is made.
@@ -799,7 +809,7 @@ final class RenderImage extends RenderObject {
       cell: _cell,
       fit: _fit,
     );
-    return animation.frames.length *
+    return animation.frameCount *
             f.columns *
             _cell.width *
             f.rows *
@@ -840,12 +850,12 @@ final class RenderImage extends RenderObject {
     if (animation.complete || _muted) {
       return;
     }
-    final frames = _frames.frames;
+    final frames = _frames;
     final clock = Stopwatch()..start();
     do {
       final i = animation.frames.length + 1;
-      animation.add(_png(i).$1.data, frames[i].delay);
-      if (i == frames.length - 1) {
+      animation.add(_png(i).$1.data, frames.delays[i]);
+      if (i == frames.frameCount - 1) {
         animation.finish();
         return;
       }
@@ -892,7 +902,7 @@ final class RenderImage extends RenderObject {
 /// What a [RenderImage] painted last: for [protocol] in a box of
 /// [boxWidth] × [boxHeight] cells, the [columns] × [rows] it takes, an
 /// [image] for the presenter or [blocks].
-final class _Drawn {
+final class _Drawn implements Costed {
   _Drawn(
     this.protocol,
     this.boxWidth,
@@ -913,6 +923,19 @@ final class _Drawn {
 
   StyleTable? _styles;
   Int32List? _pens;
+
+  /// What it holds, estimated in bytes: its encoded data, which the
+  /// terminal's base64 of is as much again, or its cells and their pens.
+  @override
+  int get cost => switch (image) {
+    final i? => i.data.length * 2,
+    _ => blocks!.cells.length * 40,
+  };
+
+  /// Kept on the terminal, within what it keeps: made again it would be
+  /// sent again.
+  @override
+  bool get pinned => image?.keep != null;
 
   /// The pen of each of [blocks]' cells in [styles], -1 where no pixel is
   /// drawn.

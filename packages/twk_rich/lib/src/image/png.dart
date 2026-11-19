@@ -68,7 +68,7 @@ bool isPng(List<int> bytes) {
 ///  * `decodeImage`, for a file that may be a JPEG too.
 Bitmap decodePng(Uint8List bytes) {
   final file = _readChunks(bytes);
-  return _decodeFrame(file, file.width, file.height, file.idat.takeBytes());
+  return _decodeFrame(file, file.width, file.height, file.idat.toBytes());
 }
 
 /// What a PNG file's chunks say, read whole and checked.
@@ -266,14 +266,23 @@ Bitmap _decodeFrame(_PngFile file, int width, int height, Uint8List idat) {
 /// `fcTL` before its `IDAT`) and which has no other, is one frame, the
 /// image [decodePng] reads. Where the default image is no frame, it is
 /// left out and the animation is the `fdAT` frames. A frame outside the
-/// canvas, or whose data does not decode, is a [FormatException], as is
-/// everything [decodePng] refuses.
+/// canvas, or the first frame's data that does not decode, is a
+/// [FormatException], as is everything [decodePng] refuses; the data of a
+/// later frame is decoded as [AnimatedImage.bitmapAt] reaches it, and fails
+/// there.
+///
+/// The frames are composed one after the other as they are reached, and
+/// only a window of them is kept, [windowBytes] of them at most
+/// ([AnimatedImage.windowBytes]).
 ///
 /// ```dart
 /// final apng = decodeApng(File('spinner.png').readAsBytesSync());
-/// print('${apng.frames.length} frames, ${apng.duration} a play');
+/// print('${apng.frameCount} frames, ${apng.duration} a play');
 /// ```
-AnimatedImage decodeApng(Uint8List bytes) {
+AnimatedImage decodeApng(
+  Uint8List bytes, {
+  int windowBytes = AnimatedImage.defaultWindowBytes,
+}) {
   final file = _readChunks(bytes);
   final frames = file.frames;
   if (frames.isEmpty) {
@@ -281,66 +290,96 @@ AnimatedImage decodeApng(Uint8List bytes) {
       file,
       file.width,
       file.height,
-      file.idat.takeBytes(),
+      file.idat.toBytes(),
     );
     return AnimatedImage([ImageFrame(still, Duration.zero)]);
   }
   final width = file.width;
   final height = file.height;
-  if (frames.length > _maxFrames ||
-      width * height * frames.length > maxImagePixels) {
+  if (frames.length > _maxFrames) {
     throw FormatException(
       'APNG of ${frames.length} frames of $width × $height pixels',
     );
   }
-  final canvas = Bitmap(width, height);
-  Bitmap? before;
-  _PngFrame? last;
-  final out = <ImageFrame>[];
-  for (final (i, frame) in frames.indexed) {
+  for (final frame in frames) {
     if (frame.x + frame.width > width ||
         frame.y + frame.height > height ||
         frame.width == 0 ||
         frame.height == 0) {
       throw const FormatException('APNG frame outside its canvas');
     }
-    if (last != null) {
+  }
+  final composer = _ApngComposer(file);
+  final image = AnimatedImage.composed(
+    width: width,
+    height: height,
+    delays: [
+      for (final f in frames)
+        frameDelay(
+          f.delayNum * 1000000 ~/ (f.delayDen == 0 ? 100 : f.delayDen),
+        ),
+    ],
+    compose: composer.next,
+    rewind: composer.rewind,
+    loops: file.plays,
+    windowBytes: windowBytes,
+  );
+  // a first frame that does not decode is refused here
+  return image..bitmapAt(0);
+}
+
+/// Composes the frames of an APNG one after the other on one canvas.
+final class _ApngComposer {
+  _ApngComposer(this.file) : canvas = Bitmap(file.width, file.height);
+
+  final _PngFile file;
+  final Bitmap canvas;
+  var _at = 0;
+  _PngFrame? _last;
+  // the canvas before a frame that is to be restored to it
+  Uint8List? _before;
+
+  void rewind() {
+    canvas.pixels.fillRange(0, canvas.pixels.length, 0);
+    _at = 0;
+    _last = null;
+    _before = null;
+  }
+
+  /// The canvas with the next frame composed, as a bitmap of its own.
+  Bitmap next() {
+    final frame = file.frames[_at];
+    final pixels = _decodeFrame(
+      file,
+      frame.width,
+      frame.height,
+      frame.data.toBytes(),
+    );
+    if (_last case final last?) {
       // the first frame's "previous" is the background
       switch (last.dispose) {
         case 1:
           _clear(canvas, last);
         case 2:
-          if (before == null) {
-            _clear(canvas, last);
+          if (_before case final before?) {
+            canvas.pixels.setAll(0, before);
           } else {
-            canvas.pixels.setAll(0, before.pixels);
+            _clear(canvas, last);
           }
       }
     }
-    before = frame.dispose == 2 && i > 0
-        ? Bitmap.fromRgba(
-            width,
-            height,
-            Uint8List.fromList(canvas.pixels),
-          )
+    _before = frame.dispose == 2 && _at > 0
+        ? Uint8List.fromList(canvas.pixels)
         : null;
-    final pixels = _decodeFrame(
-      file,
-      frame.width,
-      frame.height,
-      frame.data.takeBytes(),
-    );
     _blend(canvas, pixels, frame);
-    last = frame;
-    final den = frame.delayDen == 0 ? 100 : frame.delayDen;
-    out.add(
-      ImageFrame(
-        Bitmap.fromRgba(width, height, Uint8List.fromList(canvas.pixels)),
-        frameDelay(frame.delayNum * 1000000 ~/ den),
-      ),
+    _last = frame;
+    _at++;
+    return Bitmap.fromRgba(
+      canvas.width,
+      canvas.height,
+      Uint8List.fromList(canvas.pixels),
     );
   }
-  return AnimatedImage(out, loops: file.plays);
 }
 
 /// The most frames an animation may have.
