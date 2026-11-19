@@ -226,6 +226,11 @@ Changed:
 
 Fixed:
 
+- `tailFile` (and `followFile`) on a name whose file is replaced across
+  every open of a look tells the identity read before the open, not after:
+  the first bytes of the later file were never delivered (nothing at all
+  where the sizes were equal); the next look now finds the change and
+  starts over.
 - `State.setState` asserts, in a debug run, on a callback that returns a
   `Future` (an `async` closure), whose changes after the first await had
   no rebuild after them.
