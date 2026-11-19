@@ -618,8 +618,18 @@ final class Presenter {
   final _kittySent = Set<TerminalImage>.identity();
 
   /// kitty: the images the terminal keeps that no placement shows, while
-  /// their [TerminalImage.keep] is kept: shown again, placed, not sent.
-  final _kittyKept = Set<TerminalImage>.identity();
+  /// their [TerminalImage.keep] is kept: shown again, placed, not sent. A
+  /// list, which a frame walks by index without an iterator.
+  final _kittyKept = <TerminalImage>[];
+
+  /// What [_presentImages] fills each frame, kept so that a frame with
+  /// images allocates none of them: the placements shown next (it and
+  /// [_shown] in turn), those to draw, whether each can be, and each's
+  /// kitty placement id.
+  var _shownNext = <_Shown>[];
+  final _draw = <ImagePlacement>[];
+  final _can = <bool>[];
+  final _placements = <int>[];
 
   var _lastImageId = 0;
   var _lastPlacementId = 0;
@@ -1559,12 +1569,20 @@ final class Presenter {
         ..kept = false
         ..moved = s.moved || lost;
     }
-    final next = <_Shown>[];
-    final draw = <ImagePlacement>[];
-    for (final p in want) {
-      final same = _restyled(back, p)
-          ? -1
-          : shown.indexWhere((s) => !s.kept && !s.moved && s.at.sameAs(p));
+    final next = _shownNext..clear();
+    final draw = _draw..clear();
+    for (var w = 0; w < want.length; w++) {
+      final p = want[w];
+      var same = -1;
+      if (!_restyled(back, p)) {
+        for (var i = 0; i < shown.length; i++) {
+          final s = shown[i];
+          if (!s.kept && !s.moved && s.at.sameAs(p)) {
+            same = i;
+            break;
+          }
+        }
+      }
       if (same >= 0) {
         next.add(shown[same]..kept = true);
       } else {
@@ -1574,8 +1592,11 @@ final class Presenter {
     final graphics = caps.graphics;
     final multiplexer = caps.graphicsMultiplexer;
     final kitty = graphics == GraphicsProtocol.kitty;
-    final can = [
-      for (final p in draw)
+    final can = _can..clear();
+    final placements = _placements..clear();
+    for (var k = 0; k < draw.length; k++) {
+      final p = draw[k];
+      can.add(
         p.image.protocol == graphics &&
             switch (graphics) {
               GraphicsProtocol.none => false,
@@ -1585,20 +1606,23 @@ final class Presenter {
                         p.image.pixelHeight >= p.rows),
               GraphicsProtocol.sixel || GraphicsProtocol.iterm2 => p.whole,
             },
-    ];
+      );
+      placements.add(0);
+    }
     // kitty: a placement of an image that moved is placed again
-    final placements = List<int>.filled(draw.length, 0);
     if (kitty) {
       for (var k = 0; k < draw.length; k++) {
+        if (!can[k]) {
+          continue;
+        }
         final image = draw[k].image;
-        final i = can[k]
-            ? shown.indexWhere(
-                (s) => !s.kept && s.drawn && identical(s.at.image, image),
-              )
-            : -1;
-        if (i >= 0) {
-          shown[i].kept = true;
-          placements[k] = shown[i].placement;
+        for (var i = 0; i < shown.length; i++) {
+          final s = shown[i];
+          if (!s.kept && s.drawn && identical(s.at.image, image)) {
+            s.kept = true;
+            placements[k] = s.placement;
+            break;
+          }
         }
       }
     }
@@ -1615,7 +1639,7 @@ final class Presenter {
             placement = placements[k] == 0 ? ++_lastPlacementId : placements[k];
             final id = _kittyIds[image] ??= _newImageId();
             final transmit = _kittySent.add(image);
-            if (image.keep != null) {
+            if (image.keep != null && _kittyKept.isNotEmpty) {
               _kittyKept.remove(image); // shown: no longer kept unshown
             }
             kittyPlace(
@@ -1685,6 +1709,7 @@ final class Presenter {
         _deleteLetGo(next);
       }
     }
+    _shownNext = shown;
     _shown = next;
     if (kitty && caps.kittyAnimation) {
       _playAnimations(next);
@@ -1698,23 +1723,18 @@ final class Presenter {
   /// image or the new over its cells, never neither: a GIF drawn frame by
   /// frame would flicker.
   void _deleteGone(List<_Shown> shown, List<_Shown> next) {
-    bool used(TerminalImage image) {
-      for (final n in next) {
-        if (n.drawn && identical(n.at.image, image)) {
-          return true;
-        }
-      }
-      return false;
-    }
-
     final multiplexer = caps.graphicsMultiplexer;
-    for (final s in shown) {
+    for (var k = 0; k < shown.length; k++) {
+      final s = shown[k];
       final image = s.at.image;
+      if (s.kept || !s.drawn) {
+        continue;
+      }
       final id = _kittyIds[image];
-      if (s.kept || !s.drawn || id == null) {
+      if (id == null) {
         continue; // an id gone with another placement of the image
       }
-      if (used(image)) {
+      if (_shows(next, image)) {
         kittyDelete(
           out,
           id: id,
@@ -1729,7 +1749,9 @@ final class Presenter {
           placement: s.placement,
           multiplexer: multiplexer,
         );
-        _kittyKept.add(image);
+        if (!_kittyKept.contains(image)) {
+          _kittyKept.add(image);
+        }
       } else {
         kittyDelete(out, id: id, multiplexer: multiplexer);
         _kittyIds.remove(image);
@@ -1739,18 +1761,27 @@ final class Presenter {
     }
   }
 
+  /// Whether a placement of [shown] that is drawn shows [image].
+  static bool _shows(List<_Shown> shown, TerminalImage image) {
+    for (var i = 0; i < shown.length; i++) {
+      final s = shown[i];
+      if (s.drawn && identical(s.at.image, image)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// kitty: deletes the images kept unshown whose [ImageKeep] was let go
   /// of, unless [next] shows them.
   @pragma('vm:never-inline')
   void _deleteLetGo(List<_Shown> next) {
-    final gone = <TerminalImage>[
-      for (final image in _kittyKept)
-        if (!(image.keep?.kept ?? false) &&
-            !next.any((n) => n.drawn && identical(n.at.image, image)))
-          image,
-    ];
-    for (final image in gone) {
-      _kittyKept.remove(image);
+    for (var i = _kittyKept.length - 1; i >= 0; i--) {
+      final image = _kittyKept[i];
+      if ((image.keep?.kept ?? false) || _shows(next, image)) {
+        continue;
+      }
+      _kittyKept.removeAt(i);
       if (_kittyIds.remove(image) case final id?) {
         kittyDelete(out, id: id, multiplexer: caps.graphicsMultiplexer);
         _kittySent.remove(image);
@@ -1813,6 +1844,17 @@ final class Presenter {
     return false;
   }
 
+  /// Whether cell [i] has a blank of the look of [bs]'s already, in the
+  /// front buffer ([fc], [fs]): under an image, or erased by a full frame.
+  bool _blankThere(
+    Uint32List fc,
+    Uint32List fs,
+    Uint32List bs,
+    int i,
+  ) =>
+      (fc[i] == _kUnder || fc[i] == kBlank) &&
+      _blankOf(fs[i]) == _blankOf(bs[i]);
+
   /// Erases the cells [p] shows, in their styles in [back]: all of them
   /// with [all], otherwise those the front buffer doesn't have as blanks of
   /// the same look already; the front buffer then has them as blanks under
@@ -1822,17 +1864,11 @@ final class Presenter {
     final bs = back.styles;
     final fc = _fc;
     final fs = _fs;
-    // a blank of the same look is there already (under an image, or
-    // erased by a full frame)
-    bool under(int i) =>
-        !all &&
-        (fc[i] == _kUnder || fc[i] == kBlank) &&
-        _blankOf(fs[i]) == _blankOf(bs[i]);
     for (var y = p.top; y < p.bottom; y++) {
       final row = y * w;
       var x = p.left;
       while (x < p.right) {
-        if (under(row + x)) {
+        if (!all && _blankThere(fc, fs, bs, row + x)) {
           fc[row + x] = _kUnder; // a row shift must not move it
           fs[row + x] = bs[row + x];
           x++;
@@ -1842,7 +1878,7 @@ final class Presenter {
         final blank = _blankOf(s);
         var end = x + 1;
         while (end < p.right &&
-            !under(row + end) &&
+            !(!all && _blankThere(fc, fs, bs, row + end)) &&
             _blankOf(bs[row + end]) == blank) {
           end++;
         }

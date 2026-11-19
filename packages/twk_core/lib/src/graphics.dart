@@ -302,6 +302,10 @@ void kittyPlace(
   required bool transmit,
   Multiplexer multiplexer = Multiplexer.none,
 }) {
+  if (!transmit && multiplexer == Multiplexer.none) {
+    _kittyPlaceDirect(out, p, id: id, placement: placement);
+    return;
+  }
   final sb = StringBuffer(transmit ? 'a=T,f=100,t=d,' : 'a=p,')
     ..write('i=$id,p=$placement,c=${p.right - p.left},r=${p.bottom - p.top}');
   if (!p.whole) {
@@ -319,6 +323,43 @@ void kittyPlace(
     return;
   }
   _kittyData(out, '$sb', p.image._base64, multiplexer);
+}
+
+/// [kittyPlace] of an image the terminal has, outside a multiplexer: the
+/// command written as it goes, no string made for it (a placement each
+/// frame of an animation drawn one frame at a time).
+void _kittyPlaceDirect(
+  ByteSink out,
+  ImagePlacement p, {
+  required int id,
+  required int placement,
+}) {
+  out
+    ..ascii('\x1b_Ga=p,i=')
+    ..decimal(id)
+    ..ascii(',p=')
+    ..decimal(placement)
+    ..ascii(',c=')
+    ..decimal(p.right - p.left)
+    ..ascii(',r=')
+    ..decimal(p.bottom - p.top);
+  if (!p.whole) {
+    final image = p.image;
+    final x0 = image.pixelWidth * (p.left - p.x) ~/ p.cols;
+    final x1 = image.pixelWidth * (p.right - p.x) ~/ p.cols;
+    final y0 = image.pixelHeight * (p.top - p.y) ~/ p.rows;
+    final y1 = image.pixelHeight * (p.bottom - p.y) ~/ p.rows;
+    out
+      ..ascii(',x=')
+      ..decimal(x0)
+      ..ascii(',y=')
+      ..decimal(y0)
+      ..ascii(',w=')
+      ..decimal(x1 - x0)
+      ..ascii(',h=')
+      ..decimal(y1 - y0);
+  }
+  out.ascii(',C=1,q=2\x1b\\');
 }
 
 /// kitty command [keys] with [data] (base64) in chunks of at most 4096
@@ -417,13 +458,31 @@ void kittyDelete(
   required int id,
   int placement = 0,
   Multiplexer multiplexer = Multiplexer.none,
-}) => _put(
-  out,
-  placement == 0
-      ? '\x1b_Ga=d,d=I,i=$id,q=2\x1b\\'
-      : '\x1b_Ga=d,d=i,i=$id,p=$placement,q=2\x1b\\',
-  multiplexer,
-);
+}) {
+  if (multiplexer == Multiplexer.none) {
+    // written as it goes, no string made for it
+    if (placement == 0) {
+      out
+        ..ascii('\x1b_Ga=d,d=I,i=')
+        ..decimal(id);
+    } else {
+      out
+        ..ascii('\x1b_Ga=d,d=i,i=')
+        ..decimal(id)
+        ..ascii(',p=')
+        ..decimal(placement);
+    }
+    out.ascii(',q=2\x1b\\');
+    return;
+  }
+  _put(
+    out,
+    placement == 0
+        ? '\x1b_Ga=d,d=I,i=$id,q=2\x1b\\'
+        : '\x1b_Ga=d,d=i,i=$id,p=$placement,q=2\x1b\\',
+    multiplexer,
+  );
+}
 
 /// The bytes that draw the sixel image of [p] at the cursor and put the
 /// cursor back (DECSC, DECRC), with the cursor left to the right of the
