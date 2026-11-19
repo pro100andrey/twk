@@ -46,6 +46,8 @@ Added:
 
 Fixed:
 
+- `Image.forceBlocks` turned on lets go of the frames kept on a kitty terminal
+  and of the animation it plays, as another source, fit or cell size does.
 - `decodeGif` keeps the frames before the cut only for a file cut short, as
   its documentation says: a later frame of invalid data throws, it was dropped.
 - A `MarkdownView` table answers its height to a parent that asks for

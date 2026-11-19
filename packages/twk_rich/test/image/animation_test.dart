@@ -187,6 +187,22 @@ void main() {
       expect(t.vt.kittyImages, isEmpty);
     });
 
+    testTwk('kitty without its animation: the kept frames go when the image '
+        'turns to blocks (forceBlocks)', (t) async {
+      final bytes = twoFrames(loop: 0);
+      Widget app({required bool blocks}) =>
+          topLeft(Image.memory(bytes, forceBlocks: blocks));
+      await t.pumpWidget(
+        app(blocks: false),
+        graphics: GraphicsProtocol.kitty,
+        duration: Duration.zero,
+      );
+      await t.pump(ms100);
+      expect(t.vt.kittyImages.keys, {1, 2});
+      await t.pumpWidget(app(blocks: true), duration: ms100);
+      expect(t.vt.kittyImages, isEmpty);
+    });
+
     testTwk("kitty that plays kitty's animations: the first frame at once, "
         'the others made in the next frame and sent once, the terminal '
         'plays them, the app then asks for no frames', (t) async {

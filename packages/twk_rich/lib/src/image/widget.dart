@@ -381,6 +381,8 @@ final class RenderImage extends RenderObject {
   set forceBlocks(bool b) {
     if (b != _forceBlocks) {
       _forceBlocks = b;
+      _letGo();
+      _played = null;
       markNeedsPaint();
     }
   }
