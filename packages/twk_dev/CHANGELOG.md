@@ -12,6 +12,14 @@ Changed:
 
 Fixed:
 
+- `twk agents`: a link at the manifest's path (`.twk-agents.json`) is the
+  project's, as a pack file's is, and what it points at is not written; a file
+  where a directory of the skill belongs, or a directory at the manifest's
+  path, is refused up front instead of failing partway through, leaving a
+  part of the skill written.
+
+Fixed:
+
 - `twk mcp` stops the app it runs when its input ends (it was left running).
 
 Fixed:

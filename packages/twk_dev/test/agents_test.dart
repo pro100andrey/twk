@@ -211,6 +211,47 @@ void main() {
       },
     );
 
+    test("a link at the manifest's path is the project's: not written, "
+        'nor what it points at', () async {
+      await agents();
+      final outside = File(p.join(root.path, 'outside.json'))
+        ..writeAsStringSync('mine\n');
+      final path = p.join(project, dirs.first, agentsManifest);
+      File(path).deleteSync();
+      Link(path).createSync(outside.path);
+      final result = await agents();
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      expect(outside.readAsStringSync(), 'mine\n');
+      expect(FileSystemEntity.isLinkSync(path), isTrue);
+      // a dangling one the same
+      File(outside.path).deleteSync();
+      final again = await agents();
+      expect(again.exitCode, 0, reason: '${again.stderr}');
+      expect(File(outside.path).existsSync(), isFalse);
+    });
+
+    test('a file where a directory of the pack belongs, or a directory at the '
+        "manifest's path, is refused before anything is written", () async {
+      final inside = skillPaths().firstWhere((n) => n.contains('/'));
+      final part = inside.split('/').first;
+      Directory(p.join(project, dirs.last)).createSync(recursive: true);
+      File(p.join(project, dirs.last, part)).writeAsStringSync('mine\n');
+      var before = snapshot(project);
+      var result = await agents();
+      expect(result.exitCode, 1);
+      expect(result.stderr, contains('$part is not a directory'));
+      expectSame(snapshot(project), before);
+
+      File(p.join(project, dirs.last, part)).deleteSync();
+      Directory(p.join(project, dirs.last, agentsManifest)).createSync();
+      File(p.join(project, dirs.last, 'x')).writeAsStringSync('x');
+      before = snapshot(project);
+      result = await agents();
+      expect(result.exitCode, 1);
+      expect(result.stderr, contains('$agentsManifest is a directory'));
+      expectSame(snapshot(project), before);
+    });
+
     test('is written with the skill, listing each file of the pack with its '
         'hash, and is no file of the pack', () async {
       await agents();

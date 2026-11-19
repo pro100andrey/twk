@@ -241,11 +241,14 @@ final class AgentsException implements Exception {
 /// as does one that differs from the pack and that no manifest lists:
 /// nothing says a run wrote it. Throws
 /// an [AgentsException] where `AGENTS.md` cannot be merged into, a skill's
-/// path is a file or a file's path in it a directory, and so nothing is
-/// changed. A link at a file's path, or on the way to it inside the skill's
-/// directory, is the project's: it stays as [AgentsAction.edited], and what
-/// it points at is not written. The directory itself may be a link, one skill
-/// shared by two directories: what is in it is written as in any other.
+/// path is a file or a file's path in it a directory, a directory on the way
+/// to a file of it is a file, or the manifest's path is a directory, and so
+/// nothing is changed. A link at the manifest's path is left, and listed in
+/// [AgentsPlan.edited]. A link at a file's path, or on the way to it inside
+/// the skill's directory, is the project's: it stays as
+/// [AgentsAction.edited], and what it points at is not written. The directory
+/// itself may be a link, one skill shared by two directories: what is in it is
+/// written as in any other.
 AgentsPlan agentsPlan(
   String project, {
   Set<AgentsFile> files = const {...AgentsFile.values},
@@ -271,6 +274,14 @@ AgentsPlan agentsPlan(
       throw AgentsException('${target.path} is not a directory');
     }
     final manifest = File(p.join(dir, agentsManifest));
+    final manifestType = FileSystemEntity.typeSync(
+      manifest.path,
+      followLinks: false,
+    );
+    if (manifestType == FileSystemEntityType.directory) {
+      throw AgentsException('${target.path}/$agentsManifest is a directory');
+    }
+    final manifestLinked = manifestType == FileSystemEntityType.link;
     final listed = _readManifest(manifest);
     final changedByProject = <String>{};
     for (final MapEntry(key: name, value: bytes) in skill.entries) {
@@ -280,6 +291,22 @@ AgentsPlan agentsPlan(
       if (type == FileSystemEntityType.directory) {
         // refused here, before apply has changed anything
         throw AgentsException('$path is a directory');
+      }
+      // a file where a directory of the path belongs; a link is the project's
+      final parts = name.split('/');
+      for (var i = 1; i < parts.length; i++) {
+        final kind = FileSystemEntity.typeSync(
+          p.joinAll([dir, ...parts.take(i)]),
+          followLinks: false,
+        );
+        if (kind == FileSystemEntityType.link) {
+          break;
+        }
+        if (kind == FileSystemEntityType.file) {
+          throw AgentsException(
+            '${target.path}/${parts.take(i).join('/')} is not a directory',
+          );
+        }
       }
       final link = _throughLink(dir, name);
       final action = switch (file.existsSync()) {
@@ -354,10 +381,15 @@ AgentsPlan agentsPlan(
                   (c.action != AgentsAction.left &&
                       c.action != AgentsAction.edited)),
         );
+    if (manifestLinked) {
+      edited.add('${target.path}/$agentsManifest');
+    }
     manifests.add(
       AgentsChange(
         '${target.path}/$agentsManifest',
         switch (manifest.existsSync()) {
+          // a link at its path is the project's, as a pack file's is
+          _ when manifestLinked => AgentsAction.left,
           // also where nothing else is written: from here on the project's
           // edits are told from what a run wrote
           false => AgentsAction.wrote,
