@@ -559,11 +559,10 @@ final class AppBinding implements FrameClock {
 
   // routes the mouse, and counts what it is to report
   late final _mouse = MouseTracker(twkApp.owner.hitTest, _mouseFailed)
-    ..cellPixels = () {
-      final caps = twkApp.terminal.info.caps;
-      return caps.cellPixelWidth > 0 && caps.cellPixelHeight > 0
-          ? (caps.cellPixelWidth, caps.cellPixelHeight)
-          : null;
+    ..cellPixels = () => switch (twkApp.terminal) {
+      // the live size: a font change moves it, the probe's does not
+      final MouseTrackingBackend terminal => terminal.cellPixels,
+      _ => null,
     };
 
   late final _owner = BuildOwner(

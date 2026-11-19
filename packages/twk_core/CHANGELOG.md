@@ -248,6 +248,9 @@ Added:
   partly or wholly off the surface stays legal.
 
 Fixed:
+- `MouseTrackingBackend.cellPixels`: a cell's size in pixels as the mouse's
+  pixel reports are divided by it, which follows a font change; a backend
+  that implements the interface (a wrapper of a `Terminal`) passes it on.
 
 - Two re-asks for a cell's size before an answer (a font zoomed twice) no
   longer let the second round's replies through as `UnknownSequence`, nor

@@ -268,8 +268,9 @@ void main() {
         await clock.flushMicrotasks();
         link.resize(31, 6);
         await clock.flushMicrotasks();
-        link.type('\x1b[6;40;20t\x1b[4;120;300t');
-        link.type('\x1b[6;40;20t\x1b[4;120;300t');
+        link
+          ..type('\x1b[6;40;20t\x1b[4;120;300t')
+          ..type('\x1b[6;40;20t\x1b[4;120;300t');
         await clock.flushMicrotasks();
         link.type('\x1b[<0;41;81M');
         await clock.flushMicrotasks();
@@ -278,6 +279,19 @@ void main() {
           const ResizeEvent(31, 6),
           const MouseEvent(MouseKind.down, 2, 2, offsetX: 0, offsetY: 0),
         ]);
+        await clock.runUntil(term.close);
+      });
+
+      test('cellPixels is the live size, which a re-ask changes and the '
+          "probe's caps do not", () async {
+        final (term, link, _) = await start('$_on$_cellSize');
+        expect(term.cellPixels, (10, 20));
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        link.type('\x1b[6;40;20t\x1b[4;120;300t');
+        await clock.flushMicrotasks();
+        expect(term.cellPixels, (20, 40));
+        expect(term.info.caps.cellPixelWidth, 10);
         await clock.runUntil(term.close);
       });
 

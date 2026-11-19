@@ -282,6 +282,12 @@ final class HeadlessTerminal
   @override
   MouseTracking get mouseTracking => _mouseTracking;
 
+  @override
+  (int, int)? get cellPixels =>
+      _parser.cellPixelWidth > 0 && _parser.cellPixelHeight > 0
+      ? (_parser.cellPixelWidth, _parser.cellPixelHeight)
+      : null;
+
   /// The modes that switch to [tracking] go to [frames], as a [Terminal]
   /// writes them; also while suspended, when nothing else is written.
   @override

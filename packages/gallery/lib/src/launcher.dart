@@ -127,6 +127,9 @@ final class Typing
       terminal.mouseTracking = tracking;
 
   @override
+  (int, int)? get cellPixels => terminal.cellPixels;
+
+  @override
   void setTerminalState(
     Object key,
     String sequence,

@@ -869,6 +869,12 @@ abstract interface class MouseTrackingBackend implements TerminalBackend {
   /// [TerminalOptions.normalScreenMouse] (see [TerminalOptions.mouse]),
   /// and once closed.
   set mouseTracking(MouseTracking tracking);
+
+  /// A cell's size in pixels, (width, height), as the mouse's pixel reports
+  /// ([TerminalInfo.pixelMouse]) are divided by it, or null where it is not
+  /// known. Follows what the terminal tells after a font change, which
+  /// [TerminalCaps.cellPixelWidth] of [TerminalInfo.caps] does not.
+  (int, int)? get cellPixels;
 }
 
 /// A [TerminalBackend] that sets the title of the terminal's window or tab
@@ -1850,6 +1856,12 @@ final class Terminal
   MouseTracking get mouseTracking => _mouseTracking;
 
   @override
+  (int, int)? get cellPixels =>
+      _parser.cellPixelWidth > 0 && _parser.cellPixelHeight > 0
+      ? (_parser.cellPixelWidth, _parser.cellPixelHeight)
+      : null;
+
+  @override
   set mouseTracking(MouseTracking tracking) {
     final from = _mouseTracking;
     if (_closed || !_mouseScreen || info.plain || tracking == from) {
@@ -2221,8 +2233,8 @@ final class Terminal
   /// come: they are taken here, not delivered as input.
   var _sizeReplies = 0;
 
-  /// Whether CSI 16 t answered a re-ask not yet fully answered: the text area then is not
-  /// needed.
+  /// Whether CSI 16 t answered a re-ask not yet fully answered: the text
+  /// area then is not needed.
   var _cellAnswered = false;
 
   /// Takes [e] if it is an answer to the re-ask for a cell's size.

@@ -10,6 +10,9 @@ Added:
   `{version, records: [LogRecord.toJson]}`. Off, nothing is kept or posted.
 
 Changed:
+- `PointerEvent.subX` and `subY` use the terminal's live cell size
+  (`MouseTrackingBackend.cellPixels`), not the probe's: after a font zoom the
+  position inside a cell was wrong.
 
 - `PointerEvent` keeps its button and modifiers in one field and its
   sub-cell position in one, null for whole cells: an event is 64 bytes as
