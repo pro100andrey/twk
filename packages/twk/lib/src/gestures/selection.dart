@@ -360,8 +360,8 @@ final class _RenderExcludeSelection extends RenderObject
   }
 }
 
-/// A place in what a [SelectionArea] selects in: [object], the
-/// `RenderParagraph` of a [Text] or a [Selectable], and the [offset] in its
+/// A place in what a [SelectionArea] selects in: `object`, the
+/// `RenderParagraph` of a [Text] or a [Selectable], and `offset` in its
 /// text, in UTF-16 code units.
 typedef SelectionPoint = ({RenderObject object, int offset});
 
