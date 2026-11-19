@@ -11,6 +11,14 @@ Breaking:
 
 Changed:
 
+- A short text laid out is cheaper (a line of 20 ASCII characters, s1):
+  edited 227 -> 130 ns, laid out new 244 -> 190 ns. An edit of 64 code
+  units or fewer splits the text again whole rather than finding where it
+  changed (unless the painter tracks the rows an edit changes); where
+  lines may break by word is found when a line does not fit, or for the
+  intrinsic widths, not on every split; the ellipsis is measured again
+  only for another segmenter or ellipsis; a run of printable ASCII is
+  split in one loop, each code unit read once.
 - A repaint boundary (or the root) repaints the places of what was marked
   in it, each on its own, not one band of rows across its whole width that
   holds them all: a row of text changed beside an unchanged panel no longer

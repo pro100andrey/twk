@@ -928,6 +928,12 @@ final class TextPainter {
   var _internTo = 0;
   var _ellipsisWidth = 1;
   GlyphRun? _ellipsisCache;
+  // what [_ellipsisWidth] was measured for: the segmenter, its mode and
+  // ambiguous width, the ellipsis
+  TextSegmenter? _ellipsisSeg;
+  TextMode? _ellipsisMode;
+  var _ellipsisAmbiguous = 0;
+  String? _ellipsisOf;
 
   // whether the clusters are a head of the text only (see the class doc):
   // [_count] is how many are split, the totals are theirs, and the width
@@ -1079,14 +1085,45 @@ final class TextPainter {
         _split(seg, headW);
       }
     } else if (_textStale) {
-      _resplit(seg);
+      if (!tracksDamage && _shortText()) {
+        // a few clusters split again whole cost less than finding what
+        // changed in them; a painter that tracks the rows an edit changed
+        // finds them
+        _split(seg, headW);
+      } else {
+        _resplit(seg);
+      }
     }
-    if (_wrap == TextWrap.word && !_wordBreaks) {
-      _findWordBreaks();
-    }
+    // where lines may break by word: found when a line does not fit, or
+    // for the intrinsic widths (_wantWordBreaks)
     if (_bidiStale) {
       _findBidi();
     }
+  }
+
+  /// Finds where lines may break by word ([_findWordBreaks]) if they do and
+  /// that is not known yet: a line that fits, the most common, never asks.
+  void _wantWordBreaks() {
+    if (_wrap == TextWrap.word && !_wordBreaks) {
+      _findWordBreaks();
+    }
+  }
+
+  /// The longest text, in code units, that an edit splits again whole
+  /// ([_split]) rather than where it changed ([_resplit]).
+  static const _shortUnits = 64;
+
+  /// Whether the spans hold [_shortUnits] code units or fewer.
+  bool _shortText() {
+    final spans = _spans;
+    var n = 0;
+    for (var k = 0; k < spans.length; k++) {
+      n += spans[k].$1.length;
+      if (n > _shortUnits) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// In visual order, resolves the levels of the text when it has a
@@ -1680,10 +1717,20 @@ final class TextPainter {
     _internedIn = null;
     _internFrom = 0;
     _internTo = 0;
-    final ellipsisWidth = seg.width(_ellipsis);
-    if (ellipsisWidth != _ellipsisWidth) {
-      _ellipsisCache = null;
-      _ellipsisWidth = ellipsisWidth;
+    // the ellipsis measured again only by another segmenter or ellipsis
+    if (!identical(seg, _ellipsisSeg) ||
+        seg.mode != _ellipsisMode ||
+        seg.ambiguousWidth != _ellipsisAmbiguous ||
+        !identical(_ellipsis, _ellipsisOf)) {
+      _ellipsisSeg = seg;
+      _ellipsisMode = seg.mode;
+      _ellipsisAmbiguous = seg.ambiguousWidth;
+      _ellipsisOf = _ellipsis;
+      final ellipsisWidth = seg.width(_ellipsis);
+      if (ellipsisWidth != _ellipsisWidth) {
+        _ellipsisCache = null;
+        _ellipsisWidth = ellipsisWidth;
+      }
     }
     var units = 0;
     for (var k = 0; k < _spans.length; k++) {
@@ -1959,6 +2006,35 @@ final class TextPainter {
           }
         }
         final c0 = s.codeUnitAt(i);
+        if (!edit && graphemes && c0 >= 0x20 && c0 < 0x7F) {
+          // a run of printable ASCII, each a cluster of one cell where no
+          // mark follows it: each code unit read once, the next carried
+          var c = c0;
+          final len = s.length;
+          while (true) {
+            final next = i + 1 < len ? s.codeUnitAt(i + 1) : 0;
+            if (next >= 0x300) {
+              break;
+            }
+            i++;
+            final kind = _kindOf(c, 1);
+            glyphs[n] = c;
+            kinds[n] = kind | (1 << _advShift);
+            n++;
+            cells++;
+            if ((kind & _space) == 0) {
+              drawn = n - 1;
+              drawnCells = cells;
+            }
+            if (i >= end || next < 0x20 || next >= 0x7F) {
+              break;
+            }
+            c = next;
+          }
+          if (i > start) {
+            continue;
+          }
+        }
         if (graphemes &&
             c0 >= 0x20 &&
             c0 < 0x7F &&
@@ -2893,6 +2969,9 @@ final class TextPainter {
         return n;
       }
     }
+    if (word && !_wordBreaks) {
+      _findWordBreaks();
+    }
     // [from, j) is w columns; [from, end) is drawn, endW columns; a break
     // by word ends the line at brkEnd (brkW columns), the next starts at
     // brk
@@ -3442,6 +3521,7 @@ final class TextPainter {
   int minIntrinsicWidth(TextSegmenter segmenter) {
     _segmenter = segmenter;
     _shape();
+    _wantWordBreaks();
     if (_wrap == TextWrap.none) {
       return _widestLine();
     }
