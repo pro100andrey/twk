@@ -200,7 +200,7 @@ bool editingKey(
       c.undo();
     case KeyCode.char
         when (mods == Mod.ctrl && key == 'y') ||
-            (mods == Mod.ctrl | Mod.shift && key == 'z'):
+            (mods == Mod.ctrl | Mod.shift && key.toLowerCase() == 'z'):
       if (!c.canRedo) {
         return false;
       }

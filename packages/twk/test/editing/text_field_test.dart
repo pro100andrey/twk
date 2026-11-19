@@ -789,6 +789,21 @@ void main() {
     expect(c.text, 'ab');
   });
 
+  testTwk('Ctrl+Shift+Z redoes as the capital Z a terminal may send', (
+    t,
+  ) async {
+    final c = TextEditingController();
+    addTearDown(c.dispose);
+    await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
+    await t.type('ab');
+    await t.press('ctrl+z');
+    expect(c.text, '');
+    await t.act(
+      () => t.binding.pressKey(KeyCombo.parse('ctrl+shift+z')),
+    );
+    expect(c.text, 'ab');
+  });
+
   testTwk('the keys it does not take go up to the nodes above it', (t) async {
     final c = TextEditingController(text: 'abc');
     addTearDown(c.dispose);
