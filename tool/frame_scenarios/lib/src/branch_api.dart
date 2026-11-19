@@ -5,10 +5,37 @@
 /// build.
 library;
 
+import 'dart:typed_data';
+
 import 'package:twk_core/twk_core.dart';
 
 /// Whether [RenderParagraph] takes the `ellipsis` it cuts with.
 const hasParagraphEllipsis = true;
+
+/// Whether the core plays a kitty animation on a terminal that does
+/// ([TerminalCaps.kittyAnimation], [ImageAnimation]).
+const hasKittyAnimation = true;
+
+/// A terminal of kitty's protocol that plays its animations.
+const kittyAnimationCaps = TerminalCaps(
+  graphics: GraphicsProtocol.kitty,
+  kittyAnimation: true,
+);
+
+/// A kitty image of [first] then [rest], shown for [delays] each.
+TerminalImage animatedKittyImage(
+  Uint8List first,
+  List<Uint8List> rest,
+  List<Duration> delays, {
+  required int pixelWidth,
+  required int pixelHeight,
+}) => TerminalImage(
+  GraphicsProtocol.kitty,
+  first,
+  pixelWidth: pixelWidth,
+  pixelHeight: pixelHeight,
+  animation: ImageAnimation(rest, delays),
+);
 
 /// Whether the scenarios of a [RenderParagraph] that keeps its paint
 /// (`keepsPaint`) are listed. Off: in the benchmark's executable they shift

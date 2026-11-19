@@ -16,20 +16,24 @@ export 'src/branch_api.dart' show cellStyleOf;
 /// style table, a glyph table, a surface of `width` × `height` cells, the
 /// canvas that paints it and the presenter that writes its changes.
 final class FrameRig {
-  /// A rig of `width` × `height` cells, the presenter's terminal of the
-  /// default capabilities; its text measured with ambiguous characters
-  /// `ambiguousWidth` columns wide (1 or 2).
-  FrameRig(int width, int height, {this.ambiguousWidth = 1})
-    : styles = StyleTable(),
-      glyphs = GlyphTable(),
-      surface = Surface(width, height) {
+  /// A rig of `width` × `height` cells, the presenter's terminal of
+  /// [caps], the default capabilities unless given; its text measured with
+  /// ambiguous characters `ambiguousWidth` columns wide (1 or 2).
+  FrameRig(
+    int width,
+    int height, {
+    this.ambiguousWidth = 1,
+    TerminalCaps caps = const TerminalCaps(),
+  }) : styles = StyleTable(),
+       glyphs = GlyphTable(),
+       surface = Surface(width, height) {
     canvas = Canvas(
       surface,
       styles,
       glyphs,
       segmenter: TextSegmenter(ambiguousWidth: ambiguousWidth),
     );
-    presenter = Presenter(width, height, styles, glyphs);
+    presenter = Presenter(width, height, styles, glyphs, caps: caps);
   }
 
   /// The columns the characters of ambiguous East Asian width take.
@@ -81,6 +85,7 @@ final class FrameScenario {
     this.write = true,
     this.ambiguousWidth = 1,
     this.steps = 2000,
+    this.caps = const TerminalCaps(),
   });
 
   /// Its name in a report: `wrap`, `list-scroll`.
@@ -108,9 +113,13 @@ final class FrameScenario {
   /// a full collection.
   final int steps;
 
+  /// What the terminal it is for can do: its [FrameRig]'s presenter and the
+  /// emulator that checks its frames are made with it (images).
+  final TerminalCaps caps;
+
   /// The rig of `width` × `height` cells this scenario runs on.
   FrameRig rig(int width, int height) =>
-      FrameRig(width, height, ambiguousWidth: ambiguousWidth);
+      FrameRig(width, height, ambiguousWidth: ambiguousWidth, caps: caps);
 }
 
 const _spinner = <String>['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧'];
@@ -519,7 +528,170 @@ final frameScenarios = <FrameScenario>[
       ambiguousWidth: 2,
     ),
   ],
+  if (hasKittyAnimation)
+    FrameScenario(
+      'img-kitty-anim',
+      'an animation of $_imageFrames frames kitty plays itself, sent and '
+          'painted before, on screen beside the spinner that changes',
+      (hs) {
+        final s = _Images(hs);
+        final image = animatedKittyImage(
+          s.frames(GraphicsProtocol.kitty).first.data,
+          [for (final f in s.frames(GraphicsProtocol.kitty).skip(1)) f.data],
+          List.filled(_imageFrames, const Duration(milliseconds: 80)),
+          pixelWidth: _imageCols * 10,
+          pixelHeight: _imageRows * 20,
+        );
+        s.render(image, 0);
+        // the image's widget paints it once: the terminal plays it
+        return s.spin;
+      },
+      caps: kittyAnimationCaps,
+    ),
+  FrameScenario(
+    'img-kitty',
+    'the next of $_imageFrames frames of an image of $_imageCols × '
+        "$_imageRows cells placed on kitty's protocol without its animation: "
+        'the old deleted, the new sent',
+    (hs) {
+      final s = _Images(hs);
+      final frames = s.frames(GraphicsProtocol.kitty);
+      s.render(frames.first, 0);
+      return (i) => s.render(frames[i % frames.length], i);
+    },
+    caps: const TerminalCaps(graphics: GraphicsProtocol.kitty),
+  ),
+  FrameScenario(
+    'img-sixel',
+    'the next of $_imageFrames frames of the image drawn in sixel',
+    (hs) {
+      final s = _Images(hs);
+      final frames = s.frames(GraphicsProtocol.sixel);
+      s.render(frames.first, 0);
+      return (i) => s.render(frames[i % frames.length], i);
+    },
+    caps: const TerminalCaps(graphics: GraphicsProtocol.sixel),
+  ),
+  FrameScenario(
+    'img-blocks',
+    'the next of $_imageFrames frames of the image drawn in half blocks: '
+        'its ${_imageCols * _imageRows} cells recolored',
+    (hs) {
+      final s = _Images(hs)..blocks(0);
+      return s.blocks;
+    },
+  ),
 ];
+
+/// The image of the image scenarios: [_imageFrames] frames of
+/// [_imageCols] × [_imageRows] cells of 10 × 20 pixels.
+const _imageFrames = 12;
+const _imageCols = 40;
+const _imageRows = 12;
+
+/// The bytes of a kitty frame: about what a PNG of a GIF's frame of
+/// 400 × 240 pixels takes. The emulator reads base64 and not the image.
+const _kittyFrameBytes = 12000;
+
+/// The sixels of a frame, the rows of six pixels drawn in one color each.
+const int _sixelBands = _imageRows * 20 ~/ 6;
+
+/// An image's frames on a rig, beside a spinner in the top row: sent as
+/// kitty or sixel images, or drawn in half blocks.
+final class _Images {
+  _Images(this.hs)
+    : _pen = hs.styles.pen(
+        const Pen(fg: Color.rgb(200, 200, 200), bg: Color.rgb(16, 18, 24)),
+      ) {
+    hs.canvas.fill(0, 0, hs.surface.width, hs.surface.height, _pen);
+  }
+
+  final FrameRig hs;
+  final int _pen;
+
+  /// Where the image's top left cell is.
+  static const _x = 4;
+  static const _y = 3;
+
+  /// [_imageFrames] images of [protocol], made once, each of other bytes.
+  List<TerminalImage> frames(GraphicsProtocol protocol) => [
+    for (var f = 0; f < _imageFrames; f++)
+      TerminalImage(
+        protocol,
+        protocol == GraphicsProtocol.sixel ? _sixel(f) : _bytes(f),
+        pixelWidth: _imageCols * 10,
+        pixelHeight: _imageRows * 20,
+      ),
+  ];
+
+  static Uint8List _bytes(int seed) => Uint8List.fromList([
+    for (var k = 0; k < _kittyFrameBytes; k++)
+      (k * 31 + seed * 7 + k ~/ 97) & 0xFF,
+  ]);
+
+  /// A sixel image of the frame's size, each band's sixels of two colors
+  /// and of no runs to compress, as a photo's are: about as many bytes as
+  /// a kitty frame.
+  static Uint8List _sixel(int seed) {
+    const w = _imageCols * 10;
+    final b = StringBuffer('0;1;0q"1;1;$w;${_sixelBands * 6}')
+      ..write('#1;2;${seed * 8 % 100};40;80#2;2;90;${seed * 5 % 100};20');
+    for (var band = 0; band < _sixelBands; band++) {
+      for (final color in const [1, 2]) {
+        b.write('#$color');
+        for (var x = 0; x < w; x++) {
+          final bits = (x * 7 + band * 13 + seed * 5) % 63 + 1;
+          b.writeCharCode(0x3F + (color == 1 ? bits : 63 - bits));
+        }
+        b.write(color == 1 ? r'$' : '-');
+      }
+    }
+    return Uint8List.fromList(b.toString().codeUnits);
+  }
+
+  /// Writes frame [i]'s spinner, the image as it was; the bytes written.
+  int spin(int i) {
+    hs.canvas.text(0, 0, _spin(i), _pen);
+    return hs.presenter.present(hs.surface);
+  }
+
+  /// Places [image] and writes frame [i]'s spinner; the bytes written.
+  int render(TerminalImage image, int i) {
+    hs.canvas
+      ..image(_x, _y, _imageCols, _imageRows, image)
+      ..text(0, 0, _spin(i), _pen);
+    return hs.presenter.present(hs.surface);
+  }
+
+  /// The pens of the half blocks: colors that move with the frame.
+  late final List<int> _blockPens = [
+    for (var c = 0; c < 64; c++)
+      hs.styles.pen(
+        Pen(
+          fg: Color.rgb(c * 4, 255 - c * 4, 128),
+          bg: Color.rgb(255 - c * 4, 64, c * 4),
+        ),
+      ),
+  ];
+
+  /// Frame [i] in half blocks, each cell's upper and lower pixel in
+  /// [_blockPens]; the bytes written.
+  int blocks(int i) {
+    final f = i % _imageFrames;
+    for (var y = 0; y < _imageRows; y++) {
+      for (var x = 0; x < _imageCols; x++) {
+        hs.canvas.text(
+          _x + x,
+          _y + y,
+          '▀',
+          _blockPens[(x + y * 3 + f * 5) & 63],
+        );
+      }
+    }
+    hs.canvas.text(0, 0, _spin(i), _pen);
+    return hs.presenter.present(hs.surface);
+  }
+}
 
 /// Throws [ScenarioBroken] unless line [line] (from 1) of the rig's
 /// surface holds [ellipsis], the cells of its glyphs in a row.

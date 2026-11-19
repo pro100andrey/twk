@@ -72,6 +72,10 @@
 //   hidden-tab                     what ticks, in a hidden tab: still
 //   log-follow                     a LogView following an appended file; the
 //                                  file I/O is counted, the µs mean nothing
+//   img-kitty-anim, img-kitty, img-sixel, img-blocks
+//                                  the frame benchmark's scenarios of an
+//                                  animated image (see the header of
+//                                  tool/bench.dart)
 import 'dart:io';
 
 import 'package:twk_alloc/app_scenarios.dart';

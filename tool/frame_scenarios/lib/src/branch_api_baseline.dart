@@ -4,6 +4,8 @@
 // ignore_for_file: avoid_dynamic_calls
 library;
 
+import 'dart:typed_data';
+
 import 'package:twk_core/twk_core.dart';
 
 /// The baseline's [RenderParagraph] has no `ellipsis`.
@@ -11,6 +13,21 @@ const hasParagraphEllipsis = false;
 
 /// The baseline's [RenderParagraph] does not keep its paint.
 const hasKeepsPaint = false;
+
+/// The baseline's core plays no kitty animation.
+const hasKittyAnimation = false;
+
+/// The default capabilities: not used, [hasKittyAnimation] being false.
+const kittyAnimationCaps = TerminalCaps();
+
+/// Not used, [hasKittyAnimation] being false.
+TerminalImage animatedKittyImage(
+  Uint8List first,
+  List<Uint8List> rest,
+  List<Duration> delays, {
+  required int pixelWidth,
+  required int pixelHeight,
+}) => throw UnsupportedError('the baseline plays no kitty animation');
 
 /// A [RenderParagraph] of [spans] cut off at [maxLines] with the core's own
 /// ellipsis; [ellipsis], [keepsPaint] and [autoKeepsPaint] are not used.
