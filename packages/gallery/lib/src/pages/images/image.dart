@@ -6,6 +6,7 @@ part of 'images.dart';
 const _pictures = {
   'lake': ('lake.jpg', 240, 160),
   'logo': ('logo.png', 128, 128),
+  'orbit': ('orbit.gif', 64, 64),
 };
 
 /// The alignments the page offers, by name.
@@ -21,8 +22,8 @@ const _alignments = <String, Alignment>{
 const _imagePicture = ChoiceOption<String>(
   'picture',
   'picture',
-  values: ['lake', 'logo'],
-  labels: ['lake.jpg', 'logo.png'],
+  values: ['lake', 'logo', 'orbit'],
+  labels: ['lake.jpg', 'logo.png', 'orbit.gif'],
 );
 
 /// The Image page's `fit` option.
@@ -39,10 +40,12 @@ const _imageAlignment = ChoiceOption<String>(
   values: ['center', 'topLeft', 'centerLeft', 'centerRight', 'bottomRight'],
 );
 
-/// The Image page's `mode` option.
+/// The Image page's `mode` option: in blocks of a mode, as the gallery is
+/// drawn by default (a protocol's pixels lie over the cells, the menus and
+/// hints too), or with the terminal's graphics protocol where it has one.
 const _imageMode = ChoiceOption<String>(
   'mode',
-  'blocks',
+  'drawn',
   values: [
     'detected',
     'half',
@@ -51,6 +54,7 @@ const _imageMode = ChoiceOption<String>(
     'octant',
     'braille',
     'ascii',
+    'protocol',
   ],
 );
 
@@ -79,9 +83,12 @@ final _image = GalleryPage(
   title: 'Image',
   about:
       'A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or APNG with '
-      'frames plays on the app’s clock. Where the terminal has a graphics '
-      'protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; '
-      'where it has none, or with forceBlocks, as here, it is drawn in '
+      'frames plays on the app’s clock, each frame drawn as it comes, and '
+      'kitty, which plays an animation itself, is sent all the frames once. '
+      'A TickerMode that is off stands it on the frame it shows. Where the '
+      'terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels '
+      'are placed over the cells (drawn: protocol); where it has none, or '
+      'with forceBlocks, it is drawn in '
       'characters: half blocks, quadrants, sextants (Unicode 13), octants '
       '(Unicode 16), braille or plain ASCII. Left to detected, the default, '
       'it is sextants where the terminal is known to draw them itself '
@@ -104,10 +111,11 @@ final _image = GalleryPage(
     height: o(_imageHeight).toInt(),
     fit: ImageFit.values.byName(o(_imageFit)),
     alignment: _alignments[o(_imageAlignment)]!,
-    blockMode: o(_imageMode) == 'detected'
-        ? null
-        : BlockMode.values.byName(o(_imageMode)),
-    forceBlocks: true,
+    blockMode: switch (o(_imageMode)) {
+      'detected' || 'protocol' => null,
+      final mode => BlockMode.values.byName(mode),
+    },
+    forceBlocks: o(_imageMode) != 'protocol',
   ),
   heightIn: (o, room) =>
       math.min(o(_imageHeight).toInt(), math.max(3, room.height)),
@@ -122,11 +130,14 @@ final _image = GalleryPage(
       if (o.nameOf(_imageFit) != 'contain') '  fit: .${o.nameOf(_imageFit)},',
       if (o.nameOf(_imageAlignment) != 'center')
         '  alignment: .${o.nameOf(_imageAlignment)},',
-      if (o.nameOf(_imageMode) != 'detected')
-        '  blockMode: .${o.nameOf(_imageMode)},',
-      "  // in blocks wherever it runs; without it the terminal's graphics",
-      '  // protocol where it has one: kitty, sixel or iTerm2',
-      '  forceBlocks: true,',
+      if (o.nameOf(_imageMode) case final mode
+          when mode != 'detected' && mode != 'protocol')
+        '  blockMode: .$mode,',
+      if (o.nameOf(_imageMode) != 'protocol') ...[
+        "  // in blocks wherever it runs; without it the terminal's graphics",
+        '  // protocol where it has one: kitty, sixel or iTerm2',
+        '  forceBlocks: true,',
+      ],
       ');',
     ].join('\n');
   },

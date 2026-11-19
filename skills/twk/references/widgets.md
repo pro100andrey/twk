@@ -243,7 +243,7 @@ Markdown, code, diffs, JSON, big text, QR codes and program output with its colo
 
 PNG, JPEG, GIF and APNG pictures, in the terminal’s graphics or in block characters. File: `widgets/images.md`.
 
-- Image (`twk_rich`): A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or APNG with frames plays on the app’s clock. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or with forceBlocks, as here, it is drawn in characters: half blocks, quadrants, sextants (Unicode 13), octants (Unicode 16), braille or plain ASCII. Left to detected, the default, it is sextants where the terminal is known to draw them itself (kitty, foot, Ghostty, WezTerm, Konsole, VTE and a few more) and half blocks elsewhere; TWK_IMAGE_BLOCKS names a mode for all images.
+- Image (`twk_rich`): A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or APNG with frames plays on the app’s clock, each frame drawn as it comes, and kitty, which plays an animation itself, is sent all the frames once. A TickerMode that is off stands it on the frame it shows. Where the terminal has a graphics protocol (kitty, sixel, iTerm2) its pixels are placed over the cells (drawn: protocol); where it has none, or with forceBlocks, it is drawn in characters: half blocks, quadrants, sextants (Unicode 13), octants (Unicode 16), braille or plain ASCII. Left to detected, the default, it is sextants where the terminal is known to draw them itself (kitty, foot, Ghostty, WezTerm, Konsole, VTE and a few more) and half blocks elsewhere; TWK_IMAGE_BLOCKS names a mode for all images.
 
 ## Terminal
 

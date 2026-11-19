@@ -215,6 +215,49 @@ void main() {
       await open(t, '#/images/image?tab=code');
       expect(screen(t), isNot(contains('blockMode')));
     });
+
+    testTwk('the orbit plays: its frames come in turn', (t) async {
+      // the colors of the cells: the half blocks are the same characters
+      List<int> colors() => [
+        for (var y = 0; y < screenSize.$2; y++)
+          for (var x = 0; x < screenSize.$1; x++) ...[
+            t.cell(x, y).fg,
+            t.cell(x, y).bg,
+          ],
+      ];
+      await open(t, '#/images/image?o=picture:orbit.gif');
+      final first = colors();
+      await t.pump(const Duration(milliseconds: 90));
+      expect(colors(), isNot(first));
+      expect(problems(t), isEmpty);
+    });
+
+    testTwk('drawn: protocol leaves forceBlocks out of the Code', (
+      t,
+    ) async {
+      await open(t, '#/images/image?o=mode:protocol&tab=code');
+      expect(screen(t), isNot(contains('forceBlocks')));
+      await open(t, '#/images/image?tab=code');
+      expect(screen(t), contains('forceBlocks: true,'));
+    });
+
+    testTwk('drawn: protocol on kitty, which plays the orbit itself', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        galleryApp(
+          route: GalleryRoute.parse(
+            '#/images/image?o=picture:orbit.gif;mode:protocol',
+          ),
+        ),
+        size: screenSize,
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+      );
+      await t.pump();
+      expect(t.vt.kittyFrames.values.single, 11);
+      expect(t.vt.kittyAnimations.values.single.playing, isTrue);
+    });
   });
 
   group('the TerminalView page: the scripted shell', () {
