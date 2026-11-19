@@ -36,7 +36,10 @@ Added:
   plays), which the presenter sends once with the image (`a=f`, `a=a`) to a
   terminal that plays it (`TerminalCaps.kittyAnimation`), the terminal then
   stepping the frames on its own clock; `TerminalImage.playing` stops it
-  where it is and runs it again. `Terminal.open` sets the capability for
+  where it is and runs it again. `ImageAnimation.loading` takes its frames
+  as they are made (`add`, then `finish`): the terminal plays those it has
+  and waits at the last for more (kitty's loading mode, `s=2`), each frame
+  sent once with the presenter's next frame. `Terminal.open` sets the capability for
   kitty alone (by XTVERSION or `KITTY_WINDOW_ID`, through tmux too): Konsole
   and Ghostty take kitty's images but are not known to play them, and get
   the first frame.

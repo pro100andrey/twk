@@ -8,6 +8,7 @@
 /// @docImport 'surface.dart';
 library;
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -109,7 +110,8 @@ final class TerminalImage {
 /// The frames of an animated kitty image after its first
 /// ([TerminalImage.data]), each a PNG file of the whole image as it looks
 /// while the frame shows, the time each frame shows, the first's too, and
-/// how many times they play.
+/// how many times they play. They are there from the start, or come as
+/// they are made ([ImageAnimation.loading]).
 ///
 /// Two frames, red then blue (`red` and `blue`, PNG files of 64 x 32
 /// pixels), half a second each, for ever:
@@ -130,27 +132,63 @@ final class ImageAnimation {
   /// [frames] after the first, shown for [delays] (one more than [frames],
   /// the first frame's first), played [loops] times; 0, the default, for
   /// ever.
-  ImageAnimation(this.frames, this.delays, {this.loops = 0})
-    : assert(frames.isNotEmpty, 'an animation has a second frame'),
-      assert(
-        delays.length == frames.length + 1,
-        'a delay for each frame, the first too',
-      ),
-      assert(loops >= 0, 'loops is 0 (for ever) or more');
+  ImageAnimation(
+    List<Uint8List> frames,
+    List<Duration> delays, {
+    this.loops = 0,
+  }) : assert(frames.isNotEmpty, 'an animation has a second frame'),
+       assert(
+         delays.length == frames.length + 1,
+         'a delay for each frame, the first too',
+       ),
+       assert(loops >= 0, 'loops is 0 (for ever) or more'),
+       _frames = [...frames],
+       _delays = [...delays],
+       _complete = true;
 
-  /// The PNG files of the frames after the first.
-  final List<Uint8List> frames;
+  /// One whose frames after the first come as they are made ([add]), until
+  /// [finish]: a terminal plays those it has been sent, and waits at the
+  /// last for more (kitty's loading mode), so that a long animation shows
+  /// before all of it is made. The first frame shows for [firstDelay].
+  ImageAnimation.loading(Duration firstDelay, {this.loops = 0})
+    : assert(loops >= 0, 'loops is 0 (for ever) or more'),
+      _frames = [],
+      _delays = [firstDelay],
+      _complete = false;
+
+  final List<Uint8List> _frames;
+  final List<Duration> _delays;
+  bool _complete;
+
+  /// The PNG files of the frames after the first, so far.
+  List<Uint8List> get frames => UnmodifiableListView(_frames);
 
   /// How long each frame shows, the first frame's first.
-  final List<Duration> delays;
+  List<Duration> get delays => UnmodifiableListView(_delays);
 
   /// How many times the frames play; 0 for ever. The last frame stays.
   final int loops;
 
-  /// [frames] in base64, each encoded once.
-  late final List<Uint8List> _base64 = [
-    for (final f in frames) ascii.encode(base64.encode(f)),
-  ];
+  /// Whether all the frames are there: from the start, or since [finish].
+  bool get complete => _complete;
+
+  /// Adds the next [frame], a PNG file, shown for [delay]; the presenter
+  /// sends it with its next frame, so whoever adds it asks for one.
+  void add(Uint8List frame, Duration delay) {
+    assert(!_complete, 'an animation that is complete takes no frame');
+    _frames.add(frame);
+    _delays.add(delay);
+  }
+
+  /// All the frames are there: the terminal plays them through, as many
+  /// times as [loops] says.
+  void finish() => _complete = true;
+
+  /// What the terminal was last sent of it ([kittyAnimate]): how many of
+  /// [frames], and whether it plays: 0 nothing said, 1 stopped, 2 playing
+  /// what it has and waiting for more, 3 playing them all.
+  var _sent = 0;
+  var _state = 0;
 }
 
 /// An image on a surface: [image] fills the [cols] x [rows] cells from
@@ -280,9 +318,8 @@ void _kittyData(
 }
 
 /// The bytes that give kitty image [id], just sent with its first frame,
-/// the frames after it of [animation] (`a=f`, each with the time it
-/// shows) and the first frame's time (`a=a,r=1`), then start it where
-/// [playing] ([kittyPlay]); a stopped one shows its first frame.
+/// the first frame's time (`a=a,r=1`) and then what [kittyAnimationUpdate]
+/// writes of [animation]: the terminal has none of the rest yet.
 void kittyAnimate(
   ByteSink out,
   ImageAnimation animation, {
@@ -290,42 +327,64 @@ void kittyAnimate(
   required bool playing,
   Multiplexer multiplexer = Multiplexer.none,
 }) {
-  final frames = animation._base64;
-  for (var k = 0; k < frames.length; k++) {
-    _kittyData(
-      out,
-      'a=f,i=$id,f=100,t=d,z=${_gap(animation.delays[k + 1])},q=2',
-      frames[k],
-      multiplexer,
-    );
-  }
+  animation
+    .._sent = 0
+    .._state = 0;
   _put(
     out,
-    '\x1b_Ga=a,i=$id,r=1,z=${_gap(animation.delays.first)},q=2\x1b\\',
+    '\x1b_Ga=a,i=$id,r=1,z=${_gap(animation._delays.first)},q=2\x1b\\',
     multiplexer,
   );
-  if (playing) {
-    kittyPlay(out, animation, id: id, playing: true, multiplexer: multiplexer);
-  }
+  kittyAnimationUpdate(
+    out,
+    animation,
+    id: id,
+    playing: playing,
+    multiplexer: multiplexer,
+  );
 }
 
-/// The bytes that run kitty image [id]'s [animation] from the frame it
-/// shows, as many times as it plays, or with [playing] false stop it there.
-void kittyPlay(
+/// The bytes that bring kitty image [id]'s [animation] up to date on the
+/// terminal: the frames added since it was last sent (`a=f`, each with the
+/// time it shows), then, where it changed, whether it plays: stopped where
+/// it is (`s=1`) without [playing], else run, waiting at the last frame for
+/// more (`s=2`) until the animation is complete, then through them all as
+/// many times as it plays (`s=3`). Nothing where nothing changed.
+void kittyAnimationUpdate(
   ByteSink out,
   ImageAnimation animation, {
   required int id,
   required bool playing,
   Multiplexer multiplexer = Multiplexer.none,
-}) => _put(
-  out,
-  playing
+}) {
+  final frames = animation._frames;
+  while (animation._sent < frames.length) {
+    final k = animation._sent++;
+    _kittyData(
+      out,
+      'a=f,i=$id,f=100,t=d,z=${_gap(animation._delays[k + 1])},q=2',
+      ascii.encode(base64.encode(frames[k])),
+      multiplexer,
+    );
+  }
+  final state = !playing ? 1 : (animation._complete ? 3 : 2);
+  if (state == animation._state) {
+    return;
+  }
+  animation._state = state;
+  _put(
+    out,
+    switch (state) {
+      1 => '\x1b_Ga=a,i=$id,s=1,q=2\x1b\\',
+      2 => '\x1b_Ga=a,i=$id,s=2,q=2\x1b\\',
       // v: 1 for ever, else one more than the plays
-      ? '\x1b_Ga=a,i=$id,s=3,'
-            'v=${animation.loops == 0 ? 1 : animation.loops + 1},q=2\x1b\\'
-      : '\x1b_Ga=a,i=$id,s=1,q=2\x1b\\',
-  multiplexer,
-);
+      _ =>
+        '\x1b_Ga=a,i=$id,s=3,'
+            'v=${animation.loops == 0 ? 1 : animation.loops + 1},q=2\x1b\\',
+    },
+    multiplexer,
+  );
+}
 
 /// [delay] in whole milliseconds as kitty takes a frame's gap, at least 1.
 int _gap(Duration delay) => delay.inMilliseconds < 1 ? 1 : delay.inMilliseconds;

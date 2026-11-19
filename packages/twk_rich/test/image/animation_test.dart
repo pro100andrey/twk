@@ -171,19 +171,24 @@ void main() {
       expect([for (final i in t.vt.images) '$i'], hasLength(1));
     });
 
-    testTwk("kitty that plays kitty's animations: the frames sent once, "
-        'the terminal plays them, the app asks for no frames', (t) async {
+    testTwk("kitty that plays kitty's animations: the first frame at once, "
+        'the others made in the next frame and sent once, the terminal '
+        'plays them, the app then asks for no frames', (t) async {
       await t.pumpWidget(
         topLeft(Image.memory(twoFrames(loop: 0))),
         graphics: GraphicsProtocol.kitty,
         kittyAnimation: true,
         duration: Duration.zero,
       );
+      expect(count(written(t), 'a=T'), 1);
+      expect(written(t), contains('a=a,i=1,r=1,z=100,q=2'));
+      expect(written(t), contains('a=a,i=1,s=2,q=2'), reason: 'loading');
+      expect(written(t), isNot(contains('a=f')));
+      await t.pump(const Duration(milliseconds: 17));
       final o = written(t);
       expect(count(o, 'a=T'), 1);
       expect(count(o, 'a=f,'), 1);
       expect(o, contains('a=f,i=1,f=100,t=d,z=300,q=2'));
-      expect(o, contains('a=a,i=1,r=1,z=100,q=2'));
       expect(o, contains('a=a,i=1,s=3,v=1,q=2'));
       expect(t.vt.kittyFrames, {1: 1});
       expect(t.vt.kittyAnimations, {1: (playing: true, loops: 0)});
@@ -201,6 +206,7 @@ void main() {
         kittyAnimation: true,
         duration: Duration.zero,
       );
+      await t.pump(const Duration(milliseconds: 17));
       expect(t.vt.kittyAnimations[1], (playing: true, loops: 1));
     });
 
@@ -217,8 +223,9 @@ void main() {
         kittyAnimation: true,
         duration: Duration.zero,
       );
-      // a frame a 60th of a second after the last
+      // a frame a 60th of a second after the last, the frames made
       const next = Duration(milliseconds: 17);
+      await t.pump(next);
       await t.pumpWidget(app(enabled: false), duration: next);
       expect(written(t), contains('a=a,i=1,s=1,q=2'));
       expect(t.vt.kittyAnimations[1]!.playing, isFalse);
@@ -226,6 +233,83 @@ void main() {
       expect(t.vt.kittyAnimations[1]!.playing, isTrue);
       expect(count(written(t), 'a=T'), 1);
       expect(count(written(t), 'a=f,'), 1);
+    });
+
+    /// A GIF of [n] frames of 2 x 2 pixels, red and blue in turn, 100 ms
+    /// each, for ever.
+    Uint8List manyFrames(int n) => gifBytes(
+      2,
+      2,
+      const [255, 0, 0, 0, 0, 255],
+      [
+        for (var i = 0; i < n; i++)
+          GifImage(2, 2, List.filled(4, i % 2), delayCs: 10),
+      ],
+      loop: 0,
+    );
+
+    testTwk('kitty: a long animation made a frame or more at a time, each '
+        'sent once, while the terminal plays what it has', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.memory(manyFrames(30), width: 4, height: 2)),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      expect(t.vt.kittyAnimations[1], (playing: true, loops: 0));
+      var frames = 0;
+      for (var i = 0; i < 30 && frames < 29; i++) {
+        await t.pump(const Duration(milliseconds: 17));
+        final now = t.vt.kittyFrames[1] ?? 0;
+        expect(now, greaterThan(frames), reason: 'a frame at least each time');
+        frames = now;
+      }
+      expect(frames, 29);
+      expect(count(written(t), 'a=f,'), 29);
+      expect(count(written(t), 'a=T'), 1);
+      expect(written(t), contains('a=a,i=1,s=3,v=1,q=2'));
+      expect(t.clock.pendingTimers, 0, reason: 'no frame asked for after');
+    });
+
+    testTwk('kitty: muted while it is made, it asks for no frames; unmuted, '
+        'the rest are made', (t) async {
+      final bytes = manyFrames(30);
+      Widget app({required bool enabled}) => TickerMode(
+        enabled: enabled,
+        child: topLeft(Image.memory(bytes, width: 4, height: 2)),
+      );
+      await t.pumpWidget(
+        app(enabled: true),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      const next = Duration(milliseconds: 17);
+      await t.pumpWidget(app(enabled: false), duration: next);
+      expect(t.clock.pendingTimers, 0);
+      final made = t.vt.kittyFrames[1] ?? 0;
+      await t.pump(const Duration(seconds: 1));
+      expect(t.vt.kittyFrames[1] ?? 0, made);
+      await t.pumpWidget(app(enabled: true), duration: next);
+      for (var i = 0; i < 30 && (t.vt.kittyFrames[1] ?? 0) < 29; i++) {
+        await t.pump(next);
+      }
+      expect(t.vt.kittyFrames[1], 29);
+      expect(t.vt.kittyAnimations[1], (playing: true, loops: 0));
+    });
+
+    testTwk('kitty: an animation larger than the terminal keeps is drawn '
+        'frame by frame', (t) async {
+      // 50 frames of 80 x 24 cells of 10 x 20 pixels: 77 MB decoded
+      await t.pumpWidget(
+        Image.memory(manyFrames(50), width: 80, height: 24),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      await t.pump(ms100);
+      expect(written(t), isNot(contains('a=f')));
+      expect(count(written(t), 'a=T'), 2);
     });
 
     testTwk('sixel: the frame sent again on each change', (t) async {

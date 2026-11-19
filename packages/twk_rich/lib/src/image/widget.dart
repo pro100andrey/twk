@@ -90,11 +90,12 @@ final class _Pixels extends ImageSource {
 /// last frame stays. A frame is drawn as a still image is, in blocks or
 /// sent to the terminal again as the protocol takes it, each time the frame
 /// changes. Where the terminal plays kitty's animations itself
-/// (`TerminalCaps.kittyAnimation`) the frames are sent to it once, all of
-/// them, and it steps them on its own clock, which a fake clock does not
-/// move. Under a [TickerMode] that is off the animation stands on the frame
-/// it shows, and goes on from it when the mode is on again. Outside an
-/// app, an animation shows its first frame.
+/// (`TerminalCaps.kittyAnimation`) the frames are sent to it once, the
+/// first at once and the others as they are made, a few in each of the
+/// app's frames, and it steps them on its own clock, which a fake clock
+/// does not move. Under a [TickerMode] that is off the animation stands
+/// on the frame it shows, and goes on from it when the mode is on again.
+/// Outside an app, an animation shows its first frame.
 ///
 /// The box is [width] × [height] cells where given, within the
 /// constraints; along an axis left out it follows from the other by the
@@ -587,17 +588,28 @@ final class RenderImage extends RenderObject {
     }
     final caps = ctx.presenter.caps;
     final protocol = _forceBlocks ? GraphicsProtocol.none : caps.graphics;
-    if (protocol == GraphicsProtocol.kitty &&
-        caps.kittyAnimation &&
-        binding != null &&
-        _frames.isAnimated) {
-      // the terminal plays it: no frame asked for here
+    if (binding case final b?
+        when protocol == GraphicsProtocol.kitty &&
+            caps.kittyAnimation &&
+            _frames.isAnimated &&
+            _fitsKitty()) {
+      // the terminal plays it: frames asked for only while some are to be
+      // made
       _cancelStep();
       var d = _played;
       if (d == null || d.boxWidth != width || d.boxHeight != height) {
+        // the first frame alone now: the rest in the frames after
         d = _played = _drawPlayed();
+      } else {
+        _makeMore(d.image!);
       }
       final image = d.image!..playing = !_muted;
+      if (!image.animation!.complete && !_muted) {
+        _stepCallback = b.scheduleFrameCallback((_) {
+          _stepCallback = null;
+          markNeedsPaint();
+        });
+      }
       ctx.canvas.image(
         _alignment.dx(width - d.columns),
         _alignment.dy(height - d.rows),
@@ -718,20 +730,19 @@ final class RenderImage extends RenderObject {
     return (pngImage(padded), f.columns, f.rows);
   }
 
-  /// The animation as one kitty image: its first frame, and the others for
-  /// the terminal to play, each scaled to the box as [_png] scales it.
+  /// The animation as one kitty image: its first frame, made now, and
+  /// the others for the terminal to play, made in the frames after
+  /// ([_makeMore]) while it plays those it has.
   _Drawn _drawPlayed() {
     final animation = _frames;
-    final frames = animation.frames;
     final (first, columns, rows) = _png(0);
     final image = TerminalImage(
       GraphicsProtocol.kitty,
       first.data,
       pixelWidth: first.pixelWidth,
       pixelHeight: first.pixelHeight,
-      animation: ImageAnimation(
-        [for (var i = 1; i < frames.length; i++) _png(i).$1.data],
-        [for (final f in frames) f.delay],
+      animation: ImageAnimation.loading(
+        animation.frames.first.delay,
         loops: animation.loops,
       ),
     );
@@ -743,6 +754,40 @@ final class RenderImage extends RenderObject {
       rows,
       image: image,
     );
+  }
+
+  /// How long a paint makes frames of a kitty animation for, a frame at
+  /// least, so that the app goes on drawing while a long one is made.
+  static const _makeFor = Duration(milliseconds: 4);
+
+  /// The most a kitty animation may take in the terminal, its frames
+  /// decoded: kitty keeps 320 MB of images at most and drops the oldest
+  /// past it. A larger one is drawn frame by frame as on other terminals.
+  static const int _kittyBytes = 64 << 20;
+
+  /// Whether the animation, its frames as large as the box, is within
+  /// [_kittyBytes].
+  bool _fitsKitty() =>
+      _frames.frames.length * width * _cell.width * height * _cell.height * 4 <=
+      _kittyBytes;
+
+  /// Makes the next frames of [image]'s animation, for [_makeFor] at most
+  /// and one at least, and finishes it after the last.
+  void _makeMore(TerminalImage image) {
+    final animation = image.animation!;
+    if (animation.complete || _muted) {
+      return;
+    }
+    final frames = _frames.frames;
+    final clock = Stopwatch()..start();
+    do {
+      final i = animation.frames.length + 1;
+      animation.add(_png(i).$1.data, frames[i].delay);
+      if (i == frames.length - 1) {
+        animation.finish();
+        return;
+      }
+    } while (clock.elapsed < _makeFor);
   }
 
   /// [image] at the top left of [width] × [height] pixels, transparent

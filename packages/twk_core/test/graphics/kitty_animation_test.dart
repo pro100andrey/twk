@@ -138,6 +138,88 @@ void main() {
     expect(hs.mismatches(), isEmpty);
   });
 
+  group('loading', () {
+    TerminalImage loading() => TerminalImage(
+      GraphicsProtocol.kitty,
+      frame(60, 0),
+      pixelWidth: 40,
+      pixelHeight: 40,
+      animation: ImageAnimation.loading(
+        const Duration(milliseconds: 100),
+        loops: 2,
+      ),
+    );
+
+    test('the first frame at once, run waiting for more; the frames sent as '
+        'they come; run through when complete', () {
+      final hs = harness();
+      final img = loading();
+      final animation = img.animation!;
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(count(out(hs), 'a=T,'), 1);
+      expect(out(hs), contains('a=a,i=1,r=1,z=100,q=2'));
+      expect(out(hs), contains('\x1b_Ga=a,i=1,s=2,q=2\x1b\\'));
+      expect(out(hs), isNot(contains('a=f')));
+      expect(hs.vt.kittyAnimations[1], (playing: true, loops: 0));
+
+      animation.add(frame(60, 1), const Duration(milliseconds: 200));
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(out(hs), contains('a=f,i=1,f=100,t=d,z=200,q=2;'));
+      expect(out(hs), isNot(contains('a=a')), reason: 'still loading');
+      expect(hs.vt.kittyFrames, {1: 1});
+
+      animation
+        ..add(frame(60, 2), const Duration(milliseconds: 300))
+        ..finish();
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(count(out(hs), 'a=f,'), 1);
+      expect(out(hs), contains('a=a,i=1,s=3,v=3,q=2'));
+      expect(hs.vt.kittyFrames, {1: 2});
+      expect(hs.vt.kittyAnimations[1], (playing: true, loops: 2));
+
+      hs.canvas.image(2, 1, 4, 2, img);
+      expect(hs.frame(), 0, reason: 'nothing new');
+      expect(hs.mismatches(), isEmpty);
+    });
+
+    test('stopped, it takes its frames and stays stopped; run, it waits '
+        'for more until complete', () {
+      final hs = harness();
+      final img = loading()..playing = false;
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(out(hs), contains('s=1'));
+      img.animation!.add(frame(60, 1), const Duration(milliseconds: 200));
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(out(hs), contains('a=f,'));
+      expect(out(hs), isNot(contains('a=a')));
+      img.playing = true;
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(out(hs), contains('\x1b_Ga=a,i=1,s=2,q=2\x1b\\'));
+    });
+
+    test('a forgotten screen gets the frames made so far again', () {
+      final hs = harness();
+      final img = loading();
+      img.animation!.add(frame(60, 1), const Duration(milliseconds: 200));
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(count(out(hs), 'a=f,'), 1);
+      hs.presenter.invalidate();
+      hs.canvas.image(2, 1, 4, 2, img);
+      hs.frame();
+      expect(count(out(hs), 'a=T,'), 1);
+      expect(count(out(hs), 'a=f,'), 1);
+      expect(out(hs), contains('s=2'));
+      expect(hs.vt.kittyFrames, {1: 1});
+    });
+  });
+
   test('a terminal that plays none gets the first frame alone', () {
     final hs = harness(kittyAnimation: false);
     final img = animated();

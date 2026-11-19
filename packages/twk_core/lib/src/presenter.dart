@@ -1549,7 +1549,6 @@ final class Presenter {
     }
     if (lost) {
       _kittySent.clear();
-      _kittyPlaying.clear();
     }
     for (final s in shown) {
       s
@@ -1630,7 +1629,6 @@ final class Presenter {
           kittyDelete(out, id: id, multiplexer: multiplexer);
           _kittyIds.remove(image);
           _kittySent.remove(image);
-          _kittyPlaying.remove(image);
           _imageIdFreed(id);
         }
       }
@@ -1665,9 +1663,6 @@ final class Presenter {
                   playing: image.playing,
                   multiplexer: multiplexer,
                 );
-                if (image.playing) {
-                  _kittyPlaying.add(image);
-                }
               }
             }
           case GraphicsProtocol.sixel:
@@ -1718,30 +1713,21 @@ final class Presenter {
     }
   }
 
-  /// kitty: stops the animations of [shown] the terminal plays whose
-  /// [TerminalImage.playing] went false, and runs again those it went true.
+  /// kitty: brings the animations of [shown] the terminal plays up to
+  /// date ([kittyAnimationUpdate]): the frames added since, and whether
+  /// each plays.
   @pragma('vm:never-inline')
   void _playAnimations(List<_Shown> shown) {
     for (final s in shown) {
       final image = s.at.image;
-      final animation = image.animation;
-      if (!s.drawn || animation == null) {
-        continue;
-      }
-      final playing = image.playing;
-      if (_kittyPlaying.contains(image) != playing) {
-        kittyPlay(
+      if (image.animation case final animation? when s.drawn) {
+        kittyAnimationUpdate(
           out,
           animation,
           id: _kittyIds[image]!,
-          playing: playing,
+          playing: image.playing,
           multiplexer: caps.graphicsMultiplexer,
         );
-        if (playing) {
-          _kittyPlaying.add(image);
-        } else {
-          _kittyPlaying.remove(image);
-        }
       }
     }
   }
@@ -1928,7 +1914,6 @@ final class Presenter {
     }
     _kittyIds.clear();
     _kittySent.clear();
-    _kittyPlaying.clear();
     _shown = [];
   }
 
@@ -3188,10 +3173,6 @@ final class Presenter {
       _fillFlags(used, bestTop, bestBottom, 1);
     }
   }
-
-  /// kitty ([TerminalCaps.kittyAnimation]): the animated images the
-  /// terminal has that it plays, as last written ([TerminalImage.playing]).
-  final _kittyPlaying = Set<TerminalImage>.identity();
 }
 
 /// An image as the presenter last drew it: where ([at], a copy of the

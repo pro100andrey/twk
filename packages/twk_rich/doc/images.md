@@ -19,7 +19,9 @@ plays in the `Image` widget on the app's clock, each frame drawn as a still
 image is; where the terminal plays kitty's animations itself
 (`TerminalCaps.kittyAnimation`, kitty) the frames go to it once, as one
 `TerminalImage` with an `ImageAnimation`, and it steps them on its own clock,
-which a test's fake clock does not move. A `TickerMode` that is off stands an
+which a test's fake clock does not move: the first frame at once, the others
+made in the frames after, 4 ms of each, while it plays those it has (its
+loading mode); one past 64 MB decoded is drawn frame by frame. A `TickerMode` that is off stands an
 animation on the frame it shows.
 
 `lib/image.dart` exports one library per part, `lib/src/image/<part>.dart`;

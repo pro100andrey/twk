@@ -254,7 +254,14 @@ void main() {
         graphics: GraphicsProtocol.kitty,
         kittyAnimation: true,
       );
-      await t.pump();
+      // the first frame at once, the others in the frames after
+      for (
+        var i = 0;
+        i < 12 && (t.vt.kittyFrames.values.firstOrNull ?? 0) < 11;
+        i++
+      ) {
+        await t.pump(const Duration(milliseconds: 17));
+      }
       expect(t.vt.kittyFrames.values.single, 11);
       expect(t.vt.kittyAnimations.values.single.playing, isTrue);
     });

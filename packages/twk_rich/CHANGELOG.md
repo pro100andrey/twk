@@ -14,7 +14,11 @@ Added:
   by drawing and sending the current frame as it changes; it shows the first
   frame outside an app. Where the terminal plays kitty's animations
   (`TerminalCaps.kittyAnimation`, kitty itself) the frames are sent once and
-  the terminal plays them, the app asking for no frames. Under a
+  the terminal plays them: the first at once, the others made a frame or
+  more at a time (4 ms of each of the app's frames) while it plays those it
+  has, the app asking for no frames once all are sent. One that would take
+  more than 64 MB in the terminal, decoded, is drawn frame by frame as on
+  other terminals (kitty keeps 320 MB of images). Under a
   `TickerMode` that is off an animation stands on the frame it shows (a
   kitty one stopped by the terminal) and goes on from it when the mode is on
   again.
