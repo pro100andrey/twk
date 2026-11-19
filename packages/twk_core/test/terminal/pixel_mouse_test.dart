@@ -261,6 +261,26 @@ void main() {
         await clock.runUntil(term.close);
       });
 
+      test('two re-asks before an answer are both answered, none of it '
+          'delivered as input', () async {
+        final (term, link, events) = await start('$_on$_cellSize');
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        link.resize(31, 6);
+        await clock.flushMicrotasks();
+        link.type('\x1b[6;40;20t\x1b[4;120;300t');
+        link.type('\x1b[6;40;20t\x1b[4;120;300t');
+        await clock.flushMicrotasks();
+        link.type('\x1b[<0;41;81M');
+        await clock.flushMicrotasks();
+        expect(events, [
+          const ResizeEvent(30, 6),
+          const ResizeEvent(31, 6),
+          const MouseEvent(MouseKind.down, 2, 2, offsetX: 0, offsetY: 0),
+        ]);
+        await clock.runUntil(term.close);
+      });
+
       test('takes the text area over the cells where CSI 16 t is not '
           'answered', () async {
         final (term, link, events) = await start('$_on$_cellSize');

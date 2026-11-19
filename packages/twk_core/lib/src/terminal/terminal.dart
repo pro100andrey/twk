@@ -2207,16 +2207,21 @@ final class Terminal
         ..cellPixelHeight = tty.height;
       return;
     }
-    _sizeReplies = 2;
-    _cellAnswered = false;
+    // a re-ask while an earlier one is unanswered adds its two answers: they
+    // arrive in order, and the earlier round's CSI 14 t reply must not
+    // overwrite what CSI 16 t of any round told
+    if (_sizeReplies == 0) {
+      _cellAnswered = false;
+    }
+    _sizeReplies += 2;
     _writeString('\x1b[16t\x1b[14t');
   }
 
-  /// How many answers to the last re-ask ([_refreshCellSize]) may still
+  /// How many answers to the re-asks ([_refreshCellSize]) may still
   /// come: they are taken here, not delivered as input.
   var _sizeReplies = 0;
 
-  /// Whether CSI 16 t answered the last re-ask: the text area then is not
+  /// Whether CSI 16 t answered a re-ask not yet fully answered: the text area then is not
   /// needed.
   var _cellAnswered = false;
 

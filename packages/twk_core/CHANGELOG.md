@@ -249,6 +249,9 @@ Added:
 
 Fixed:
 
+- Two re-asks for a cell's size before an answer (a font zoomed twice) no
+  longer let the second round's replies through as `UnknownSequence`, nor
+  let a late CSI 14 t reply overwrite a size CSI 16 t gave.
 - `LogRecord.toString` leaves out an error that is `LogData`, as the
   console, `toJson` and the log view do: an overflow report was printed
   twice.
