@@ -115,4 +115,16 @@ void main() {
       'Unknown(ESC[99;1z)',
     );
   });
+
+  test('a KeyEvent with modifiers out of a byte is refused', () {
+    expect(
+      () => KeyEvent(KeyCode.up, modifiers: 256),
+      throwsA(isA<AssertionError>()),
+    );
+    expect(
+      () => KeyEvent(KeyCode.up, modifiers: -1),
+      throwsA(isA<AssertionError>()),
+    );
+    expect(const KeyEvent(KeyCode.up, modifiers: 255).modifiers, 255);
+  });
 }

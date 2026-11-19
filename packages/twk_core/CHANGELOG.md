@@ -58,6 +58,14 @@ Changed:
 
 Fixed:
 
+- In a fixed viewport the mouse events keep their pixel offsets
+  (`offsetX`, `offsetY`; they were dropped, so no widget saw a sub-cell
+  position on an SGR-Pixels terminal), except where the position was
+  clamped to the nearest cell. An Alt-prefixed key (ESC before a kitty
+  sequence) keeps its `baseChar` and `kittyCode`. On plain output
+  (a pipe, a file, CI) the app's frames no longer carry the overflow
+  marker with asserts on; `TWK_DEBUG=overflow` still asks for it. A
+  `KeyEvent` asserts its modifiers are 0 to 255, as `MouseEvent` does.
 - A second `Terminal.open` while the first is still opening is refused with
   its own message (await the first), not the one for a terminal that can be
   suspended or closed, which cannot be done to one not returned yet.

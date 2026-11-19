@@ -355,7 +355,8 @@ final class KeyEvent extends InputEvent {
     this.kind = KeyKind.press,
     this.baseChar = '',
     int kittyCode = 0,
-  }) : _bits = modifiers | kittyCode << 8;
+  }) : assert(modifiers >= 0 && modifiers < 256, 'modifiers: 0 to 255'),
+       _bits = modifiers | kittyCode << 8;
 
   /// The key.
   final KeyCode code;

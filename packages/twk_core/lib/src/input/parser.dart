@@ -605,11 +605,25 @@ final class InputParser {
     }
     if (inner
         case [
-          KeyEvent(:final code, :final char, :final modifiers, :final kind),
+          KeyEvent(
+            :final code,
+            :final char,
+            :final modifiers,
+            :final kind,
+            :final baseChar,
+            :final kittyCode,
+          ),
         ]
         when modifiers & Mod.alt == 0) {
       out.add(
-        KeyEvent(code, char: char, modifiers: modifiers | Mod.alt, kind: kind),
+        KeyEvent(
+          code,
+          char: char,
+          modifiers: modifiers | Mod.alt,
+          kind: kind,
+          baseChar: baseChar,
+          kittyCode: kittyCode,
+        ),
       );
     } else {
       out

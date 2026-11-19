@@ -376,4 +376,16 @@ void main() {
       KeyKind.press,
     );
   });
+
+  test('Alt before a kitty sequence keeps the base key and the kitty code', () {
+    // ESC, then Ctrl+с with its base key c, and ESC then the left shift key
+    final events = parse('\x1b\x1b[1089::99;5u\x1b\x1b[57441;2u');
+    final ctrl = events[0] as KeyEvent;
+    expect((ctrl.char, ctrl.baseChar), ('с', 'c'));
+    expect(ctrl.modifiers, Mod.ctrl | Mod.alt);
+    final shift = events[1] as KeyEvent;
+    expect(shift.code, KeyCode.modifier);
+    expect(shift.kittyCode, 57441);
+    expect(shift.modifiers, Mod.shift | Mod.alt);
+  });
 }

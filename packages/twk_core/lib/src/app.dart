@@ -293,13 +293,21 @@ final class TwkApp {
     }
     // layout measures text with the segmenter the canvas draws it with,
     // and orders it as the terminal needs
-    owner = PipelineOwner(_needFrame, segmenter: screen.canvas.segmenter)
-      ..onLog = this.logs.add
-      ..textOrder = info.bidi == BidiReordering.app
-          ? TextOrder.visual
-          : TextOrder.logical
-      ..debugRepaintRainbow = debugNames.contains('rainbow')
-      ..debugRelayoutHighlight = debugNames.contains('relayout');
+    // plain output is data, which no overflow marker is drawn into
+    // (`TWK_DEBUG=overflow` may still ask for it)
+    owner =
+        (info.plain
+              ? PipelineOwner.forData(
+                  _needFrame,
+                  segmenter: screen.canvas.segmenter,
+                )
+              : PipelineOwner(_needFrame, segmenter: screen.canvas.segmenter))
+          ..onLog = this.logs.add
+          ..textOrder = info.bidi == BidiReordering.app
+              ? TextOrder.visual
+              : TextOrder.logical
+          ..debugRepaintRainbow = debugNames.contains('rainbow')
+          ..debugRelayoutHighlight = debugNames.contains('relayout');
     if (debugNames.contains('overflow')) {
       owner.debugOverflowIndicator = true;
     }
@@ -1229,6 +1237,7 @@ final class TwkApp {
     final kind = e.kind;
     var x = e.x - v.left;
     var y = e.y - v.top;
+    var clamped = false;
     if (x < 0 || y < 0 || x >= w || y >= h) {
       if (!_held ||
           (kind != MouseKind.drag && kind != MouseKind.up) ||
@@ -1238,13 +1247,24 @@ final class TwkApp {
       }
       x = x < 0 ? 0 : (x < w ? x : w - 1);
       y = y < 0 ? 0 : (y < h ? y : h - 1);
+      clamped = true;
     }
     if (kind == MouseKind.down) {
       _held = true;
     } else if (kind == MouseKind.up) {
       _held = false;
     }
-    return MouseEvent(kind, x, y, button: e.button, modifiers: e.modifiers);
+    // the pixel offsets are of the cell the pointer is in: a cell the
+    // pointer was moved to from outside has none
+    return MouseEvent(
+      kind,
+      x,
+      y,
+      button: e.button,
+      modifiers: e.modifiers,
+      offsetX: clamped ? null : e.offsetX,
+      offsetY: clamped ? null : e.offsetY,
+    );
   }
 
   /// Inline mode: the most rows the region may have now.

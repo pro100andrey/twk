@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/src/terminal/plain.dart';
 import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
@@ -1155,6 +1156,36 @@ void main() {
       everyElement(isFalse),
     );
     expect(none.logs.path, isNull);
+  });
+
+  test('on plain output the owner draws no overflow marker, whatever the '
+      'asserts; TWK_DEBUG=overflow still asks for it', () async {
+    Future<TwkApp> on(Map<String, String> env, {required bool plain}) async {
+      final t = await Terminal.overLink(
+        PlainLink(
+          const {'COLUMNS': '20', 'LINES': '6'},
+          add: (_) {},
+          flush: () async {},
+        ),
+        TerminalOptions(plain: plain, alternateScreen: false),
+      );
+      return TwkApp(t, environment: env);
+    }
+
+    expect(
+      (await on(const {}, plain: true)).owner.debugOverflowIndicator,
+      isFalse,
+    );
+    expect(
+      (await on(const {
+        'TWK_DEBUG': 'overflow',
+      }, plain: true)).owner.debugOverflowIndicator,
+      isTrue,
+    );
+    expect(
+      (await on(const {}, plain: false)).owner.debugOverflowIndicator,
+      PipelineOwner.debugOverflowIndicatorByDefault,
+    );
   });
 
   test("with no environment given, the process's, over which the "
