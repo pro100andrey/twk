@@ -2006,35 +2006,6 @@ final class TextPainter {
           }
         }
         final c0 = s.codeUnitAt(i);
-        if (!edit && graphemes && c0 >= 0x20 && c0 < 0x7F) {
-          // a run of printable ASCII, each a cluster of one cell where no
-          // mark follows it: each code unit read once, the next carried
-          var c = c0;
-          final len = s.length;
-          while (true) {
-            final next = i + 1 < len ? s.codeUnitAt(i + 1) : 0;
-            if (next >= 0x300) {
-              break;
-            }
-            i++;
-            final kind = _kindOf(c, 1);
-            glyphs[n] = c;
-            kinds[n] = kind | (1 << _advShift);
-            n++;
-            cells++;
-            if ((kind & _space) == 0) {
-              drawn = n - 1;
-              drawnCells = cells;
-            }
-            if (i >= end || next < 0x20 || next >= 0x7F) {
-              break;
-            }
-            c = next;
-          }
-          if (i > start) {
-            continue;
-          }
-        }
         if (graphemes &&
             c0 >= 0x20 &&
             c0 < 0x7F &&
