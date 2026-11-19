@@ -344,7 +344,9 @@ final class TwkTester {
   /// (`TerminalInfo.notifications`): by default none, and
   /// [AppBinding.notify] writes nothing. It shows images with [graphics]
   /// (`TerminalCaps.graphics`; by default none, their cells left blank),
-  /// through [multiplexer] as a terminal's are passed on. Its cells are
+  /// through [multiplexer] as a terminal's are passed on, and with
+  /// [kittyAnimation] plays kitty's animations itself
+  /// (`TerminalCaps.kittyAnimation`), on no clock of the test's. Its cells are
   /// [cellPixels] pixels (width, height) as it reports them
   /// (`TerminalCaps.cellPixelWidth` and `cellPixelHeight`), the emulator's
   /// too; when null it reports none, and the emulator's are 10 × 20. With
@@ -377,6 +379,7 @@ final class TwkTester {
     Multiplexer multiplexer = Multiplexer.none,
     NotificationProtocol notifications = NotificationProtocol.none,
     GraphicsProtocol graphics = GraphicsProtocol.none,
+    bool kittyAnimation = false,
     (int, int)? cellPixels,
     bool pixelMouse = false,
     int maxFps = 60,
@@ -413,6 +416,7 @@ final class TwkTester {
         multiplexer: multiplexer,
         notifications: notifications,
         graphics: graphics,
+        kittyAnimation: kittyAnimation,
         cellPixels: cellPixels,
         maxFps: maxFps,
         maxInlineRows: maxInlineRows,
@@ -460,6 +464,7 @@ final class TwkTester {
     required Multiplexer multiplexer,
     required NotificationProtocol notifications,
     required GraphicsProtocol graphics,
+    required bool kittyAnimation,
     required (int, int)? cellPixels,
     required int maxFps,
     required int? maxInlineRows,
@@ -525,6 +530,7 @@ final class TwkTester {
         caps: TerminalCaps(
           graphics: graphics,
           graphicsMultiplexer: multiplexer,
+          kittyAnimation: kittyAnimation,
           cellPixelWidth: cellPixels?.$1 ?? 0,
           cellPixelHeight: cellPixels?.$2 ?? 0,
         ),

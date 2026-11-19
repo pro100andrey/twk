@@ -97,6 +97,57 @@ void main() {
         isEmpty,
       );
     });
+
+    test('an animation: frames added, the first one timed, run, stopped; '
+        'sent anew or deleted, it has none', () {
+      final vt = fed(
+        '${kitty(4)}'
+        '\x1b_Ga=f,i=4,f=100,t=d,z=200,q=2;${b64(12)}\x1b\\'
+        '\x1b_Ga=f,i=4,f=100,t=d,z=300,q=2;${b64(12)}\x1b\\'
+        '\x1b_Ga=a,i=4,r=1,z=100,q=2\x1b\\',
+      );
+      expect(vt.kittyFrames, {4: 2});
+      expect(vt.kittyAnimations, {4: (playing: false, loops: 0)});
+      vt.feed(utf8.encode('\x1b_Ga=a,i=4,s=3,v=3,q=2\x1b\\'));
+      expect(vt.kittyAnimations[4], (playing: true, loops: 2));
+      vt.feed(utf8.encode('\x1b_Ga=a,i=4,s=1,q=2\x1b\\'));
+      expect(vt.kittyAnimations[4], (playing: false, loops: 2));
+      vt.feed(utf8.encode('\x1b_Ga=a,i=4,s=3,v=1,q=2\x1b\\'));
+      expect(vt.kittyAnimations[4], (playing: true, loops: 0));
+      vt.feed(utf8.encode(kitty(4)));
+      expect(vt.kittyFrames, isEmpty);
+      expect(vt.kittyAnimations, isEmpty);
+      vt.feed(
+        utf8.encode(
+          '\x1b_Ga=f,i=4,f=100,t=d,z=200,q=2;${b64(12)}\x1b\\'
+          '\x1b_Ga=a,i=4,s=3,q=2\x1b\\'
+          '\x1b_Ga=d,d=I,i=4,q=2\x1b\\',
+        ),
+      );
+      expect(vt.kittyImages, isEmpty);
+      expect(vt.kittyFrames, isEmpty);
+      expect(vt.kittyAnimations, isEmpty);
+      expect(vt.errors, isEmpty);
+    });
+
+    test('what an animation must not be sent is an error', () {
+      Vt bad(String s) => fed(s, strict: false);
+      expect(bad('\x1b_Ga=f,i=9,f=100,t=d,q=2;${b64(3)}\x1b\\').errors, [
+        'a kitty frame of image 9, which the terminal lacks',
+      ]);
+      expect(bad('\x1b_Ga=a,i=9,s=3,q=2\x1b\\').errors, [
+        'a kitty animation of image 9, which the terminal lacks',
+      ]);
+      expect(bad('${kitty(1)}\x1b_Ga=a,i=1,r=2,z=100,q=2\x1b\\').errors, [
+        'kitty animation r=2 of image 1, of 1',
+      ]);
+      expect(bad('${kitty(1)}\x1b_Ga=a,i=1,s=4,q=2\x1b\\').errors, [
+        'unsupported kitty animation state s=4',
+      ]);
+      expect(bad('${kitty(1)}\x1b_Ga=f,i=1,f=100,t=f,q=2;eA==\x1b\\').errors, [
+        'kitty data not sent in the command (t=f)',
+      ]);
+    });
   });
 
   group('sixel', () {

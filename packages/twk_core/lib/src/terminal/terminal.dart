@@ -301,6 +301,7 @@ final class TerminalInfo {
       'progressReports=$progressReports sextants=$sextants '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
+      'kittyAnimation=${caps.kittyAnimation} '
       'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
 }
 
@@ -1669,6 +1670,11 @@ final class Terminal
                 sixel
             ? Multiplexer.none
             : multiplexer,
+        // kitty itself, by its name or its environment (through tmux too);
+        // other terminals with its protocol show only an image's first frame
+        kittyAnimation:
+            graphics == GraphicsProtocol.kitty &&
+            (version.startsWith('kitty') || env.containsKey('KITTY_WINDOW_ID')),
         cellPixelWidth: cellWidth,
         cellPixelHeight: cellHeight,
       ),

@@ -70,6 +70,44 @@ void main() {
     },
   );
 
+  test("kitty's animation: kitty by its name or its environment, through "
+      'tmux too; not Konsole, nor a terminal told another protocol', () async {
+    final (kitty, _) = await probe(const {
+      'TERM': 'xterm-kitty',
+    }, answers: '$kittyOk${'\x1bP>|kitty(0.39.1)\x1b\\'}');
+    expect(kitty.kittyAnimation, isTrue);
+    final (byEnv, _) = await probe(const {
+      'TERM': 'xterm-kitty',
+      'KITTY_WINDOW_ID': '1',
+    }, answers: kittyOk);
+    expect(byEnv.kittyAnimation, isTrue);
+    final (tmux, _) = await probe(const {
+      'TERM': 'tmux-256color',
+      'TMUX': '/tmp/tmux-1000/default,1,0',
+      'KITTY_WINDOW_ID': '1',
+    });
+    expect(tmux.kittyAnimation, isTrue);
+    final (konsole, _) = await probe(
+      const {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '260802'},
+      answers: '$kittyOk${'\x1bP>|Konsole 26.08.2\x1b\\'}',
+      da1: '\x1b[?62;1;4c',
+    );
+    expect(konsole.graphics, GraphicsProtocol.kitty);
+    expect(konsole.kittyAnimation, isFalse);
+    final (ghostty, _) = await probe(const {
+      'TERM': 'xterm-ghostty',
+      'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty',
+    }, answers: '$kittyOk${'\x1bP>|ghostty 1.2.0\x1b\\'}');
+    expect(ghostty.graphics, GraphicsProtocol.kitty);
+    expect(ghostty.kittyAnimation, isFalse);
+    final (sixel, _) = await probe(
+      const {'TERM': 'xterm-kitty', 'KITTY_WINDOW_ID': '1'},
+      answers: kittyOk,
+      graphics: GraphicsProtocol.sixel,
+    );
+    expect(sixel.kittyAnimation, isFalse);
+  });
+
   test('sixel by the device attributes, iTerm2 by the name the terminal '
       'tells', () async {
     final (sixel, _) = await probe(const {

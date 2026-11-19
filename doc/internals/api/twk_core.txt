@@ -143,6 +143,7 @@ twk_core.dart class GridParentData
 twk_core.dart class GridTrack
 twk_core.dart class HeadlessTerminal
 twk_core.dart class HitTestResult
+twk_core.dart class ImageAnimation
 twk_core.dart class ImagePlacement
 twk_core.dart class InputEvent
 twk_core.dart class InputParser

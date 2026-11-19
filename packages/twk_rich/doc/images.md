@@ -16,7 +16,11 @@ twk_test, as the rest of twk_rich does. The core places what it encodes: its
 `TerminalImage` takes an `EncodedImage`'s `data`, `pixelWidth` and
 `pixelHeight` for the protocol it was encoded for. An animated GIF or APNG
 plays in the `Image` widget on the app's clock, each frame drawn as a still
-image is; the terminal's own animation (kitty's `a=f`, `a=a`) is not used yet.
+image is; where the terminal plays kitty's animations itself
+(`TerminalCaps.kittyAnimation`, kitty) the frames go to it once, as one
+`TerminalImage` with an `ImageAnimation`, and it steps them on its own clock,
+which a test's fake clock does not move. A `TickerMode` that is off stands an
+animation on the frame it shows.
 
 `lib/image.dart` exports one library per part, `lib/src/image/<part>.dart`;
 its tests are in `test/image/`, its examples in `example/image/`.

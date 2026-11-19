@@ -12,8 +12,12 @@ Added:
   `ImageFormat` read GIF. `Image` plays an animated GIF or APNG on the app's
   clock (a fake clock moves it in tests), in blocks and with every protocol
   by drawing and sending the current frame as it changes; it shows the first
-  frame outside an app. Not yet: kitty's own animation (`a=f`, `a=a`), which
-  the terminal would play without the app resending each frame.
+  frame outside an app. Where the terminal plays kitty's animations
+  (`TerminalCaps.kittyAnimation`, kitty itself) the frames are sent once and
+  the terminal plays them, the app asking for no frames. Under a
+  `TickerMode` that is off an animation stands on the frame it shows (a
+  kitty one stopped by the terminal) and goes on from it when the mode is on
+  again.
 - `BlockMode.sextant`, `.octant`, `.braille` and `.ascii` beside `.half` and
   `.quadrant`, for `Image` and `BlockImage` where the terminal shows no
   images: 6, 8, 8 and 1 pixels a cell (`BlockMode.across` and `.down`). Sextants

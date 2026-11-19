@@ -31,6 +31,15 @@ Changed:
 
 Added:
 
+- kitty's animation: `TerminalImage(animation:)` takes an `ImageAnimation`
+  (the PNG files of the frames after the first, each frame's time, the
+  plays), which the presenter sends once with the image (`a=f`, `a=a`) to a
+  terminal that plays it (`TerminalCaps.kittyAnimation`), the terminal then
+  stepping the frames on its own clock; `TerminalImage.playing` stops it
+  where it is and runs it again. `Terminal.open` sets the capability for
+  kitty alone (by XTVERSION or `KITTY_WINDOW_ID`, through tmux too): Konsole
+  and Ghostty take kitty's images but are not known to play them, and get
+  the first frame.
 - `TerminalInfo.sextants` and `sextantsFor`: whether the terminal is known to
   draw the block sextants (U+1FB00..1FB3B) itself, by its environment and
   XTVERSION as the pointer's and progress decisions are made: kitty 0.19.3

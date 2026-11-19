@@ -321,6 +321,15 @@ final class Vt {
   /// kitty: the images the terminal holds, by id, and their bytes.
   final kittyImages = <int, int>{};
 
+  /// kitty: of each image given frames after its first (`a=f`), by id, how
+  /// many.
+  final kittyFrames = <int, int>{};
+
+  /// kitty: of each image whose animation was set (`a=a`), by id, whether
+  /// it plays (`s=2`, `s=3`) or stands (`s=1`), and how many times it plays
+  /// (`v` less one; 0 for ever).
+  final kittyAnimations = <int, ({bool playing, int loops})>{};
+
   /// DEC mode 8452: a sixel image leaves the cursor to its right, on its
   /// last row, instead of below it.
   var sixelCursorRight = false;
@@ -1158,7 +1167,8 @@ final class Vt {
 
   /// A kitty graphics command (`APC G keys ; payload ST`): a transmission,
   /// possibly in chunks (`m=1` on all but the last), a placement, a
-  /// deletion or a query; one with no id keeps nothing.
+  /// deletion, a frame of an animation or its control (`a=f`, `a=a`), or a
+  /// query; one with no id keeps nothing.
   void _kitty(List<int> body) {
     final semi = body.indexOf(0x3B);
     final keys = <String, String>{
@@ -1213,9 +1223,54 @@ final class Vt {
           return;
         }
         kittyImages[id] = data.length;
+        kittyFrames.remove(id);
+        kittyAnimations.remove(id);
         if (action == 'T') {
           _kittyPlace(keys, id);
         }
+      case 'f':
+        if (!kittyImages.containsKey(id)) {
+          _err('a kitty frame of image $id, which the terminal lacks');
+          return;
+        }
+        if ((keys['t'] ?? 'd') != 'd') {
+          _err('kitty data not sent in the command (t=${keys['t']})');
+          return;
+        }
+        try {
+          base64.decode(String.fromCharCodes(payload));
+        } on FormatException {
+          _err('kitty data not in base64');
+          return;
+        }
+        kittyFrames[id] = (kittyFrames[id] ?? 0) + 1;
+      case 'a':
+        if (!kittyImages.containsKey(id)) {
+          _err('a kitty animation of image $id, which the terminal lacks');
+          return;
+        }
+        final frames = 1 + (kittyFrames[id] ?? 0);
+        for (final k in ['r', 'c']) {
+          if (keys.containsKey(k) && (key(k) < 1 || key(k) > frames)) {
+            _err('kitty animation $k=${keys[k]} of image $id, of $frames');
+          }
+        }
+        final was = kittyAnimations[id] ?? (playing: false, loops: 0);
+        final playing = switch (keys['s']) {
+          null => was.playing,
+          '1' => false,
+          '2' || '3' => true,
+          final s => () {
+            _err('unsupported kitty animation state s=$s');
+            return was.playing;
+          }(),
+        };
+        // v: 1 for ever, n plays n - 1 times; 0 is ignored
+        final v = key('v');
+        kittyAnimations[id] = (
+          playing: playing,
+          loops: v == 0 ? was.loops : (v == 1 ? 0 : v - 1),
+        );
       case 'p':
         if (!kittyImages.containsKey(id)) {
           _err('a kitty placement of image $id, which the terminal lacks');
@@ -1291,7 +1346,11 @@ final class Vt {
           ids.remove(c.kitty?.id);
         }
       }
-      ids.forEach(kittyImages.remove);
+      for (final id in ids) {
+        kittyImages.remove(id);
+        kittyFrames.remove(id);
+        kittyAnimations.remove(id);
+      }
     }
   }
 

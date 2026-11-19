@@ -17,6 +17,8 @@ import 'terminal/sequences.dart';
 // Examples can assume:
 // import 'dart:typed_data';
 // late Uint8List png;
+// late Uint8List red;
+// late Uint8List blue;
 // late Canvas canvas;
 
 /// How a terminal shows images.
@@ -60,13 +62,17 @@ enum GraphicsProtocol {
 /// ```
 final class TerminalImage {
   /// An image of [pixelWidth] x [pixelHeight] pixels, [data] encoded for
-  /// [protocol].
+  /// [protocol]; for kitty with [animation], [data] is its first frame.
   TerminalImage(
     this.protocol,
     this.data, {
     required this.pixelWidth,
     required this.pixelHeight,
-  });
+    this.animation,
+  }) : assert(
+         animation == null || protocol == GraphicsProtocol.kitty,
+         'only kitty plays an animation itself',
+       );
 
   /// The protocol [data] is encoded for.
   final GraphicsProtocol protocol;
@@ -85,8 +91,66 @@ final class TerminalImage {
   /// The image's height in pixels (see [pixelWidth]).
   final int pixelHeight;
 
+  /// kitty: the frames after the first, which a terminal that plays them
+  /// ([TerminalCaps.kittyAnimation]) is sent once with the image and plays
+  /// on its own clock; another shows [data], the first. Null for a still
+  /// image.
+  final ImageAnimation? animation;
+
+  /// Whether the terminal plays [animation]: false stops it at the frame
+  /// it shows, true goes on from there. The presenter writes a change with
+  /// its next frame, so whoever sets it asks for one.
+  var playing = true;
+
   /// [data] in base64, encoded once.
   late final Uint8List _base64 = ascii.encode(base64.encode(data));
+}
+
+/// The frames of an animated kitty image after its first
+/// ([TerminalImage.data]), each a PNG file of the whole image as it looks
+/// while the frame shows, the time each frame shows, the first's too, and
+/// how many times they play.
+///
+/// Two frames, red then blue (`red` and `blue`, PNG files of 64 x 32
+/// pixels), half a second each, for ever:
+///
+/// ```dart
+/// final image = TerminalImage(
+///   GraphicsProtocol.kitty,
+///   red,
+///   pixelWidth: 64,
+///   pixelHeight: 32,
+///   animation: ImageAnimation(
+///     [blue],
+///     const [Duration(milliseconds: 500), Duration(milliseconds: 500)],
+///   ),
+/// );
+/// ```
+final class ImageAnimation {
+  /// [frames] after the first, shown for [delays] (one more than [frames],
+  /// the first frame's first), played [loops] times; 0, the default, for
+  /// ever.
+  ImageAnimation(this.frames, this.delays, {this.loops = 0})
+    : assert(frames.isNotEmpty, 'an animation has a second frame'),
+      assert(
+        delays.length == frames.length + 1,
+        'a delay for each frame, the first too',
+      ),
+      assert(loops >= 0, 'loops is 0 (for ever) or more');
+
+  /// The PNG files of the frames after the first.
+  final List<Uint8List> frames;
+
+  /// How long each frame shows, the first frame's first.
+  final List<Duration> delays;
+
+  /// How many times the frames play; 0 for ever. The last frame stays.
+  final int loops;
+
+  /// [frames] in base64, each encoded once.
+  late final List<Uint8List> _base64 = [
+    for (final f in frames) ascii.encode(base64.encode(f)),
+  ];
 }
 
 /// An image on a surface: [image] fills the [cols] x [rows] cells from
@@ -195,16 +259,76 @@ void kittyPlace(
     _put(out, '\x1b_G$sb\x1b\\', multiplexer);
     return;
   }
-  // chunks of at most 4096 bytes of base64, all but the last with m=1
+  _kittyData(out, '$sb', p.image._base64, multiplexer);
+}
+
+/// kitty command [keys] with [data] (base64) in chunks of at most 4096
+/// bytes, all but the last with `m=1`, the keys on the first alone.
+void _kittyData(
+  ByteSink out,
+  String keys,
+  Uint8List data,
+  Multiplexer multiplexer,
+) {
   const chunk = 4096;
-  final data = p.image._base64;
   for (var i = 0; i < data.length || i == 0; i += chunk) {
     final end = i + chunk < data.length ? i + chunk : data.length;
     final more = end < data.length ? 'm=1' : (i == 0 ? '' : 'm=0');
-    final keys = i == 0 ? (more.isEmpty ? '$sb' : '$sb,$more') : more;
-    putImageData(out, '\x1b_G$keys;', data, i, end, '\x1b\\', multiplexer);
+    final head = i == 0 ? (more.isEmpty ? keys : '$keys,$more') : more;
+    putImageData(out, '\x1b_G$head;', data, i, end, '\x1b\\', multiplexer);
   }
 }
+
+/// The bytes that give kitty image [id], just sent with its first frame,
+/// the frames after it of [animation] (`a=f`, each with the time it
+/// shows) and the first frame's time (`a=a,r=1`), then start it where
+/// [playing] ([kittyPlay]); a stopped one shows its first frame.
+void kittyAnimate(
+  ByteSink out,
+  ImageAnimation animation, {
+  required int id,
+  required bool playing,
+  Multiplexer multiplexer = Multiplexer.none,
+}) {
+  final frames = animation._base64;
+  for (var k = 0; k < frames.length; k++) {
+    _kittyData(
+      out,
+      'a=f,i=$id,f=100,t=d,z=${_gap(animation.delays[k + 1])},q=2',
+      frames[k],
+      multiplexer,
+    );
+  }
+  _put(
+    out,
+    '\x1b_Ga=a,i=$id,r=1,z=${_gap(animation.delays.first)},q=2\x1b\\',
+    multiplexer,
+  );
+  if (playing) {
+    kittyPlay(out, animation, id: id, playing: true, multiplexer: multiplexer);
+  }
+}
+
+/// The bytes that run kitty image [id]'s [animation] from the frame it
+/// shows, as many times as it plays, or with [playing] false stop it there.
+void kittyPlay(
+  ByteSink out,
+  ImageAnimation animation, {
+  required int id,
+  required bool playing,
+  Multiplexer multiplexer = Multiplexer.none,
+}) => _put(
+  out,
+  playing
+      // v: 1 for ever, else one more than the plays
+      ? '\x1b_Ga=a,i=$id,s=3,'
+            'v=${animation.loops == 0 ? 1 : animation.loops + 1},q=2\x1b\\'
+      : '\x1b_Ga=a,i=$id,s=1,q=2\x1b\\',
+  multiplexer,
+);
+
+/// [delay] in whole milliseconds as kitty takes a frame's gap, at least 1.
+int _gap(Duration delay) => delay.inMilliseconds < 1 ? 1 : delay.inMilliseconds;
 
 /// The bytes that delete placement [placement] of kitty image [id]; with
 /// [placement] 0 every placement of it, and the image itself.

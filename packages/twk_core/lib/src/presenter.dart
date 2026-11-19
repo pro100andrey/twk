@@ -83,8 +83,8 @@ final class TerminalCaps {
   /// Capabilities as given; left out, those nearly every terminal has:
   /// synchronized output, background color erase, hardware scrolling,
   /// full frames cleared, ICH/DCH and styled underlines, without REP,
-  /// Konsole's lines and images, left and right margins or a graphics
-  /// protocol.
+  /// Konsole's lines and images, left and right margins, a graphics
+  /// protocol or kitty's animation.
   const TerminalCaps({
     this.synchronizedOutput = true,
     this.backgroundColorErase = true,
@@ -98,6 +98,7 @@ final class TerminalCaps {
     this.leftRightMargins = false,
     this.graphics = GraphicsProtocol.none,
     this.graphicsMultiplexer = Multiplexer.none,
+    this.kittyAnimation = false,
     this.cellPixelWidth = 0,
     this.cellPixelHeight = 0,
   });
@@ -169,6 +170,14 @@ final class TerminalCaps {
   /// outside ([passthroughSequence]); none where it shows the images
   /// itself, as tmux 3.4 shows sixel.
   final Multiplexer graphicsMultiplexer;
+
+  /// The terminal plays a kitty image's frames itself (kitty's animation,
+  /// `a=f` and `a=a`): an image with an [ImageAnimation] is sent once,
+  /// all its frames with it, and the terminal steps them on its own clock.
+  /// Without it such an image shows its first frame. Off by default: of the
+  /// terminals with kitty's protocol only kitty is known to ([Terminal.open]
+  /// sets it there).
+  final bool kittyAnimation;
 
   /// A cell's width in pixels, which an image is scaled to cells by; 0
   /// when not known.
@@ -607,6 +616,7 @@ final class Presenter {
   /// it has (sent since the screen was last forgotten).
   final _kittyIds = Map<TerminalImage, int>.identity();
   final _kittySent = Set<TerminalImage>.identity();
+
   var _lastImageId = 0;
   var _lastPlacementId = 0;
 
@@ -1539,6 +1549,7 @@ final class Presenter {
     }
     if (lost) {
       _kittySent.clear();
+      _kittyPlaying.clear();
     }
     for (final s in shown) {
       s
@@ -1619,6 +1630,7 @@ final class Presenter {
           kittyDelete(out, id: id, multiplexer: multiplexer);
           _kittyIds.remove(image);
           _kittySent.remove(image);
+          _kittyPlaying.remove(image);
           _imageIdFreed(id);
         }
       }
@@ -1634,14 +1646,30 @@ final class Presenter {
         switch (graphics) {
           case GraphicsProtocol.kitty:
             placement = placements[k] == 0 ? ++_lastPlacementId : placements[k];
+            final id = _kittyIds[image] ??= _newImageId();
+            final transmit = _kittySent.add(image);
             kittyPlace(
               out,
               p,
-              id: _kittyIds[image] ??= _newImageId(),
+              id: id,
               placement: placement,
-              transmit: _kittySent.add(image),
+              transmit: transmit,
               multiplexer: multiplexer,
             );
+            if (transmit && caps.kittyAnimation) {
+              if (image.animation case final animation?) {
+                kittyAnimate(
+                  out,
+                  animation,
+                  id: id,
+                  playing: image.playing,
+                  multiplexer: multiplexer,
+                );
+                if (image.playing) {
+                  _kittyPlaying.add(image);
+                }
+              }
+            }
           case GraphicsProtocol.sixel:
             sixelDraw(
               out,
@@ -1685,6 +1713,37 @@ final class Presenter {
       );
     }
     _shown = next;
+    if (kitty && caps.kittyAnimation) {
+      _playAnimations(next);
+    }
+  }
+
+  /// kitty: stops the animations of [shown] the terminal plays whose
+  /// [TerminalImage.playing] went false, and runs again those it went true.
+  @pragma('vm:never-inline')
+  void _playAnimations(List<_Shown> shown) {
+    for (final s in shown) {
+      final image = s.at.image;
+      final animation = image.animation;
+      if (!s.drawn || animation == null) {
+        continue;
+      }
+      final playing = image.playing;
+      if (_kittyPlaying.contains(image) != playing) {
+        kittyPlay(
+          out,
+          animation,
+          id: _kittyIds[image]!,
+          playing: playing,
+          multiplexer: caps.graphicsMultiplexer,
+        );
+        if (playing) {
+          _kittyPlaying.add(image);
+        } else {
+          _kittyPlaying.remove(image);
+        }
+      }
+    }
   }
 
   /// Whether every cell [p] shows is still reserved: those of the rows
@@ -1869,6 +1928,7 @@ final class Presenter {
     }
     _kittyIds.clear();
     _kittySent.clear();
+    _kittyPlaying.clear();
     _shown = [];
   }
 
@@ -3128,6 +3188,10 @@ final class Presenter {
       _fillFlags(used, bestTop, bestBottom, 1);
     }
   }
+
+  /// kitty ([TerminalCaps.kittyAnimation]): the animated images the
+  /// terminal has that it plays, as last written ([TerminalImage.playing]).
+  final _kittyPlaying = Set<TerminalImage>.identity();
 }
 
 /// An image as the presenter last drew it: where ([at], a copy of the

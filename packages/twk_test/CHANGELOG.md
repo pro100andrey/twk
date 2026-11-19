@@ -13,6 +13,12 @@ Added:
 
 - The report of a failed `driverTest` names the last log records of each
   app.
+- `pumpWidget(kittyAnimation:)` gives the app a terminal that plays kitty's
+  animations (`TerminalCaps.kittyAnimation`); the emulator keeps an image's
+  frames (`a=f`, `Vt.kittyFrames`) and whether its animation plays and how
+  many times (`a=a`, `Vt.kittyAnimations`), and fails a frame or a control
+  of an image it lacks, a frame number past them, or a state it does not
+  know.
 
 Added:
 

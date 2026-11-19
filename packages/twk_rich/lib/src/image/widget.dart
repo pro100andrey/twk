@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show TerminalImage;
+import 'package:twk_core/twk_core.dart' show ImageAnimation, TerminalImage;
 
 import 'animated.dart';
 import 'bitmap.dart';
@@ -89,7 +89,11 @@ final class _Pixels extends ImageSource {
 /// frame shows for its delay, the plays its file asks for are made and the
 /// last frame stays. A frame is drawn as a still image is, in blocks or
 /// sent to the terminal again as the protocol takes it, each time the frame
-/// changes (the terminal's own animation, kitty's, is not used). Outside an
+/// changes. Where the terminal plays kitty's animations itself
+/// (`TerminalCaps.kittyAnimation`) the frames are sent to it once, all of
+/// them, and it steps them on its own clock, which a fake clock does not
+/// move. Under a [TickerMode] that is off the animation stands on the frame
+/// it shows, and goes on from it when the mode is on again. Outside an
 /// app, an animation shows its first frame.
 ///
 /// The box is [width] × [height] cells where given, within the
@@ -212,6 +216,7 @@ final class Image extends LeafRenderObjectWidget {
     forceBlocks: forceBlocks,
     cell: _cellOf(context),
     binding: AppBinding.maybeOf(context),
+    muted: !TickerMode.of(context),
   );
 
   @override
@@ -224,7 +229,8 @@ final class Image extends LeafRenderObjectWidget {
       ..alignment = alignment
       ..blockMode = _blockModeOf(context)
       ..forceBlocks = forceBlocks
-      ..cell = _cellOf(context);
+      ..cell = _cellOf(context)
+      ..muted = !TickerMode.of(context);
   }
 
   /// [blockMode], else the default of the terminal and the environment the
@@ -259,7 +265,9 @@ final class Image extends LeafRenderObjectWidget {
 /// protocol or a property changes, so that the presenter places the same
 /// image again without sending it. An animation steps on [binding]'s clock
 /// from its first paint, a frame callback asked for at the next frame's
-/// start while it is attached.
+/// start while it is attached and not [muted]; where the terminal plays
+/// kitty's animations, it is one image of all the frames, which the
+/// terminal plays.
 final class RenderImage extends RenderObject {
   /// Lays out and paints the image of [_source]; the others are as
   /// [Image]'s properties of the same names, [_cell] the size of the
@@ -274,6 +282,7 @@ final class RenderImage extends RenderObject {
     this._forceBlocks = false,
     this._cell = CellSize.fallback,
     this.binding,
+    this._muted = false,
   });
 
   /// The app whose clock steps an animation; without one, it shows its
@@ -292,7 +301,9 @@ final class RenderImage extends RenderObject {
       _size = null;
       _animation = null;
       _drawn = null;
+      _played = null;
       _startedAt = null;
+      _mutedAt = null;
       _cancelStep();
       markNeedsLayout();
     }
@@ -328,6 +339,7 @@ final class RenderImage extends RenderObject {
     if (f != _fit) {
       _fit = f;
       _drawn = null;
+      _played = null;
       markNeedsPaint();
     }
   }
@@ -376,8 +388,33 @@ final class RenderImage extends RenderObject {
     if (c != _cell) {
       _cell = c;
       _drawn = null;
+      _played = null;
       markNeedsLayout();
     }
+  }
+
+  bool _muted;
+
+  /// Whether an animation stands on the frame it shows, for a [TickerMode]
+  /// that is off: no frame asked for, a kitty animation stopped; from that
+  /// frame on when unmuted.
+  bool get muted => _muted;
+  set muted(bool m) {
+    if (m == _muted) {
+      return;
+    }
+    _muted = m;
+    final now = binding?.frameTime;
+    if (m) {
+      _mutedAt = now;
+      _cancelStep();
+    } else {
+      if ((_startedAt, _mutedAt, now) case (final s?, final at?, final n?)) {
+        _startedAt = s + (n - at);
+      }
+      _mutedAt = null;
+    }
+    markNeedsPaint();
   }
 
   Uint8List? _bytes;
@@ -387,8 +424,16 @@ final class RenderImage extends RenderObject {
   /// What each frame drew last, by its index; null where not yet.
   List<_Drawn?>? _drawn;
 
-  /// The app's time at the first paint of an animation.
+  /// The animation as one kitty image of all its frames, for a terminal
+  /// that plays them; null where not drawn so.
+  _Drawn? _played;
+
+  /// The app's time at the first paint of an animation, moved on by the
+  /// time it stood muted.
   Duration? _startedAt;
+
+  /// The app's time it was muted at; null while not muted.
+  Duration? _mutedAt;
   int? _stepCallback;
 
   /// The file's bytes, read once.
@@ -421,8 +466,12 @@ final class RenderImage extends RenderObject {
       return 0;
     }
     final started = _startedAt ??= b.frameTime;
-    final elapsed = b.frameTime - started;
+    final now = _muted ? (_mutedAt ??= b.frameTime) : b.frameTime;
+    final elapsed = now - started;
     _cancelStep();
+    if (_muted) {
+      return animation.indexAt(elapsed);
+    }
     if (animation.nextChangeAfter(elapsed) case final next?) {
       _stepCallback = b.scheduleFrameCallback(
         (_) {
@@ -447,6 +496,9 @@ final class RenderImage extends RenderObject {
     _cancelStep();
     // starts again from its first frame when attached again
     _startedAt = null;
+    if (_muted) {
+      _mutedAt = null; // taken at the next paint
+    }
     super.detach();
   }
 
@@ -533,9 +585,28 @@ final class RenderImage extends RenderObject {
     if (width == 0 || height == 0) {
       return;
     }
-    final protocol = _forceBlocks
-        ? GraphicsProtocol.none
-        : ctx.presenter.caps.graphics;
+    final caps = ctx.presenter.caps;
+    final protocol = _forceBlocks ? GraphicsProtocol.none : caps.graphics;
+    if (protocol == GraphicsProtocol.kitty &&
+        caps.kittyAnimation &&
+        binding != null &&
+        _frames.isAnimated) {
+      // the terminal plays it: no frame asked for here
+      _cancelStep();
+      var d = _played;
+      if (d == null || d.boxWidth != width || d.boxHeight != height) {
+        d = _played = _drawPlayed();
+      }
+      final image = d.image!..playing = !_muted;
+      ctx.canvas.image(
+        _alignment.dx(width - d.columns),
+        _alignment.dy(height - d.rows),
+        d.columns,
+        d.rows,
+        image,
+      );
+      return;
+    }
     final index = _frameIndex();
     final drawn = _drawn ??= List.filled(_frames.frames.length, null);
     var d = drawn[index];
@@ -576,15 +647,6 @@ final class RenderImage extends RenderObject {
   _Drawn _draw(GraphicsProtocol protocol, int index) {
     final pixels = _frames.frames[index].bitmap;
     final cell = _cell;
-    CellFit fitted({int bandHeight = 1}) => CellFit(
-      pixels.width,
-      pixels.height,
-      columns: width,
-      rows: height,
-      cell: cell,
-      fit: _fit,
-      bandHeight: bandHeight,
-    );
     switch (protocol) {
       case GraphicsProtocol.none:
         final blocks = BlockImage(
@@ -605,7 +667,15 @@ final class RenderImage extends RenderObject {
         );
       case GraphicsProtocol.sixel:
         // whole bands of six pixels, so that the last does not scroll
-        final f = fitted(bandHeight: 6);
+        final f = CellFit(
+          pixels.width,
+          pixels.height,
+          columns: width,
+          rows: height,
+          cell: cell,
+          fit: _fit,
+          bandHeight: 6,
+        );
         final image = TerminalImage(
           protocol,
           encodeSixel(f.scale(pixels)),
@@ -614,23 +684,65 @@ final class RenderImage extends RenderObject {
         );
         return _Drawn(protocol, width, height, f.columns, f.rows, image: image);
       case GraphicsProtocol.kitty || GraphicsProtocol.iterm2:
-        // the terminal stretches the image to its cells: the pixels short
-        // of them are transparent, so that it keeps its aspect
-        final f = fitted();
-        final padded = _padded(
-          f.scale(pixels),
-          f.columns * cell.width,
-          f.rows * cell.height,
-        );
-        final encoded = pngImage(padded);
+        final (encoded, columns, rows) = _png(index);
         final image = TerminalImage(
           protocol,
           encoded.data,
           pixelWidth: encoded.pixelWidth,
           pixelHeight: encoded.pixelHeight,
         );
-        return _Drawn(protocol, width, height, f.columns, f.rows, image: image);
+        return _Drawn(protocol, width, height, columns, rows, image: image);
     }
+  }
+
+  /// The frame [index] scaled to the box as a PNG file, for kitty or
+  /// iTerm2, and the columns and rows it takes. The terminal stretches the
+  /// image to its cells: the pixels short of them are transparent, so that
+  /// it keeps its aspect.
+  (EncodedImage, int, int) _png(int index) {
+    final pixels = _frames.frames[index].bitmap;
+    final cell = _cell;
+    final f = CellFit(
+      pixels.width,
+      pixels.height,
+      columns: width,
+      rows: height,
+      cell: cell,
+      fit: _fit,
+    );
+    final padded = _padded(
+      f.scale(pixels),
+      f.columns * cell.width,
+      f.rows * cell.height,
+    );
+    return (pngImage(padded), f.columns, f.rows);
+  }
+
+  /// The animation as one kitty image: its first frame, and the others for
+  /// the terminal to play, each scaled to the box as [_png] scales it.
+  _Drawn _drawPlayed() {
+    final animation = _frames;
+    final frames = animation.frames;
+    final (first, columns, rows) = _png(0);
+    final image = TerminalImage(
+      GraphicsProtocol.kitty,
+      first.data,
+      pixelWidth: first.pixelWidth,
+      pixelHeight: first.pixelHeight,
+      animation: ImageAnimation(
+        [for (var i = 1; i < frames.length; i++) _png(i).$1.data],
+        [for (final f in frames) f.delay],
+        loops: animation.loops,
+      ),
+    );
+    return _Drawn(
+      GraphicsProtocol.kitty,
+      width,
+      height,
+      columns,
+      rows,
+      image: image,
+    );
   }
 
   /// [image] at the top left of [width] × [height] pixels, transparent

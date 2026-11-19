@@ -133,6 +133,26 @@ void main() {
     });
   });
 
+  testTwk('muted by a TickerMode it stands on the frame it shows, asking '
+      'for no frames, and goes on from that frame when unmuted', (t) async {
+    final bytes = twoFrames(loop: 0);
+    Widget app({required bool enabled}) =>
+        TickerMode(enabled: enabled, child: topLeft(Image.memory(bytes)));
+    await t.pumpWidget(app(enabled: true), duration: Duration.zero);
+    await t.pump(const Duration(milliseconds: 150));
+    expect(shownColor(t), cellColor(blue), reason: 'at 150 ms');
+    await t.pumpWidget(app(enabled: false), duration: Duration.zero);
+    expect(t.clock.pendingTimers, 0, reason: 'no frame callback');
+    await t.pump(const Duration(seconds: 3));
+    expect(shownColor(t), cellColor(blue), reason: 'it stands');
+    await t.pumpWidget(app(enabled: true), duration: Duration.zero);
+    // 150 ms of the play were shown: blue for 249 ms more, then red
+    await t.pump(const Duration(milliseconds: 249));
+    expect(shownColor(t), cellColor(blue));
+    await t.pump(const Duration(milliseconds: 1));
+    expect(shownColor(t), cellColor(red), reason: 'the next play');
+  });
+
   group('protocols', () {
     testTwk('kitty: the frame sent again on each change, one image shown', (
       t,
@@ -149,6 +169,63 @@ void main() {
       await t.pump(const Duration(milliseconds: 300));
       expect(sent(), 3);
       expect([for (final i in t.vt.images) '$i'], hasLength(1));
+    });
+
+    testTwk("kitty that plays kitty's animations: the frames sent once, "
+        'the terminal plays them, the app asks for no frames', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.memory(twoFrames(loop: 0))),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      final o = written(t);
+      expect(count(o, 'a=T'), 1);
+      expect(count(o, 'a=f,'), 1);
+      expect(o, contains('a=f,i=1,f=100,t=d,z=300,q=2'));
+      expect(o, contains('a=a,i=1,r=1,z=100,q=2'));
+      expect(o, contains('a=a,i=1,s=3,v=1,q=2'));
+      expect(t.vt.kittyFrames, {1: 1});
+      expect(t.vt.kittyAnimations, {1: (playing: true, loops: 0)});
+      expect(t.clock.pendingTimers, 0, reason: 'no frame callback');
+      final before = t.terminal.frames.length;
+      await t.pump(const Duration(seconds: 2));
+      expect(t.terminal.frames, hasLength(before));
+    });
+
+    testTwk('kitty: a GIF that plays once, played as many times by the '
+        'terminal', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.memory(twoFrames())),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      expect(t.vt.kittyAnimations[1], (playing: true, loops: 1));
+    });
+
+    testTwk('kitty: muted by a TickerMode, the terminal stops it; unmuted, '
+        'runs it again, nothing sent anew', (t) async {
+      final bytes = twoFrames(loop: 0);
+      Widget app({required bool enabled}) => TickerMode(
+        enabled: enabled,
+        child: topLeft(Image.memory(bytes)),
+      );
+      await t.pumpWidget(
+        app(enabled: true),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      // a frame a 60th of a second after the last
+      const next = Duration(milliseconds: 17);
+      await t.pumpWidget(app(enabled: false), duration: next);
+      expect(written(t), contains('a=a,i=1,s=1,q=2'));
+      expect(t.vt.kittyAnimations[1]!.playing, isFalse);
+      await t.pumpWidget(app(enabled: true), duration: next);
+      expect(t.vt.kittyAnimations[1]!.playing, isTrue);
+      expect(count(written(t), 'a=T'), 1);
+      expect(count(written(t), 'a=f,'), 1);
     });
 
     testTwk('sixel: the frame sent again on each change', (t) async {
