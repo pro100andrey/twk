@@ -533,8 +533,11 @@ bool sextantsFor(Map<String, String> env, {String version = ''}) {
   if (version.startsWith('kitty(')) {
     return _atLeast(version.substring(6), const [0, 19, 3]);
   }
-  if (version.startsWith('foot(') || version.startsWith('ghostty ')) {
+  if (version.startsWith('foot(')) {
     return true;
+  }
+  if (version.startsWith('ghostty ')) {
+    return _atLeast(version.substring(8), const [1]);
   }
   if (version.startsWith('WezTerm ')) {
     return _atLeast(version.substring(8), const [20210814]);

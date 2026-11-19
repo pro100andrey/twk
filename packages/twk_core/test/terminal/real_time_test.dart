@@ -116,4 +116,33 @@ void main() {
     await writer.close();
     expect(made, isEmpty);
   });
+
+  test("a state's refresh is a timer of the terminal's zone, not of the "
+      "caller's", () async {
+    final link = FakeLink()..type(_answers);
+    final term = await Terminal.overLink(
+      link,
+      const TerminalOptions(probeTimeout: Duration(seconds: 5)),
+    );
+    final (zone, made) = _counting();
+    zone.run(
+      () => term.setTerminalState(
+        #r,
+        '<R>',
+        '<r>',
+        refresh: const Duration(milliseconds: 10),
+      ),
+    );
+    expect(made, isEmpty);
+    // and it fires, in real time
+    await waitFor(
+      Future.doWhile(() async {
+        await pumpEventQueue();
+        return '<R>'.allMatches(link.text).length < 2;
+      }),
+      'the refresh to be written again',
+    );
+    term.restoreTerminalState(#r);
+    await term.close();
+  });
 }

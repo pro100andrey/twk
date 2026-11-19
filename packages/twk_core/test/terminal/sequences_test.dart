@@ -324,6 +324,8 @@ void main() {
         (<String, String>{}, ''),
         ({'TERM': 'xterm-256color'}, ''),
         ({'TERM': 'alacritty'}, ''),
+        // Ghostty before 1.0, over its own TERM
+        ({'TERM': 'xterm-ghostty'}, 'ghostty 0.9.1'),
         ({'TERM': 'xterm'}, 'XTerm(390)'),
         ({'TERM_PROGRAM': 'Apple_Terminal'}, ''),
         ({'TERM_PROGRAM': 'iTerm.app', 'TERM_PROGRAM_VERSION': '3.6.6'}, ''),

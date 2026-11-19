@@ -45,6 +45,11 @@ void main() {
       group: true,
     );
     expect(res.exitCode, 0, reason: '${res.stdout}${res.stderr}');
-    expect(said.readAsStringSync(), 'opened opened TerminalException');
+    final [verdict, message] = said.readAsStringSync().split('\n');
+    expect(verdict, 'opened opened TerminalException');
+    // the first has not returned: there is nothing to suspend or close
+    expect(message, contains('being opened'));
+    expect(message, contains('await'));
+    expect(message, isNot(contains('suspend()')));
   }, timeout: const Timeout(Duration(minutes: 2)));
 }

@@ -312,6 +312,34 @@ void main() {
         await clock.runUntil(term.close);
       });
 
+      test('a terminal that answers one of the two does not leave the other '
+          "owing: a later round's answer is taken", () async {
+        final (term, link, events) = await start('$_on$_cellSize');
+        // round 1: only CSI 16 t is answered (a cell is 20 x 40)
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        link.type('\x1b[6;40;20t');
+        await clock.flushMicrotasks();
+        // round 2: only CSI 14 t (240 x 600 over 30 x 6 cells: 8 x 100)
+        link.resize(30, 6);
+        await clock.flushMicrotasks();
+        link.type('\x1b[4;600;240t');
+        await clock.flushMicrotasks();
+        link.type('\x1b[<0;41;101M');
+        await clock.flushMicrotasks();
+        expect(
+          events.last,
+          const MouseEvent(
+            MouseKind.down,
+            5,
+            1,
+            offsetX: 0,
+            offsetY: 0,
+          ),
+        );
+        await clock.runUntil(term.close);
+      });
+
       test('is not asked at a resize where the pixel mouse is off', () async {
         final link = FakeLink();
         final term = await open(

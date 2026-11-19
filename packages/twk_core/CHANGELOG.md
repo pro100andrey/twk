@@ -56,6 +56,22 @@ Changed:
   output's retries in the zone it was opened in, the log server's token
   wait and the trace's drain in the root zone. `TwkApp.inFrame`.
 
+Fixed:
+
+- A second `Terminal.open` while the first is still opening is refused with
+  its own message (await the first), not the one for a terminal that can be
+  suspended or closed, which cannot be done to one not returned yet.
+- A terminal state's `refresh:` timer is made in the terminal's own zone, as
+  the other I/O timers are: a driven app's (`TWK_DRIVEN`) fake clock no
+  longer holds it, so a progress refresh fires and Ghostty keeps showing it.
+- A terminal that answers only one of the two cell-size re-asks (CSI 16 t,
+  CSI 14 t) no longer leaves the other owing for good: later answers are
+  taken again.
+- Ghostty's sextants are told by its XTVERSION from 1.0 on, as documented,
+  not for any version.
+- Reading whether SIGHUP is ignored no longer reads address 0 when the
+  allocation fails.
+
 Added:
 
 - `ImageKeep` and `TerminalImage(keep:)`: on kitty's protocol the images

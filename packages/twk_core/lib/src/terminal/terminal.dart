@@ -12,6 +12,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show min;
 import 'dart:typed_data';
 
 import '../graphics.dart';
@@ -1059,7 +1060,9 @@ final class Terminal
   /// The process has one terminal: with another open on it (not suspended,
   /// [suspend]) this throws a [TerminalException], also in a release build,
   /// before anything is done to the tty; [resume] does the same where
-  /// another has it by then. Terminals over a link ([overLink],
+  /// another has it by then. Another still being opened (not returned yet,
+  /// so there is nothing to suspend or close) is refused with a message of
+  /// its own: await that open first. Terminals over a link ([overLink],
   /// [connect]) are independent of it and of each other.
   ///
   /// On the web, which has neither, throws [UnsupportedError]: a terminal
@@ -1318,11 +1321,19 @@ final class Terminal
   /// Throws a [TerminalException] where another terminal holds the
   /// process's stdio (open, and not suspended), as [what] would be a second
   /// reader of it: raw mode would be entered twice (and left on), and keys
-  /// go to either one.
+  /// go to either one. One still being opened is told apart: it cannot be
+  /// suspended or closed before its open returns, so the message says to
+  /// await it.
   static void _refuseIfTaken(String what) {
+    if (_stdioOpening) {
+      throw TerminalException(
+        "the process's terminal cannot be $what while another terminal is "
+        'being opened on it: await that open first (it cannot be suspended '
+        'or closed before it returns)',
+      );
+    }
     final other = _ofStdio;
-    if (_stdioOpening ||
-        (other != null && !other._closed && !other._suspended)) {
+    if (other != null && !other._closed && !other._suspended) {
       throw TerminalException(
         "the process's terminal cannot be $what while another terminal "
         'has it: suspend() that one first (and resume() it after), or '
@@ -1947,11 +1958,14 @@ final class Terminal
     _states[key] = (sequence, restore);
     _refreshes.remove(key)?.cancel();
     if (refresh != null) {
-      _refreshes[key] = Timer.periodic(refresh, (_) {
-        if (!_suspended) {
-          _writeString(sequence);
-        }
-      });
+      // real time: a driven app's clock would hold it
+      _refreshes[key] = _realZone.run(
+        () => Timer.periodic(refresh, (_) {
+          if (!_suspended) {
+            _writeString(sequence);
+          }
+        }),
+      );
     }
     if (!_suspended) {
       if (sequence.isNotEmpty) {
@@ -2222,16 +2236,21 @@ final class Terminal
     // a re-ask while an earlier one is unanswered adds its two answers: they
     // arrive in order, and the earlier round's CSI 14 t reply must not
     // overwrite what CSI 16 t of any round told
-    if (_sizeReplies == 0) {
+    if (_cellReplies == 0) {
       _cellAnswered = false;
     }
-    _sizeReplies += 2;
+    _cellReplies++;
+    _areaReplies++;
     _writeString('\x1b[16t\x1b[14t');
   }
 
-  /// How many answers to the re-asks ([_refreshCellSize]) may still
-  /// come: they are taken here, not delivered as input.
-  var _sizeReplies = 0;
+  /// How many answers to the re-asks ([_refreshCellSize]) may still come,
+  /// of CSI 16 t and of CSI 14 t: they are taken here, not delivered as
+  /// input. The two are counted apart: a terminal may answer one only, and
+  /// an answer that arrives then tells that the earlier ones of the other
+  /// kind will not (they come in order, a round's CSI 16 t first).
+  var _cellReplies = 0;
+  var _areaReplies = 0;
 
   /// Whether CSI 16 t answered a re-ask not yet fully answered: the text
   /// area then is not needed.
@@ -2239,12 +2258,14 @@ final class Terminal
 
   /// Takes [e] if it is an answer to the re-ask for a cell's size.
   bool _takeSizeReply(InputEvent e) {
-    if (_sizeReplies == 0 || e is! UnknownSequence) {
+    if (e is! UnknownSequence || (_cellReplies == 0 && _areaReplies == 0)) {
       return false;
     }
     final s = String.fromCharCodes(e.bytes);
-    if (_cellSizeReply.firstMatch(s) case final m?) {
-      _sizeReplies--;
+    if (_cellSizeReply.firstMatch(s) case final m? when _cellReplies > 0) {
+      _cellReplies--;
+      // the 14 t answers of the rounds before this one are not coming
+      _areaReplies = min(_areaReplies, _cellReplies + 1);
       final h = int.parse(m[1]!);
       final w = int.parse(m[2]!);
       if (w > 0 && h > 0) {
@@ -2255,8 +2276,10 @@ final class Terminal
       }
       return true;
     }
-    if (_textAreaReply.firstMatch(s) case final m?) {
-      _sizeReplies--;
+    if (_textAreaReply.firstMatch(s) case final m? when _areaReplies > 0) {
+      _areaReplies--;
+      // nor the 16 t answers of this round and the ones before
+      _cellReplies = min(_cellReplies, _areaReplies);
       if (!_cellAnswered) {
         final w = int.parse(m[2]!) ~/ _link.columns;
         final h = int.parse(m[1]!) ~/ _link.lines;
