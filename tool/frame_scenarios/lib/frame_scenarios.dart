@@ -528,6 +528,56 @@ final frameScenarios = <FrameScenario>[
       ambiguousWidth: 2,
     ),
   ],
+  FrameScenario(
+    'dash',
+    'the dashboard of Hawk TUI as twk widgets build it: 40 list rows whose '
+        'text changes, the selected row moved, the progress bar grown',
+    (hs) {
+      final s = _Dash(hs)..render();
+      return (i) {
+        s
+          ..rows(i)
+          ..select(i)
+          ..progress(i);
+        return s.render();
+      };
+    },
+    steps: 1000,
+  ),
+  FrameScenario(
+    'dash-rows',
+    "the same, only the rows' text changed",
+    (hs) {
+      final s = _Dash(hs)..render();
+      return (i) {
+        s.rows(i);
+        return s.render();
+      };
+    },
+    steps: 1000,
+  ),
+  FrameScenario('dash-one', 'the same, only the progress bar grown', (hs) {
+    final s = _Dash(hs)..render();
+    return (i) {
+      s.progress(i);
+      return s.render();
+    };
+  }),
+  FrameScenario(
+    'dash-bd',
+    'dash with its List and Body panels in repaint boundaries',
+    (hs) {
+      final s = _Dash(hs, boundaries: true)..render();
+      return (i) {
+        s
+          ..rows(i)
+          ..select(i)
+          ..progress(i);
+        return s.render();
+      };
+    },
+    steps: 1000,
+  ),
   if (hasKittyAnimation)
     FrameScenario(
       'img-kitty-anim',
@@ -741,6 +791,170 @@ List<int> _utf8(int cp) => cp < 0x80
     : cp < 0x800
     ? [0xC0 | cp >> 6, 0x80 | cp & 0x3F]
     : [0xE0 | cp >> 12, 0x80 | cp >> 6 & 0x3F, 0x80 | cp & 0x3F];
+
+/// The text of the dashboard's Header and Body.
+const _lorem =
+    'The quick brown fox jumps over the lazy dog while the terminal renderer '
+    'diffs two frame buffers and emits the minimal escape sequence stream '
+    'required to bring the screen up to date without flicker or tearing on '
+    'any modern emulator.';
+
+/// Hawk TUI's dashboard on a 200 × 50 rig, of the render objects twk's
+/// widgets make for it (the adapter of a third party's benchmark,
+/// rtwk-hawk-benchmark: Column, Row, Expanded, SizedBox, Box with a border
+/// and a title, Text): a Header, a List of 40 rows in boxes, a Body of
+/// word-wrapped text in green, a progress bar. A frame changes the rows'
+/// text ([rows]), the selected row ([select]), the bar ([progress]) as a
+/// widget update sets them; with `boundaries` the List and the Body are in
+/// repaint boundaries, as twk's `RepaintBoundary` makes them.
+final class _Dash extends _Scene {
+  _Dash(super.hs, {bool boundaries = false}) {
+    if (hs.surface.width < 40 || hs.surface.height < 46) {
+      throw ScenarioBroken('the dashboard needs 40 × 46 cells at least');
+    }
+    RenderObject boxed(RenderObject child) =>
+        boundaries ? (_Boundary()..child = child) : child;
+    for (var i = 0; i < 40; i++) {
+      final text = RenderParagraph([
+        (_row(i, 0), const Pen()),
+      ], autoKeepsPaint: true);
+      _rows.add(text);
+      _boxes.add(RenderDecoratedBox(background: _plain, child: text));
+    }
+    _boxes.first.background = _reverse;
+    _bar = RenderParagraph(
+      [(_barText(0), const Pen())],
+      wrap: TextWrap.none,
+      autoKeepsPaint: true,
+    );
+    final middle = RenderFlex(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _expanded(
+          boxed(
+            _panel(
+              'List',
+              _plain,
+              RenderFlex(
+                direction: Axis.vertical,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _boxes,
+              ),
+            ),
+          ),
+        ),
+        _expanded(
+          boxed(
+            _panel(
+              'Body',
+              _green,
+              RenderParagraph([(_lorem, const Pen())], autoKeepsPaint: true),
+            ),
+          ),
+        ),
+      ],
+    );
+    owner.root = RenderFlex(
+      direction: Axis.vertical,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _tall(
+          3,
+          _panel(
+            'Header',
+            _plain,
+            RenderParagraph(
+              [(_lorem, const Pen())],
+              wrap: TextWrap.none,
+              autoKeepsPaint: true,
+            ),
+          ),
+        ),
+        _expanded(middle),
+        _tall(3, _panel('Progress', _plain, _bar)),
+      ],
+    );
+  }
+
+  static const _plain = Pen();
+  static const _green = Pen(fg: Color.green);
+  static const _reverse = Pen(attrs: Attr.reverse);
+
+  final _rows = <RenderParagraph>[];
+  final _boxes = <RenderDecoratedBox>[];
+  late final RenderParagraph _bar;
+  var _selected = 0;
+
+  static String _row(int i, int frame) =>
+      'item ${i.toString().padLeft(3)} - tick ${frame % 1000}';
+
+  static String _barText(int frame) {
+    final label = '${frame % 100}%';
+    final left = (198 - label.length) ~/ 2;
+    final bar = (198 * ((frame % 100) / 100)).round();
+    final chars = List.generate(198, (i) => i < bar ? '█' : ' ')
+      ..setRange(left, left + label.length, label.split(''));
+    return chars.join();
+  }
+
+  static RenderDecoratedBox _panel(
+    String title,
+    Pen pen,
+    RenderObject child,
+  ) => RenderDecoratedBox(
+    background: pen,
+    border: BoxBorder.all(pen: pen),
+    titles: [BoxTitle(title)],
+    child: child,
+  );
+
+  static RenderObject _expanded(RenderObject child) {
+    final data = FlexParentData()..flex = 1;
+    return child..parentData = data;
+  }
+
+  static RenderObject _tall(int rows, RenderObject child) =>
+      RenderConstrainedBox(
+        additionalConstraints: BoxConstraints.tightFor(height: rows),
+        child: child,
+      );
+
+  /// The rows' text of frame [i].
+  void rows(int i) {
+    for (var k = 0; k < 40; k++) {
+      _rows[k].spans = [(_row(k, i), const Pen())];
+    }
+  }
+
+  /// The row of frame [i] selected, the one before not.
+  void select(int i) {
+    _boxes[_selected].background = _plain;
+    _selected = i % 40;
+    _boxes[_selected].background = _reverse;
+  }
+
+  /// The progress bar of frame [i].
+  void progress(int i) => _bar.spans = [(_barText(i), const Pen())];
+}
+
+/// A repaint boundary as twk's `RepaintBoundary` widget makes it.
+final class _Boundary extends RenderEffect {
+  @override
+  bool get hasEffect => false;
+
+  @override
+  void effectCell(
+    int x,
+    int y,
+    int glyph,
+    StyleId style,
+    int underGlyph,
+    StyleId underStyle,
+  ) {
+    effectGlyph = glyph;
+    effectStyle = style;
+  }
+}
 
 /// A render tree on a rig, driven the way `TwkApp` drives it.
 abstract base class _Scene {

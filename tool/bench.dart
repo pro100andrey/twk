@@ -43,6 +43,16 @@
 // They use only what the baseline's core has (RenderParagraph and its wrap,
 // overflow and maxLines), so every baseline has their numbers.
 //
+// Scenarios of Hawk TUI's dashboard (a third party's benchmark of twk
+// against Rust frameworks, rtwk-hawk-benchmark, 2026-11), of the render
+// objects twk's widgets make for it: a Header, a List of 40 rows in boxes,
+// a word-wrapped Body, a progress bar, in bordered and titled panels:
+//   dash       the 40 rows' text changed, the selection moved, the bar
+//              grown, as the benchmark's every frame
+//   dash-rows  the rows' text alone
+//   dash-one   the bar alone
+//   dash-bd    dash with the List and the Body in repaint boundaries
+//
 // Scenarios of an image of 12 frames of 40 x 12 cells beside a spinner,
 // built of the core's TerminalImages (the decoders of twk_rich left out;
 // what a frame costs the core and the terminal):
