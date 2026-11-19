@@ -32,7 +32,7 @@ is the walkthrough's app.
 
 `test/command_test.dart` runs `dart run twk_dev:twk` the way a developer does,
 and `runTwk` in the test's process where a command does not get as far as the
-terminal: `--help` must list exactly the nine subcommands, `twk inspect` with
+terminal: `--help` must list exactly the subcommands the test names, `twk inspect` with
 two addresses must exit with 64, with one nothing answers at and without a
 terminal with 1, `twk run` without a file must exit with 64 and with a file
 that is not there with 1, `twk shell` without a terminal must say so and exit
