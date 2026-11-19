@@ -160,7 +160,7 @@ AnimatedImage decodeGif(Uint8List bytes) {
           throw const FormatException('GIF holds an unknown block');
       }
     }
-  } on FormatException {
+  } on _Cut {
     if (frames.isEmpty) {
       rethrow;
     }
@@ -327,14 +327,19 @@ Uint8List _lzw(_Reader r, int count) {
   return out;
 }
 
-/// Reads [data] in order, a [FormatException] where it is cut short.
+/// The [FormatException] of a file that ends before its data does.
+final class _Cut extends FormatException {
+  const _Cut() : super('GIF file cut short');
+}
+
+/// Reads [data] in order, a [_Cut] where it is cut short.
 final class _Reader {
   _Reader(this.data);
 
   final Uint8List data;
   var pos = 0;
 
-  static const _cut = FormatException('GIF file cut short');
+  static const _cut = _Cut();
 
   int u8() {
     if (pos >= data.length) {

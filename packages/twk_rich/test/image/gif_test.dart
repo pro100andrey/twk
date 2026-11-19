@@ -219,6 +219,17 @@ void main() {
       expect(decodeGif(cut).frames, hasLength(1));
     });
 
+    test('a frame of invalid data after a first is refused, not dropped', () {
+      final bytes = gifBytes(2, 1, palette, [
+        GifImage(2, 1, [0, 0]),
+        GifImage(2, 1, [0, 0]),
+      ]);
+      // the last frame's LZW data, up to its block's end and the trailer
+      final bad = Uint8List.fromList(bytes)
+        ..fillRange(bytes.length - 4, bytes.length - 2, 0xFF);
+      expect(() => decodeGif(bad), throwsFormatException);
+    });
+
     test('a size past the screen is refused', () {
       expect(
         () => decodeGif(

@@ -46,6 +46,8 @@ Added:
 
 Fixed:
 
+- `decodeGif` keeps the frames before the cut only for a file cut short, as
+  its documentation says: a later frame of invalid data throws, it was dropped.
 - A `MarkdownView` table answers its height to a parent that asks for
   intrinsic sizes (the inline screen's root) in the frame it is built, not
   one build late: no overflow on the first frame or on each appended row.
