@@ -21,8 +21,8 @@ text
 │     Chart                        offset 0 of 94                                │
 │     DotCanvas                  └                                    ┘          │
 │     Calendar         ──────────────────────────────────────────────────────────│
-│     Heatmap, Acti…     items       100  10 000  1 000 000  growing  chat      ▐│
-│                                    feed                                        │
+│     Heatmap, Acti…     items        100  10 000  1 000 000  growing  chat     ▐│
+│                                     feed                                       │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeeayyyyyyaaaaaadaddddaa│
@@ -46,8 +46,8 @@ styles
 │aaaaannnnnaaaaaaaaaaaaggggggggggggmmmmmmgrgmmgrrgggggggggggggggggggggggggggggggg│
 │aaaaannnnnnnnnaaaaaaaaggggggggggoggggggggggggggggggggggggggggggggggggogggggggggg│
 │aaaaannnnnnnnaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnnnannnnnaaaggmmmmmggggggtuuuthxxhxxxhhxhxxxhxxxhhxxxxxxxhhxxxxhgggggm│
-│aaaaaaaaaaaaaaaaaaaaaaggggggggggggghxxxxhggggggggggggggggggggggggggggggggggggggg│
+│aaaaannnnnnnnannnnnaaaggmmmmmgggggggtuuuthxxhxxxhhxhxxxhxxxhhxxxxxxxhhxxxxhggggm│
+│aaaaaaaaaaaaaaaaaaaaaagggggggggggggghxxxxhgggggggggggggggggggggggggggggggggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25

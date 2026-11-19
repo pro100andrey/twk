@@ -4,6 +4,15 @@
 
 Added:
 
+- `ListView.builder` and `ListView.separated` take `itemText`: the text of
+  each item (`ItemText`, one line in one or more runs at columns of the
+  item) for a `SelectionArea` above the list, which then selects across the
+  items, those not built too, scrolls the list while a drag is past its edge
+  and copies one line for each item, as it does in a `LogView`. The
+  items' own `Text`s are left out of the area; an item draws what is
+  selected of its text by asking `ListView.selectionOf` (`ItemSelection`,
+  with `spans` and `mark` for `Text.rich`). The controller's `select` and
+  `selectAll` reach it as any `Selectable`.
 - `SelectionAreaController.select(start, end)`, `selectAll()`, `start` and
   `end`: select between two places (`SelectionPoint`, a `RenderParagraph` or
   `Selectable` and an offset in its text) or all the text from outside, and

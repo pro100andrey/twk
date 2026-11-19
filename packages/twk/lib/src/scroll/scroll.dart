@@ -2,6 +2,7 @@
 /// and the thumb a scrollbar paints, for a painter of an app's own.
 library;
 
+export 'list_selection.dart' show ItemSelection, ItemText, ItemTextBuilder;
 export 'list_view.dart';
 export 'log_view.dart';
 export 'scroll_behavior.dart';

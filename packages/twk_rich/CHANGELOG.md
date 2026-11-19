@@ -4,6 +4,11 @@
 
 Added:
 
+- `DiffView` is selected with the mouse below a `SelectionArea`
+  (`selectable`, on by default): a drag across the rows, scrolling it past
+  the edge, copies the lines' code as shown, the numbers and signs left
+  out, side by side the two sides of a row joined by a tab; the selected
+  part is drawn over the syntax colors. It is a `ListView` with `itemText`.
 - Animated images: `decodeGif` (LZW, interlace, local palettes,
   transparency, disposal, delays and the NETSCAPE2.0 plays), `decodeApng`
   (frames composed by the dispose and blend operations; `decodePng` still

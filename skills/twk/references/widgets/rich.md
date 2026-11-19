@@ -196,7 +196,7 @@ Widget build(BuildContext context) {
 
 ## DiffView
 
-The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted.
+The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted; its lines are selected and copied without their numbers.
 
 Package: `twk_rich`.
 
@@ -262,7 +262,8 @@ Widget build(BuildContext context) {
     height: 22,
     child: Scrollbar(
       style: Theme.of(context).border,
-      child: DiffView(_diff),
+      // drag across the lines to select their code
+      child: SelectionArea(child: DiffView(_diff)),
     ),
   );
 }

@@ -273,6 +273,8 @@ twk.dart class Intent
 twk.dart class Interval
 twk.dart class IntrinsicHeight
 twk.dart class IntrinsicWidth
+twk.dart class ItemSelection
+twk.dart class ItemText
 twk.dart class Key
 twk.dart class KeyBindings
 twk.dart class KeyCombo
@@ -640,6 +642,7 @@ twk.dart typedef GestureDragUpdateCallback
 twk.dart typedef GestureTapDownCallback
 twk.dart typedef GestureTapUpCallback
 twk.dart typedef IndexedWidgetBuilder
+twk.dart typedef ItemTextBuilder
 twk.dart typedef LayoutWidgetBuilder
 twk.dart typedef NotificationListenerCallback
 twk.dart typedef PointerEventListener

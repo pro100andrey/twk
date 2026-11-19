@@ -28,6 +28,15 @@ final _listviewStick = ChoiceOption<String>(
   disabled: (o) => o(_listviewItems) != 'growing',
 );
 
+/// The ListView page's `selectable` option: the items select as one text,
+/// of the fixed count of one row each.
+final _listviewSelectable = SwitchOption(
+  'selectable',
+  'selectable',
+  disabled: (o) =>
+      o(_listviewItems) is! int || o(_listviewHeights) != 'one row',
+);
+
 final _listviewPage = GalleryPage(
   group: _group,
   title: 'ListView',
@@ -35,6 +44,8 @@ final _listviewPage = GalleryPage(
     _listviewItems,
     _listviewHeights,
     _listviewSeparated,
+    // drag across the items to select them as one text
+    _listviewSelectable,
     // what keeps the log at its end: the list, or its controller
     _listviewStick,
   ],
@@ -45,8 +56,11 @@ final _listviewPage = GalleryPage(
     final different = !chat && !feed && o(_listviewHeights) == 'different';
     final separated = o(_listviewSeparated);
     final byEnd = items == 'growing' && o(_listviewStick) == 'stickToEnd';
+    final selectable =
+        o(_listviewSelectable) && !_listviewSelectable.disabled!(o);
     return _List(
-      key: ValueKey('$items/$different/$separated/$byEnd'),
+      key: ValueKey('$items/$different/$separated/$byEnd/$selectable'),
+      selectable: selectable,
       count: items is int ? items : null,
       chat: chat,
       feed: feed,
@@ -128,6 +142,7 @@ final class _List extends StatefulWidget {
     required this.different,
     required this.separated,
     required this.stickToEnd,
+    required this.selectable,
     super.key,
   });
 
@@ -137,6 +152,7 @@ final class _List extends StatefulWidget {
   final bool different;
   final bool separated;
   final bool stickToEnd;
+  final bool selectable;
 
   @override
   State<_List> createState() => _ListState();
@@ -178,6 +194,12 @@ final class _ListState extends State<_List> with MotionState {
           if (_reason(i) case final reason?) Span('\n│ $reason', theme.muted),
       ]);
     }
+    if (widget.selectable) {
+      final selected = ListView.selectionOf(context, i);
+      return Text.rich(
+        selected?.spans('item ${i + 1}') ?? [Span('item ${i + 1}')],
+      );
+    }
     if (!widget.different) {
       return Text('item ${i + 1}');
     }
@@ -197,6 +219,27 @@ final class _ListState extends State<_List> with MotionState {
     Widget item(BuildContext context, int i) => _item(context, i, count);
     final sticks =
         widget.count == null && !chat && !widget.feed && !widget.stickToEnd;
+    ItemText itemText(int i) => ItemText('item ${i + 1}');
+    final text = widget.selectable ? itemText : null;
+    final list = widget.separated
+        ? ListView.separated(
+            itemCount: count,
+            controller: _list,
+            stickToBottom: sticks,
+            reverse: chat,
+            itemBuilder: item,
+            itemText: text,
+            separatorBuilder: (context, i) =>
+                Divider(style: Theme.of(context).border),
+          )
+        : ListView.builder(
+            itemCount: count,
+            controller: _list,
+            stickToBottom: sticks,
+            reverse: chat,
+            itemBuilder: item,
+            itemText: text,
+          );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,23 +248,7 @@ final class _ListState extends State<_List> with MotionState {
         _boxed(
           _boxW,
           _listH,
-          widget.separated
-              ? ListView.separated(
-                  itemCount: count,
-                  controller: _list,
-                  stickToBottom: sticks,
-                  reverse: chat,
-                  itemBuilder: item,
-                  separatorBuilder: (context, i) =>
-                      Divider(style: Theme.of(context).border),
-                )
-              : ListView.builder(
-                  itemCount: count,
-                  controller: _list,
-                  stickToBottom: sticks,
-                  reverse: chat,
-                  itemBuilder: item,
-                ),
+          widget.selectable ? SelectionArea(child: list) : list,
         ),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -264,7 +291,20 @@ String _listCode(Options o) {
   final different = !chat && !feed && o(_listviewHeights) == 'different';
   final separated = o(_listviewSeparated);
   final byEnd = growing && o(_listviewStick) == 'stickToEnd';
-  final item = feed
+  final selectable =
+      o(_listviewSelectable) && !_listviewSelectable.disabled!(o);
+  final item = selectable
+      ? [
+          r"            itemText: (i) => ItemText('item ${i + 1}'),",
+          '            itemBuilder: (context, i) {',
+          r"              final text = 'item ${i + 1}';",
+          '              final selected = ListView.selectionOf(context, i);',
+          '              return Text.rich(',
+          '                selected?.spans(text) ?? [Span(text)],',
+          '              );',
+          '            },',
+        ]
+      : feed
       ? [
           '            // keyed by the message, as its index is not: scrolled down,',
           '            // what the window shows stays on its rows as messages come',
@@ -365,14 +405,16 @@ String _listCode(Options o) {
     '        width: $_boxW,',
     '        height: $_listH,',
     ..._focusBox('        '),
-    '          child: ListView.${separated ? 'separated' : 'builder'}(',
-    '            itemCount: _count,',
-    '            controller: _list,',
-    if (growing && !byEnd) '            stickToBottom: true,',
-    if (chat) '            reverse: true,',
-    ...item,
-    if (separated) _separatorLine,
-    '          ),',
+    ...selectAround(selectable, [
+      '          child: ListView.${separated ? 'separated' : 'builder'}(',
+      '            itemCount: _count,',
+      '            controller: _list,',
+      if (growing && !byEnd) '            stickToBottom: true,',
+      if (chat) '            reverse: true,',
+      ...item,
+      if (separated) _separatorLine,
+      '          ),',
+    ]),
     '        ),',
     '      ),',
     '      Row(',
@@ -442,3 +484,12 @@ const _separatorLine =
 const _messageLine =
     r"String _message(int k) => '${'${k + 1}'.padLeft(3)} "
     r"${_said[k % _said.length]}';";
+
+/// [lines], a `child: ...` of the box, inside a `SelectionArea` when [on].
+List<String> selectAround(bool on, List<String> lines) => !on
+    ? lines
+    : [
+        '          child: SelectionArea(',
+        for (final line in lines) '  $line',
+        '          ),',
+      ];

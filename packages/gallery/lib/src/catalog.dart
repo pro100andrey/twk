@@ -210,7 +210,8 @@ const catalog = [
       'ListView',
       'Items built as they come into view, however many there are; the wheel '
           'and the keys scroll it. Separated, reversed as a chat, or kept on '
-          'what it shows as items come before it.',
+          'what it shows as items come before it, or selected with the mouse '
+          'as one text.',
     ),
     CatalogPage(
       'LogView',
@@ -799,7 +800,8 @@ const catalog = [
     CatalogPage(
       'DiffView',
       'The changes between two texts, unified or side by side, the words '
-          'that changed marked and both sides highlighted.',
+          'that changed marked and both sides highlighted; its lines are '
+          'selected and copied without their numbers.',
     ),
     CatalogPage(
       'JsonView',

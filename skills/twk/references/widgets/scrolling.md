@@ -245,7 +245,7 @@ final class _RenderRuler extends RenderObject {
 
 ## ListView
 
-Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it.
+Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it, or selected with the mouse as one text.
 
 API: [`ListView`](https://pub.dev/documentation/twk/latest/twk/ListView-class.html).
 
@@ -321,6 +321,7 @@ Widget build(BuildContext context) {
 | items | 100, 10 000, 1 000 000, growing, chat, feed | 100 |
 | heights | one row, different | one row |
 | separated | on, off | false |
+| selectable | on, off | false |
 | stuck by | stickToBottom, stickToEnd | stickToBottom |
 
 ## LogView

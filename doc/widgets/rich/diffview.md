@@ -2,14 +2,14 @@
 title: "DiffView"
 group: "Rich"
 package: "twk_rich"
-about: "The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted."
+about: "The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted; its lines are selected and copied without their numbers."
 image: "packages/gallery/doc/shots/rich/diffview.dark.svg"
 image_light: "packages/gallery/doc/shots/rich/diffview.light.svg"
 route: "#/rich/diffview"
 ---
 # DiffView
 
-The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted.
+The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted; its lines are selected and copied without their numbers.
 
 | Dark | Light |
 | --- | --- |
@@ -82,7 +82,8 @@ Widget build(BuildContext context) {
     height: 22,
     child: Scrollbar(
       style: Theme.of(context).border,
-      child: DiffView(_diff),
+      // drag across the lines to select their code
+      child: SelectionArea(child: DiffView(_diff)),
     ),
   );
 }

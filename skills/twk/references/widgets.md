@@ -57,7 +57,7 @@ Lists, scroll views and scrollbars, built as they scroll into view. File: `widge
 
 - SingleChildScrollView: One child scrolled in the room it is given: Tab to it, then the arrows, PageUp and PageDown, or the wheel over it.
 - Scrollable: What scrolls a viewport: here one of the page's own, a ruler that tells the scrollable how long it is as it is laid out.
-- ListView: Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it.
+- ListView: Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it, or selected with the mouse as one text.
 - LogView: Lines that keep coming, followed at the bottom: levels, a filter and a search, a count of the new lines while it is scrolled up.
 - Scrollbar: A bar by the scrollable below it, its thumb where the window is; the thumb dragged and the track clicked scroll it.
 
@@ -234,7 +234,7 @@ Markdown, code, diffs, JSON, big text, QR codes and program output with its colo
 - MarkdownView (`twk_rich`): A Markdown document as widgets, a blank row between the blocks; its links the app's with onLinkTap, a MarkdownController scrolling to a heading.
 - CodeView (`twk_rich`): Source code highlighted for its language, with line numbers, its long lines wrapped or cut off at the width; a CodeViewController scrolls it to a line, highlights lines and finds text.
 - SyntaxThemeScope (`twk_rich`): The styles of the code below it, a style for each kind of token, in place of those derived from the theme: a SyntaxTheme of its own, or the derived one with a few changed.
-- DiffView (`twk_rich`): The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted.
+- DiffView (`twk_rich`): The changes between two texts, unified or side by side, the words that changed marked and both sides highlighted; its lines are selected and copied without their numbers.
 - JsonView (`twk_rich`): JSON or a Dart value as a tree that folds, each kind of value in its color: c copies the path of the value selected, y the value, / filters the keys.
 - BigText (`twk_rich`): Text in letters several cells tall, drawn with full or half blocks or with box drawing, in a font of its own.
 - QrCode (`twk_rich`): Text as a QR code a phone's camera reads: in half blocks, two modules to a cell, black on white whatever the theme, with as much of the quiet zone around it as the rows allow.
