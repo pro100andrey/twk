@@ -1597,41 +1597,6 @@ final class Presenter {
           placements[k] = shown[i].placement;
         }
       }
-      // those that go, and the images no placement shows any more
-      bool used(TerminalImage image) {
-        for (final n in next) {
-          if (n.drawn && identical(n.at.image, image)) {
-            return true;
-          }
-        }
-        for (var k = 0; k < draw.length; k++) {
-          if (can[k] && identical(draw[k].image, image)) {
-            return true;
-          }
-        }
-        return false;
-      }
-
-      for (final s in shown) {
-        final image = s.at.image;
-        final id = _kittyIds[image];
-        if (s.kept || !s.drawn || id == null) {
-          continue; // an id gone with another placement of the image
-        }
-        if (used(image)) {
-          kittyDelete(
-            out,
-            id: id,
-            placement: s.placement,
-            multiplexer: multiplexer,
-          );
-        } else {
-          kittyDelete(out, id: id, multiplexer: multiplexer);
-          _kittyIds.remove(image);
-          _kittySent.remove(image);
-          _imageIdFreed(id);
-        }
-      }
     }
     for (var k = 0; k < draw.length; k++) {
       final p = draw[k];
@@ -1707,9 +1672,51 @@ final class Presenter {
         ),
       );
     }
+    if (kitty) {
+      _deleteGone(shown, next);
+    }
     _shown = next;
     if (kitty && caps.kittyAnimation) {
       _playAnimations(next);
+    }
+  }
+
+  /// kitty: deletes the placements of [shown] that [next] has not kept,
+  /// and the images no placement of [next] shows any more. After the new
+  /// ones are placed, so that a terminal that draws in between (Konsole,
+  /// whose images are not held by a synchronized update) shows the old
+  /// image or the new over its cells, never neither: a GIF drawn frame by
+  /// frame would flicker.
+  void _deleteGone(List<_Shown> shown, List<_Shown> next) {
+    bool used(TerminalImage image) {
+      for (final n in next) {
+        if (n.drawn && identical(n.at.image, image)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    final multiplexer = caps.graphicsMultiplexer;
+    for (final s in shown) {
+      final image = s.at.image;
+      final id = _kittyIds[image];
+      if (s.kept || !s.drawn || id == null) {
+        continue; // an id gone with another placement of the image
+      }
+      if (used(image)) {
+        kittyDelete(
+          out,
+          id: id,
+          placement: s.placement,
+          multiplexer: multiplexer,
+        );
+      } else {
+        kittyDelete(out, id: id, multiplexer: multiplexer);
+        _kittyIds.remove(image);
+        _kittySent.remove(image);
+        _imageIdFreed(id);
+      }
     }
   }
 

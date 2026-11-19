@@ -308,6 +308,23 @@ void main() {
     expect(hs.vt.kittyImages, isEmpty);
   });
 
+  test('kitty: an image replaced by another is placed before the old one '
+      'is deleted, so that its cells never show neither', () {
+    final hs = harness(GraphicsProtocol.kitty);
+    paint(hs, image(GraphicsProtocol.kitty));
+    hs.frame();
+    paint(hs, image(GraphicsProtocol.kitty, bytes: 90, seed: 7));
+    hs.frame();
+    final o = out(hs);
+    expect(o.indexOf('a=T,f=100,t=d,i=2,'), greaterThanOrEqualTo(0));
+    expect(
+      o.indexOf('a=T,f=100,t=d,i=2,'),
+      lessThan(o.indexOf('a=d,d=I,i=1,q=2')),
+    );
+    expect(hs.vt.kittyImages, {2: 90});
+    expect(hs.mismatches(), isEmpty);
+  });
+
   test('kitty: leaving the screen deletes the images', () {
     final hs = harness(GraphicsProtocol.kitty);
     paint(hs, image(GraphicsProtocol.kitty));

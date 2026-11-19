@@ -134,7 +134,7 @@ void main() {
   }
 
   for (final told in [true, false]) {
-    test('kitty: images shown one after another take the id of the one '
+    test('kitty: images shown one after another take the id of one '
         'deleted, which Konsole keeps the data of${told ? '' : ' (not told: '
                   'it keeps every image)'}', () {
       final hs = konsole(GraphicsProtocol.kitty, told: told);
@@ -144,7 +144,9 @@ void main() {
         expect(hs.vt.images.single.bytes, 60 + k);
       }
       expect(hs.mismatches(), isEmpty);
-      expect(hs.vt.kittyImages.length, told ? 1 : 5);
+      // the new one is placed before the old is deleted, so that the cells
+      // never show neither: two ids in turn
+      expect(hs.vt.kittyImages.length, told ? 2 : 5);
     });
   }
 

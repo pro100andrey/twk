@@ -106,6 +106,25 @@ void main() {
       graphics: GraphicsProtocol.sixel,
     );
     expect(sixel.kittyAnimation, isFalse);
+    // Konsole started from kitty: the variable inherited, the name its own
+    final (inherited, _) = await probe(
+      const {
+        'TERM': 'xterm-256color',
+        'KONSOLE_VERSION': '260802',
+        'KITTY_WINDOW_ID': '1',
+      },
+      answers: '$kittyOk${'\x1bP>|Konsole 26.08.2\x1b\\'}',
+      da1: '\x1b[?62;1;4c',
+    );
+    expect(inherited.graphics, GraphicsProtocol.kitty);
+    expect(inherited.kittyAnimation, isFalse);
+    // tmux in kitty tells its own name: the variable says what is outside
+    final (tmuxNamed, _) = await probe(const {
+      'TERM': 'tmux-256color',
+      'TMUX': '/tmp/tmux-1000/default,1,0',
+      'KITTY_WINDOW_ID': '1',
+    }, answers: '\x1bP>|tmux 3.5a\x1b\\');
+    expect(tmuxNamed.kittyAnimation, isTrue);
   });
 
   test('sixel by the device attributes, iTerm2 by the name the terminal '

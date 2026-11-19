@@ -11,6 +11,12 @@ Breaking:
 
 Changed:
 
+- kitty's protocol: an image that replaces another is placed before the
+  old one is deleted, not after, so that a terminal that draws in between
+  (Konsole, whose images a synchronized update does not hold) never shows
+  the cells empty: an animated GIF drawn frame by frame no longer flickers
+  there. Konsole, which keeps a deleted image's data until its id is used
+  again, then holds two images' data, the ids taken in turn.
 - `MouseEvent` keeps its button, modifiers and pixel offsets in one field
   (it grew by two fields with the offsets: 64 bytes an event, 48 as before),
   and the app's input listener allocates nothing for the driver's settle
@@ -39,10 +45,11 @@ Added:
   where it is and runs it again. `ImageAnimation.loading` takes its frames
   as they are made (`add`, then `finish`): the terminal plays those it has
   and waits at the last for more (kitty's loading mode, `s=2`), each frame
-  sent once with the presenter's next frame. `Terminal.open` sets the capability for
-  kitty alone (by XTVERSION or `KITTY_WINDOW_ID`, through tmux too): Konsole
-  and Ghostty take kitty's images but are not known to play them, and get
-  the first frame.
+  sent once with the presenter's next frame. `Terminal.open` sets the
+  capability for kitty alone (by XTVERSION, else by `KITTY_WINDOW_ID` where
+  no terminal told another name, tmux's own aside, as a terminal started
+  from kitty inherits the variable): Konsole and Ghostty take kitty's
+  images but are not known to play them, and get the first frame.
 - `TerminalInfo.sextants` and `sextantsFor`: whether the terminal is known to
   draw the block sextants (U+1FB00..1FB3B) itself, by its environment and
   XTVERSION as the pointer's and progress decisions are made: kitty 0.19.3

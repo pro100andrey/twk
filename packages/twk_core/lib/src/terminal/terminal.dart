@@ -1670,11 +1670,17 @@ final class Terminal
                 sixel
             ? Multiplexer.none
             : multiplexer,
-        // kitty itself, by its name or its environment (through tmux too);
-        // other terminals with its protocol show only an image's first frame
+        // kitty itself, by the name it tells, else by its environment where
+        // no terminal told another (none answered, or tmux answered for
+        // itself): a terminal started from kitty inherits KITTY_WINDOW_ID.
+        // Other terminals with its protocol show only an image's first frame
         kittyAnimation:
             graphics == GraphicsProtocol.kitty &&
-            (version.startsWith('kitty') || env.containsKey('KITTY_WINDOW_ID')),
+            (version.startsWith('kitty') ||
+                (env.containsKey('KITTY_WINDOW_ID') &&
+                    (version.isEmpty ||
+                        (multiplexer == Multiplexer.tmux &&
+                            version.startsWith('tmux'))))),
         cellPixelWidth: cellWidth,
         cellPixelHeight: cellHeight,
       ),
