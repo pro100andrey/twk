@@ -22,6 +22,27 @@ const kittyAnimationCaps = TerminalCaps(
   kittyAnimation: true,
 );
 
+/// kitty images of [frames], [pixelWidth] × [pixelHeight] pixels each, kept
+/// on the terminal while not shown ([ImageKeep]), as an `Image` draws an
+/// animation's frames one by one.
+List<TerminalImage> keptKittyFrames(
+  List<Uint8List> frames, {
+  required int pixelWidth,
+  required int pixelHeight,
+}) {
+  final keep = ImageKeep();
+  return [
+    for (final f in frames)
+      TerminalImage(
+        GraphicsProtocol.kitty,
+        f,
+        pixelWidth: pixelWidth,
+        pixelHeight: pixelHeight,
+        keep: keep,
+      ),
+  ];
+}
+
 /// A kitty image of [first] then [rest], shown for [delays] each.
 TerminalImage animatedKittyImage(
   Uint8List first,

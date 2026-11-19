@@ -551,11 +551,15 @@ final frameScenarios = <FrameScenario>[
   FrameScenario(
     'img-kitty',
     'the next of $_imageFrames frames of an image of $_imageCols × '
-        "$_imageRows cells placed on kitty's protocol without its animation: "
-        'the old deleted, the new sent',
+        "$_imageRows cells on kitty's protocol without its animation, as an "
+        'Image draws it: each frame sent once and kept, then placed again',
     (hs) {
       final s = _Images(hs);
-      final frames = s.frames(GraphicsProtocol.kitty);
+      final frames = keptKittyFrames(
+        [for (final f in s.frames(GraphicsProtocol.kitty)) f.data],
+        pixelWidth: _imageCols * 10,
+        pixelHeight: _imageRows * 20,
+      );
       s.render(frames.first, 0);
       return (i) => s.render(frames[i % frames.length], i);
     },

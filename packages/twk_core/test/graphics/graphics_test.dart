@@ -325,6 +325,89 @@ void main() {
     expect(hs.mismatches(), isEmpty);
   });
 
+  group('kitty: images kept while not shown (ImageKeep)', () {
+    TerminalImage frame(ImageKeep keep, int seed) => TerminalImage(
+      GraphicsProtocol.kitty,
+      Uint8List.fromList([for (var i = 0; i < 60; i++) (i + seed) & 0xFF]),
+      pixelWidth: 40,
+      pixelHeight: 40,
+      keep: keep,
+    );
+
+    test('frames shown in turn: each sent once, then placed; the one '
+        'replaced loses its placement, not its image', () {
+      final hs = harness(GraphicsProtocol.kitty);
+      final keep = ImageKeep();
+      final frames = [for (var f = 0; f < 3; f++) frame(keep, f)];
+      for (var loop = 0; loop < 2; loop++) {
+        for (var f = 0; f < 3; f++) {
+          paint(hs, frames[f]);
+          hs.frame();
+          final o = out(hs);
+          expect(
+            o.contains('a=T,'),
+            loop == 0,
+            reason: 'loop $loop frame $f: sent on the first loop alone',
+          );
+          if (loop > 0) {
+            expect(o, contains('a=p,i=${f + 1},'));
+          }
+          expect(o, isNot(contains('d=I')), reason: 'no image deleted');
+          expect(shown(hs), ['kitty 4x2 at (2, 1)']);
+        }
+      }
+      expect(hs.vt.kittyImages.keys, {1, 2, 3});
+      expect(hs.mismatches(), isEmpty);
+    });
+
+    test('let go of, the images not shown are deleted with the next frame, '
+        'the one shown when it goes', () {
+      final hs = harness(GraphicsProtocol.kitty);
+      final keep = ImageKeep();
+      final frames = [for (var f = 0; f < 3; f++) frame(keep, f)];
+      for (final f in frames) {
+        paint(hs, f);
+        hs.frame();
+      }
+      keep.kept = false;
+      paint(hs, frames[2]);
+      hs.frame();
+      expect(out(hs), contains('a=d,d=I,i=1,q=2'));
+      expect(out(hs), contains('a=d,d=I,i=2,q=2'));
+      expect(hs.vt.kittyImages.keys, {3});
+      hs.canvas.fill(0, 0, 20, 8, hs.pens[1]);
+      hs.frame();
+      expect(hs.vt.kittyImages, isEmpty);
+      expect(hs.mismatches(), isEmpty);
+    });
+
+    test('let go of while nothing is on the screen: deleted all the same', () {
+      final hs = harness(GraphicsProtocol.kitty);
+      final keep = ImageKeep();
+      paint(hs, frame(keep, 0));
+      hs.frame();
+      hs.canvas.fill(0, 0, 20, 8, hs.pens[1]);
+      hs.frame();
+      expect(hs.vt.kittyImages.keys, {1}, reason: 'kept unshown');
+      keep.kept = false;
+      hs.canvas.text(0, 0, 'x', hs.pens[2]);
+      hs.frame();
+      expect(hs.vt.kittyImages, isEmpty);
+    });
+
+    test('leaving the screen deletes the kept ones too', () {
+      final hs = harness(GraphicsProtocol.kitty);
+      final keep = ImageKeep();
+      paint(hs, frame(keep, 0));
+      hs.frame();
+      paint(hs, frame(keep, 1));
+      hs.frame();
+      hs.presenter.leave();
+      hs.vt.feed(hs.presenter.out.view);
+      expect(hs.vt.kittyImages, isEmpty);
+    });
+  });
+
   test('kitty: leaving the screen deletes the images', () {
     final hs = harness(GraphicsProtocol.kitty);
     paint(hs, image(GraphicsProtocol.kitty));

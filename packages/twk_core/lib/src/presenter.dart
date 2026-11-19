@@ -617,6 +617,10 @@ final class Presenter {
   final _kittyIds = Map<TerminalImage, int>.identity();
   final _kittySent = Set<TerminalImage>.identity();
 
+  /// kitty: the images the terminal keeps that no placement shows, while
+  /// their [TerminalImage.keep] is kept: shown again, placed, not sent.
+  final _kittyKept = Set<TerminalImage>.identity();
+
   var _lastImageId = 0;
   var _lastPlacementId = 0;
 
@@ -899,7 +903,7 @@ final class Presenter {
 
     // ---- images ------------------------------------------------------------
     var imagesWritten = false;
-    if (back.images.isNotEmpty || _shown.isNotEmpty) {
+    if (back.images.isNotEmpty || _shown.isNotEmpty || _kittyKept.isNotEmpty) {
       final before = out.length;
       _presentImages(back, lost: lost);
       imagesWritten = out.length > before;
@@ -1611,6 +1615,9 @@ final class Presenter {
             placement = placements[k] == 0 ? ++_lastPlacementId : placements[k];
             final id = _kittyIds[image] ??= _newImageId();
             final transmit = _kittySent.add(image);
+            if (image.keep != null) {
+              _kittyKept.remove(image); // shown: no longer kept unshown
+            }
             kittyPlace(
               out,
               p,
@@ -1674,6 +1681,9 @@ final class Presenter {
     }
     if (kitty) {
       _deleteGone(shown, next);
+      if (_kittyKept.isNotEmpty) {
+        _deleteLetGo(next);
+      }
     }
     _shown = next;
     if (kitty && caps.kittyAnimation) {
@@ -1711,9 +1721,38 @@ final class Presenter {
           placement: s.placement,
           multiplexer: multiplexer,
         );
+      } else if (image.keep?.kept ?? false) {
+        // the placement alone: the image stays for when it is shown again
+        kittyDelete(
+          out,
+          id: id,
+          placement: s.placement,
+          multiplexer: multiplexer,
+        );
+        _kittyKept.add(image);
       } else {
         kittyDelete(out, id: id, multiplexer: multiplexer);
         _kittyIds.remove(image);
+        _kittySent.remove(image);
+        _imageIdFreed(id);
+      }
+    }
+  }
+
+  /// kitty: deletes the images kept unshown whose [ImageKeep] was let go
+  /// of, unless [next] shows them.
+  @pragma('vm:never-inline')
+  void _deleteLetGo(List<_Shown> next) {
+    final gone = <TerminalImage>[
+      for (final image in _kittyKept)
+        if (!(image.keep?.kept ?? false) &&
+            !next.any((n) => n.drawn && identical(n.at.image, image)))
+          image,
+    ];
+    for (final image in gone) {
+      _kittyKept.remove(image);
+      if (_kittyIds.remove(image) case final id?) {
+        kittyDelete(out, id: id, multiplexer: caps.graphicsMultiplexer);
         _kittySent.remove(image);
         _imageIdFreed(id);
       }
@@ -1921,6 +1960,7 @@ final class Presenter {
     }
     _kittyIds.clear();
     _kittySent.clear();
+    _kittyKept.clear();
     _shown = [];
   }
 

@@ -70,6 +70,7 @@ final class TerminalImage {
     required this.pixelWidth,
     required this.pixelHeight,
     this.animation,
+    this.keep,
   }) : assert(
          animation == null || protocol == GraphicsProtocol.kitty,
          'only kitty plays an animation itself',
@@ -97,6 +98,12 @@ final class TerminalImage {
   /// on its own clock; another shows [data], the first. Null for a still
   /// image.
   final ImageAnimation? animation;
+
+  /// kitty: while it is [ImageKeep.kept], the terminal keeps this image
+  /// when no placement shows it, so that, shown again, it is placed and not
+  /// sent: the frames of an animation drawn one by one on a terminal that
+  /// does not play them, each sent once. Null: deleted once not shown.
+  final ImageKeep? keep;
 
   /// Whether the terminal plays [animation]: false stops it at the frame
   /// it shows, true goes on from there. The presenter writes a change with
@@ -189,6 +196,20 @@ final class ImageAnimation {
   /// what it has and waiting for more, 3 playing them all.
   var _sent = 0;
   var _state = 0;
+}
+
+/// What keeps kitty images on the terminal while no placement shows them
+/// ([TerminalImage.keep]), for as long as [kept] is true: the images of an
+/// animation's frames share one, which its owner lets go of when the
+/// animation goes (another source, another size, out of the tree). The
+/// presenter deletes the images of one let go of with its next frame.
+final class ImageKeep {
+  /// Kept from the start.
+  ImageKeep();
+
+  /// Whether the images are kept; false lets them go, true again keeps
+  /// those the terminal still has.
+  var kept = true;
 }
 
 /// An image on a surface: [image] fills the [cols] x [rows] cells from

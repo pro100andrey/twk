@@ -17,8 +17,12 @@ Added:
   the terminal plays them: the first at once, the others made a frame or
   more at a time (4 ms of each of the app's frames) while it plays those it
   has, the app asking for no frames once all are sent. One that would take
-  more than 64 MB in the terminal, decoded, is drawn frame by frame as on
-  other terminals (kitty keeps 320 MB of images). Under a
+  more than 64 MB in the terminal, decoded (its frames fitted to the box),
+  is drawn frame by frame as on other terminals (kitty keeps 320 MB of
+  images). On kitty's protocol without its animation (Konsole, Ghostty,
+  WezTerm) the frames within that are kept on the terminal (`ImageKeep`):
+  each is sent once, and placed again on the next plays; they go when the
+  image leaves the tree or is drawn otherwise. Under a
   `TickerMode` that is off an animation stands on the frame it shows (a
   kitty one stopped by the terminal) and goes on from it when the mode is on
   again.

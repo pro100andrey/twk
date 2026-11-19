@@ -37,6 +37,11 @@ Changed:
 
 Added:
 
+- `ImageKeep` and `TerminalImage(keep:)`: on kitty's protocol the images
+  of one keep stay on the terminal while no placement shows them, so that
+  one shown again is placed (`a=p`) and not sent; the presenter deletes
+  them with its next frame once the keep is let go of (`kept = false`), and
+  on leaving the screen.
 - kitty's animation: `TerminalImage(animation:)` takes an `ImageAnimation`
   (the PNG files of the frames after the first, each frame's time, the
   plays), which the presenter sends once with the image (`a=f`, `a=a`) to a

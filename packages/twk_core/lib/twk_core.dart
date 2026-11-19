@@ -30,7 +30,12 @@ export 'src/byte_sink.dart' show ByteSink;
 export 'src/canvas.dart' show Canvas, GlyphBuffer, GlyphRun;
 export 'src/clock.dart' show Clock, ClockElapsed, SystemClock;
 export 'src/graphics.dart'
-    show GraphicsProtocol, ImageAnimation, ImagePlacement, TerminalImage;
+    show
+        GraphicsProtocol,
+        ImageAnimation,
+        ImageKeep,
+        ImagePlacement,
+        TerminalImage;
 export 'src/headless.dart' show HeadlessTerminal, renderToString;
 export 'src/input/events.dart';
 export 'src/input/parser.dart' show InputParser;

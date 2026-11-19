@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show ImageAnimation, TerminalImage;
+import 'package:twk_core/twk_core.dart'
+    show ImageAnimation, ImageKeep, PipelineOwner, TerminalImage;
 
 import 'animated.dart';
 import 'bitmap.dart';
@@ -302,6 +303,7 @@ final class RenderImage extends RenderObject {
       _size = null;
       _animation = null;
       _drawn = null;
+      _letGo();
       _played = null;
       _startedAt = null;
       _mutedAt = null;
@@ -340,6 +342,7 @@ final class RenderImage extends RenderObject {
     if (f != _fit) {
       _fit = f;
       _drawn = null;
+      _letGo();
       _played = null;
       markNeedsPaint();
     }
@@ -365,6 +368,7 @@ final class RenderImage extends RenderObject {
     if (m != _blockMode) {
       _blockMode = m;
       _drawn = null;
+      _letGo();
       markNeedsPaint();
     }
   }
@@ -389,6 +393,7 @@ final class RenderImage extends RenderObject {
     if (c != _cell) {
       _cell = c;
       _drawn = null;
+      _letGo();
       _played = null;
       markNeedsLayout();
     }
@@ -493,7 +498,14 @@ final class RenderImage extends RenderObject {
   }
 
   @override
+  void attach(PipelineOwner o) {
+    super.attach(o);
+    _keep?.kept = true; // those the terminal still has
+  }
+
+  @override
   void detach() {
+    _keep?.kept = false;
     _cancelStep();
     // starts again from its first frame when attached again
     _startedAt = null;
@@ -702,6 +714,14 @@ final class RenderImage extends RenderObject {
           encoded.data,
           pixelWidth: encoded.pixelWidth,
           pixelHeight: encoded.pixelHeight,
+          // kitty keeps an animation's frames, each sent once, where they
+          // are within what it keeps
+          keep:
+              protocol == GraphicsProtocol.kitty &&
+                  _frames.isAnimated &&
+                  _fitsKitty()
+              ? _keepFor()
+              : null,
         );
         return _Drawn(protocol, width, height, columns, rows, image: image);
     }
@@ -765,11 +785,51 @@ final class RenderImage extends RenderObject {
   /// past it. A larger one is drawn frame by frame as on other terminals.
   static const int _kittyBytes = 64 << 20;
 
-  /// Whether the animation, its frames as large as the box, is within
-  /// [_kittyBytes].
-  bool _fitsKitty() =>
-      _frames.frames.length * width * _cell.width * height * _cell.height * 4 <=
-      _kittyBytes;
+  /// Whether the animation, its frames fitted to the box, is within
+  /// [_kittyBytes] decoded.
+  bool _fitsKitty() {
+    final animation = _frames;
+    final f = CellFit(
+      animation.width,
+      animation.height,
+      columns: width,
+      rows: height,
+      cell: _cell,
+      fit: _fit,
+    );
+    return animation.frames.length *
+            f.columns *
+            _cell.width *
+            f.rows *
+            _cell.height *
+            4 <=
+        _kittyBytes;
+  }
+
+  /// What keeps the kitty images of an animation's frames drawn one by one
+  /// on the terminal while not shown, so that each is sent once
+  /// ([ImageKeep]); the box it is for.
+  ImageKeep? _keep;
+  (int, int)? _keepBox;
+
+  /// The [ImageKeep] of the frames of this box: another box lets the old
+  /// one go.
+  ImageKeep _keepFor() {
+    if (_keep case final keep? when _keepBox == (width, height)) {
+      return keep;
+    }
+    _letGo();
+    _keepBox = (width, height);
+    return _keep = ImageKeep();
+  }
+
+  /// Lets the terminal delete the kept frames: their images are drawn no
+  /// more (another source, size, fit or cell).
+  void _letGo() {
+    _keep?.kept = false;
+    _keep = null;
+    _keepBox = null;
+  }
 
   /// Makes the next frames of [image]'s animation, for [_makeFor] at most
   /// and one at least, and finishes it after the last.

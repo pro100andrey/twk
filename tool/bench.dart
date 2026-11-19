@@ -49,8 +49,9 @@
 //   img-kitty-anim    on a terminal that plays kitty's animations
 //                     (TerminalCaps.kittyAnimation): the frames sent before,
 //                     a frame the image's bookkeeping and the spinner
-//   img-kitty         on kitty's protocol without it (Konsole, Ghostty): the
-//                     next frame's image sent, the last deleted
+//   img-kitty         on kitty's protocol without it (Konsole, Ghostty), as
+//                     an Image draws it: each frame's image sent once and
+//                     kept (ImageKeep), then placed again
 //   img-sixel         the next frame in sixel, of no runs to compress
 //   img-blocks        the next frame in half blocks: 480 cells recolored
 // The emulator checks them as the others (images over reserved cells).

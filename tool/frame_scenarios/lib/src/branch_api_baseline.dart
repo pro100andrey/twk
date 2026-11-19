@@ -20,6 +20,22 @@ const hasKittyAnimation = false;
 /// The default capabilities: not used, [hasKittyAnimation] being false.
 const kittyAnimationCaps = TerminalCaps();
 
+/// kitty images of [frames]: the baseline's core keeps none on the
+/// terminal (it has no `ImageKeep`), each sent again when shown.
+List<TerminalImage> keptKittyFrames(
+  List<Uint8List> frames, {
+  required int pixelWidth,
+  required int pixelHeight,
+}) => [
+  for (final f in frames)
+    TerminalImage(
+      GraphicsProtocol.kitty,
+      f,
+      pixelWidth: pixelWidth,
+      pixelHeight: pixelHeight,
+    ),
+];
+
 /// Not used, [hasKittyAnimation] being false.
 TerminalImage animatedKittyImage(
   Uint8List first,

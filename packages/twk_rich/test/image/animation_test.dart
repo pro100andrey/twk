@@ -154,9 +154,8 @@ void main() {
   });
 
   group('protocols', () {
-    testTwk('kitty: the frame sent again on each change, one image shown', (
-      t,
-    ) async {
+    testTwk('kitty without its animation: each frame sent once and kept, '
+        'then placed again; one image shown', (t) async {
       await t.pumpWidget(
         topLeft(Image.memory(twoFrames(loop: 0))),
         graphics: GraphicsProtocol.kitty,
@@ -167,8 +166,25 @@ void main() {
       await t.pump(ms100);
       expect(sent(), 2);
       await t.pump(const Duration(milliseconds: 300));
-      expect(sent(), 3);
+      expect(sent(), 2, reason: 'the first frame placed again, not sent');
+      expect(written(t), contains('a=p,i=1,'));
+      expect(written(t), isNot(contains('d=I')));
+      expect(t.vt.kittyImages.keys, {1, 2});
       expect([for (final i in t.vt.images) '$i'], hasLength(1));
+    });
+
+    testTwk('kitty without its animation: the kept frames go when the image '
+        'leaves the tree', (t) async {
+      final bytes = twoFrames(loop: 0);
+      await t.pumpWidget(
+        topLeft(Image.memory(bytes)),
+        graphics: GraphicsProtocol.kitty,
+        duration: Duration.zero,
+      );
+      await t.pump(ms100);
+      expect(t.vt.kittyImages.keys, {1, 2});
+      await t.pumpWidget(const Text('gone'), duration: ms100);
+      expect(t.vt.kittyImages, isEmpty);
     });
 
     testTwk("kitty that plays kitty's animations: the first frame at once, "
@@ -300,9 +316,10 @@ void main() {
 
     testTwk('kitty: an animation larger than the terminal keeps is drawn '
         'frame by frame', (t) async {
-      // 50 frames of 80 x 24 cells of 10 x 20 pixels: 77 MB decoded
+      // 80 frames of a square fitted to 48 x 24 cells of 10 x 20 pixels:
+      // 74 MB decoded
       await t.pumpWidget(
-        Image.memory(manyFrames(50), width: 80, height: 24),
+        Image.memory(manyFrames(80), width: 80, height: 24),
         graphics: GraphicsProtocol.kitty,
         kittyAnimation: true,
         duration: Duration.zero,
