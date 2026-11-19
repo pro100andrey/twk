@@ -14,6 +14,8 @@ Added:
 
 Changed:
 
+- `Pty.nlToCrNl` answers from `modesAtEnd` once the master is closed
+  (it was null then, so a short program that ended first left it unknown).
 - A `Pty`'s hang-up grace and the reapers of its program run in the root
   zone, not the zone that made it: a driven app (`TWK_DRIVEN`) hosting a
   shell sees its end on real time.

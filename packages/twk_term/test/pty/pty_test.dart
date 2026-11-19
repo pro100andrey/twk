@@ -539,6 +539,18 @@ void main() {
     },
   );
 
+  test(
+    'nlToCrNl is still known once the program ended and the master closed',
+    () async {
+      final run = Run('sh', ['-c', 'true'], output: PtyOutput.terminal);
+      expect(await run.ended(), exits(0));
+      // what the master's closing, soon after the end, does at any moment
+      // under load: here at once
+      run.pty.close();
+      expect(run.pty.nlToCrNl, isTrue);
+    },
+  );
+
   test('nlToCrNl follows the flag the program sets', () async {
     const script =
         r'stty -onlcr -icanon -echo; printf "a\nb"; echo; '

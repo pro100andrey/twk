@@ -566,11 +566,21 @@ final class Pty {
   /// Whether the terminal writes the program's NL as CR NL (ONLCR of
   /// `c_oflag`), read through the master when asked, a system call each
   /// time: a program's bare LF reaches [output] with the CR before it
-  /// while it is true. Null once the master is closed, or where the kernel
-  /// would not say.
+  /// while it is true. Once the master is closed (soon after the program
+  /// ended, or [close]) it is the flag as [modesAtEnd] has it, so a
+  /// program that ended before the question was asked still has its
+  /// answer; null where the kernel would not say, or when the terminal
+  /// closed before the attributes were read.
   bool? get nlToCrNl {
     if (_master < 0) {
-      return null;
+      final left = _modesAtEnd;
+      if (left == null) {
+        return null;
+      }
+      final oflag = Platform.isMacOS ? 2 : 1;
+      return ByteData.sublistView(left).getUint32(oflag * 4, Endian.host) &
+              c.onlcr !=
+          0;
     }
     final scope = c.NativeScope();
     try {
