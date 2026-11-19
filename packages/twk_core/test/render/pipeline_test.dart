@@ -109,27 +109,57 @@ int paintsOf(List<List<Cell>> cells) {
 
 void main() {
   PipelineOwner.debugCheckIntrinsicsByDefault = true;
-  test('an object marked repaints the rows it covers, not its boundary', () {
+  test('an object marked repaints its place, not its boundary', () {
     final (column, cells) = grid(10, 5);
     final v = View(20, 10, RenderBox(pen: 0, boundary: true, child: column))
       ..frame();
     expect(paintsOf(cells), 50);
     cells[4][2].label = 'x';
     final painted = v.frame();
-    // the row, all across: the other cells of it are painted again too
-    expect(paintsOf(cells), 55);
-    expect([for (final c in cells[4]) c.paints], [2, 2, 2, 2, 2]);
-    expect(painted, [0, 0, 0, 0, 20, 0, 0, 0, 0, 0]);
+    // its cells alone: the others of its row are not painted again
+    expect(paintsOf(cells), 51);
+    expect([for (final c in cells[4]) c.paints], [1, 1, 2, 1, 1]);
+    expect(painted, [0, 0, 0, 0, 4, 0, 0, 0, 0, 0]);
   });
 
-  test('so does one under a root that is no boundary', () {
+  test('so does one under a root that is no boundary; places apart are '
+      'painted apart, places that meet as one', () {
     final (column, cells) = grid(10, 5);
     final v = View(20, 10, column)..frame();
     cells[7][0].label = 'x';
     cells[8][4].label = 'y';
-    final painted = v.frame();
-    expect(paintsOf(cells), 60);
-    expect(painted, [0, 0, 0, 0, 0, 0, 0, 20, 20, 0]);
+    var painted = v.frame();
+    expect(paintsOf(cells), 52);
+    expect(painted, [0, 0, 0, 0, 0, 0, 0, 4, 4, 0]);
+    // side by side: one place of both
+    cells[2][1].label = 'x';
+    cells[2][2].label = 'y';
+    painted = v.frame();
+    expect(paintsOf(cells), 54);
+    expect(painted, [0, 0, 8, 0, 0, 0, 0, 0, 0, 0]);
+  });
+
+  test('a place under a parent whose children may paint over each other '
+      'takes all of the parent across', () {
+    final under = Cell('under');
+    final over = Cell('o');
+    final v = View(
+      8,
+      2,
+      RenderBox(
+        pen: 0,
+        boundary: true,
+        child: RenderStack(
+          children: [
+            under,
+            RenderPadding(padding: const EdgeInsets.only(left: 4), child: over),
+          ],
+        ),
+      ),
+    )..frame();
+    over.label = 'p';
+    expect(v.frame(), [8, 0]);
+    expect(under.paints, 2);
   });
 
   test('marked all over, or laid out, a boundary repaints all of it', () {
@@ -181,12 +211,13 @@ void main() {
     expect(whole.paints, 2);
     whole.repaintedWhole = false;
     cells[1][0].label = 'x';
-    expect(v.frame(), [0, 0, 8, 0, 0]);
+    // its place alone now
+    expect(v.frame(), [0, 0, 4, 0, 0]);
     expect(whole.paints, 2);
   });
 
-  test('an object the rows cut through forgets what it kept of its paint; '
-      'one they hold whole, or miss, keeps it', () {
+  test('an object beside the place, or under it whole, keeps what it kept '
+      'of its paint', () {
     final tall = Cell('t', rows: 4);
     final held = Cell('h');
     final missed = Cell('m');
@@ -203,13 +234,11 @@ void main() {
     final before = [tall.forgets, held.forgets, missed.forgets];
     marked.label = 'y';
     v.frame();
-    // told by its parent as it paints it, then cut through
-    expect(tall.forgets - before[0], 2);
-    // out of the rows: their column, which paints only the children the
-    // rows show, does not visit them
+    // beside the place, not painted: what it kept stays
+    expect(tall.forgets - before[0], 0);
+    expect(tall.paints, 1);
     expect(missed.forgets - before[2], 0);
     expect(held.forgets - before[1], 0);
-    expect(tall.paints, 2);
   });
 
   test('under a debug paint a boundary repaints all of it', () {

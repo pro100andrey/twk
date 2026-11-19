@@ -213,6 +213,17 @@ final class PipelineOwner {
   // first of the rows it repaints, in its own coordinates, and the row
   // after the last; none when the first is not before the other
   var _rows = Int32List(64);
+  // per slot: 1 where the boundary repaints its rows across, from side to
+  // side (marked whole, objects repainted whole in it, too many places);
+  // 0 where it repaints the places of _rects alone
+  var _across = Uint8List(32);
+  // the places a flushPaint repaints, each in the coordinates of its
+  // boundary: its slot, left, top, right and bottom, the first _rectCount
+  // of them; places of one slot that meet are one
+  var _rects = Int32List(5 * 32);
+  var _rectCount = 0;
+  // the places of one boundary as _gatherRows passes them up
+  var _passed = Int32List(4 * 8);
   // what _addWholes walks: the slot of the boundary it walks, the rows of
   // it the object whose children it visits shows, and that object's row
   var _wholeSlot = 0;
@@ -465,9 +476,19 @@ final class PipelineOwner {
           .._paintMarks &= ~_markedWhole
           .._paintedIn = gen;
         if (top < bottom || b._cutOffPainters != 0) {
-          _repaint(ctx, b, top, bottom);
-          if (top > 0 || bottom < b.height) {
-            _forgetCut(b, top, bottom);
+          if (!markedSince &&
+              b._slotIn == gen &&
+              _across[b._slot] == 0 &&
+              b._cutOffPainters == 0 &&
+              debug == 0 &&
+              !(b.keepsUnderlay && b.putsUnderlayBack && b.isRepaintBoundary) &&
+              !_overlapped(b)) {
+            _repaintPlaces(ctx, b);
+          } else {
+            _repaint(ctx, b, top, bottom);
+            if (top > 0 || bottom < b.height) {
+              _forgetCut(b, top, bottom);
+            }
           }
         }
         while (_paintThrew) {
@@ -538,6 +559,7 @@ final class PipelineOwner {
   void _settleRows(_ObjList list, int gen, {required bool whole}) {
     final n = list.length;
     _slotsFor(n);
+    _rectCount = 0;
     var rows = _rows;
     for (var i = 0; i < n; i++) {
       final b = list[i];
@@ -548,6 +570,7 @@ final class PipelineOwner {
         .._paintMarks &= ~_markedWhole;
       rows[2 * i] = 0;
       rows[2 * i + 1] = all ? b.height : 0;
+      _across[i] = all ? 1 : 0;
     }
     final marked = _marked;
     final count = _markedCount;
@@ -556,7 +579,9 @@ final class PipelineOwner {
       if (!identical(o.owner, this)) {
         continue;
       }
-      // its rows in the object above it, up to its boundary or the root
+      // its place in the object above it, up to its boundary or the root
+      var left = 0;
+      var right = o.width;
       var top = 0;
       var bottom = o.height;
       var c = o;
@@ -567,16 +592,23 @@ final class PipelineOwner {
           break;
         }
         if ((p._paintMarks & _markedBelow) != 0) {
-          // the rows of the one above hold its rows
+          // the place of the one above holds its place
           inMarked = true;
           break;
         }
+        final dx = c.parentData.dx;
         final dy = c.parentData.dy;
+        left = left + dx < 0 ? 0 : left + dx;
+        right = right + dx > p.width ? p.width : right + dx;
         top = top + dy < 0 ? 0 : top + dy;
         bottom = bottom + dy > p.height ? p.height : bottom + dy;
+        if (_across_(p, c, left, top, right, bottom)) {
+          left = 0;
+          right = p.width;
+        }
         c = p;
       }
-      if (inMarked || top >= bottom) {
+      if (inMarked || top >= bottom || left >= right) {
         continue;
       }
       if (c._slotIn != gen) {
@@ -591,9 +623,10 @@ final class PipelineOwner {
           .._slot = s;
         rows[2 * s] = 0;
         rows[2 * s + 1] = c.height;
+        _across[s] = 1;
         continue;
       }
-      _addRows(c._slot, top, bottom);
+      _addPlace(c._slot, left, top, right, bottom);
     }
     for (var i = 0; i < count; i++) {
       marked[i]!._paintMarks &= ~_markedBelow;
@@ -621,26 +654,68 @@ final class PipelineOwner {
   /// repaints what that one would have. The innermost go first, so that
   /// what a boundary passes on holds what was passed to it.
   void _gatherRows(_ObjList list, int gen) {
-    final rows = _rows;
     for (var i = list.length - 1; i > 0; i--) {
       final b = list[i];
       if (b._slotIn != gen) {
         continue;
       }
-      var top = rows[2 * b._slot];
-      var bottom = rows[2 * b._slot + 1];
-      var c = b;
-      for (var p = b._parent; p != null && top < bottom; p = p._parent) {
-        final dy = c.parentData.dy;
-        top = top + dy < 0 ? 0 : top + dy;
-        bottom = bottom + dy > p.height ? p.height : bottom + dy;
-        if (p._slotIn == gen) {
-          if (top < bottom) {
-            _addRows(p._slot, top, bottom);
+      final slot = b._slot;
+      final rows = _rows;
+      if (rows[2 * slot] >= rows[2 * slot + 1]) {
+        continue;
+      }
+      // its places, or its rows across, copied: adding to the slot above
+      // may merge and move the places
+      var n = 0;
+      if (_across[slot] != 0) {
+        _passed[0] = 0;
+        _passed[1] = rows[2 * slot];
+        _passed[2] = b.width;
+        _passed[3] = rows[2 * slot + 1];
+        n = 1;
+      } else {
+        final rects = _rects;
+        for (var k = 0; k < _rectCount; k++) {
+          if (rects[5 * k] != slot) {
+            continue;
           }
-          break;
+          if (4 * n + 4 > _passed.length) {
+            _passed = Int32List(2 * _passed.length)
+              ..setRange(0, 4 * n, _passed);
+          }
+          _passed.setRange(4 * n, 4 * n + 4, rects, 5 * k + 1);
+          n++;
         }
-        c = p;
+      }
+      for (var k = 0; k < n; k++) {
+        var left = _passed[4 * k];
+        var top = _passed[4 * k + 1];
+        var right = _passed[4 * k + 2];
+        var bottom = _passed[4 * k + 3];
+        var c = b;
+        for (
+          var p = b._parent;
+          p != null && top < bottom && left < right;
+          p = p._parent
+        ) {
+          final dx = c.parentData.dx;
+          final dy = c.parentData.dy;
+          left = left + dx < 0 ? 0 : left + dx;
+          right = right + dx > p.width ? p.width : right + dx;
+          top = top + dy < 0 ? 0 : top + dy;
+          bottom = bottom + dy > p.height ? p.height : bottom + dy;
+          if (_across_(p, c, left, top, right, bottom)) {
+            left = 0;
+            right = p.width;
+          }
+          if (p._slotIn == gen) {
+            if (top < bottom && left < right) {
+              _addPlace(p._slot, left, top, right, bottom);
+            }
+            break;
+          }
+          c = p;
+        }
       }
     }
   }
@@ -723,6 +798,7 @@ final class PipelineOwner {
     final b = y + rows[1] < bottom ? y + rows[1] : bottom;
     if (t < b) {
       _addRows(_wholeSlot, t, b);
+      _across[_wholeSlot] = 1;
     }
   }
 
@@ -744,7 +820,85 @@ final class PipelineOwner {
     }
   }
 
-  /// Makes [_rows] hold [n] slots, those it held kept.
+  /// Whether a place [left], [top] to [right], [bottom] of [p], over its
+  /// child [c], takes all of [p] across: its children may paint over each
+  /// other, or it paints over [c] there; a wide glyph may lie across the
+  /// place's sides, which [p]'s sides hold whole.
+  static bool _across_(
+    RenderObject p,
+    RenderObject c,
+    int left,
+    int top,
+    int right,
+    int bottom,
+  ) =>
+      p._childrenMayOverlap ||
+      (left < right &&
+          top < bottom &&
+          p._paintsOver(c, left, top, right - left, bottom - top));
+
+  /// The most places a boundary repaints apart; one more has it repaint
+  /// its rows across.
+  static const _maxPlaces = 8;
+
+  /// Adds the place [left], [top] to [right], [bottom] to those of [slot]
+  /// and its rows to its rows ([_addRows]): one with each place of the
+  /// slot it meets or touches, which then is one.
+  void _addPlace(int slot, int left, int top, int right, int bottom) {
+    _addRows(slot, top, bottom);
+    if (_across[slot] != 0) {
+      return;
+    }
+    var l = left;
+    var t = top;
+    var r = right;
+    var b = bottom;
+    var count = 0;
+    final rects = _rects;
+    for (var k = 0; k < _rectCount;) {
+      final at = 5 * k;
+      if (rects[at] != slot) {
+        k++;
+        continue;
+      }
+      if (rects[at + 1] <= r &&
+          l <= rects[at + 3] &&
+          rects[at + 2] <= b &&
+          t <= rects[at + 4]) {
+        // one with it: taken out, and the union looked at again from the
+        // start, as it may meet others now
+        l = rects[at + 1] < l ? rects[at + 1] : l;
+        t = rects[at + 2] < t ? rects[at + 2] : t;
+        r = rects[at + 3] > r ? rects[at + 3] : r;
+        b = rects[at + 4] > b ? rects[at + 4] : b;
+        final last = 5 * (_rectCount - 1);
+        rects.setRange(at, at + 5, rects, last);
+        _rectCount--;
+        k = 0;
+        count = 0;
+        continue;
+      }
+      count++;
+      k++;
+    }
+    if (count >= _maxPlaces) {
+      _across[slot] = 1;
+      return;
+    }
+    if (5 * _rectCount + 5 > _rects.length) {
+      _rects = Int32List(2 * _rects.length)
+        ..setRange(0, 5 * _rectCount, _rects);
+    }
+    _rects
+      ..[5 * _rectCount] = slot
+      ..[5 * _rectCount + 1] = l
+      ..[5 * _rectCount + 2] = t
+      ..[5 * _rectCount + 3] = r
+      ..[5 * _rectCount + 4] = b;
+    _rectCount++;
+  }
+
+  /// Makes [_rows] and [_across] hold [n] slots, those they held kept.
   void _slotsFor(int n) {
     if (_rows.length < 2 * n) {
       var len = _rows.length;
@@ -752,6 +906,13 @@ final class PipelineOwner {
         len *= 2;
       }
       _rows = Int32List(len)..setRange(0, _rows.length, _rows);
+    }
+    if (_across.length < n) {
+      var len = _across.length;
+      while (len < n) {
+        len *= 2;
+      }
+      _across = Uint8List(len)..setRange(0, _across.length, _across);
     }
   }
 
@@ -762,6 +923,105 @@ final class PipelineOwner {
   void hitTest(HitTestResult result, int x, int y) {
     result.reset();
     _root?.hitTest(result, x, y);
+  }
+
+  /// Paints each place [b], a dirty boundary or the root, repaints on its
+  /// own (its slot's in [_rects]), not the rows across that hold them: the
+  /// objects outside a place are not painted ([RenderObject.paintChild]),
+  /// and their cells are as they were.
+  void _repaintPlaces(PaintContext ctx, RenderObject b) {
+    final slot = b._slot;
+    final canvas = ctx.canvas;
+    var painted = false;
+    for (var k = 0; k < _rectCount && !_paintThrew; k++) {
+      final at = 5 * k;
+      final rects = _rects;
+      if (rects[at] != slot) {
+        continue;
+      }
+      if (painted) {
+        // what its paint keeps of the place before (a viewport's scroll)
+        // is not this place's
+        b.invalidatePaintCache();
+      }
+      painted = true;
+      final left = rects[at + 1];
+      final top = rects[at + 2];
+      final right = rects[at + 3];
+      final bottom = rects[at + 4];
+      _enter(canvas, b);
+      canvas.clipRect(left, top, right - left, bottom - top);
+      final (x0, y0, x1, y1) = canvas.clipBounds;
+      if (_splitsWide(canvas.surface, x0, y0, x1, y1, before: true)) {
+        // a wide glyph across a side, of what was not marked (what is over
+        // the place in a stack): painted in the place, it would be cut
+        if (painted) {
+          b.invalidatePaintCache();
+        }
+        _repaint(ctx, b, top, bottom);
+        if (top > 0 || bottom < b.height) {
+          _forgetCut(b, top, bottom);
+        }
+        continue;
+      }
+      if (!b.isRepaintBoundary) {
+        canvas.fill(0, 0, b.width, b.height, _blankPenOf(ctx));
+      }
+      _alone = b;
+      b._paint(ctx);
+      _alone = null;
+      if (_paintThrew) {
+        break;
+      }
+      if (_splitsWide(canvas.surface, x0, y0, x1, y1)) {
+        // a wide glyph across a side of the place (what is over it in a
+        // stack): the rows across, as a whole paint keeps it whole
+        b.invalidatePaintCache();
+        _repaint(ctx, b, top, bottom);
+        if (top > 0 || bottom < b.height) {
+          _forgetCut(b, top, bottom);
+        }
+      } else if (left > 0 || top > 0 || right < b.width || bottom < b.height) {
+        _forgetCut(b, top, bottom, left: left, right: right);
+      }
+    }
+  }
+
+  /// Whether a wide glyph of [surface] is split at the left or the right
+  /// side of columns [x0] to [x1] in rows [y0] to [y1]: its first cell on
+  /// one side, its second not on the other; [before] a paint there, whether
+  /// one lies across a side at all.
+  static bool _splitsWide(
+    Surface surface,
+    int x0,
+    int y0,
+    int x1,
+    int y1, {
+    bool before = false,
+  }) {
+    if (x0 >= x1 || y0 >= y1) {
+      return false;
+    }
+    final cells = surface.cells;
+    final w = surface.width;
+    for (var y = y0; y < y1; y++) {
+      final row = y * w;
+      if (x0 > 0) {
+        final wide = (cells[row + x0 - 1] & kWide) != 0;
+        final cont = (cells[row + x0] & kCont) != 0;
+        if (before ? (wide || cont) : wide != cont) {
+          return true;
+        }
+      }
+      if (x1 < w) {
+        final wide = (cells[row + x1 - 1] & kWide) != 0;
+        final cont = (cells[row + x1] & kCont) != 0;
+        if (before ? (wide || cont) : wide != cont) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /// Paints rows [top] to [bottom] of [b], a dirty boundary or the root,
