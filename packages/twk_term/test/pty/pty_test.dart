@@ -566,6 +566,30 @@ void main() {
     expect(await run.ended(), exits(0));
   });
 
+  test('nlToCrNl is false with OPOST off, though ONLCR is still set', () async {
+    const script =
+        r'stty -opost -icanon -echo; printf "a\nb\n"; '
+        'head -c 1 >/dev/null; stty opost';
+    final run = sh(script);
+
+    // no CR is added by the terminal: the LFs reach the master bare
+    await waitUntil(() => run.text.contains('a\nb\n'), 'the program to write');
+    expect(run.text, isNot(contains('\r')));
+    expect(run.pty.nlToCrNl, isFalse);
+    run.pty.write([0x78]);
+    expect(await run.ended(), exits(0));
+  });
+
+  test(
+    'nlToCrNl is false from modesAtEnd when the program left OPOST off',
+    () async {
+      final run = Run('sh', ['-c', 'stty -opost'], output: PtyOutput.terminal);
+      expect(await run.ended(), exits(0));
+      run.pty.close();
+      expect(run.pty.nlToCrNl, isFalse);
+    },
+  );
+
   test('the modes the program left its terminal in, read at its end', () {
     // c_lflag: the fourth field, 32 bits on Linux and 64 on macOS
     int lflag(Uint8List termios) => Platform.isMacOS

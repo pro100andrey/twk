@@ -14,6 +14,8 @@ Added:
 
 Changed:
 
+- `Pty.nlToCrNl` is true only with OPOST on as well as ONLCR (it read ONLCR
+  alone, so a program that did `stty -opost` was told its LF got a CR).
 - `Pty.nlToCrNl` answers from `modesAtEnd` once the master is closed
   (it was null then, so a short program that ended first left it unknown).
 - A `Pty`'s hang-up grace and the reapers of its program run in the root

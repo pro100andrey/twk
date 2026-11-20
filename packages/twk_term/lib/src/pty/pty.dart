@@ -563,7 +563,7 @@ final class Pty {
   /// them here.
   Uint8List? get modesAtEnd => _modesAtEnd;
 
-  /// Whether the terminal writes the program's NL as CR NL (ONLCR of
+  /// Whether the terminal writes the program's NL as CR NL (OPOST and ONLCR of
   /// `c_oflag`), read through the master when asked, a system call each
   /// time: a program's bare LF reaches [output] with the CR before it
   /// while it is true. Once the master is closed (soon after the program
@@ -578,9 +578,9 @@ final class Pty {
         return null;
       }
       final oflag = Platform.isMacOS ? 2 : 1;
-      return ByteData.sublistView(left).getUint32(oflag * 4, Endian.host) &
-              c.onlcr !=
-          0;
+      final flags = ByteData.sublistView(left)
+          .getUint32(oflag * 4, Endian.host);
+      return flags & (c.opost | c.onlcr) == (c.opost | c.onlcr);
     }
     final scope = c.NativeScope();
     try {
@@ -589,7 +589,7 @@ final class Pty {
         return null;
       }
       final oflag = termios + (Platform.isMacOS ? 2 : 1);
-      return oflag.value & c.onlcr != 0;
+      return oflag.value & (c.opost | c.onlcr) == (c.opost | c.onlcr);
     } finally {
       scope.release();
     }
