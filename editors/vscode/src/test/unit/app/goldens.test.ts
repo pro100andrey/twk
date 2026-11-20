@@ -36,6 +36,17 @@ class MapFiles implements GoldenFiles {
   }
 }
 
+/** Files whose golden reads the test completes in the order it chooses. */
+class DeferredFiles extends MapFiles {
+  readonly reads: ((text: string | undefined) => void)[] = [];
+  override async read(p: string): Promise<string | undefined> {
+    if (p !== file) {
+      return super.read(p);
+    }
+    return new Promise((resolve) => this.reads.push(resolve));
+  }
+}
+
 const file = '/p/test/goldens/form.txt';
 
 describe('golden screens', () => {
@@ -124,6 +135,25 @@ describe('golden screens', () => {
     panel.dispose();
     await editor.refresh();
     assert.equal(panel.posted.length, before + 1);
+  });
+
+  it('a refresh that finishes after a newer one does not replace it', async () => {
+    const files = new DeferredFiles();
+    const panel = new FakePanel<ToScreen>();
+    const editor = new GoldenEditor(panel, files, file, 'form.txt');
+    void editor.refresh();
+    void editor.refresh();
+    assert.equal(files.reads.length, 2);
+
+    files.reads[1](golden);
+    await settle();
+    assert.equal(panel.posted.length, 1);
+    assert.ok(panel.posted[0].state.kind === 'ok');
+
+    files.reads[0]('an old read of a file that is no screen file');
+    await settle();
+    assert.equal(panel.posted.length, 1);
+    panel.dispose();
   });
 });
 
