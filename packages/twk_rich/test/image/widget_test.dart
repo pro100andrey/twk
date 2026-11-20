@@ -12,6 +12,7 @@ import 'package:twk_rich/image.dart';
 import 'package:twk_test/twk_test.dart';
 
 import 'fixtures.dart';
+import 'gif_builder.dart';
 
 const red = 0xFFFF0000;
 const blue = 0xFF0000FF;
@@ -127,6 +128,36 @@ void main() {
       );
       expect(sizeOf(t), (20, 3));
     });
+
+    for (final (name, offset) in [('width', 6), ('height', 8)]) {
+      testTwk('a file whose header says a $name of 0 is a FormatException in '
+          'layout, not an UnsupportedError', (t) async {
+        final gif = Uint8List.fromList(
+          gifBytes(
+            2,
+            2,
+            const [255, 0, 0, 0, 0, 255],
+            [
+              GifImage(2, 2, [0, 1, 1, 0]),
+            ],
+          ),
+        );
+        gif[offset] = 0;
+        gif[offset + 1] = 0;
+        // a minimum in both axes makes the layout scale by the aspect
+        await t.pumpWidget(
+          topLeft(
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 10, minHeight: 3),
+              child: Image.memory(gif),
+            ),
+          ),
+        );
+        final errors = t.takeErrors();
+        expect(errors, hasLength(1));
+        expect(errors.single.error, isA<FormatException>());
+      });
+    }
 
     test('its intrinsic sizes follow from the other axis by its aspect', () {
       final r = RenderImage(ImageSource.bitmap(picture(40, 40)));

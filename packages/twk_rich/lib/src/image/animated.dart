@@ -197,11 +197,13 @@ final class AnimatedImage {
     }
     final playStart = at - at % total;
     var t = playStart;
-    for (final d in delays) {
-      t += d.inMicroseconds;
+    for (var i = 0; i < delays.length; i++) {
+      t += delays[i].inMicroseconds;
       if (t > at) {
-        // the last frame of the last play has no next
-        return loops > 0 && t >= total * loops
+        // the last frame of the last play has no next; frames of no delay
+        // after the showing one are still switched to ([indexAt]) where
+        // the play ends
+        return loops > 0 && t >= total * loops && i == delays.length - 1
             ? null
             : Duration(microseconds: t);
       }

@@ -37,11 +37,13 @@ final class EncodedImage {
       'EncodedImage($pixelWidth × $pixelHeight, ${data.length} bytes)';
 }
 
-/// The PNG or JPEG file [bytes] for kitty's graphics protocol, which takes
-/// PNG: the file as it is where it is a PNG, else decoded and encoded as
-/// one ([encodePng]). The terminal scales it to the cells it is placed in.
+/// The PNG, JPEG or GIF file [bytes] for kitty's graphics protocol, which
+/// takes PNG: the file as it is where it is a PNG, else decoded and encoded
+/// as one ([encodePng]); of an animated GIF or APNG, its first frame (the
+/// `Image` widget plays one on kitty by frames of its own). The terminal
+/// scales it to the cells it is placed in.
 ///
-/// Throws a [FormatException] for a file of neither format, or a JPEG one
+/// Throws a [FormatException] for a file of none of the formats, or one
 /// that does not decode.
 ///
 /// Placed by the core in a box of 40 × 20 cells:
@@ -68,10 +70,11 @@ EncodedImage kittyImage(Uint8List bytes) {
   return pngImage(decodeImage(bytes));
 }
 
-/// The PNG or JPEG file [bytes] for iTerm2's inline images, which decode
-/// both: the file as it is, its size read from its header.
+/// The PNG, JPEG or GIF file [bytes] for iTerm2's inline images, which
+/// decode all three: the file as it is, its size read from its header. An
+/// animated GIF goes as it is: iTerm2 plays it itself.
 ///
-/// Throws a [FormatException] for a file of neither format.
+/// Throws a [FormatException] for a file of none of the formats.
 EncodedImage iterm2Image(Uint8List bytes) {
   final size = imageSize(bytes);
   return EncodedImage(bytes, pixelWidth: size.width, pixelHeight: size.height);

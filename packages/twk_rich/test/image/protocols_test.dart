@@ -4,6 +4,7 @@ import 'package:test/test.dart';
 import 'package:twk_rich/image.dart';
 
 import 'fixtures.dart';
+import 'gif_builder.dart';
 
 void main() {
   test('ImageFormat tells PNG and JPEG by their first bytes', () {
@@ -74,6 +75,27 @@ void main() {
     final image = iterm2Image(jpeg);
     expect(image.data, same(jpeg));
     expect((image.pixelWidth, image.pixelHeight), (37, 23));
+  });
+
+  test('iterm2Image takes a GIF as it is, for iTerm2 to play; kittyImage '
+      'makes a PNG of its first frame', () {
+    final gif = gifBytes(
+      2,
+      1,
+      const [255, 0, 0, 0, 0, 255],
+      [
+        GifImage(2, 1, [0, 0], delayCs: 10),
+        GifImage(2, 1, [1, 1], delayCs: 10),
+      ],
+      loop: 0,
+    );
+    final iterm = iterm2Image(gif);
+    expect(iterm.data, same(gif));
+    expect((iterm.pixelWidth, iterm.pixelHeight), (2, 1));
+    final kitty = kittyImage(gif);
+    expect(ImageFormat.of(kitty.data), ImageFormat.png);
+    expect((kitty.pixelWidth, kitty.pixelHeight), (2, 1));
+    expect(decodePng(kitty.data).pixel(0, 0), 0xFFFF0000);
   });
 
   test('pngImage encodes a bitmap', () {

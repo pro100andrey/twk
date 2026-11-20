@@ -303,6 +303,34 @@ void main() {
       expect(t.clock.pendingTimers, 0, reason: 'no frame asked for after');
     });
 
+    testTwk('kitty: a paint makes the frames its count says, whatever the '
+        'time it takes', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.memory(manyFrames(30), width: 4, height: 2)),
+        graphics: GraphicsProtocol.kitty,
+        kittyAnimation: true,
+        duration: Duration.zero,
+      );
+      final r = t.renderObject<RenderImage>(find.byType(Image));
+      expect(r.framesPerPaint, greaterThan(1));
+      final each = r.framesPerPaint;
+      r.makeFor = const Duration(days: 1);
+      var frames = t.vt.kittyFrames[1] ?? 0;
+      for (var i = 1; i <= 3; i++) {
+        await t.pump(const Duration(milliseconds: 17));
+        expect(t.vt.kittyFrames[1], frames + each, reason: 'paint $i');
+        frames += each;
+      }
+      r.framesPerPaint = 1;
+      r.makeFor = Duration.zero;
+      await t.pump(const Duration(milliseconds: 17));
+      expect(
+        t.vt.kittyFrames[1],
+        frames + 1,
+        reason: 'one at least, and at most',
+      );
+    });
+
     testTwk('kitty: muted while it is made, it asks for no frames; unmuted, '
         'the rest are made', (t) async {
       final bytes = manyFrames(30);

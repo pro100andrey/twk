@@ -454,10 +454,22 @@ final class RenderImage extends RenderObject {
   };
 
   /// The image's size in pixels.
-  ({int width, int height}) get _pixelSize => _size ??= switch (_source) {
-    _Pixels(:final bitmap) => (width: bitmap.width, height: bitmap.height),
-    _ => imageSize(_file),
-  };
+  ///
+  /// Throws a [FormatException] for one of no width or no height, as a
+  /// header may say: its aspect is no number to lay out by.
+  ({int width, int height}) get _pixelSize {
+    final size = _size ??= switch (_source) {
+      _Pixels(:final bitmap) => (width: bitmap.width, height: bitmap.height),
+      _ => imageSize(_file),
+    };
+    if (size.width <= 0 || size.height <= 0) {
+      _size = null;
+      throw FormatException(
+        'The image is ${size.width} × ${size.height} pixels',
+      );
+    }
+    return size;
+  }
 
   /// The image's frames, decoded once.
   AnimatedImage get _frames => _animation ??= switch (_source) {
@@ -788,9 +800,23 @@ final class RenderImage extends RenderObject {
   /// again.
   static const int _drawnBytes = 16 << 20;
 
-  /// How long a paint makes frames of a kitty animation for, a frame at
-  /// least, so that the app goes on drawing while a long one is made.
-  static const _makeFor = Duration(milliseconds: 4);
+  /// The most frames of a kitty animation a paint makes ([_makeMore]): a
+  /// count, so that how many a paint makes does not depend on the machine
+  /// or, in a test, on the clock.
+  static const _defaultFramesPerPaint = 4;
+
+  /// How long a paint makes frames of a kitty animation for at most, a
+  /// frame at least, so that the app goes on drawing while large ones are
+  /// made: a ceiling over [framesPerPaint], measured in real time.
+  static const _defaultMakeFor = Duration(milliseconds: 4);
+
+  /// The most frames of a kitty animation a paint makes, one at least.
+  int framesPerPaint = _defaultFramesPerPaint;
+
+  /// The real time after which a paint makes no more frames of a kitty
+  /// animation, whatever [framesPerPaint] says; a frame is made always.
+  /// A test that counts the frames a paint makes sets it high.
+  Duration makeFor = _defaultMakeFor;
 
   /// The most a kitty animation may take in the terminal, its frames
   /// decoded: kitty keeps 320 MB of images at most and drops the oldest
@@ -843,8 +869,8 @@ final class RenderImage extends RenderObject {
     _keepBox = null;
   }
 
-  /// Makes the next frames of [image]'s animation, for [_makeFor] at most
-  /// and one at least, and finishes it after the last.
+  /// Makes the next frames of [image]'s animation, [framesPerPaint] at most
+  /// and within [makeFor] but for one, and finishes it after the last.
   void _makeMore(TerminalImage image) {
     final animation = image.animation!;
     if (animation.complete || _muted) {
@@ -852,14 +878,16 @@ final class RenderImage extends RenderObject {
     }
     final frames = _frames;
     final clock = Stopwatch()..start();
+    var made = 0;
     do {
       final i = animation.frames.length + 1;
       animation.add(_png(i).$1.data, frames.delays[i]);
+      made++;
       if (i == frames.frameCount - 1) {
         animation.finish();
         return;
       }
-    } while (clock.elapsed < _makeFor);
+    } while (made < framesPerPaint && clock.elapsed < makeFor);
   }
 
   /// [image] at the top left of [width] × [height] pixels, transparent

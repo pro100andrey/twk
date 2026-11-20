@@ -11,6 +11,15 @@ Fixed:
   after frames ends a GIF as in browsers, instead of refusing it; a GIF
   frame past the screen is clipped to it; an LZW minimum code size above 8
   is refused, not decoded to wrong colours.
+- `Image`: a file whose header says a width or a height of 0 is a
+  `FormatException` shown in its place, not an `UnsupportedError` thrown by
+  layout; the frames of a kitty animation a paint makes are counted
+  (`RenderImage.framesPerPaint`, 4), the 4 ms of real time
+  (`RenderImage.makeFor`) only a ceiling over that, so that a test counts
+  them; `AnimatedImage.nextChangeAfter` announces the switch to a last frame
+  of no delay, as `indexAt` makes it, so that a widget woken only by it does
+  not stay on the frame before; `kittyImage` and `iterm2Image` say they take
+  a GIF (kitty gets its first frame as PNG, iTerm2 the file, which it plays).
 
 Added:
 
