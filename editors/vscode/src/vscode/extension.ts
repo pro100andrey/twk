@@ -18,7 +18,7 @@ import { Frames } from '../app/frames';
 import { Inspector } from '../app/inspector';
 import { LogPanel, LogPanels } from '../app/log_panel';
 import { Player } from '../app/player';
-import { TraceViewer } from '../app/trace_viewer';
+import { TraceViewer, TraceViewers } from '../app/trace_viewer';
 import { parseTrace, siblingOf, traceLinks } from '../core/trace';
 import { InputReplay, ReplayMode } from '../app/replay_input';
 import { CastTests } from '../app/cast_test';
@@ -273,22 +273,18 @@ export function activate(context: vscode.ExtensionContext): Api {
   // A driver trace opened in a viewer of its own: the file given (the
   // explorer's menu, a link in a terminal's output), else one of those a
   // failed driverTest kept under .dart_tool/twk_test/traces, the newest first
-  const traceViewers = new Map<string, TraceViewer>();
+  const traceViewers = new TraceViewers();
   const openTrace = (file: string) => {
     const sibling = siblingOf(file);
     if (!sibling) {
       throw new Error(`${file} is neither a .trace.jsonl nor a .cast`);
     }
-    const shown = traceViewers.get(sibling.trace);
-    if (shown) {
-      shown.reveal();
-      return shown;
-    }
-    const name = path.basename(sibling.trace).replace(/\.trace\.jsonl$/, '');
-    const viewer = new TraceViewer(name, parseTrace(fs.readFileSync(sibling.trace, 'utf8')), parseCast(fs.readFileSync(sibling.cast, 'utf8')), openTracePanel(name, context.extensionUri));
-    traceViewers.set(sibling.trace, viewer);
-    context.subscriptions.push({ dispose: () => viewer.dispose() });
-    return viewer;
+    return traceViewers.open(sibling.trace, () => {
+      const name = path.basename(sibling.trace).replace(/\.trace\.jsonl$/, '');
+      const viewer = new TraceViewer(name, parseTrace(fs.readFileSync(sibling.trace, 'utf8')), parseCast(fs.readFileSync(sibling.cast, 'utf8')), openTracePanel(name, context.extensionUri));
+      context.subscriptions.push({ dispose: () => viewer.dispose() });
+      return viewer;
+    });
   };
   command('twk.openTrace', async (uri) => {
     let file = uri?.fsPath;

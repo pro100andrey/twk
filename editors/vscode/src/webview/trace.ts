@@ -8,6 +8,7 @@
 import type { Terminal as TerminalType } from '@xterm/xterm';
 
 import type { WireEvent } from '../core/trace.js';
+import { Replayer } from './trace_replay.js';
 import { FromTrace, StepDetail, StepRow, isToTrace } from './trace_protocol.js';
 
 declare const Terminal: typeof TerminalType;
@@ -38,6 +39,7 @@ const term = new Terminal({
   scrollback: 0,
 });
 term.open(host);
+const replayer = new Replayer(term);
 
 let events: readonly WireEvent[] = [];
 let rows: readonly StepRow[] = [];
@@ -54,27 +56,9 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, props: Partial<H
   return e;
 }
 
-/** The terminal reset and the cast's events up to and including [upTo] written to it. */
+/** The terminal reset and the cast's events up to and including [upTo] written to it, the target outlined after. */
 function draw(upTo: number): void {
-  term.reset();
-  term.resize(columns, lines);
-  let text = '';
-  for (const [index, code, data] of events) {
-    if (index > upTo) {
-      break;
-    }
-    if (code === 'r') {
-      term.write(text);
-      text = '';
-      const m = /^(\d+)x(\d+)$/.exec(data);
-      if (m) {
-        term.resize(Number(m[1]), Number(m[2]));
-      }
-    } else {
-      text += data;
-    }
-  }
-  term.write(text, placeOutline);
+  void replayer.draw(events, upTo, columns, lines).then(placeOutline);
 }
 
 /** The target's cells outlined, over the screen's cells. */

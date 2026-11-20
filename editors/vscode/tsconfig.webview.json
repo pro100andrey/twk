@@ -27,6 +27,7 @@
     "src/webview/frames.ts",
     "src/webview/frames_protocol.ts",
     "src/webview/trace.ts",
+    "src/webview/trace_replay.ts",
     "src/webview/trace_protocol.ts",
     "src/core/trace.ts",
     "src/core/cast.ts",

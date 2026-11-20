@@ -4,7 +4,7 @@
 // sends that is no message is let go.
 import * as assert from 'node:assert/strict';
 
-import { TraceViewer, stepRows } from '../../../app/trace_viewer';
+import { TraceViewer, TraceViewers, stepRows } from '../../../app/trace_viewer';
 import { parseCast } from '../../../core/cast';
 import { parseTrace } from '../../../core/trace';
 import { ToTrace, isToTrace } from '../../../webview/trace_protocol';
@@ -83,5 +83,53 @@ describe('the trace viewer', () => {
     viewer.dispose();
     panel.send({ type: 'ready' });
     assert.equal(panel.posted.length, 0);
+  });
+
+  it('tells that its panel was closed, once', () => {
+    let closed = 0;
+    viewer.onClose(() => closed++);
+    panel.dispose();
+    viewer.dispose();
+    assert.equal(closed, 1);
+  });
+});
+
+describe('the trace viewers open', () => {
+  const trace = parseTrace(fixtureTrace());
+  const cast = parseCast(fixtureCast());
+  const panels: FakePanel<ToTrace>[] = [];
+  let revealed = 0;
+  const make = () => {
+    const panel = new FakePanel<ToTrace>();
+    panel.reveal = () => revealed++;
+    panels.push(panel);
+    return new TraceViewer('t', trace, cast, panel);
+  };
+
+  beforeEach(() => {
+    panels.length = 0;
+    revealed = 0;
+  });
+
+  it('reveal the viewer of a trace shown, and make none anew', () => {
+    const viewers = new TraceViewers();
+    const first = viewers.open('a', make);
+    assert.equal(viewers.open('a', make), first);
+    assert.equal(revealed, 1);
+    assert.equal(panels.length, 1);
+    assert.notEqual(viewers.open('b', make), first);
+  });
+
+  it('make a new viewer of a trace whose panel was closed, never revealing the dead one', () => {
+    const viewers = new TraceViewers();
+    const first = viewers.open('a', make);
+    panels[0].dispose();
+    const second = viewers.open('a', make);
+    assert.notEqual(second, first);
+    assert.equal(revealed, 0);
+    assert.equal(panels.length, 2);
+    // the closing of the old one does not take the new one away
+    first.dispose();
+    assert.equal(viewers.open('a', make), second);
   });
 });

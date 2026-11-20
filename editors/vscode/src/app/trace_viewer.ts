@@ -5,7 +5,7 @@
 // the step to start at (the first that failed); the detail of a step (its
 // facts, the tree, the app's log, the sequences it wrote) when it is selected.
 import { Cast } from '../core/cast';
-import { Disposable } from '../core/events';
+import { Disposable, Emitter, Event } from '../core/events';
 import { TraceFile, eventOfFrame, firstFailed, siblingOf, stepFacts, stepLabel, stepScreens, stepSequences, treeAt, wireEvents } from '../core/trace';
 import { StepDetail, StepRow, ToTrace, isFromTrace } from '../webview/trace_protocol';
 import { WebviewPanelPort } from './webview_view';
@@ -29,6 +29,9 @@ export function stepDetail(trace: TraceFile, cast: Cast, index: number): StepDet
 export class TraceViewer {
   private readonly listening: Disposable[];
   private disposed = false;
+  private readonly closes = new Emitter<void>();
+  /** The panel was closed, by the person or by [dispose]: the viewer shows no more. */
+  readonly onClose: Event<void> = this.closes.event;
 
   constructor(
     /** What it is called: the trace's file. */
@@ -51,6 +54,8 @@ export class TraceViewer {
       panel.onDispose(() => {
         this.disposed = true;
         this.listening.forEach((d) => d.dispose());
+        this.closes.fire();
+        this.closes.dispose();
       }),
     ];
     panel.setTitle(`${name} · twk trace`);
@@ -85,6 +90,28 @@ export class TraceViewer {
     if (!this.disposed) {
       this.panel.dispose();
     }
+  }
+}
+
+/** The viewers open, by their trace: one trace has one, revealed when asked for again, made anew once it was closed. */
+export class TraceViewers {
+  private readonly shown = new Map<string, TraceViewer>();
+
+  /** The viewer of [key]: the one open, revealed, else the one [make] makes. */
+  open(key: string, make: () => TraceViewer): TraceViewer {
+    const shown = this.shown.get(key);
+    if (shown) {
+      shown.reveal();
+      return shown;
+    }
+    const viewer = make();
+    this.shown.set(key, viewer);
+    viewer.onClose(() => {
+      if (this.shown.get(key) === viewer) {
+        this.shown.delete(key);
+      }
+    });
+    return viewer;
   }
 }
 
