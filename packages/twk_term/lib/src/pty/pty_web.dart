@@ -63,6 +63,10 @@ final class Pty {
   /// Whether the terminal writes NL as CR NL; there is none on the web.
   bool? get nlToCrNl => null;
 
+  /// The terminal's attributes as they were when its master closed; there
+  /// is no terminal on the web.
+  Uint8List? get modesAtEnd => null;
+
   /// The process group in the foreground of the terminal; there is none
   /// on the web.
   int? get foregroundProcessGroup => null;
