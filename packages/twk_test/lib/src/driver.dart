@@ -27,9 +27,13 @@ import 'screen_text.dart';
 /// environment the app reads its colors from (`TERM`, `COLORTERM`,
 /// `NO_COLOR`). `start` and `driverTest(profiles:)` take these names.
 const terminalProfiles = {
-  'truecolor': {'TERM': 'xterm-256color', 'COLORTERM': 'truecolor'},
-  '256 colors': {'TERM': 'xterm-256color', 'COLORTERM': ''},
-  '16 colors': {'TERM': 'xterm', 'COLORTERM': ''},
+  'truecolor': {
+    'TERM': 'xterm-256color',
+    'COLORTERM': 'truecolor',
+    'NO_COLOR': '',
+  },
+  '256 colors': {'TERM': 'xterm-256color', 'COLORTERM': '', 'NO_COLOR': ''},
+  '16 colors': {'TERM': 'xterm', 'COLORTERM': '', 'NO_COLOR': ''},
   'no color': {'TERM': 'xterm', 'COLORTERM': '', 'NO_COLOR': '1'},
 };
 

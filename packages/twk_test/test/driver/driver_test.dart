@@ -308,6 +308,16 @@ void main() {
       expect(File(gone.session.trace!.tracePath).existsSync(), isFalse);
     });
 
+    test('every profile but "no color" has NO_COLOR empty', () {
+      for (final name in terminalProfiles.keys) {
+        expect(
+          profileEnvironment(name)['NO_COLOR'],
+          name == 'no color' ? '1' : '',
+          reason: name,
+        );
+      }
+    });
+
     test('an unknown profile is named', () {
       expect(
         () => profileEnvironment('8 colors'),

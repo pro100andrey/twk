@@ -44,7 +44,7 @@ final class PtyProcessPort implements ProcessPort {
         width: spec.width,
         height: spec.height,
         workingDirectory: spec.workingDirectory,
-        environment: spec.environment,
+        environment: _appEnvironment(spec.environment),
         output: PtyOutput.terminal,
       );
     } on Object {
@@ -71,7 +71,7 @@ final class PtyCommandPort implements ProcessPort {
       width: spec.width,
       height: spec.height,
       workingDirectory: spec.workingDirectory,
-      environment: spec.environment,
+      environment: _appEnvironment(spec.environment),
       output: PtyOutput.terminal,
     );
     return _CommandLaunched(pty);
@@ -195,3 +195,14 @@ final class _PtyLaunched implements Launched {
     }
   }
 }
+
+/// The environment the driver gives a program over this process's: the
+/// variables that switch colors from outside (`NO_COLOR`, which twk_core
+/// takes for no colors when not empty, and `FORCE_COLOR`, which twk's
+/// command line reads) emptied, so that what the developer's shell has set
+/// does not change what a test or a recording sees; [given] over them.
+Map<String, String> _appEnvironment(Map<String, String> given) => {
+  'NO_COLOR': '',
+  'FORCE_COLOR': '',
+  ...given,
+};

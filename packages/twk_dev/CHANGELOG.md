@@ -12,6 +12,10 @@ Changed:
 
 Fixed:
 
+- `twk tape` and the apps `twk mcp` starts no longer take `NO_COLOR` and
+  `FORCE_COLOR` from the shell (see twk_driver); a tape's own `env` still
+  sets them.
+
 - `twk tape`: a `Shift+Space` or `Shift+1` key step presses its event, as it
   did before, where it failed through the key bindings' spelling of the key.
 

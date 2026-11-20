@@ -11,6 +11,12 @@ Added:
 
 Fixed:
 
+- The program a session starts no longer takes `NO_COLOR` and `FORCE_COLOR`
+  from the developer's shell (twk_core turns colors off for any non-empty
+  `NO_COLOR`): `PtyProcessPort` and `PtyCommandPort` give both empty, over
+  what the spec's `environment` sets, so `twk tape` and the apps `twk mcp`
+  starts are the same on every machine.
+
 - `Session.close` twice returns the first call's report: the second one called
   an app the driver had let go "exited by itself" and its terminal dirty.
   `type('')` and `paste('')` (without bracketed paste) send nothing and

@@ -4,6 +4,10 @@
 
 Fixed:
 
+- The profiles `truecolor`, `256 colors` and `16 colors` of `driverTest` set
+  `NO_COLOR` empty: a developer's `NO_COLOR=1` no longer makes their apps
+  monochrome locally.
+
 - `driverTest`'s strict emulator takes the line feeds of a fullscreen app's
   own output once it left the alternate screen (the log printed at exit),
   and still none while the alternate screen is up. `Vt` has
