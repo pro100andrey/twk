@@ -106,6 +106,16 @@ runs a tape, a script of what to type into a program and when, in a
 pseudo-terminal, and writes the session as asciicast v2, as an animated SVG
 and as still SVGs of the screens it names
 
+### `twk test-from-cast <file.cast> [--out=<file>] [--no-goldens]`
+
+writes a regression test from a recording: copies the cast to
+`test/<name>.cast` and writes `test/<name>_test.dart` (or the file `--out`
+names) over `Cast.read` and twk_test's `screenFrames`, checking that the
+emulator took in all of the recording and that the screen at each of its
+markers is the golden `test/goldens/<name>/<k>.txt`. It runs the test once
+with `TWK_UPDATE_GOLDENS=1` to write the goldens (`--no-goldens` skips the
+run); review and commit them. See [record-play.md](record-play.md).
+
 ### `twk completion <bash|zsh|fish>`
 
 prints the shell's completion script for `twk`: its subcommands, the options of

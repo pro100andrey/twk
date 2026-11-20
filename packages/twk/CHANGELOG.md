@@ -4,6 +4,13 @@
 
 Added:
 
+- Types in public signatures, exported on purpose: `ItemTextBuilder`
+  (`ListView.itemText`'s `ItemText Function(int index)`), `ShownRect` (what
+  `shown` returns, a record of `x`, `y`, `width` and `height`), `StartTimer`
+  (what `AppClock.startTimer` and `ControllerHost(timerOf:)` give and take: a
+  function that starts a `Timer` on the app's clock) and `UndisposedObject`
+  (what `DisposalTracker.stop` returns: the `object` and the stack it was
+  `createdAt`).
 - `ListView.builder` and `ListView.separated` take `itemText`: the text of
   each item (`ItemText`, one line in one or more runs at columns of the
   item) for a `SelectionArea` above the list, which then selects across the

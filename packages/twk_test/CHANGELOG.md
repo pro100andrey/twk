@@ -15,6 +15,10 @@ Fixed:
 
 Added:
 
+- `disposing(object)`: returns a controller or a node, disposed when the test
+  ends (a tear-down), so one made where it is used is not left undisposed,
+  which `testTwk` fails a test for (`trackDisposables`):
+  `final name = disposing(TextEditingController());`.
 - The report of a failed `driverTest` names the last log records of each
   app.
 - `pumpWidget(kittyAnimation:)` gives the app a terminal that plays kitty's

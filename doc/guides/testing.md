@@ -394,6 +394,11 @@ final name = TextEditingController();
 addTearDown(name.dispose);
 ```
 
+`disposing(object)` of twk_test does the same where the object is made, and
+returns it: `final name = disposing(TextEditingController());` is disposed
+when the test ends, with no `dispose` to remember, and a cascade works on the
+result (`disposing(TreeController())..expand('a')`).
+
 The controller a widget makes for itself is the widget's to dispose, and a
 test that finds one undisposed has found a bug of the widget. An object that
 outlives the test on purpose (a singleton of the app) is no leak: say
