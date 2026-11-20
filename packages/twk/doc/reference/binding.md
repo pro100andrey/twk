@@ -15,8 +15,8 @@ it, which the process's terminal then reports on the normal screen too
 `TwkApp` (`AppBinding.of(context)`), which builds the tree at the start of
 each frame (after the frame callbacks due, `scheduleFrameCallback`), in the
 app's zone (any number of `setState` calls between two frames make one
-build, at most `maxFps` a second, spaced by its `clock`, the `Stopwatch` it
-gives `TwkApp`, which a test's fake clock moves), tells the focus nodes
+build, at most `maxFps` a second, spaced by its `clock`, the `Clock` it
+gives `TwkApp`, a `SystemClock` by default, which a test's fake clock moves), tells the focus nodes
 whose focus changed first and settles the focus again after the build when
 that moved it (an autofocus, a focused node removed), in the same frame
 (what the layout changes, a `LayoutBuilder`'s build binding keys or moving

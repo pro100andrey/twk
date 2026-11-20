@@ -284,9 +284,9 @@ cursor below it, and taken back the screen is repainted in full, the inline
 region from a fresh start below whatever the other program printed.
 `suspendToShell()` is that around `Terminal.stopForShell()`, for Ctrl+Z
 (POSIX only). On a backend that isn't a `SuspendableBackend` only the frames
-wait. Frames are spaced by `TwkApp.clock` (`clock:`), a `Stopwatch` on which
-the gap of `maxFps` passes: by default a started one, in a test one its fake
-clock moves. `TwkApp.stats` (`FrameStats`) holds the time and bytes of
+wait. Frames are spaced by `TwkApp.clock` (`clock:`), a `Clock` on which
+the gap of `maxFps` passes: by default a `SystemClock`, in a test a fake
+clock's `DrivenClock`, which the test moves. `TwkApp.stats` (`FrameStats`) holds the time and bytes of
 recent frames (`medianMicros`, the median of the last 128) and, of the last
 one, the time of each stage, which add up to its `lastMicros`:
 `lastBuildMicros` (what runs before layout, a widget tree's build),

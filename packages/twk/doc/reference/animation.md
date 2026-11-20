@@ -188,7 +188,7 @@ Downloading assets.zip • 3.4/3.4 MB • 2.1 s`; `summary(glyphs: glyphs, byteU
 ByteUnits.binary)` counts the bytes by 1024, `3.2/3.2 MiB`). The tracker's listeners are
 told when a task comes, goes, starts or ends, or its label or total changes,
 not at each `advance`; `onTaskFinished` streams each task as it ends; its
-times are read on the `clock` it is constructed with, else on a stopwatch of
+times are read on the `clock` it is constructed with, else on a `SystemClock` of
 its own, for its whole life, nothing replacing it: inside an app make it with
 `ProgressTracker.of(context, rateWindow:)`, which takes the app's clock
 (`AppBinding.of(context).twkApp.clock`), so a test's fake clock and a driven

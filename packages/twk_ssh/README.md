@@ -183,7 +183,7 @@ after its `RekeyLimit`). The limits are checked as packets go, before
 one is sent and after one is read: what the app sends past the limit
 waits for the new keys and goes under them, and a connection with no
 traffic keeps its keys, which then protect nothing new. Time is read on
-the server's `clock`, a stopwatch per connection by default, and the
+the server's `clock`, a `SystemClock` by default, and the
 deadlines (`loginTimeout`, the second a connection waits for the client
 after its session) run on its `timers`, `Timer.new` by default: a test
 gives it a fake clock's (`clock: fake.clock, timers: (d, f) =>
