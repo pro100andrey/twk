@@ -226,6 +226,12 @@ Changed:
 
 Fixed:
 
+- Grabbing a `Scrollbar`'s thumb moves nothing until the pointer moves: the
+  content followed the thumb's rounded start, so a press on a list of
+  100000 rows jumped it by up to a hundred rows or more. The travel of the
+  pointer now counts from the position at the press. A `Scrollbar` or
+  `BorderScrollbar` disposed before its first build finished no longer
+  asserts in `dispose`, which hid the build's own error.
 - `NumberInput` and `DatePicker` keep the text as typed when a key they
   leave (an unbound F1) hands the value over mid-typing and the app builds
   them with it: `3.` was rewritten to `3.00`, so the next digit made

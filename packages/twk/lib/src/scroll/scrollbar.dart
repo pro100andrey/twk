@@ -151,17 +151,19 @@ final class Scrollbar extends StatefulWidget {
 }
 
 final class _ScrollbarState extends State<Scrollbar> {
-  late final _track = _Track(
-    AppBinding.maybeOf(context),
-    MouseTracker.of(context),
-  );
+  // made by the first build; a state disposed before one has none, and
+  // dispose must not look anything up from a context that is gone
+  _Track? _made;
+
+  _Track get _track =>
+      _made ??= _Track(AppBinding.maybeOf(context), MouseTracker.of(context));
 
   // the mouse over the bar, which a slim one is wide for
   var _hovered = false;
 
   @override
   void dispose() {
-    _track.dispose();
+    _made?.dispose();
     super.dispose();
   }
 
@@ -307,16 +309,18 @@ final class BorderScrollbar extends StatefulWidget {
 }
 
 final class _BorderScrollbarState extends State<BorderScrollbar> {
-  late final _track = _Track(
-    AppBinding.maybeOf(context),
-    MouseTracker.of(context),
-  );
+  // made by the first build; a state disposed before one has none, and
+  // dispose must not look anything up from a context that is gone
+  _Track? _made;
+
+  _Track get _track =>
+      _made ??= _Track(AppBinding.maybeOf(context), MouseTracker.of(context));
 
   var _hovered = false;
 
   @override
   void dispose() {
-    _track.dispose();
+    _made?.dispose();
     super.dispose();
   }
 
@@ -454,9 +458,9 @@ final class _Track with ChangeNotifier {
 
   // a drag of the thumb: where along the bar it was pressed, in cells
   // (a fraction of a cell more where the terminal reports pixels) and
-  // where the thumb started then, in steps; null while there is none
+  // the position's pixels then; null while there is none
   double? _grabAt;
-  var _grabStart = 0;
+  var _grabPixels = 0;
 
   /// Whether the thumb is being dragged.
   bool get dragging => _grabAt != null;
@@ -587,7 +591,7 @@ final class _Track with ChangeNotifier {
       p.jumpTo(p.pixels + page);
     } else {
       _grabAt = axis == Axis.vertical ? event.exactY : event.exactX;
-      _grabStart = start;
+      _grabPixels = p.pixels;
       mouse?.whenReleased(_released);
       _changed();
     }
@@ -609,13 +613,15 @@ final class _Track with ChangeNotifier {
     final vertical = axis == Axis.vertical;
     final sub = (vertical ? event.subY : event.subX) != null;
     final at = vertical ? event.exactY : event.exactX;
-    final start = _grabStart + (at - grabAt) * _steps;
-    // within a cell the thumb is not on a step: the content follows the
-    // pointer, as many rows as it comes to
-    final along = sub
-        ? (p.maxScrollExtent * (start < 0 ? 0 : start) / room).round()
-        : _ratio(p.maxScrollExtent, start < 0 ? 0 : start.round(), room);
-    p.jumpTo(p.reverse ? p.maxScrollExtent - along : along);
+    // the pointer's travel in steps; within a cell the thumb is not on a
+    // step, and the content follows the pointer, as many rows as it comes to
+    final travel = (at - grabAt) * _steps;
+    final moved = sub ? travel : travel.round();
+    final max = p.maxScrollExtent;
+    // from where the content was at the press, not from where the thumb's
+    // rounded start was: grabbing it moves nothing
+    final along = _grabPixels + (p.reverse ? -moved : moved) * max / room;
+    p.jumpTo((along < 0 ? 0.0 : (along > max ? max : along)).round());
   }
 
   void _released() {
