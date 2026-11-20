@@ -226,6 +226,11 @@ Changed:
 
 Fixed:
 
+- `NumberInput` and `DatePicker` keep the text as typed when a key they
+  leave (an unbound F1) hands the value over mid-typing and the app builds
+  them with it: `3.` was rewritten to `3.00`, so the next digit made
+  `3.005`. A bare Shift, lock or media key (kitty's `CSI 57441;2 u`) is no
+  hand-over at all.
 - `tailFile` (and `followFile`) on a name whose file is replaced across
   every open of a look tells the identity read before the open, not after:
   the first bytes of the later file were never delivered (nothing at all

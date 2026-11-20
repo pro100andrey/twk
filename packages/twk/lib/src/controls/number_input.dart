@@ -341,12 +341,21 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       // takes is given up with Escape or the focus leaving
       _value = given;
       _show();
-    } else if (!_typed || (_untyped != null && given == _value)) {
-      // as the widget shows it now; where it is the value handed over
-      // ([_handOver]) the parent has taken it, and Escape reverts it no
-      // more. A parent that rebuilt without taking it leaves the hand-over
-      // as it is
+    } else if (!_typed) {
       _show();
+    } else if (_untyped != null && given == _value) {
+      // the value handed over ([_handOver]) the parent has taken: Escape
+      // reverts it no more, but under the caret the text stays as typed
+      // (`3.` is not rewritten to `3.00`), shown as the value when the
+      // focus leaves. A parent that rebuilt without taking it leaves the
+      // hand-over as it is
+      if (node.hasFocus) {
+        _untyped = null;
+        _typed = false;
+        node.markKeysChanged();
+      } else {
+        _show();
+      }
     }
   }
 
@@ -381,6 +390,8 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
         binding.addPostFrameCallback((_) => _settleHandedOver());
       } else {
         commit();
+        // text left as typed after the parent took it
+        _show();
       }
     }
     setState(() {});
@@ -496,6 +507,10 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   /// (Ctrl+S that saves) finds the value typed.
   KeyEventResult _onKey(FocusNode _, KeyEvent event) {
     if (event.kind == KeyKind.release || !_typed) {
+      return KeyEventResult.ignored;
+    }
+    if (event.code case KeyCode.modifier || KeyCode.lock || KeyCode.media) {
+      // a Shift, Caps Lock or volume key presses nothing for a binding
       return KeyEventResult.ignored;
     }
     if (!identical(_keys, _combosOf)) {
