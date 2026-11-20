@@ -2,106 +2,8 @@
 
 ## Unreleased
 
-Added:
-
-- Types in public signatures, exported on purpose: `ItemTextBuilder`
-  (`ListView.itemText`'s `ItemText Function(int index)`), `ShownRect` (what
-  `shown` returns, a record of `x`, `y`, `width` and `height`), `StartTimer`
-  (what `AppClock.startTimer` and `ControllerHost(timerOf:)` give and take: a
-  function that starts a `Timer` on the app's clock) and `UndisposedObject`
-  (what `DisposalTracker.stop` returns: the `object` and the stack it was
-  `createdAt`).
-- `ListView.builder` and `ListView.separated` take `itemText`: the text of
-  each item (`ItemText`, one line in one or more runs at columns of the
-  item) for a `SelectionArea` above the list, which then selects across the
-  items, those not built too, scrolls the list while a drag is past its edge
-  and copies one line for each item, as it does in a `LogView`. The
-  items' own `Text`s are left out of the area; an item draws what is
-  selected of its text by asking `ListView.selectionOf` (`ItemSelection`,
-  with `spans` and `mark` for `Text.rich`). The controller's `select` and
-  `selectAll` reach it as any `Selectable`.
-- `SelectionAreaController.select(start, end)`, `selectAll()`, `start` and
-  `end`: select between two places (`SelectionPoint`, a `RenderParagraph` or
-  `Selectable` and an offset in its text) or all the text from outside, and
-  read where the selection is, so an app that changes its content (folds a
-  file) carries the selection across it. Flutter's `SelectionArea` has
-  `selectAll` and a `SelectableRegionState` to the same ends.
-- `ExcludeSelection`: a subtree a `SelectionArea` above it leaves out, its
-  `Text`s and `Selectable`s neither selected nor copied (line numbers, a
-  gutter); a `SelectionArea` inside selects on its own. As Flutter's
-  `SelectionContainer.disabled`.
-- `twk.log` (`frameEvents` on): the records of `TwkApp.logs` (what the
-  console and `twk logs` show) as one event per turn of the event loop,
-  posted before the next `twk.frame`, `twk.input` or `twk.scheduled`:
-  `{version, records: [LogRecord.toJson]}`. Off, nothing is kept or posted.
-
-Changed:
-- A drag of a `SelectionArea` that goes over a child of a `Selectable`, on
-  its cell too, selects in the child: the Selectable was taken first, and
-  the child, the comment under a code line, was never selected in.
-- `PointerEvent.subX` and `subY` use the terminal's live cell size
-  (`MouseTrackingBackend.cellPixels`), not the probe's: after a font zoom the
-  position inside a cell was wrong.
-
-- `PointerEvent` keeps its button and modifiers in one field and its
-  sub-cell position in one, null for whole cells: an event is 64 bytes as
-  before the position, not 80.
-
-Added:
-
-- Shortcuts work on any keyboard layout where the terminal has the kitty
-  keyboard protocol: a `KeyCombo` accepts a key with Ctrl, Alt or Super by
-  the key it is on a US layout too (`KeyEvent.baseChar`), so `ctrl+c` fires
-  on Ctrl and `с` of a Russian layout, and `KeyBindings` and `Shortcuts`
-  match by it when what the key types is bound to nothing there. Plain
-  typing keeps the layout's character. `KeyCombo.layoutOf`. The place is
-  used only where the layout cannot type the key: on Dvorak, Colemak or
-  AZERTY (a Latin letter or digit typed) what is typed counts, so Ctrl+C
-  is never `ctrl+j`. The built-ins follow it (`KeyCombo.charFor`): Ctrl+C
-  quits, Ctrl+Z suspends, the text fields' copy, cut, undo and caret keys,
-  `NumberInput`, the prompts' Ctrl+C and Ctrl+D work on a Russian layout.
-- `ProgressTracker.of(context)`: a tracker on the app's clock
-  (`AppBinding.of(context).twkApp.clock`), so a driven or fake clock moves
-  its times; the constructor keeps the wall clock by default, for the `Cli`.
-- `twk.scheduled` (`frameEvents` on, a driven clock): the payload of
-  `twk.input`, posted once per turn of the event loop when a timer of the
-  clock is started or cancelled outside a move of the clock and outside input
-  (`DrivenClock.onChange`), a frame asked for among them: what a child's
-  answer does on a clock that stands. An app that is not driven or has
-  `frameEvents` off posts none.
-- `twk.frame` carries `stats` (`micros`, `build`, `layout`, `paint`,
-  `present`, `bytes`, from `TwkApp.stats`) for a drawn frame, null for an
-  undrawn one; built only while `frameEvents` is on. `twk.input` and
-  `ext.twk.status` do not carry it.
-- `ext.twk.status`: where the app is, as `twk.frame` carries it (without
-  `drawn`), `inputRead` sampled afresh, nothing changed: the baseline a
-  driver starts from. `twk.frame`, `twk.input` and it carry `quitting`
-  (`TwkApp.quitting`).
-
-- `TWK_DRIVEN=<driver pid>[@<ISO-8601 start>]` in `runApp` and the `Cli`'s
-  system terminal: where the process's parent is that pid, the app runs on a
-  `DrivenClock` that only the driver moves (the binding and the app in a
-  zone whose timers go to it; the terminal and what is I/O on real time).
-  Ignored in product mode, refused without a VM service. A program the app
-  starts is not driven. `CliTerminal.startTime`.
-- `ext.twk.clock` (`op`: `status`, `advance`, `advanceTo`, `next`; `by`,
-  `to` in microseconds; `describe`): the status of `ext.twk.status` with
-  `driven`, `timers`, `quiet` and the timers' `describe`, and the moves of a
-  driven clock, each timer's microtasks and a running frame awaited. The
-  events and `ext.twk.status` carry the clock's `nextDue`.
-- `ext.twk.reassemble` answers `frame` and `frameDue`.
-
 Breaking:
 
-- The controllers of the widgets join the `DisposalTracker` (`TabController`,
-  `TreeController`, `TableController`, `SelectionController`,
-  `SplitController`, `DockController`, `ExpansionController`,
-  `CalendarController`, `DirectoryTreeController`, `ScaffoldController`,
-  `StepperController`, `WindowController`, `PopupController`,
-  `MenuController`, `TooltipController`, `CommandPaletteController`,
-  `FilePickerController`, `LogController`, `SelectionAreaController`,
-  `ScrollPosition`), so `testTwk` reports the ones a test made and did not
-  dispose, now that it tracks by default (see twk_test).
 - The default theme is the terminal's own colors: without a `Theme`,
   `Theme.of` gives `ThemeData.terminalOf(context)` (`ThemeData.terminalOn`
   where the terminal told its background, `ThemeData.terminal` of its
@@ -116,71 +18,121 @@ Breaking:
   start their timers on it. `CliClock` and `CliTerminal.clock`'s `stopwatch`
   and `run` are gone: `CliTerminal.clock` is a `Clock`, and `CliTerminal.run`
   is where the inline session's code runs.
-
-Added:
-
-- `ThemeData.terminalOn(cursor:)` and `TerminalBrightness.cursor`: the
-  terminal's cursor color (OSC 12). The theme's `cursorColor` there is the
-  cursor color the terminal told, else its text color (Konsole answers
-  OSC 10 but not 12), else null; `ThemeData.terminal` leaves it null. The
-  binding takes a `ColorReport` of OSC 12 live.
-- twk_test: `pumpWidget(foregroundRgb:, cursorRgb:)`.
-- `ThemeData.cursorColor` (null, the terminal's own, by default): the color
-  of the terminal's cursor while a `TextField` or `TextArea` has the caret
-  (`OSC 12`), for a terminal that paints a block cursor in the text color of
-  the cell under it. `showCaret` takes `color`.
-- `DrivenClock`, a `Clock` that moves only when told to (`advance`,
-  `advanceTo`, `advanceToNext`): timers by due time, then by creation; those
-  due now run by themselves; `pendingTimers`, `nextDue`, `describeTimers`,
-  and a cap on the timers one move fires.
-
-Added:
-
-- `ElementFinder`, a finder as a value (`text`, `textContaining`,
-  `textMatches`, `type`, `key`, `descendant`, `ancestor`, `first`, `last`,
-  `at`) with `apply`, `evaluate`, `toJson` and `fromJson`, and `shown`, the
-  cells of a render object the screen shows (the inspector's outline and
-  twk_test's `clickOn` use it).
-- `ext.twk.find`: the elements a finder given as JSON finds in the app, with
-  each one's id, type, key, whole text, rect and the cells shown; also a
-  `node` the tree gave an id earlier. `ext.twk.layout` answers `shown` too.
-  The inspector's version stays 1.
-- `ext.twk.hitTest`: what a click at a cell reaches, by the real hit test and
-  without calling anything or moving a hover: `takenBy` (the pick or the
-  console, which take the mouse before the tree), the elements hit, the
-  `Listener`s among them (those given by `listenOver` too) with the callbacks
-  they have, and the `AbsorbPointer` that takes the press. The inspector's
-  version stays 1.
-- `ext.twk.flags` `frameEvents`: the events `twk.frame` (after every frame,
-  drawn or not) and `twk.input` (after a read of the terminal or an event) with
-  the bytes of input the app took in, the bytes it wrote, and whether a frame
-  is asked for, for a program that drives the app. The inspector's version
-  stays 1.
-- `editorCommand` is exported (it was hidden): the command that opens a file
-  at a line, from `TWK_EDITOR`, `VISUAL` or `EDITOR`.
-
-Breaking:
-
-- `LogView` wraps by default (`wrap: true`): `wrap: false` keeps a line a
-  row, cut off and scrolled across by Left and Right.
+- `LogView` wraps by default (`wrap: true`), a wrapped line's text in a
+  column of its own right of its time and level: `wrap: false` keeps a line
+  a row, cut off and scrolled across by Left and Right.
 - `LogController.followFile`: `fromEnd` is `backlog`, the bytes before the
   end read too: `0` (the default) for `fromEnd: true`, `null` for
   `fromEnd: false`, and a number of bytes for the whole lines among the last
   of them, the line they begin within left out.
+- The controllers of the widgets (`TabController`, `TreeController`,
+  `TableController`, `SelectionController`, `SplitController`,
+  `DockController`, `ExpansionController`, `CalendarController`,
+  `DirectoryTreeController`, `ScaffoldController`, `StepperController`,
+  `WindowController`, `PopupController`, `MenuController`,
+  `TooltipController`, `CommandPaletteController`, `FilePickerController`,
+  `LogController`, `SelectionAreaController`, `ScrollPosition`) join the
+  `DisposalTracker`, so `testTwk` reports the ones a test made and did not
+  dispose, now that it tracks by default (see twk_test).
 
 Added:
 
+- Shortcuts work on any keyboard layout where the terminal has the kitty
+  keyboard protocol: a `KeyCombo` accepts a key with Ctrl, Alt or Super by
+  the key it is on a US layout too (`KeyEvent.baseChar`), so `ctrl+c` fires
+  on Ctrl and `с` of a Russian layout, and `KeyBindings` and `Shortcuts`
+  match by it when what the key types is bound to nothing there. Plain
+  typing keeps the layout's character. `KeyCombo.layoutOf`. The place is
+  used only where the layout cannot type the key: on Dvorak, Colemak or
+  AZERTY (a Latin letter or digit typed) what is typed counts, so Ctrl+C
+  is never `ctrl+j`. The built-ins follow it (`KeyCombo.charFor`): Ctrl+C
+  quits, Ctrl+Z suspends, the text fields' copy, cut, undo and caret keys,
+  `NumberInput`, the prompts' Ctrl+C and Ctrl+D work on a Russian layout.
+- `ThemeData.cursorColor` (null, the terminal's own, by default): the color
+  of the terminal's cursor while a `TextField` or `TextArea` has the caret
+  (`OSC 12`), for a terminal that paints a block cursor in the text color of
+  the cell under it. `showCaret` takes `color`. `ThemeData.terminalOn(cursor:)`
+  and `TerminalBrightness.cursor` carry the cursor color the terminal told,
+  else its text color (Konsole answers OSC 10 but not 12), else null;
+  `ThemeData.terminal` leaves it null. twk_test:
+  `pumpWidget(foregroundRgb:, cursorRgb:)`.
+- `ListView.builder` and `ListView.separated` take `itemText`: the text of
+  each item (`ItemText`, one line in one or more runs at columns of the
+  item, built by an `ItemTextBuilder`) for a `SelectionArea` above the list,
+  which then selects across the items, those not built too, scrolls the list
+  while a drag is past its edge and copies one line for each item, as it does
+  in a `LogView`. The items' own `Text`s are left out of the area; an item
+  draws what is selected of its text by asking `ListView.selectionOf`
+  (`ItemSelection`, with `spans` and `mark` for `Text.rich`).
+- `SelectionAreaController.select(start, end)`, `selectAll()`, `start` and
+  `end`: select between two places (`SelectionPoint`, a `RenderParagraph` or
+  `Selectable` and an offset in its text) or all the text from outside, and
+  read where the selection is, so an app that changes its content (folds a
+  file) carries the selection across it. As Flutter's `SelectionArea`, whose
+  `selectAll` and `SelectableRegionState` serve the same ends.
+- `ExcludeSelection`: a subtree a `SelectionArea` above it leaves out, its
+  `Text`s and `Selectable`s neither selected nor copied (line numbers, a
+  gutter); a `SelectionArea` inside selects on its own. As Flutter's
+  `SelectionContainer.disabled`.
+- `ProgressTracker.of(context)`: a tracker on the app's clock
+  (`AppBinding.of(context).twkApp.clock`), so a driven or fake clock moves
+  its times; the constructor keeps the wall clock by default, for the `Cli`.
+- `DrivenClock`, a `Clock` that moves only when told to (`advance`,
+  `advanceTo`, `advanceToNext`): timers by due time, then by creation; those
+  due now run by themselves; `pendingTimers`, `nextDue`, `describeTimers`,
+  and a cap on the timers one move fires. It keeps a timer's creation stack
+  for `describeTimers` only with `recordStacks: true` (twk_test's `FakeClock`
+  and a driven app's clock do).
+- `TWK_DRIVEN=<driver pid>[@<ISO-8601 start>]` in `runApp` and the `Cli`'s
+  system terminal: where the process's parent is that pid, the app runs on a
+  `DrivenClock` that only the driver moves (the binding and the app in a
+  zone whose timers go to it; the terminal and what is I/O on real time).
+  Ignored in product mode, refused without a VM service. A program the app
+  starts is not driven. `CliTerminal.startTime`.
+- Inspector and driver extensions; the inspector's version stays 1:
+  `ext.twk.flags` `frameEvents` turns on the events `twk.frame` (after every
+  frame, drawn or not; `stats` for a drawn one, from `TwkApp.stats`),
+  `twk.input` (after a read of the terminal or an event), `twk.scheduled`
+  (on a driven clock, when a timer is started or cancelled outside a move of
+  the clock and outside input, a frame asked for among them) and `twk.log`
+  (the records of `TwkApp.logs` as one event per turn of the event loop,
+  `{version, records: [LogRecord.toJson]}`), with the bytes of input the app
+  took in, the bytes it wrote, whether a frame is asked for, `quitting` and
+  the clock's `nextDue`. `ext.twk.status` is the baseline a driver starts
+  from. `ext.twk.clock` (`op`: `status`, `advance`, `advanceTo`, `next`;
+  `by`, `to` in microseconds; `describe`) moves a driven clock, each timer's
+  microtasks and a running frame awaited. `ext.twk.reassemble` answers
+  `frame` and `frameDue`. `ext.twk.find` finds the elements an
+  `ElementFinder` given as JSON names, with each one's id, type, key, whole
+  text, rect and the cells shown (`ext.twk.layout` answers `shown` too).
+  `ext.twk.hitTest` tells what a click at a cell reaches, by the real hit
+  test and without calling anything or moving a hover: `takenBy`, the
+  elements hit, the `Listener`s among them with the callbacks they have, and
+  the `AbsorbPointer` that takes the press.
+- `ElementFinder`, a finder as a value (`text`, `textContaining`,
+  `textMatches`, `type`, `key`, `descendant`, `ancestor`, `first`, `last`,
+  `at`) with `apply`, `evaluate`, `toJson` and `fromJson`, and `shown`
+  (returning a `ShownRect`), the cells of a render object the screen shows
+  (the inspector's outline and twk_test's `clickOn` use it).
+- `editorCommand` is exported (it was hidden): the command that opens a file
+  at a line, from `TWK_EDITOR`, `VISUAL` or `EDITOR`.
+- `StartTimer` (what `AppClock.startTimer` and `ControllerHost(timerOf:)`
+  give and take: a function that starts a `Timer` on the app's clock) and
+  `UndisposedObject` (what `DisposalTracker.stop` returns: the `object` and
+  the stack it was `createdAt`) are exported.
 - `DebugAids.known`, every name `TWK_DEBUG` takes, for the tools that set it.
 - `LogController.addOutput` and `followFile` take `map`, which gives each
-  line's spans back, changed, or null to leave the line out.
+  line's spans back, changed, or null to leave the line out; what it throws
+  ends the source, its `done` completing with it.
 - `LogController.where`, which lines are shown by a test of each, beside
-  `level` and `filter`; set, the view stays on the lines it shows.
+  `level` and `filter`; set, the view stays on the lines it shows. A
+  predicate that throws leaves the old one and the old `level` and `filter`.
 - `showKeyHelp(extra:)`: what no binding in force tells, as pairs of what
   is done and what it does (`('right click', 'menu')`), listed after the
   keys.
 - `Table(rowMenu:)`, the entries of a row's menu: a right click on a row
   selects it and opens the menu at the mouse, Shift+F10 the selected row's
-  under it.
+  under it; with no row selected Shift+F10 goes on to the bindings above.
 - `LogView`: `w` turns the wrapping over (`w wrap` in a `KeyHintsBar`).
 - `ListController.jumpToIndex(rows:)`: the item at the top part way into
   it, `rows` of it above the window.
@@ -189,91 +141,85 @@ Added:
   handler, uncaught: `ErrorOrigin`) with the widget path where there is
   one, besides what happens to the error.
 - `debugAssertsEnabled`, whether asserts are on; `AppBinding` logs one
-  info line when a program runs with them off.
+  info line when a program runs with them off (in a debug run only).
 - `DisposalTracker`, an opt-in debug record of the controllers and
   notifiers made and never disposed (`testTwk(trackDisposables: true)`
   reports them); `ValueNotifier`, `ScrollController`, `FocusNode` and
-  `AnimationController` join it.
+  `AnimationController` join it, and the widgets' controllers (see
+  Breaking).
 - `overflowIntended` on `Flex`, `Row`, `Column`, `Wrap` and `Grid`: a
   layout that cuts its children off on purpose shows no overflow marker
   and logs no warning.
 - The debug aids' overflow marker: a hatch with the cells cut off, at the
   edge of a flex, wrap or grid whose children do not fit
   (`TWK_DEBUG=overflow`, Ctrl+G then `w`, `DebugAids.overflow`,
-  `ext.twk.flags`), on while asserts are.
+  `ext.twk.flags`), on while asserts are. `Cli.show` writes none over its
+  output; the warning still goes to the console's log.
 - `ControllerHost(mounted:)`, whether a host that is no `State` is still
   in the tree.
 
 Changed:
 
-- `DrivenClock(recordStacks:)`: a timer keeps the stack that started it, for
-  `describeTimers` and `waiting`, only when asked (off by default; on for
-  twk_test's `FakeClock` and a driven app's clock), so a clock where
-  allocations are measured pays no stack a timer.
-- `LogView(wrap: true)` wraps a line's text in a column of its own right
-  of its time and level, not back under them at the left edge.
 - Debug runs assert, with a hint, on what was lost or wrong without a
   word: `setState` of an element inside its own `build` (the update was
-  dropped); a lookup of an inherited widget or an ancestor from an element
-  out of the tree, in `dispose` or after an await (it gave null or a
-  default; keep the value from `didChangeDependencies`); a `State`
+  dropped); `State.setState` given a callback that returns a `Future` (an
+  `async` closure, or the arrow form `setState(() => _future = fetch())`;
+  use a block body); a lookup of an inherited widget or an ancestor from an
+  element out of the tree, in `dispose` or after an await (it gave null or
+  a default; keep the value from `didChangeDependencies`); a `State`
   disposed with a `Ticker` still active, naming both (a controller it did
-  not dispose); a controller served by two widgets in the tree at once,
-  checked after the build; two choices with one value in `Select`,
-  `MultiSelect` and `SegmentedButton`, two items with one key in
-  `SelectionList`, two rows with one `rowKey` in `Table`; `requestFocus`
-  on a disposed `FocusNode` (the focus handed back by a route or a dialog
-  skips a node disposed meanwhile); `StepperController.next`, `back` or
-  `goTo` after its dispose, at the call (a validator that resolves after
-  it stays silent); a
-  negative `duration`, `reverseDuration`, `animateTo` duration or
-  `repeat` period of an `AnimationController` (`Duration.zero` jumps).
+  not dispose); two choices with one value in `Select`, `MultiSelect` and
+  `SegmentedButton`, two items with one key in `SelectionList`, two rows
+  with one `rowKey` in `Table` (the check reads at most the first 1000);
+  `requestFocus` on a disposed `FocusNode` (the focus handed back by a
+  route or a dialog skips a node disposed meanwhile);
+  `StepperController.next`, `back` or `goTo` after its dispose, at the call
+  (a validator that resolves after it stays silent); a negative `duration`,
+  `reverseDuration`, `animateTo` duration or `repeat` period of an
+  `AnimationController` (`Duration.zero` jumps).
+- A controller served by two widgets in the tree at once fails in a debug
+  run, after a 2 s grace on the app's clock: an old host kept in the tree by
+  a fade-out is no mistake (a `MenuController` handed to a new menu while
+  the old one fades out is fine), and a widget leaving ends only its own
+  graces. A `State` host finds the clock above it by itself, so
+  `ControllerHost(timerOf:)` is only for a host that is no `State`; a
+  `timerOf` that answers null means no clock.
 - Tree warnings (a flex, wrap or grid overflow, a viewport or list given
   no room) name the widget path of the render object that raised them.
 
 Fixed:
 
-- A route whose `reverseTransitionDuration` throws, or whose first step of
-  the slide does, no longer leaks the route's two focus nodes and its
-  animation controller, nor leaves the route pointing at a host that was
-  never disposed.
-- Selection: `ItemText` asserts its text is one line, as `ItemText.runs`
-  did; `ItemSelection` equality includes its runs; and
-  `SelectionAreaController.hasSelection` counts only what is still in the
+- A drag of a `SelectionArea` that goes over a child of a `Selectable`, on
+  its cell too, selects in the child (the comment under a code line):
+  the `Selectable` was taken first, and the child never selected in.
+- `SelectionAreaController.hasSelection` counts only what is still in the
   tree, as `start`, `end` and `text` do, so it is false once the selected
   `Text` is removed.
+- `NumberInput` and `DatePicker` give `onChanged` the text typed on a key
+  they leave to the bindings above (a dialog's Ctrl+S), before it goes on,
+  where it is a value within the bounds, and leave the text as typed: a
+  dialog's Ctrl+S that saves, pressed with 45 typed over 30, found 30. A
+  bare Shift, lock or media key hands nothing over, nor does a key of the
+  field's own at an edge of the text (a caret key, a deletion, a
+  character). The number stays typed until the parent takes it or gives
+  another value, across a rebuild too; the parent never taking it, it is
+  given up when the focus leaves, the field showing the parent's value
+  again. Text that is no value yet (`-`) stays for Enter or the focus
+  leaving to take, and Escape gives back the value from before the typing.
 - Grabbing a `Scrollbar`'s thumb moves nothing until the pointer moves: the
   content followed the thumb's rounded start, so a press on a list of
-  100000 rows jumped it by up to a hundred rows or more. The travel of the
-  pointer now counts from the position at the press. A `Scrollbar` or
+  100000 rows jumped it by up to a hundred rows or more. A `Scrollbar` or
   `BorderScrollbar` disposed before its first build finished no longer
   asserts in `dispose`, which hid the build's own error.
-- `NumberInput` and `DatePicker` keep the text as typed when a key they
-  leave (an unbound F1) hands the value over mid-typing and the app builds
-  them with it: `3.` was rewritten to `3.00`, so the next digit made
-  `3.005`. A bare Shift, lock or media key (kitty's `CSI 57441;2 u`) is no
-  hand-over at all.
 - `tailFile` (and `followFile`) on a name whose file is replaced across
   every open of a look tells the identity read before the open, not after:
   the first bytes of the later file were never delivered (nothing at all
   where the sizes were equal); the next look now finds the change and
   starts over.
-- `State.setState` asserts, in a debug run, on a callback that returns a
-  `Future` (an `async` closure), whose changes after the first await had
-  no rebuild after them.
 - `LogView` scrolled across and its controller cleared: the lines added
-  next show from their start, not scrolled out of view.
-- `LogView` scrolled up into a wrapped line stays on its row as lines are
-  dropped past `maxLines`, not moved to the line's start at each one added.
-- What `map` throws in `LogController.addOutput` or `followFile` ends the
-  source, its `done` completing with it, the lines before it added and the
-  listeners told; it was thrown uncaught, the rest of the lines lost.
-- `NumberInput` and `DatePicker` give `onChanged` the text typed on a key
-  they leave to the bindings above, before it goes on, where it is a value
-  within the bounds, and leave the text as typed: a dialog's Ctrl+S that
-  saves, pressed with 45 typed over 30, found 30. Text that is no value
-  yet (`-`) stays for Enter or the focus leaving to take, and Escape gives
-  back the value from before the typing.
+  next show from their start, not scrolled out of view. `LogView` scrolled
+  up into a wrapped line stays on its row as lines are dropped past
+  `maxLines`, not moved to the line's start at each one added.
 - A CLI on a pseudo-terminal of no size (one `script` opens with no
   terminal around it: a background job, CI) takes it for a terminal, its
   width `COLUMNS` or none; it wrote to it as to a file, without colours or
@@ -284,92 +230,22 @@ Fixed:
   is handled: a click whose press and release came in one frame pressed a
   button before the field it took the focus from had taken its text (a
   `NumberInput` with 45 typed over 30 saved 30).
-- A click on a `LogView` writes the text a selection selects in anew only
-  where the lines changed: at 10000 lines a click took 2 ms, now 0.3 ms.
-- `Scrollbar` and a bar on a `Box` border dispose their track's notifier;
-  `SelectionList` and `Table` dispose the list controller they made when
-  they are refused for duplicate keys; a route removed before a frame
-  built it disposes its focus nodes; the window layer disposes its move
-  ticker.
+- A route whose `reverseTransitionDuration` or first step of the slide
+  throws, and a route removed before a frame built it, no longer leak its
+  focus nodes and animation controller; they are made and disposed once,
+  however the route is removed. A `Scrollbar` or a bar on a `Box` border
+  disposes its track's notifier, and the window layer its move ticker.
 - A scrollable first built in a `LayoutBuilder` while a scrollbar's frame
   lays its child out no longer marks the frame for layout inside its own
-  layout: the frame takes the axis into that layout.
-- `Popover` and an overlay entry make their fade ticker in `initState`,
-  not first in `dispose`; `DragTarget` keeps its `MouseTracker` from
-  `didChangeDependencies`.
-- A `showFilePicker` dialog no longer overflows by a row, and a window
-  narrower than its title buttons logs no overflow.
-- `example/hooks/search.dart` loads its list from an effect that cancels
-  its timer, so quitting leaves no timer pending.
-- `showFilePicker` fits a terminal shorter than its `height`: Cancel and
-  Open stay on screen.
-- `Table` keeps its state (rows, selection, scroll) when `rowMenu` is
-  given or taken away.
-- `SelectionList` checks its keys for duplicates again only when the count
-  or `keyOf` changed, not at every rebuild; the `MultiSelect` duplicate
-  check names `MultiSelect`.
+  layout.
+- A `showFilePicker` dialog no longer overflows by a row and fits a
+  terminal shorter than its `height` (Cancel and Open stay on screen), and a
+  window narrower than its title buttons logs no overflow.
 - `OptionList` no longer fails its paint (a negative clip width) when its
   detail is wider than the list.
-- The "asserts are off" log line is written only in a debug run, not in
-  profile or release builds; `LogView.selectionLines`, a test counter,
-  counts only when asserts are on.
-- `LogController.where` keeps the predicate it had when a new one throws,
-  instead of leaving every later line to throw.
-- `SelectionList` skips its duplicate-key check for a `keyOf` that is
-  `==` to the last, a method tear-off included.
-- The Ctrl+G hint line shows copy and save at 80 columns again.
-- The `setState` Future assert names the arrow form too
-  (`setState(() => _future = fetch())`) and the fix, a block body.
 - Removing a focused field together with the sibling before it in one
   frame no longer fails the build in a debug run: the focus order walked
   an element already out of the tree.
-- A controller served by two widgets both in the tree is logged as an
-  error after a 2 s grace on the app's clock instead of ending the app;
-  an old host kept in the tree by a fade-out is no mistake.
-- `LogController.level` and `filter` keep their old value, and tell no
-  listener, when `where` throws during the refilter, as `where` does.
-- `NumberInput` and `DatePicker` keep a number typed until the parent
-  takes it or gives another value; a rebuild with the old value no longer
-  clears it. A value handed over that the parent never took is given up
-  when the focus leaves, the field showing the parent's value again, even
-  where the text was edited into no value meanwhile.
-- The duplicate checks read every key or value when the widget is made,
-  and at most the first 1000 when it is rebuilt.
-- A controller with two hosts in the tree and no app above them fails in
-  a debug run again, where it was only logged; the grace runs on the
-  app's clock. A `State` host finds that clock above it by itself, so
-  `ControllerHost(timerOf:)` is only for a host that is no `State`, and a
-  `MenuController` handed to a new menu while the old one fades out no
-  longer fails.
-- A widget leaving ends only the two-hosts graces it is in, not those of
-  other hosts still in the tree.
-- `LogController` tells its listeners after a refilter is whole, outside
-  the undo of a `where` that throws.
-- The duplicate checks of `Select`, `MultiSelect`, `SegmentedButton`,
-  `SelectionList` and `Table` read at most the first 1000 values or keys,
-  so a huge list rebuilt with an inline `keyOf` no longer costs a pass
-  over all of it in a debug run.
-- `Cli.show` writes no overflow marker over its output; the warning still
-  goes to the console's log.
-- `NumberInput` and `DatePicker` forget a value handed over once the
-  parent took it: Escape after that keeps the parent's value. A key of the
-  field's own at an edge of the text (a caret key, a deletion, a
-  character) hands nothing over to the bindings above.
-- `Table` binds Shift+F10 only while a row is selected, so with none it
-  goes on to the bindings above; one `Listener` over the rows instead of
-  one per row.
-- A route's focus nodes are made and disposed by the navigator's state,
-  once, however the route is removed; a click on a `LogView` finds its
-  line without making a list.
-- The debug console shows an overflow report's text once, not again as
-  its error.
-- `NumberInput` and `DatePicker` keep a value handed over that the parent
-  has not taken across a rebuild for another reason: Escape still gives
-  back the value from before the typing, and the focus leaving gives it
-  up.
-- A `ControllerHost` whose `timerOf` answers null has no clock, as its
-  doc says, a `State` host too; the app's clock is a `State`'s default
-  only where no `timerOf` is given.
 
 ## 0.3.0
 
