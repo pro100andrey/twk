@@ -2677,6 +2677,7 @@ final class DebugAids {
   }
 
   void _dispose() {
+    frameEvents = false;
     _overlay?.dispose();
     _console?.dispose();
   }

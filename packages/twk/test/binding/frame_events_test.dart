@@ -274,6 +274,20 @@ void main() {
     expect(posted, isEmpty);
   });
 
+  testTwk('the app ending turns the events and their listeners off', (t) async {
+    await t.pumpWidget(const _Keys(counts: true), size: (10, 2));
+    await on(t);
+    final app = t.binding.twkApp;
+    addTearDown(() async {
+      expect(t.binding.debug.frameEvents, isFalse);
+      expect(app.onInputSettled, isNull);
+      posted.clear();
+      app.logs.run(() => twk.log('after the app'));
+      await pumpEventQueue();
+      expect(posted, isEmpty);
+    });
+  });
+
   testTwk('ext.twk.status answers what twk.frame carries, changes nothing '
       'and posts nothing', (t) async {
     await t.pumpWidget(const _Keys(counts: true), size: (10, 2));
