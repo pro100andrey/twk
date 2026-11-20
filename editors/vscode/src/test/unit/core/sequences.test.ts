@@ -169,4 +169,18 @@ describe('the sequence decoder', () => {
     assert.equal(visible('\x1b[A\x1b[B'), 'ESC [A ESC [B');
     assert.equal(visible('x'.repeat(200), 10), `${'x'.repeat(10)}… (200 bytes)`);
   });
+
+  it('says the bytes of a character cut by a read, given again when the next read starts with a control, are counted already', () => {
+    const r = new SequenceReader(false);
+    const tokens = [...r.read(Buffer.from('a€', 'utf8').subarray(0, 3)), ...r.read(Buffer.from('\r\n'))];
+    assert.deepEqual(
+      tokens.map((t) => [t.kind, t.raw.length, t.kind === 'text' && t.counted === true]),
+      [
+        ['text', 3, false],
+        ['text', 2, true],
+        ['control', 1, false],
+        ['control', 1, false],
+      ],
+    );
+  });
 });

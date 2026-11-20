@@ -144,7 +144,8 @@ export class SequenceLog {
   /** What the app wrote at [time]; [at] says where it is in the app's own count (what the entries then carry as `run`, `at` and `end`). */
   output(time: number, bytes: Uint8Array, at?: AppOffset): void {
     if (at && (at.run !== this.run || at.offset > this.fed)) {
-      // another run, or bytes before were let go
+      // another run, or bytes before were let go: what the last run left open or cut is done with
+      this.finish(time);
       this.run = at.run;
       this.emitted = at.offset;
     }
@@ -156,7 +157,9 @@ export class SequenceLog {
       const begins = this.emitted;
       if (at) {
         // a token's raw is its bytes, a char each (a text run's UTF-8 as it was written)
-        this.emitted += t.raw.length;
+        if (!(t.kind === 'text' && t.counted)) {
+          this.emitted += t.raw.length;
+        }
       }
       const entry = this.entry(time, 'out', t.kind, describeOutput(t), t.raw, at ? { run: this.run, at: begins, end: this.emitted } : undefined);
       if (change > 0 && this.depth <= 0 && this.open === undefined) {
@@ -218,6 +221,7 @@ export class SequenceLog {
     if (waiting !== '') {
       this.add({ id: this.nextId++, time, direction: 'note', kind: 'note', name: `output cut short: ${visible(waiting, 60)}`, raw: '', bytes: waiting.length });
     }
+    this.out.reset();
   }
 
   /** Something of the session at [time]: an app came or went, a size. */

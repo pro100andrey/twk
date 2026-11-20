@@ -157,4 +157,35 @@ describe('the log by the app\'s count of its bytes', () => {
     noRun.output(0, b(first));
     assert.equal(entryAtAppBytes(noRun.all(), 3), undefined);
   });
+
+  it('finishes a synchronized update the last run died in when a new run begins, so the new run has frames', () => {
+    const log = new SequenceLog();
+    log.output(0, b('\x1b[?2026h\x1b[1;1Hhalf'), { run: 1, offset: 0 });
+    log.output(5, b('\x1b[?2026h\x1b[1;1Hagain\x1b[?2026l'), { run: 2, offset: 0 });
+    log.output(9, b('\x1b[?2026h\x1b[1;1Hmore\x1b[?2026l'), { run: 2, offset: 25 });
+    const frames = log.all().filter((e) => e.kind === 'frame');
+    assert.equal(frames.length, 3);
+    assert.match(frames[0].name, /not closed/);
+    assert.doesNotMatch(frames[1].name, /not closed/);
+    assert.doesNotMatch(frames[2].name, /not closed/);
+  });
+
+  it('forgets the half of a sequence the last run left when it is finished', () => {
+    const log = new SequenceLog();
+    log.output(0, b('\x1b[1'), { run: 1, offset: 0 });
+    log.output(1, b('mtext'), { run: 2, offset: 0 });
+    assert.deepEqual(names(log.all()), ['output cut short: ESC [1', 'text "mtext"']);
+  });
+
+  it('counts the bytes of a cut UTF-8 character once in the app offsets when the next read starts with a control', () => {
+    const log = new SequenceLog();
+    // a, and the first two bytes of the euro sign, which never completes
+    log.output(0, Buffer.from('a€', 'utf8').subarray(0, 3), { run: 1, offset: 0 });
+    log.output(1, b('\r\nz'), { run: 1, offset: 3 });
+    log.output(2, b('y'), { run: 1, offset: 6 });
+    const last = log.all().filter((e) => e.kind === 'text').pop()!;
+    assert.equal(last.name, 'text "y"');
+    assert.equal(last.at, 6);
+    assert.equal(last.end, 7);
+  });
 });

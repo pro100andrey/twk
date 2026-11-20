@@ -309,6 +309,7 @@ export class LogPanel {
       return;
     }
     this.ended = true;
+    this.log.finish(Math.round(this.clock.now() - this.start));
     this.apply({ time: Math.round(this.clock.now() - this.start), note: `${this.screen.name} was closed` });
     this.flush();
     void this.panel.post({ type: 'ended' });

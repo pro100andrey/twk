@@ -86,6 +86,16 @@ describe('the sequence log panel', () => {
     assert.equal(panel.disposed, false, 'the log stays open to be read');
   });
 
+  it('closes the synchronized update the app was in when the terminal ends, as a frame saying it was not closed', async () => {
+    const log = new LogPanel(t, panel, clock);
+    panel.send({ type: 'ready' });
+    await t.write(Buffer.from('\x1b[?2026hab'));
+    await t.dispose();
+    const names = log.entries().map((e) => e.name);
+    assert.match(names[names.length - 2], /^frame 1: .*not closed$/);
+    assert.equal(names[names.length - 1], 'counter.dart was closed');
+  });
+
   it("a screen followed from its start: its log, opened later, begins with what came before, its times the screen's", async () => {
     const logs = new LogPanels(() => panel, clock);
     const other = terminal('other.dart');
