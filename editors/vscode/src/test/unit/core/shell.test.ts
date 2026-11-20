@@ -1,5 +1,6 @@
 // The extension's shell against an app's end of the wire written here
-// (what twk_core's SocketLink sends), over a real local socket; the
+// (what twk_core's SocketLink sends), over a real local socket (a Unix
+// domain socket, or TCP on 127.0.0.1 on Windows, as the extension's); the
 // address TWK_SHELL holds.
 import * as assert from 'node:assert/strict';
 import * as fs from 'node:fs';
@@ -9,7 +10,7 @@ import * as path from 'node:path';
 import { fromVariable, toVariable } from '../../../core/address';
 import { TerminalPane, TerminalShell, Welcome } from '../../../core/shell';
 import { AppFrame, ShellFrame, frame } from '../../../core/wire';
-import { App } from '../fakes';
+import { App, connectLocal, shellOnTcp } from '../fakes';
 
 class FakePane implements TerminalPane {
   columns = 100;
@@ -32,12 +33,12 @@ describe('TerminalShell', () => {
   let welcomes: Welcome[] = [];
   const events: string[] = [];
   const logged: string[] = [];
-  const start = (temporaryRoot = root) =>
+  const start = (temporaryRoot = root, tcp = shellOnTcp) =>
     TerminalShell.start(pane, {
       welcome: () => welcomes.shift() ?? xterm,
       onEvent: (e) => events.push(e),
       temporaryRoot,
-      tcp: false,
+      tcp,
       log: (m) => logged.push(m),
     });
 
@@ -154,14 +155,19 @@ describe('TerminalShell', () => {
     other.socket.destroy();
   });
 
-  it('listens on a socket of its own in a new directory, which no project knows of; two shells, two sockets', async () => {
+  it('listens on a socket of its own, in a new directory or on a port of 127.0.0.1, which no project knows of; two shells, two sockets', async () => {
     const address = fromVariable(shell.variable);
     assert.ok(address, shell.variable);
     assert.equal(toVariable(address), shell.variable);
     assert.deepEqual(address, shell.address);
-    const socket = address.where.substring('unix:'.length);
-    assert.equal(path.dirname(path.dirname(socket)), root);
-    assert.ok(fs.lstatSync(socket).isSocket());
+    if (shellOnTcp) {
+      assert.match(address.where, /^tcp:127\.0\.0\.1:\d+$/);
+      assert.deepEqual(fs.readdirSync(root), []);
+    } else {
+      const socket = address.where.substring('unix:'.length);
+      assert.equal(path.dirname(path.dirname(socket)), root);
+      assert.ok(fs.lstatSync(socket).isSocket());
+    }
     const other = await start();
     try {
       assert.notEqual(other.variable, shell.variable);
@@ -177,7 +183,8 @@ describe('TerminalShell', () => {
     fs.mkdirSync(deep);
     await assert.rejects(
       // a shell that listened after all is stopped, or it keeps the run alive
-      start(deep).then(async (s) => {
+      // a Unix domain socket's, which the length check refuses on Windows too
+      start(deep, false).then(async (s) => {
         await s.stop();
         return s;
       }),
@@ -216,9 +223,12 @@ describe('TerminalShell', () => {
   });
 
   it('removes its socket and its directory when stopped', async () => {
-    const socket = shell.address.where.substring('unix:'.length);
+    const where = shell.address.where;
     await shell.stop();
-    assert.equal(fs.existsSync(path.dirname(socket)), false);
+    if (!shellOnTcp) {
+      assert.equal(fs.existsSync(path.dirname(where.substring('unix:'.length))), false);
+    }
     assert.deepEqual(fs.readdirSync(root), []);
+    await assert.rejects(connectLocal(where));
   });
 });

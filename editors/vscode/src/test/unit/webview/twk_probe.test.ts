@@ -17,6 +17,7 @@ import { Capabilities, answersOf, choiceOf, declarationOf, environmentOf } from 
 import { KeyPress } from '../../../core/kitty_keyboard';
 import { TerminalShell } from '../../../core/shell';
 import { Emulation } from '../../../webview/answers';
+import { shellOnTcp } from '../fakes';
 
 /** From out/test/unit/webview, where this runs compiled, to the repository's root. */
 const root = path.resolve(__dirname, '../../../../../..');
@@ -68,7 +69,7 @@ class HeadlessTwkTerminal {
         },
         onEvent: () => {},
         temporaryRoot,
-        tcp: false,
+        tcp: shellOnTcp,
       },
     );
   }

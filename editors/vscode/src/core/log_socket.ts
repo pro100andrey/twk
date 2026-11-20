@@ -5,7 +5,7 @@ import * as fs from 'node:fs';
 import * as net from 'node:net';
 import * as path from 'node:path';
 
-import { ShellAddress } from './address';
+import { ShellAddress, connectionOf } from './address';
 import { addressFile, parseAddressFile } from './app_log';
 import { Emitter } from './events';
 import { LogConnection, LogEndpoints } from './log_follow';
@@ -35,9 +35,7 @@ export const nodeLogEndpoints: LogEndpoints = {
 
   connect(address: ShellAddress): Promise<LogConnection> {
     return new Promise((resolve, reject) => {
-      const tcp = address.where.startsWith('tcp:');
-      const colon = address.where.lastIndexOf(':');
-      const socket = tcp ? net.connect({ host: address.where.substring(4, colon), port: Number(address.where.substring(colon + 1)) }) : net.connect(address.where.substring(5));
+      const socket = net.connect(connectionOf(address.where));
       const lines = new Emitter<string>();
       const ends = new Emitter<void>();
       const reader = new Lines();

@@ -39,6 +39,15 @@ export function fromVariable(value: string): ShellAddress | undefined {
   return undefined;
 }
 
+/** What `net.connect` takes for [where] ([ShellAddress.where]): the path of `unix:<path>`, the host and port of `tcp:<host>:<port>`. */
+export function connectionOf(where: string): { path: string } | { host: string; port: number } {
+  if (where.startsWith('tcp:')) {
+    const colon = where.lastIndexOf(':');
+    return { host: where.substring(4, colon), port: Number(where.substring(colon + 1)) };
+  }
+  return { path: where.substring('unix:'.length) };
+}
+
 function isIp(host: string): boolean {
   return /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || (host.includes(':') && /^[0-9a-fA-F:.]+$/.test(host));
 }
