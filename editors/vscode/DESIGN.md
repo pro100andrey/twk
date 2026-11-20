@@ -1162,10 +1162,12 @@ WebSocket):
   --no-serve-devtools -DSILENT_VM_SERVICE=true --write-service-info=<a
   file of its own> <file>` with pipes and `TWK_SHELL` its terminal's,
   connects when the file names the service (the directory watched, the
-  wait bounded: part 2c, item 11). Restart: the app it started ended
-  through its `ChildProcess` (SIGTERM, which has twk put the terminal
-  back, then SIGKILL after 5 s) and started again; the shell takes the new
-  app, so the terminal stays.
+  wait bounded: part 2c, item 11). The app is a group of its own
+  (`group`), as `dart` on Windows starts the VM as a child, which ending
+  `dart` alone leaves running (elsewhere `dart` becomes the VM). Restart:
+  the app it started ended through its handle (SIGTERM, which has twk put
+  the terminal back, then SIGKILL after 5 s; on Windows `taskkill /T`)
+  and started again; the shell takes the new app, so the terminal stays.
 - **Debug**: the launch gets `env: {TWK_DEBUG: keys, TWK_SHELL: ...}` and
   a `twkSession` field, the key of its terminal; a debug adapter tracker
   on such sessions connects to the address

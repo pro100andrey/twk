@@ -142,7 +142,9 @@ export class HotRun {
         `--write-service-info=${pathToFileURL(info)}`,
         file,
       ],
-      { cwd, env: { ...this.deps.env, ...this.options.env } },
+      // a group: on Windows `dart` starts the VM as a child (elsewhere it
+      // becomes the VM), which ending `dart` alone leaves running
+      { cwd, env: { ...this.deps.env, ...this.options.env }, group: true },
     );
     this.process = app;
     onOutput(`twk: dart run ${path.relative(cwd, file)} (pid ${app.pid})\n`);
