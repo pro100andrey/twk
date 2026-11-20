@@ -51,7 +51,11 @@ final class FakeLaunched implements Launched {
   Future<int?> get exitCode => _exit.future;
 
   @override
-  Future<Uri> get serviceUri async => Uri.parse('http://fake/');
+  Future<Uri> get serviceUri =>
+      pendingServiceUri?.future ?? Future.value(Uri.parse('http://fake/'));
+
+  /// A service address that does not come until the test completes it.
+  Completer<Uri>? pendingServiceUri;
 
   /// Whether the program was killed.
   var killed = false;
@@ -103,6 +107,9 @@ final class FakeService implements AppServicePort {
 
   /// What a method answers.
   final answers = <String, Json Function(Map<String, String>)>{};
+
+  /// Methods whose answer waits for the test to complete it.
+  final pendingAnswers = <String, Completer<Json>>{};
 
   /// Whether the app took TWK_DRIVEN, as `clock` says.
   var driven = true;
@@ -173,6 +180,10 @@ final class FakeService implements AppServicePort {
     Map<String, String> params = const {},
   ]) async {
     calls.add('$method $params');
+    final pending = pendingAnswers[method];
+    if (pending != null) {
+      return pending.future;
+    }
     final answer = answers[method];
     if (answer != null) {
       return answer(params);
