@@ -275,6 +275,32 @@ void main() {
   });
 
   test(
+    'a failure opening the JSON file closes the cast opened before it',
+    () async {
+      Directory('${dir.path}/t/run.trace.jsonl').createSync(recursive: true);
+      final process = FakeProcess();
+      final service = FakeService();
+      // the fake's kill ends its output, which a closing stream completes
+      // only once listened to
+      process.launched.terminal.output.listen((_) {});
+      final starting = Session.start(
+        const ProcessSpec('app.dart'),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => FakeScreen(),
+          connect: (_) async => service,
+        ),
+        trace: TraceOptions('${dir.path}/t/run'),
+      );
+      await expectLater(starting, throwsA(isA<FileSystemException>()));
+      expect(process.launched.killed, isTrue);
+      // On platforms that keep an open file from being removed this checks the
+      // rollback too; everywhere it checks the partial trace can be cleaned up.
+      File('${dir.path}/t/run.cast').deleteSync();
+    },
+  );
+
+  test(
     'a trace that cannot be opened ends the app that was launched',
     () async {
       // the trace's directory would be below a file

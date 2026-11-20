@@ -75,29 +75,37 @@ final class TraceRecorder implements Trace {
     List<String> arguments = const [],
   }) : size = (width, height) {
     File(options.path).parent.createSync(recursive: true);
-    _cast = File(castPath).openSync(mode: FileMode.write);
-    _json = File(tracePath).openSync(mode: FileMode.write);
-    final started = DateTime.now().toUtc();
-    final name = options.program ?? program;
-    _writer = CastWriter(
-      (text) => _cast!.writeStringSync(text),
-      CastHeader(
-        width: width,
-        height: height,
-        timestamp: started.millisecondsSinceEpoch ~/ 1000,
-        command: [name, ...arguments].join(' '),
-        title: File(options.path).uri.pathSegments.last,
-      ),
-    );
-    _line({
-      'type': 'header',
-      'version': 1,
-      'program': name,
-      'size': [width, height],
-      'profile': options.profile,
-      'driven': driven,
-      'start': started.toIso8601String(),
-    });
+    try {
+      _cast = File(castPath).openSync(mode: FileMode.write);
+      _json = File(tracePath).openSync(mode: FileMode.write);
+      final started = DateTime.now().toUtc();
+      final name = options.program ?? program;
+      _writer = CastWriter(
+        (text) => _cast!.writeStringSync(text),
+        CastHeader(
+          width: width,
+          height: height,
+          timestamp: started.millisecondsSinceEpoch ~/ 1000,
+          command: [name, ...arguments].join(' '),
+          title: File(options.path).uri.pathSegments.last,
+        ),
+      );
+      _line({
+        'type': 'header',
+        'version': 1,
+        'program': name,
+        'size': [width, height],
+        'profile': options.profile,
+        'driven': driven,
+        'start': started.toIso8601String(),
+      });
+    } on Object {
+      _cast?.closeSync();
+      _json?.closeSync();
+      _cast = null;
+      _json = null;
+      rethrow;
+    }
   }
 
   /// What it was opened with.
