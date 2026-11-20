@@ -291,16 +291,20 @@ String renderGroup(WidgetGroup g) {
   return b.toString();
 }
 
+/// A code span: a run of backticks, closed by a run of the same length (one
+/// group, the opening run).
+const _span = r'(?<!`)(`+)(?!`)[^\n]+?(?<!`)\1(?!`)';
+
 final _image = RegExp(r'!\[[^\]]*\]\([^)]*\)(?:<br>)?');
 final _link = RegExp(r'(?<!!)\[([^\]]*)\]\(([^)\s]*)\)');
 
 /// A code span or a [_link]: the span first, so that `f[i](e)` in one is left
 /// as code, while a link whose text has one is still a link.
-final _spanOrLink = RegExp('`[^`\n]*`|${_link.pattern}');
+final _spanOrLink = RegExp('$_span|${_link.pattern}');
 
 /// A code span or an [_image], which go before the links: a picture may be
 /// the text of one, and its `]` would end that text.
-final _spanOrImage = RegExp('`[^`\n]*`|${_image.pattern}');
+final _spanOrImage = RegExp('$_span|${_image.pattern}');
 final _guideFile = RegExp(r'^[a-z0-9-]+\.md$');
 final _groupFile = RegExp(r'^\.\./widgets/[a-z0-9-]+\.md$');
 final _pageFile = RegExp(r'^\.\./widgets/([a-z0-9-]+/[a-z0-9-]+\.md)$');
@@ -324,8 +328,11 @@ String rewriteGuide(String name, String guide, Map<String, String> anchors) {
   return out.toString();
 }
 
+/// A fenced block: closed by a line of the opening's character, at least as
+/// long and followed by nothing but blanks.
 final _fence = RegExp(
-  r'^[ \t]*(```|~~~).*?^[ \t]*\1[^\n]*$',
+  r'^[ \t]*(?:(`{3,})[^\n]*\n.*?^[ \t]*\1`*[ \t]*$'
+  r'|(~{3,})[^\n]*\n.*?^[ \t]*\2~*[ \t]*$)',
   multiLine: true,
   dotAll: true,
 );
@@ -338,11 +345,11 @@ String _rewriteProse(String name, String prose, Map<String, String> anchors) =>
         )
         .replaceAllMapped(_spanOrLink, (m) {
           final whole = m.group(0)!;
-          final target = m.group(2);
+          final target = m.group(3);
           if (target == null) {
             return whole;
           }
-          final text = m.group(1)!;
+          final text = m.group(2)!;
           if (RegExp('^[a-z]+:|^#').hasMatch(target)) {
             return m.group(0)!;
           }
@@ -396,7 +403,7 @@ Map<String, String> buildReferences({
     }
     // what is shown as code links to nothing
     for (final m in _spanOrLink.allMatches(value.replaceAll(_fence, ''))) {
-      final file = m.group(2)?.split('#').first;
+      final file = m.group(3)?.split('#').first;
       if (file == null) {
         continue;
       }
