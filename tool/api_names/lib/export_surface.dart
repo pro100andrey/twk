@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:path/path.dart' as p;
 
 /// A declaration a library exports, by [name].
 final class Declaration {
@@ -116,9 +117,9 @@ final class ExportSurface {
   /// null): every library the package's dependencies reach is resolved on
   /// demand and kept, so one surface per test file.
   factory ExportSurface.open([String? directory]) {
-    final path = Directory(directory ?? Directory.current.path).absolute.uri
-        .toFilePath()
-        .replaceFirst(RegExp(r'/$'), '');
+    // the analyzer takes only absolute, normalized paths: no trailing
+    // separator, and on Windows no '/' in a path of '\'s
+    final path = p.normalize(p.absolute(directory ?? Directory.current.path));
     final collection = AnalysisContextCollection(includedPaths: [path]);
     return ExportSurface._(collection.contextFor(path).currentSession);
   }
