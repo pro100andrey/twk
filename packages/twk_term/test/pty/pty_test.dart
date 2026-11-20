@@ -530,10 +530,10 @@ void main() {
       final run = Run('sh', ['-c', script], output: PtyOutput.terminal);
       expect(await run.ended(), exits(0));
       final flags = run.text.split('\r\n').where((f) => f.isNotEmpty).toSet();
-      expect(
-        flags,
-        containsAll(['onlcr', 'opost', '-ocrnl', '-onocr', '-onlret']),
-      );
+      expect(flags, containsAll(['onlcr', 'opost', '-onocr', '-onlret']));
+      // macOS's stty does not name OCRNL at all, Linux's names it '-ocrnl'
+      // when clear: on both, never 'ocrnl'
+      expect(flags, isNot(contains('ocrnl')));
       expect(flags.any((f) => f == 'xtabs' || f == 'tab3'), isFalse);
       expect(run.pty.nlToCrNl, isTrue);
     },
