@@ -5,322 +5,157 @@
 Breaking:
 
 - `TwkApp(clock:)` takes a `Clock`, not a `Stopwatch`; `TwkApp.clock` is a
-  `Clock`. A frame that waits is started with `clock.timer`, in the app's
-  zone as before, so a clock that moves when told to spaces the frames and
-  holds the timers.
-
-Changed:
-
-- A short text laid out is cheaper (a line of 20 ASCII characters, s1):
-  edited 227 -> 144 ns, laid out new 244 -> 214 ns. An edit of 64 code
-  units or fewer splits the text again whole rather than finding where it
-  changed (unless the painter tracks the rows an edit changes); where
-  lines may break by word is found when a line does not fit, or for the
-  intrinsic widths, not on every split; the ellipsis is measured again
-  only for another segmenter or ellipsis.
-- A repaint boundary (or the root) repaints the places of what was marked
-  in it, each on its own, not one band of rows across its whole width that
-  holds them all: a row of text changed beside an unchanged panel no longer
-  repaints the panel, nor has the presenter compare its cells. A place is a
-  marked object's cells; places that meet are one; a parent whose children
-  may paint over each other (a stack), or that paints over the child, takes
-  the place across all of it; rows across, as before, where a wide glyph
-  lies across a place's side, under an underlay, where the boundary is
-  overlapped or marked whole, and past 8 places. Hawk TUI's dashboard (the
-  bench's `dash`): 84 -> 68 us a frame.
-- A mark below a `RenderEffect` (twk's `RepaintBoundary`, the effects)
-  forgets what it kept of its child in O(1), its spans emptied once before
-  they are read, not on every mark: a list of 40 changing rows in a
-  boundary laid out in 15 us again, not 26.
-- kitty's protocol: an image that replaces another is placed before the
-  old one is deleted, not after, so that a terminal that draws in between
-  (Konsole, whose images a synchronized update does not hold) never shows
-  the cells empty: an animated GIF drawn frame by frame no longer flickers
-  there. Konsole, which keeps a deleted image's data until its id is used
-  again, then holds two images' data, the ids taken in turn.
-- `MouseEvent` keeps its button, modifiers and pixel offsets in one field
-  (it grew by two fields with the offsets: 64 bytes an event, 48 as before),
-  and the app's input listener allocates nothing for the driver's settle
-  timer where none listens (a Context for `this` on every event); the
-  allocation profile of input is back to what it was.
-- The pixel mouse's cell size stays current over a link that cannot read the
-  tty's pixels (a socket, ssh): each resize asks the terminal again (CSI 16 t,
-  CSI 14 t over the size in cells where there is no cell size), the old size
-  standing until the answer comes, which is not delivered as input.
-- `KeyEvent ==` and `hashCode` leave `baseChar` out (it says which key a
-  layout's character is on, not which key it is), so `key == ctrlC` holds
-  on a Russian layout too; `kittyCode` shares a field with `modifiers`,
-  which keeps `KeyEvent` as cheap to make as before it.
-- What a driven app's zone must not hold stays on real time: a terminal's
-  resume and close guards run in the zone the terminal was made in, the
-  output's retries in the zone it was opened in, the log server's token
-  wait and the trace's drain in the root zone. `TwkApp.inFrame`.
-
-Fixed:
-
-- Two kitty images that share one `ImageAnimation` each get the frames it
-  adds: what was sent of an animation is kept per image sent
-  (`KittyAnimationSent`), not on the animation, where the second image's
-  transmission reset the count and the other image's updates advanced it
-  for both, so one stalled.
-- A repaint boundary's first place, repainted as rows across for a wide
-  glyph over its side, no longer forgets the boundary's paint cache (it
-  never needed to: only a later place follows another's paint).
-- In a fixed viewport the mouse events keep their pixel offsets
-  (`offsetX`, `offsetY`; they were dropped, so no widget saw a sub-cell
-  position on an SGR-Pixels terminal), except where the position was
-  clamped to the nearest cell. An Alt-prefixed key (ESC before a kitty
-  sequence) keeps its `baseChar` and `kittyCode`. On plain output
-  (a pipe, a file, CI) the app's frames no longer carry the overflow
-  marker with asserts on; `TWK_DEBUG=overflow` still asks for it. A
-  `KeyEvent` asserts its modifiers are 0 to 255, as `MouseEvent` does.
-- A second `Terminal.open` while the first is still opening is refused with
-  its own message (await the first), not the one for a terminal that can be
-  suspended or closed, which cannot be done to one not returned yet.
-- A terminal state's `refresh:` timer is made in the terminal's own zone, as
-  the other I/O timers are: a driven app's (`TWK_DRIVEN`) fake clock no
-  longer holds it, so a progress refresh fires and Ghostty keeps showing it.
-- A terminal that answers only one of the two cell-size re-asks (CSI 16 t,
-  CSI 14 t) no longer leaves the other owing for good: later answers are
-  taken again.
-- Ghostty's sextants are told by its XTVERSION from 1.0 on, as documented,
-  not for any version.
-- Reading whether SIGHUP is ignored no longer reads address 0 when the
-  allocation fails.
+  `Clock`. A frame that waits is started with `clock.timer`, so a clock that
+  moves when told to spaces the frames and holds the timers.
 
 Added:
 
-- `ImageKeep` and `TerminalImage(keep:)`: on kitty's protocol the images
-  of one keep stay on the terminal while no placement shows them, so that
-  one shown again is placed (`a=p`) and not sent; the presenter deletes
-  them with its next frame once the keep is let go of (`kept = false`), and
-  on leaving the screen.
-- kitty's animation: `TerminalImage(animation:)` takes an `ImageAnimation`
-  (the PNG files of the frames after the first, each frame's time, the
-  plays), which the presenter sends once with the image (`a=f`, `a=a`) to a
-  terminal that plays it (`TerminalCaps.kittyAnimation`), the terminal then
-  stepping the frames on its own clock; `TerminalImage.playing` stops it
-  where it is and runs it again. `ImageAnimation.loading` takes its frames
-  as they are made (`add`, then `finish`): the terminal plays those it has
-  and waits at the last for more (kitty's loading mode, `s=2`), each frame
-  sent once with the presenter's next frame. `Terminal.open` sets the
-  capability for kitty alone (by XTVERSION, else by `KITTY_WINDOW_ID` where
-  no terminal told another name, tmux's own aside, as a terminal started
-  from kitty inherits the variable): Konsole and Ghostty take kitty's
-  images but are not known to play them, and get the first frame.
-- `TerminalInfo.sextants` and `sextantsFor`: whether the terminal is known to
-  draw the block sextants (U+1FB00..1FB3B) itself, by its environment and
-  XTVERSION as the pointer's and progress decisions are made: kitty 0.19.3
-  on, foot, Ghostty, WezTerm 20210814 on, Konsole 22.04 on, VTE 0.78 on,
-  Contour 0.3.1 on, Rio 0.4.6 on; not inside tmux or screen. An unknown
-  terminal is false.
-- `KeyCode.modifier`, `KeyCode.lock` and `KeyCode.media`, and
-  `KeyEvent.kittyCode` (`KittyKey` has the codes and their names): with the
-  kitty keyboard protocol's flag 8 the parser reads Shift, Ctrl, Alt,
-  Super, Hyper and Meta (left and right), the ISO level shifts, Caps, Num
-  and Scroll Lock and the media keys, with their repeats and releases
-  (flag 2), as `KeyEvent`s. A shortcut cannot name them.
-- Pixel mouse: where the terminal answers DECRQM for SGR-Pixels (mode
-  1016) and a cell's size is known, the mouse is reported in pixels and
+- `Clock` (an `int` of microseconds, `timer`, `periodic`; `ClockElapsed` reads
+  it as a `Duration`) and `SystemClock`, the real one, the default.
+- Keys of the kitty keyboard protocol. `KeyCode.modifier`, `KeyCode.lock` and
+  `KeyCode.media`, and `KeyEvent.kittyCode` (`KittyKey` has the codes and
+  their names): with the protocol's flag 8 the parser reads Shift, Ctrl, Alt,
+  Super, Hyper and Meta (left and right), the ISO level shifts, Caps, Num and
+  Scroll Lock and the media keys, with their repeats and releases (flag 2), as
+  `KeyEvent`s. A shortcut cannot name them. `KeyEvent.baseChar` is the
+  character of the same key on a US layout, from the alternate keys flag:
+  Ctrl and the key that types `с` is `c`. `KeyEvent ==` and `hashCode` leave
+  it out, so `key == ctrlC` holds on a Russian layout too. `Terminal` pushes
+  `KittyKeyboardFlags.alternateKeys` with disambiguation always, whatever
+  `TerminalOptions.kittyKeyboardFlags` says; `TerminalInfo.kittyKeyboardFlags`
+  is 5 by default.
+- Pixel mouse: where the terminal answers DECRQM for SGR-Pixels (mode 1016)
+  and a cell's size is known, the mouse is reported in pixels and
   `InputParser` divides them into the cell and `MouseEvent.offsetX` and
   `offsetY` (pixels into the cell; null where the terminal reports cells).
   `TerminalOptions.pixelMouse` (true) turns it off, `TerminalInfo.pixelMouse`
-  says. A cell's size now comes from `CSI 16 t`, else the tty
-  (`ws_xpixel`, `ws_ypixel`; the `PixelSizedLink` the process's own link is,
-  read again at each resize), else `CSI 14 t` over the size in cells, so
-  `TerminalCaps.cellPixelWidth` is known on more terminals; an in-band
-  resize with the window's pixels updates it. `mouseTrackingSequence(pixels:)`.
-
-- The probe asks the tertiary device attributes (DA3, `CSI = c`, after DA2,
-  not of the Linux console) and reads the unit id it answers
-  (`DCS ! | hex ST`): a terminal that answers Terminology's (`~~TY`) is shown
-  256 colors, over ssh or under sudo as well, where its `TERM` is not its
-  own. `colorModeFor` gives 256 colors to `TERM=terminology` and `fbterm`.
-- `KeyEvent.baseChar`: the key a kitty keyboard protocol terminal reports
-  with the alternate keys flag (`CSI 1089::99;5u`), the character of the
-  same key on a US layout: Ctrl and the key that types `с` is `c`.
-  `Terminal` pushes `KittyKeyboardFlags.alternateKeys` with disambiguation
-  always, whatever `TerminalOptions.kittyKeyboardFlags` says (an app that
-  set its own flags gets 4 added, as it gets 1); `TerminalInfo.
-  kittyKeyboardFlags` is 5 by default.
-- `TwkApp.quitting`: whether `quit` was called. `quit` has the settled
-  acknowledgement (`onInputSettled`) go out, and `run` waits for one armed,
-  before it hands the terminal back: a driver is told the app is quitting.
-- The presenter writes the cell under a visible block cursor
-  (`CursorShape.block`, `blinkingBlock`, `terminalDefault`) in its own
-  foreground when it is a blank: Konsole paints the block in the foreground
-  of the cell under it, and a blank was written in whatever style looks the
-  same on a space, so the cursor changed color after a Backspace. One space
-  in the cell's style, written when the cursor reaches a blank (or the blank
-  appears under it) and not again while nothing writes that row; a bar or an
-  underline, and no cursor, change nothing.
-- `TerminalInfo.cursorRgb`, the terminal's cursor color (OSC 12), null where
-  it did not answer: the probe asks `OSC 12 ; ?` with the default colors,
-  and again after a `ColorSchemeReport` where it was answered. The input
-  parser reads `OSC 12` replies as `ColorReport(which: 12)`.
-  `HeadlessTerminal(cursorRgb:)`. The probe's bytes change by that query.
-- `Presenter.cursorColor`: the visible cursor's color, written with the
-  cursor when it changes (`OSC 12`), `OSC 112` putting the terminal's own back
-  once one was written. An RGB color is sent as it is, a palette color as the
-  RGB the core knows for it (the terminal's, where it told it, else xterm's),
-  nothing where colors are off. `Presenter.cursorColorWritten`; `TwkApp` has
-  the terminal give it back on exit and when it is handed over.
-  `setTerminalState` with an empty `sequence` writes nothing.
-- `Clock` (an `int` of microseconds, `timer`, `periodic`; `ClockElapsed`
-  reads it as a `Duration`) and `SystemClock`, the real one, the default.
-
-Added:
-
+  says. A cell's size comes from `CSI 16 t`, else the tty (`ws_xpixel`,
+  `ws_ypixel`, through `PixelSizedLink`), else `CSI 14 t` over the size in
+  cells, and is asked again at each resize, over a socket or ssh too, so
+  `TerminalCaps.cellPixelWidth` is known on more terminals and follows a font
+  change. `MouseTrackingBackend.cellPixels` passes it on through a wrapper of
+  a `Terminal`. `mouseTrackingSequence(pixels:)`.
+- kitty's images: `ImageKeep` and `TerminalImage(keep:)` leave the images of
+  one keep on the terminal while no placement shows them, so that one shown
+  again is placed and not sent; they are deleted once the keep is let go of
+  (`kept = false`) and on leaving the screen.
+- kitty's animation: `TerminalImage(animation:)` takes an `ImageAnimation`
+  (the PNG files of the frames after the first, each frame's time, the
+  plays), which the presenter sends once with the image to a terminal that
+  plays it (`TerminalCaps.kittyAnimation`); `TerminalImage.playing` stops it
+  where it is and runs it again. `ImageAnimation.loading` takes its frames as
+  they are made (`add`, then `finish`): the terminal plays those it has and
+  waits at the last for more. `Terminal.open` sets the capability for kitty
+  alone (by XTVERSION, else by `KITTY_WINDOW_ID`); Konsole and Ghostty take
+  kitty's images but are not known to play them, and get the first frame.
+- `TerminalInfo.sextants` and `sextantsFor`: whether the terminal is known to
+  draw the block sextants (U+1FB00..1FB3B) itself: kitty 0.19.3 on, foot,
+  Ghostty 1.0 on, WezTerm 20210814 on, Konsole 22.04 on, VTE 0.78 on, Contour
+  0.3.1 on, Rio 0.4.6 on; not inside tmux or screen. An unknown terminal is
+  false.
+- Terminology and fbterm: the probe asks the tertiary device attributes (DA3)
+  and a terminal that answers Terminology's gets 256 colors, over ssh or under
+  sudo as well; `colorModeFor` gives 256 colors to `TERM=terminology` and
+  `fbterm`.
+- `TerminalInfo.terminalVersion`: the name and version the terminal told by
+  XTVERSION (`kitty(0.39.1)`), empty where it did not tell.
+- The cursor's color. `TerminalInfo.cursorRgb` is the terminal's (OSC 12),
+  null where it did not answer, and the input parser reads `OSC 12` replies
+  as `ColorReport(which: 12)`; `HeadlessTerminal(cursorRgb:)`. The probe's
+  bytes change by that query. `Presenter.cursorColor` sets the visible
+  cursor's color (`OSC 12`, `OSC 112` putting the terminal's own back): an RGB
+  color as it is, a palette color as the RGB the core knows for it, nothing
+  where colors are off. `TwkApp` gives it back on exit and when the terminal
+  is handed over.
+- Under a visible block cursor (`CursorShape.block`, `blinkingBlock`,
+  `terminalDefault`) the presenter writes a blank cell in its own foreground:
+  Konsole paints the block in the foreground of the cell under it, so the
+  cursor changed color after a Backspace. A bar, an underline or no cursor
+  change nothing.
 - `CountingBackend`, which `Terminal` and `HeadlessTerminal` implement: the
   bytes read (`bytesRead`, `bytesReadAtOpen`), whether the parser holds some
   (`inputPending`), a call at the end of each read (`onRead`) and the bytes
-  accepted for writing (`bytesWritten`). `TwkApp` has `inputRead` (a sample of
-  the bytes read, taken at the boundaries of the event loop), `scheduled`,
-  `frameDue`, `framesRun`, `frameEnd`, `inputPending` and `onInputSettled`:
-  what a program that drives the app syncs on.
-- `TerminalInfo.terminalVersion`: the name and version the terminal told by
-  XTVERSION (`kitty(0.39.1)`), empty where it did not tell.
+  accepted for writing (`bytesWritten`). `TwkApp` has `quitting` (whether
+  `quit` was called), `inputRead`, `scheduled`, `frameDue`, `framesRun`,
+  `frameEnd`, `inputPending` and `onInputSettled`: what a program that drives
+  the app syncs on. `quit` has the settled acknowledgement go out before
+  `run` hands the terminal back.
+- `stdioIsTerminal()`: whether stdout, or stderr, is a terminal, as an app of
+  the core takes it: a pseudo-terminal of no size is one, `/dev/null` is not.
+- `RenderList.jumpToIndex(rows:)`: the item at the top part way into it,
+  `rows` of it above the window.
+- The overflow marker. A `RenderFlex`, `RenderWrap` or `RenderGrid` whose
+  content needs more room than it has paints, in debug mode, over the edge it
+  is cut off at: a yellow hatch `▚` down the right edge or along the bottom
+  one (`/` where the terminal draws `▚` two cells wide), and the cells cut off,
+  `+3`, in the corner. It is on while asserts are, and elsewhere where
+  `PipelineOwner.debugOverflowIndicator` is set (`debugOverflowIndicatorByDefault`
+  for the owners made afterwards; `TWK_DEBUG=overflow`; the debug key `w` of
+  twk). `overflowIntended` on the three render objects says a box clips on
+  purpose: no marker, no warning. The warning carries an `OverflowReport`
+  (`LogData`, in `terminal.dart` and `package:twk/log.dart`, which
+  `LogRecord.toJson` and the twk console leave out as not an error to print).
+  Output that is data has no marker: `renderToString`, the inline commits
+  (`TwkApp.commit`), `Shot`'s captures and plain output (a pipe, a file, CI);
+  `PipelineOwner.forData` makes such an owner. `debugAssertsEnabled` (re-
+  exported by twk) says whether asserts are on. `PipelineOwner.onObjectLog`
+  gives a binding the render object that raised each warning of the tree.
+- In a debug run a `RenderFlex` logs a warning, once, when a flexible child
+  (`Expanded`, `Flexible`) is laid out by its content because the main axis is
+  unbounded, and `Canvas.text` logs, once per character, a control character
+  it drops (`Canvas.onDroppedControl`): for an ESC (which leaves `[31m` as
+  letters) it points at `Text` with spans, for a newline or a carriage return
+  at text split into lines.
+- Debug-mode asserts for layout and paint, each failing with a hint: a size
+  from `performLayout` outside the constraints; a child painted by
+  `paintChild` before it was laid out; `markNeedsLayout` from inside the
+  object's own `performLayout`; `RenderObject.width` or `height` read by a
+  parent in its own layout after the child was laid out without
+  `parentUsesSize: true`; a `paint` that calls `Canvas.save()` without
+  `restore()` (`Canvas.debugSaveDepth`); an object that marks itself for paint
+  inside its own `paint` in three paints in a row; a `BoxConstraints` with a
+  negative bound, and `Canvas.fill` or `Canvas.clipRect` with a negative width
+  or height. `PipelineOwner.debugCheckIntrinsics` (off by default,
+  `debugCheckIntrinsicsByDefault`) asserts that the intrinsic sizes of an
+  object are not negative and a minimum is not above its maximum.
+  `Surface.debugRepairWide` logs as an error, and blanks, a wide glyph split
+  in the damaged cells by a painter that writes `Surface.cells` itself.
 
 Changed:
 
+- A short text laid out is cheaper, edited or new: a short edit splits the
+  text again whole rather than finding where it changed, and where lines may
+  break by word is found only when a line does not fit.
+- A repaint boundary (or the root) repaints the places of what was marked in
+  it, each on its own, not one band of rows across its whole width: a row of
+  text changed beside an unchanged panel no longer repaints the panel, nor has
+  the presenter compare its cells. Rows across, as before, where a wide glyph
+  lies across a place's side, under an underlay, where the boundary is
+  overlapped or marked whole, and past 8 places. A mark below a `RenderEffect`
+  is cheaper too.
 - A `RenderParagraph` that keeps its paint by itself (`autoKeepsPaint`, which
   `Text` sets) turns plain after four paints in a row of seven eighths of its
   rows or more, as a text of a fixed size whose lines all change at each edit
-  gives (a text shifted by a word, a log's tail): keeping saved it nothing and
-  cost 5 to 6 %. It waits up to 64 times three layouts before it tries again
-  (16 after a glyph found under it). `keepsPaint` never turns.
-- `renderToString` draws no overflow marker (its output is data, as `Cli.show`'s
-  and `Shot`'s); the warning still goes to `onLog`. Nor do the inline
-  commits (`TwkApp.commit`, a line written to the scrollback) and
-  `Shot`'s captures (twk_test): they are made by `PipelineOwner.forData`.
-- In a debug run a `RenderFlex` logs a warning, once, when a flexible
-  child (`Expanded`, `Flexible`) is laid out by its content because the
-  main axis is unbounded, and the app logs one, once per character, when
-  `Canvas.text` drops a control character: for an ESC (which leaves
-  `[31m` as letters) it points at `Text` with spans, for a newline or a
-  carriage return at text split into lines.
-
-Added:
-
-- `Canvas.onDroppedControl`, told in a debug run the first time `text`
-  drops each control character; `TwkApp` sets it to its log.
-
-- `PipelineOwner.forData`, a constructor for an owner whose output is data
-  (what `renderToString` returns, a line written to a pipe or a file, a
-  capture held to goldens, a commit to the scrollback):
-  `debugOverflowIndicator` is off in it whatever
-  `debugOverflowIndicatorByDefault` says, and can be turned on afterwards.
-
-- `debugAssertsEnabled`, whether asserts are on, exported by the core; the
-  render pipeline's overflow marker and `package:twk`'s binding read this
-  one probe (twk re-exports it under the same name).
-- The overflow marker. A `RenderFlex`, `RenderWrap` or `RenderGrid` whose
-  content needs more room than it has now paints, in debug mode, over the
-  edge it is cut off at: a hatch `▚` in yellow on black down the right
-  edge or along the bottom one (`/` where the terminal draws `▚` two cells
-  wide), and the cells cut off, `+3`, in the corner. It is on while asserts
-  are, and with asserts off where it is turned on, the layouts measuring the
-  cells cut off only while it is on (turning it on lays them out again; a
-  release build with it off pays one flag read a layout, and no field of a
-  render object is kept for the debug checks) (`PipelineOwner.debugOverflowIndicator`, which
-  `PipelineOwner.debugOverflowIndicatorByDefault` sets for the owners made
-  afterwards; `TWK_DEBUG=overflow` turns it on, the debug key `w` of twk
-  toggles it). `RenderFlex.overflowIntended`, `RenderWrap.overflowIntended`
-  and `RenderGrid.overflowIntended` say a box clips on purpose: it shows
-  neither the marker nor the warning.
-- The warning of an overflow carries an `OverflowReport` as the `error` of
-  its record, and is logged again once an overflow that went away starts
-  anew (it was logged once for the life of the object, and the three
-  copies of the check are one now). `OverflowReport` is `LogData`
-  (`terminal.dart`, `package:twk/log.dart`), which is not an error to
-  print: `LogRecord.toJson` leaves it out and the twk console shows the
-  message alone, where the warning showed twice.
-- In debug mode, `RenderObject.width` and `RenderObject.height` assert when
-  the parent reads them in its own `performLayout` after laying the object
-  out without `parentUsesSize: true` (and without tight constraints or
-  `sizedByParent`): the object is then a relayout boundary, and the
-  parent's layout goes stale when it resizes. The two are getters and
-  setters over private fields now; the check is inside `assert`, so a
-  release build reads a field as before, and the record it needs is kept
-  outside the objects (an `Expando`, reached from asserts only).
-- `PipelineOwner.debugCheckIntrinsics` (off by default, since it asks eight
-  more intrinsic questions of every object laid out): in debug mode, the
-  intrinsic sizes of an object just laid out, at its own extent and at
-  `BoxConstraints.unbounded`, assert when one is negative or a minimum is
-  above its maximum. Its questions are not cached, so the check changes
-  nothing else. `PipelineOwner.debugCheckIntrinsicsByDefault` sets it for
-  the owners made afterwards; the core's render tests turn it on.
-- `Surface.debugRepairWide`, run at the end of every paint flush in debug
-  mode: a wide glyph split in the damaged cells (a wide cell without its
-  continuation, at the last column too, or a continuation cell without a
-  wide cell before it) is logged as an error naming the row and column,
-  where a painter that writes `Surface.cells` itself is to blame, and the
-  cell is blanked; it does not throw out of the frame, as the
-  painter that split it is not known.
-- `PipelineOwner.onObjectLog`: the tree's own warnings (a flex, wrap or
-  grid overflow, a viewport or list given no room) with the render object
-  that raised each, ahead of `onLog`, so a binding can name where it is.
-- Debug-mode asserts for the layout contract of a `RenderObject`: a size
-  from `performLayout` outside the constraints, a child painted by
-  `paintChild` before it was laid out (it painted 0 x 0, unseen), and
-  `markNeedsLayout` on an object from inside its own `performLayout` (the
-  mark was lost when the layout ended) each fail with a hint. So does a
-  `paint` (or `paintOver`) that calls `Canvas.save()` without `restore()`,
-  which shifted and clipped everything painted after it; the canvas is
-  brought back to its depth, so only that object shows the error.
-  `Canvas.debugSaveDepth` counts the saves kept.
-- Debug-mode assert: an object that marks itself for paint (`markNeedsPaint`)
-  inside its own `paint` in three paints in a row repaints on every frame,
-  and fails with a hint. One such mark, which settles something a frame
-  late, stays legal, as does a mark on another object.
-- Debug-mode asserts for negative sizes: a `BoxConstraints` with a negative
-  bound (any constructor, `copyWith`) and `Canvas.fill` or `Canvas.clipRect`
-  with a negative width or height, which drew nothing and hid a
-  `width - padding` that needed a floor of 0, fail with a hint. A rectangle
-  partly or wholly off the surface stays legal.
+  gives (a log's tail): keeping saved it nothing and cost 5 to 6 %. It tries
+  again after a while. `keepsPaint` never turns.
+- kitty's protocol: an image that replaces another is placed before the old
+  one is deleted, so that a terminal that draws in between (Konsole) never
+  shows the cells empty: an animated GIF drawn frame by frame no longer
+  flickers there.
 
 Fixed:
-- `MouseTrackingBackend.cellPixels`: a cell's size in pixels as the mouse's
-  pixel reports are divided by it, which follows a font change; a backend
-  that implements the interface (a wrapper of a `Terminal`) passes it on.
 
-- Two re-asks for a cell's size before an answer (a font zoomed twice) no
-  longer let the second round's replies through as `UnknownSequence`, nor
-  let a late CSI 14 t reply overwrite a size CSI 16 t gave.
-- `LogRecord.toString` leaves out an error that is `LogData`, as the
-  console, `toJson` and the log view do: an overflow report was printed
-  twice.
-- A layout bug found after `performLayout` (a size outside the constraints,
-  an intrinsic size against the contract) is the error box of the object
-  that has it also when the owner lays it out alone (a relayout boundary
-  marked for layout); the assertion escaped `flushLayout` there, leaving its
-  list uncleared, and on the parent-driven path showed on the parent.
-- An object that moves its own children as it is laid out (a list sorting
-  its items) while its parent asks it for intrinsic sizes in the parent's
-  own layout (`IntrinsicHeight` over a reordered `ListView.builder`) no
-  longer fails the parent's layout with "marked itself for layout inside its
-  own performLayout".
-- The overflow marker shows where asserts are off and `TWK_DEBUG=overflow`
-  or Ctrl+G `w` turned it on: the cells cut off are measured by the layout
-  (two integer stores), not inside an assert; the warning is logged with
-  asserts only.
-- An app on a pseudo-terminal of no size (one `script` opens with no
-  terminal around it: a background job, CI) has it for its terminal, as
-  wide and tall as `COLUMNS` and `LINES` say, else 80 × 24; it ran as plain
-  output, by `stdout.hasTerminal`, which such a terminal fails. A stdout a
-  test puts in (`IOOverrides`) that says it is a terminal by `hasTerminal`
-  still is one, and `/dev/null` is none: an app with its output there runs
-  as plain output. `twk shell` (`TerminalShell.start`) serves such a
-  terminal too.
-
-Added:
-
-- `stdioIsTerminal()`: whether stdout, or stderr, is a terminal, as an app
-  of the core takes it: a pseudo-terminal of no size is one, `/dev/null`,
-  a character device, is not.
-
-- `RenderList.jumpToIndex(rows:)`: the item at the top part way into it,
-  `rows` of it above the window.
+- A second `Terminal.open` while the first is still opening is refused with
+  its own message (await the first), not the one for a terminal that can be
+  suspended or closed.
+- Reading whether SIGHUP is ignored no longer reads address 0 when the
+  allocation fails.
+- An app on a pseudo-terminal of no size (one `script` opens with no terminal
+  around it: a background job, CI) has it for its terminal, as wide and tall
+  as `COLUMNS` and `LINES` say, else 80 × 24; it ran as plain output. A stdout
+  a test puts in (`IOOverrides`) that says it is a terminal still is one, and
+  `/dev/null` is none: an app with its output there runs as plain output.
+  `twk shell` (`TerminalShell.start`) serves such a terminal too.
 
 ## 0.3.0
 
