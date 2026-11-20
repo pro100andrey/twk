@@ -359,12 +359,15 @@ final class _Renderer {
     // that do
     // a column is no narrower than its widest character
     final all = table.align.length;
+    // every cell's spans, built once for the widths and the body
+    final built = [
+      [for (var j = 0; j < all; j++) _spans(table.header[j])],
+      for (final row in table.rows)
+        [for (var j = 0; j < all; j++) _spans(row[j])],
+    ];
     final least = [
       for (var j = 0; j < all; j++)
-        [
-          table.header[j],
-          for (final row in table.rows) row[j],
-        ].fold(1, (w, cell) => math.max(w, _widestCluster(cell))),
+        built.fold(1, (w, row) => math.max(w, _widestCluster(row[j]))),
     ];
     final sep = least.fold(0, (a, b) => a + b) + 3 * (all - 1) <= width ? 3 : 1;
     var columns = all;
@@ -383,14 +386,14 @@ final class _Renderer {
       for (var j = 0; j < columns; j++)
         [
           Span(
-            _spans(table.header[j]).map((span) => span.text).join(),
+            built[0][j].map((span) => span.text).join(),
             headerStyle,
           ),
         ],
     ];
     final body = [
-      for (final row in table.rows)
-        [for (var j = 0; j < columns; j++) _spans(row[j])],
+      for (final row in built.skip(1))
+        [for (var j = 0; j < columns; j++) row[j]],
     ];
     // the columns: as wide as the widest text, the widest shrunk by one
     // until all fit
@@ -476,10 +479,10 @@ final class _Renderer {
     return most;
   }
 
-  /// The columns of the widest grapheme of the inlines of [cell].
-  int _widestCluster(List<MdInline> cell) {
+  /// The columns of the widest grapheme of the [spans] of a cell.
+  int _widestCluster(List<Span> spans) {
     var most = 1;
-    for (final span in _spans(cell)) {
+    for (final span in spans) {
       final text = span.text;
       for (final (from, to) in graphemeBoundaries(text)) {
         most = math.max(most, segmenter.width(text.substring(from, to)));
