@@ -129,6 +129,31 @@ describe('TerminalShell', () => {
     app.socket.destroy();
   });
 
+  it('logs a frame of a type it does not know once per type and connection', async () => {
+    const app = await App.connect(shell.variable);
+    await app.next(ShellFrame.welcome);
+    // one type twice, another once
+    app.socket.write(frame(99, Buffer.from('later')));
+    app.socket.write(frame(99));
+    app.socket.write(frame(98));
+    app.socket.write(frame(AppFrame.flush));
+    await app.next(ShellFrame.flushed);
+    assert.equal(logged.length, 2);
+    assert.match(logged[0], /type 99/);
+    assert.match(logged[1], /type 98/);
+    app.socket.destroy();
+    // another connection counts anew
+    const other = await App.connect(shell.variable);
+    await other.next(ShellFrame.welcome);
+    other.socket.write(frame(99));
+    other.socket.write(frame(99));
+    other.socket.write(frame(AppFrame.flush));
+    await other.next(ShellFrame.flushed);
+    assert.equal(logged.length, 3);
+    assert.match(logged[2], /type 99/);
+    other.socket.destroy();
+  });
+
   it('listens on a socket of its own in a new directory, which no project knows of; two shells, two sockets', async () => {
     const address = fromVariable(shell.variable);
     assert.ok(address, shell.variable);
