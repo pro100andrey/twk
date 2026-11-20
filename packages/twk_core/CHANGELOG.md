@@ -58,6 +58,14 @@ Changed:
 
 Fixed:
 
+- Two kitty images that share one `ImageAnimation` each get the frames it
+  adds: what was sent of an animation is kept per image sent
+  (`KittyAnimationSent`), not on the animation, where the second image's
+  transmission reset the count and the other image's updates advanced it
+  for both, so one stalled.
+- A repaint boundary's first place, repainted as rows across for a wide
+  glyph over its side, no longer forgets the boundary's paint cache (it
+  never needed to: only a later place follows another's paint).
 - In a fixed viewport the mouse events keep their pixel offsets
   (`offsetX`, `offsetY`; they were dropped, so no widget saw a sub-cell
   position on an SGR-Pixels terminal), except where the position was

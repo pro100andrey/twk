@@ -190,11 +190,15 @@ final class ImageAnimation {
   /// All the frames are there: the terminal plays them through, as many
   /// times as [loops] says.
   void finish() => _complete = true;
+}
 
-  /// What the terminal was last sent of it ([kittyAnimate]): how many of
-  /// [frames], and whether it plays: 0 nothing said, 1 stopped, 2 playing
-  /// what it has and waiting for more, 3 playing them all.
-  var _sent = 0;
+/// What the terminal was last sent of an [ImageAnimation] as one kitty image
+/// ([kittyAnimate]): how many of its frames, and whether it plays: 0 nothing
+/// said, 1 stopped, 2 playing what it has and waiting for more, 3 playing
+/// them all. One per image sent, not per animation: images that share an
+/// animation each hold the frames they were sent.
+final class KittyAnimationSent {
+  var _frames = 0;
   var _state = 0;
 }
 
@@ -384,13 +388,14 @@ void _kittyData(
 /// writes of [animation]: the terminal has none of the rest yet.
 void kittyAnimate(
   ByteSink out,
-  ImageAnimation animation, {
+  ImageAnimation animation,
+  KittyAnimationSent sent, {
   required int id,
   required bool playing,
   Multiplexer multiplexer = Multiplexer.none,
 }) {
-  animation
-    .._sent = 0
+  sent
+    .._frames = 0
     .._state = 0;
   _put(
     out,
@@ -400,6 +405,7 @@ void kittyAnimate(
   kittyAnimationUpdate(
     out,
     animation,
+    sent,
     id: id,
     playing: playing,
     multiplexer: multiplexer,
@@ -414,14 +420,15 @@ void kittyAnimate(
 /// many times as it plays (`s=3`). Nothing where nothing changed.
 void kittyAnimationUpdate(
   ByteSink out,
-  ImageAnimation animation, {
+  ImageAnimation animation,
+  KittyAnimationSent sent, {
   required int id,
   required bool playing,
   Multiplexer multiplexer = Multiplexer.none,
 }) {
   final frames = animation._frames;
-  while (animation._sent < frames.length) {
-    final k = animation._sent++;
+  while (sent._frames < frames.length) {
+    final k = sent._frames++;
     _kittyData(
       out,
       'a=f,i=$id,f=100,t=d,z=${_gap(animation._delays[k + 1])},q=2',
@@ -430,10 +437,10 @@ void kittyAnimationUpdate(
     );
   }
   final state = !playing ? 1 : (animation._complete ? 3 : 2);
-  if (state == animation._state) {
+  if (state == sent._state) {
     return;
   }
-  animation._state = state;
+  sent._state = state;
   _put(
     out,
     switch (state) {

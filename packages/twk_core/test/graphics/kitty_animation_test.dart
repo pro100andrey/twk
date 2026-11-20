@@ -203,6 +203,28 @@ void main() {
       expect(out(hs), contains('\x1b_Ga=a,i=1,s=2,q=2\x1b\\'));
     });
 
+    test('two images of one animation each get what it adds', () {
+      final hs = harness();
+      final a = loading();
+      final b = TerminalImage(
+        GraphicsProtocol.kitty,
+        frame(60, 5),
+        pixelWidth: 40,
+        pixelHeight: 40,
+        animation: a.animation,
+      );
+      hs.canvas
+        ..image(2, 1, 4, 2, a)
+        ..image(10, 1, 4, 2, b);
+      hs.frame();
+      a.animation!.add(frame(60, 1), const Duration(milliseconds: 200));
+      hs.canvas
+        ..image(2, 1, 4, 2, a)
+        ..image(10, 1, 4, 2, b);
+      hs.frame();
+      expect(hs.vt.kittyFrames, {1: 1, 2: 1});
+    });
+
     test('a forgotten screen gets the frames made so far again', () {
       final hs = harness();
       final img = loading();
@@ -249,6 +271,7 @@ void main() {
     kittyAnimate(
       b,
       animated().animation!,
+      KittyAnimationSent(),
       id: 3,
       playing: true,
       multiplexer: Multiplexer.tmux,
@@ -269,6 +292,7 @@ void main() {
         [frame(4, 1)],
         const [Duration.zero, Duration(microseconds: 10)],
       ),
+      KittyAnimationSent(),
       id: 1,
       playing: false,
     );

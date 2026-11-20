@@ -939,7 +939,8 @@ final class PipelineOwner {
       if (rects[at] != slot) {
         continue;
       }
-      if (painted) {
+      final first = !painted;
+      if (!first) {
         // what its paint keeps of the place before (a viewport's scroll)
         // is not this place's
         b.invalidatePaintCache();
@@ -955,7 +956,7 @@ final class PipelineOwner {
       if (_splitsWide(canvas.surface, x0, y0, x1, y1, before: true)) {
         // a wide glyph across a side, of what was not marked (what is over
         // the place in a stack): painted in the place, it would be cut
-        if (painted) {
+        if (!first) {
           b.invalidatePaintCache();
         }
         _repaint(ctx, b, top, bottom);

@@ -617,6 +617,9 @@ final class Presenter {
   final _kittyIds = Map<TerminalImage, int>.identity();
   final _kittySent = Set<TerminalImage>.identity();
 
+  /// What each animated image of [_kittySent] was sent of its animation.
+  final _kittyAnimated = Map<TerminalImage, KittyAnimationSent>.identity();
+
   /// kitty: the images the terminal keeps that no placement shows, while
   /// their [TerminalImage.keep] is kept: shown again, placed, not sent. A
   /// list, which a frame walks by index without an iterator.
@@ -1563,6 +1566,7 @@ final class Presenter {
     }
     if (lost) {
       _kittySent.clear();
+      _kittyAnimated.clear();
     }
     for (final s in shown) {
       s
@@ -1655,6 +1659,7 @@ final class Presenter {
                 kittyAnimate(
                   out,
                   animation,
+                  _kittyAnimated[image] = KittyAnimationSent(),
                   id: id,
                   playing: image.playing,
                   multiplexer: multiplexer,
@@ -1756,6 +1761,7 @@ final class Presenter {
         kittyDelete(out, id: id, multiplexer: multiplexer);
         _kittyIds.remove(image);
         _kittySent.remove(image);
+        _kittyAnimated.remove(image);
         _imageIdFreed(id);
       }
     }
@@ -1785,6 +1791,7 @@ final class Presenter {
       if (_kittyIds.remove(image) case final id?) {
         kittyDelete(out, id: id, multiplexer: caps.graphicsMultiplexer);
         _kittySent.remove(image);
+        _kittyAnimated.remove(image);
         _imageIdFreed(id);
       }
     }
@@ -1797,10 +1804,12 @@ final class Presenter {
   void _playAnimations(List<_Shown> shown) {
     for (final s in shown) {
       final image = s.at.image;
-      if (image.animation case final animation? when s.drawn) {
+      if (image.animation case final animation?
+          when s.drawn && _kittyAnimated.containsKey(image)) {
         kittyAnimationUpdate(
           out,
           animation,
+          _kittyAnimated[image]!,
           id: _kittyIds[image]!,
           playing: image.playing,
           multiplexer: caps.graphicsMultiplexer,
@@ -1996,6 +2005,7 @@ final class Presenter {
     }
     _kittyIds.clear();
     _kittySent.clear();
+    _kittyAnimated.clear();
     _kittyKept.clear();
     _shown = [];
   }
