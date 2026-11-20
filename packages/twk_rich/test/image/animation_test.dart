@@ -321,8 +321,9 @@ void main() {
         expect(t.vt.kittyFrames[1], frames + each, reason: 'paint $i');
         frames += each;
       }
-      r.framesPerPaint = 1;
-      r.makeFor = Duration.zero;
+      r
+        ..framesPerPaint = 1
+        ..makeFor = Duration.zero;
       await t.pump(const Duration(milliseconds: 17));
       expect(
         t.vt.kittyFrames[1],

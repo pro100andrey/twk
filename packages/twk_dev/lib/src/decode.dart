@@ -1580,7 +1580,8 @@ final class SequenceLog {
 
   /// The traffic ended at [time]: a synchronized update still open is closed
   /// as a frame saying so, and what the app's last write left unfinished (an
-  /// OSC, a DCS, a CSI without its end, a UTF-8 character cut) is a note saying it was cut short.
+  /// OSC, a DCS, a CSI without its end, a UTF-8 character cut) is a note
+  /// saying it was cut short.
   void finish(int time) {
     final open = _open;
     if (open != null) {
