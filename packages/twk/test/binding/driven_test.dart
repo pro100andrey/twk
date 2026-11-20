@@ -13,8 +13,8 @@ import 'dart:convert';
 import 'package:test/test.dart';
 import 'package:twk/cli.dart' show CliTerminal;
 import 'package:twk/src/binding/driven_start.dart';
+import 'package:twk/src/platform/platform.dart' show parentProcessId;
 import 'package:twk/twk.dart';
-import 'package:twk_core/libc.dart' show getppid;
 import 'package:twk_test/twk_test.dart' show Vt;
 
 typedef Json = Map<String, Object?>;
@@ -435,8 +435,9 @@ void main() {
   );
 
   group("the Cli's system terminal", () {
-    // this test process's parent stands for the driver
-    final parent = getppid();
+    // this test process's parent stands for the driver, as the terminal
+    // knows it: getppid, or -1 on Windows, where there is none to ask
+    final parent = parentProcessId;
 
     test('takes TWK_DRIVEN from the parent it names: a driven clock, the '
         'start time, a zone of its own', () {
