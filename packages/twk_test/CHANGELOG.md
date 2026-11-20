@@ -2,38 +2,32 @@
 
 ## Unreleased
 
-Fixed:
+Breaking:
 
-- The profiles `truecolor`, `256 colors` and `16 colors` of `driverTest` set
-  `NO_COLOR` empty: a developer's `NO_COLOR=1` no longer makes their apps
-  monochrome locally.
-
-- `driverTest`'s strict emulator takes the line feeds of a fullscreen app's
-  own output once it left the alternate screen (the log printed at exit),
-  and still none while the alternate screen is up. `Vt` has
-  `lineFeedOnNormalScreen` for it.
-
-Added:
-
-- `disposing(object)`: returns a controller or a node, disposed when the test
-  ends (a tear-down), so one made where it is used is not left undisposed,
-  which `testTwk` fails a test for (`trackDisposables`):
-  `final name = disposing(TextEditingController());`.
-- The report of a failed `driverTest` names the last log records of each
-  app.
-- `pumpWidget(kittyAnimation:)` gives the app a terminal that plays kitty's
-  animations (`TerminalCaps.kittyAnimation`); the emulator keeps an image's
-  frames (`a=f`, `Vt.kittyFrames`) and whether its animation plays and how
-  many times (`a=a`, `Vt.kittyAnimations`), and fails a frame or a control
-  of an image it lacks, a frame number past them, or a state it does not
-  know.
+- `testTwk(trackDisposables:)` is on by default, as Flutter's leak tracker is:
+  a test that makes a controller or notifier (a `TextEditingController`,
+  `ScrollController`, `FocusNode`, `AnimationController`, any `ValueNotifier`,
+  the controllers of twk's widgets) and does not dispose it fails once its app
+  is quit and its tear-downs ran, naming it with the stack that made it.
+  Dispose it with `addTearDown(x.dispose)`, or pass `trackDisposables: false`
+  where an object outlives the test on purpose.
+- `testTwk(failOnOverflow:)` is on by default: the test fails when a row,
+  column, wrap or grid of its app was overflowed by its children (the warning
+  the debug marker of the screen shows), naming each with the widget it is in.
+  Pass `failOnOverflow: false` in a test of what an overflow shows; a layout
+  that clips on purpose says so with `overflowIntended`.
+- `testTwk(failOnPendingTimers:)` is on by default: the test fails when a timer
+  of its clock still waits one frame after the app is quit (a `Timer.periodic`
+  left running by `dispose`), naming it and where it was started. Pass
+  `failOnPendingTimers: false` where the app is meant to leave a timer
+  running.
+- `FakeClock.stopwatch` is gone: `FakeClock.clock`, a `DrivenClock`, is what an
+  app's `clock:` takes. `FakeClock` is that clock plus its zone and its
+  microtasks; its other members are as they were. `FakeCliTerminal` keeps
+  `fakeClock:`.
 
 Added:
 
-- `driverTest` writes the trace of each app (the cast with a marker per
-  step, and the steps as JSON lines) under `.dart_tool/twk_test/traces/`,
-  names its path in the report of a failed test and deletes it for a passing
-  one.
 - `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
   process in a pseudo-terminal on driven time. `d.start(program, size:,
   profile:, env:, driven:, inline:)` returns a `DriverApp`: `press`, `type`,
@@ -43,88 +37,57 @@ Added:
   `containsLine`, `hasTextAt`, `styleAt`, `cursorAt` and `matchesScreen` read
   `app.screen` (a `DriverScreen`) as they read a `TwkTester`. A test ends by
   closing the apps and failing on what the strict `Vt` could not take of their
-  output and on the terminal an app that exited did not give back; a failed
-  one prints each app's screen, last frames and widget tree.
-  `driverTest(profiles:)` runs a test once per terminal profile
-  (`terminalProfiles`: truecolor, 256 colors, 16 colors, no color).
-
-Breaking:
-
-- `testTwk(trackDisposables:)` is on by default, as Flutter's leak tracker
-  is: a test that makes a controller or notifier (a `TextEditingController`,
-  `ScrollController`, `FocusNode`, `AnimationController`, any
-  `ValueNotifier`, the controllers of twk's widgets) and does not dispose it
-  fails, naming it with the stack that made it. Dispose it with
-  `addTearDown(x.dispose)`, or pass `trackDisposables: false` where an object
-  outlives the test on purpose.
-- `FakeClock.stopwatch` is gone: `FakeClock.clock`, a `DrivenClock`, is what
-  an app's `clock:` takes. `FakeClock` is that clock plus its zone and its
-  microtasks; its other members are as they were. `FakeCliTerminal` keeps
-  `fakeClock:`.
+  output and on the terminal an app that exited did not give back. A failed
+  one prints each app's screen, last frames, widget tree and the last log
+  records of each app.
+- `driverTest(profiles:)` runs a test once per terminal profile
+  (`terminalProfiles`: truecolor, 256 colors, 16 colors, no color); the color
+  profiles set `NO_COLOR` empty, so a developer's `NO_COLOR=1` does not make
+  their apps monochrome locally. The strict `Vt` takes the line feeds of a
+  fullscreen app's own output once it left the alternate screen
+  (`Vt.lineFeedOnNormalScreen`), and none while it is up.
+- `driverTest` writes the trace of each app (the cast with a marker per step,
+  and the steps as JSON lines) under `.dart_tool/twk_test/traces/`, names its
+  path in the report of a failed test and deletes it for a passing one.
+- `disposing(object)`: returns a controller or a node, disposed when the test
+  ends, so one made where it is used is not left undisposed:
+  `final name = disposing(TextEditingController());`.
+- `matchesScreenFile` leaves the screen it did not match beside the file as
+  `<file>.actual` (the file as updating would write it), only where a failure
+  is reported, and removes it on a match or an update; the VS Code extension
+  shows it against the golden and accepts it. Add `*.txt.actual` to a
+  project's `.gitignore`.
+- `screenFrames(screens:)` keeps, for the frames whose numbers it is given
+  (and for no other, so a long recording costs one snapshot a frame checked),
+  the screen with its styles and cursor, and `matchesScreenFile` accepts such
+  a `ScreenFrame` as it accepts a `TwkTester`: the same file format, update
+  and `<file>.actual`. A frame whose screen was not kept fails, saying so.
+- `pumpWidget(kittyAnimation:)` gives the app a terminal that plays kitty's
+  animations (`TerminalCaps.kittyAnimation`); the emulator keeps an image's
+  frames (`Vt.kittyFrames`) and whether its animation plays and how many times
+  (`Vt.kittyAnimations`), and fails a frame or a control of an image it lacks,
+  a frame number past them, or a state it does not know.
 
 Changed:
 
 - `compiledProgram` lives in twk_driver now and twk_test re-exports it; a
   program that does not compile is a `DriverError` (twk_driver's), not a
   `TestFailure`.
-- `find.*` build twk's `ElementFinder` values and evaluate them with its
-  code: `Finder` is a final class that wraps one and has `toJson`, which
-  `ext.twk.find` takes. `find.byWidgetPredicate`'s `toJson` throws, naming
-  it. `Finder` can no longer be extended.
+- `find.*` build twk's `ElementFinder` values and evaluate them with its code:
+  `Finder` is a final class that wraps one and has `toJson`, which
+  `ext.twk.find` takes. `find.byWidgetPredicate`'s `toJson` throws, naming it.
+  `Finder` can no longer be extended.
 - `element`, `widget`, `state`, `renderObject`, `rect` and `clickOn` on a
-  finder that finds more than one widget fail with their number and the
-  first five. `clickOn` cuts the cells with twk's `shown`.
+  finder that finds more than one widget fail with their number and the first
+  five. `clickOn` cuts the cells with twk's `shown`.
 
 Fixed:
 
-- `matchesScreenFile` writes `<file>.actual` only where a failure is
-  reported, not for `isNot` or a poll that expects a mismatch; a write that
-  fails is said in the message, which keeps the difference.
-
-Added:
-
-- `screenFrames(screens:)` keeps, for the frames whose numbers it is given
-  (and for no other, so a long recording costs one snapshot a frame
-  checked), the screen with its styles and cursor, and `matchesScreenFile`
-  accepts such a `ScreenFrame` as it accepts a `TwkTester`: the same file
-  format, update and `<file>.actual`. A frame whose screen was not kept
-  fails, saying so.
-- `matchesScreenFile` leaves the screen it did not match beside the file as
-  `<file>.actual` (the file as updating would write it), and removes it on a
-  match or an update; the VS Code extension shows it against the golden and
-  accepts it. Add `*.txt.actual` to a project's `.gitignore`.
-- `testTwk(failOnOverflow:)` fails the test when a row, column, wrap or
-  grid of its app was overflowed by its children (the warning of the log
-  that the debug marker of the screen shows), naming each with the widget
-  it is in. On by default: `failOnOverflow: false` turns it off in a test
-  of what an overflow shows; a layout that clips on purpose says so with
-  `overflowIntended`.
-- `testTwk(trackDisposables: true)` (off by default) fails the test, once
-  its app is quit and its tear-downs ran (an `addTearDown(x.dispose)`
-  counts), naming each controller or notifier made during it and not
-  disposed, with the stack that made it (`DisposalTracker` of twk).
-- `testTwk(failOnPendingTimers:)` fails the test when a timer of its clock
-  still waits one frame after the app is quit (a `Timer.periodic` left
-  running by `dispose`), naming it and where it was started. On by default:
-  `failOnPendingTimers: false` turns it off in a test whose app is meant to
-  leave a timer running.
-
-Changed:
-
-- `Shot` draws no overflow marker over its capture (it is data, held to
-  goldens): its pipeline is a `PipelineOwner.forData`. The warning of an
-  overflow is still kept in `logs`; a test of the marker sets
-  `pipeline.debugOverflowIndicator` and runs a `frame`.
-- `Vt`'s docs say how to read another program's output (a real terminal's
-  recording replayed): `strict: false` and `allowLineFeed: true`.
-
-Fixed:
-
-- A `testTwk` tear-down that awaits a future of the app's zone completes:
-  the microtasks of the zone run on the real event loop once the body is
-  done. A stream a callback of the app closed (`input` of a
-  `TerminalSession` closing it on `q`), its `close()` awaited again in a
-  tear-down, hung until the test's timeout.
+- A `testTwk` tear-down that awaits a future of the app's zone completes: the
+  microtasks of the zone run on the real event loop once the body is done. A
+  stream a callback of the app closed (`input` of a `TerminalSession` closing
+  it on `q`), its `close()` awaited again in a tear-down, hung until the
+  test's timeout.
 
 ## 0.3.0
 
