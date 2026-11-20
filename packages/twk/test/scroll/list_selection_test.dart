@@ -56,6 +56,43 @@ Widget app({
 
 void main() {
   group('a ListView with itemText', () {
+    test('an item text is one line', () {
+      expect(() => ItemText('a\nb'), throwsA(isA<AssertionError>()));
+      expect(ItemText('ab').text, 'ab');
+    });
+
+    testTwk('selections over other run layouts are not equal', (t) async {
+      final controller = SelectionAreaController();
+      addTearDown(controller.dispose);
+      final seen = <int, ItemSelection?>{};
+      await t.pumpWidget(
+        Theme.terminal(
+          child: SelectionArea(
+            controller: controller,
+            child: ListView.builder(
+              itemCount: 2,
+              itemBuilder: (context, i) {
+                seen[i] = ListView.selectionOf(context, i);
+                return const Text('abcdef');
+              },
+              itemText: (i) => i == 0
+                  ? ItemText('abcdef')
+                  : ItemText.runs([(0, 'abc'), (4, 'de')]),
+            ),
+          ),
+        ),
+        size: (10, 3),
+      );
+      controller.selectAll();
+      await t.pump();
+      final a = seen[0]!;
+      final b = seen[1]!;
+      expect((a.start, a.end, a.style), (b.start, b.end, b.style));
+      expect(a.rangeOf(), isNot(b.rangeOf()));
+      expect(a, isNot(b));
+      expect(a, a);
+    });
+
     testTwk('a drag across items selects and draws the text between, copied '
         'one line each', (t) async {
       final copies = <String>[];

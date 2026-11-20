@@ -226,6 +226,11 @@ Changed:
 
 Fixed:
 
+- Selection: `ItemText` asserts its text is one line, as `ItemText.runs`
+  did; `ItemSelection` equality includes its runs; and
+  `SelectionAreaController.hasSelection` counts only what is still in the
+  tree, as `start`, `end` and `text` do, so it is false once the selected
+  `Text` is removed.
 - Grabbing a `Scrollbar`'s thumb moves nothing until the pointer moves: the
   content followed the thumb's rounded start, so a press on a list of
   100000 rows jumped it by up to a hundred rows or more. The travel of the

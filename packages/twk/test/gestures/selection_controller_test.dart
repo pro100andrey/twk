@@ -164,6 +164,28 @@ List<String> hints(TwkTester t) => [
 
 void main() {
   group('a SelectionAreaController', () {
+    testTwk('hasSelection counts only what is still in the tree, as start, '
+        'end and text do', (t) async {
+      final controller = SelectionAreaController();
+      addTearDown(controller.dispose);
+      Widget app(bool shown) => Theme.terminal(
+        child: SelectionArea(
+          controller: controller,
+          child: column([
+            if (shown) const Text('hello', key: ValueKey('h')),
+            const Text('x', key: ValueKey('x')),
+          ]),
+        ),
+      );
+      await t.pumpWidget(app(true), size: (8, 3));
+      await drag(t, (0, 0), [(3, 0), (4, 0)]);
+      expect(controller.hasSelection, isTrue);
+      await t.pumpWidget(app(false), size: (8, 3));
+      expect(controller.start, isNull);
+      expect(controller.text, '');
+      expect(controller.hasSelection, isFalse);
+    });
+
     testTwk('tells whether something is selected, when that changes, and '
         'what as copied; clears it from outside', (t) async {
       final copies = <String>[];

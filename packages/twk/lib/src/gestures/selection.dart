@@ -220,7 +220,7 @@ final class SelectionAreaController with ChangeNotifier {
   final _hosts = ControllerHost<_SelectionAreaState>();
 
   /// Whether anything is selected.
-  bool get hasSelection => _hosts.host?._selected.isNotEmpty ?? false;
+  bool get hasSelection => _hosts.host?._hasAttached ?? false;
 
   /// What is selected as the area copies it ([SelectionArea.copyTransform]
   /// included); empty while nothing is.
@@ -822,6 +822,9 @@ final class _SelectionAreaState extends State<SelectionArea> {
     }
     return selected;
   }
+
+  /// Whether anything selected is still in the tree, as [_start] reads.
+  bool get _hasAttached => _selected.keys.any((o) => o.owner != null);
 
   /// Where the selection starts, null while nothing is selected.
   SelectionPoint? get _start {

@@ -38,7 +38,9 @@ typedef ItemTextBuilder = ItemText Function(int index);
 /// runs of one item are copied joined by a tab.
 final class ItemText {
   /// One run, [text], at [column] of the item (inside the list's padding).
-  ItemText(String text, {int column = 0}) : runs = [(column, text)];
+  ItemText(String text, {int column = 0})
+    : assert(!text.contains('\n'), 'one line: no line break in the text'),
+      runs = [(column, text)];
 
   /// The runs of an item that has more than one text on its line (the two
   /// sides of a side by side diff): each a column and the text from
@@ -128,10 +130,23 @@ final class ItemSelection {
       other is ItemSelection &&
       other.start == start &&
       other.end == end &&
-      other.style == style;
+      other.style == style &&
+      _sameRuns(other._runs);
+
+  bool _sameRuns(List<(int, int)> other) {
+    if (other.length != _runs.length) {
+      return false;
+    }
+    for (var i = 0; i < other.length; i++) {
+      if (other[i] != _runs[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
-  int get hashCode => Object.hash(start, end, style);
+  int get hashCode => Object.hash(start, end, style, Object.hashAll(_runs));
 }
 
 /// Puts the selectable text of a [ListView] around [child], the list: a
