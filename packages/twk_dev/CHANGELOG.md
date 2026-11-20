@@ -4,6 +4,18 @@
 
 Fixed:
 
+- `twk record --replay`: its waits cancel their timers when the command
+  ends first, so the process no longer stays alive until the last one
+  fires.
+
+- `twk decode`: a UTF-8 character cut at the very end of the output is
+  noted as "output cut short", as an open sequence is.
+
+- `twk create`: a template that takes `twk_ssh`, `twk_web`, `twk_bloc` or
+  `twk_riverpod` is refused outside a checkout of the twk repository, saying
+  why (they are not on pub yet), where it wrote a pubspec `dart pub get`
+  could not resolve.
+
 - `twk mcp`: a `{"node": 42}` finder, alone or inside `first`, `last`, `at`
   or `descendant`, is taken (the ids `tree` prints), not refused for want of
   an app; `logs` counts the records the session has seen, so identical lines

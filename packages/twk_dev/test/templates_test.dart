@@ -55,6 +55,16 @@ void main() {
             reason: '${p.basename(dir)} takes $twk by path',
           );
         }
+        if (optionalTwkPackages.keys.any(
+          (name) => pubspec.contains('\n  $name:\n    path: '),
+        )) {
+          // not on pub yet: only a checkout has them
+          expect(
+            () => withTwkFrom(pubspec),
+            throwsA(isA<UnpublishedPackages>()),
+          );
+          continue;
+        }
         expect(
           withTwkFrom(pubspec),
           isNot(contains('path:')),
@@ -75,6 +85,15 @@ void main() {
         contains('\nversion: $version\n'),
         reason: package,
       );
+      // the day one is published, `twk create` takes it from pub again: drop
+      // it from [unpublishedTwkPackages]
+      expect(
+        File(
+          p.join(await repository(), 'packages', package, 'pubspec.yaml'),
+        ).readAsStringSync().contains('\npublish_to: none\n'),
+        unpublishedTwkPackages.contains(package),
+        reason: package,
+      );
     }
     const pubspec =
         'name: app\n'
@@ -90,12 +109,19 @@ void main() {
         '  twk_core:\n    path: ../../twk_core\n'
         '  twk_driver:\n    path: ../../twk_driver\n'
         '  twk_term:\n    path: ../../twk_term\n';
-    expect(withTwkFrom(pubspec), contains('\n  twk_ssh: ^0.1.0\n'));
+    expect(
+      () => withTwkFrom(pubspec),
+      throwsA(
+        isA<UnpublishedPackages>()
+            .having((e) => e.packages, 'packages', ['twk_ssh'])
+            .having((e) => e.message, 'message', contains('twk_ssh')),
+      ),
+      reason: 'not published yet (publish_to: none): pub get would fail',
+    );
     expect(
       withTwkFrom(pubspec, checkout: '/t'),
       contains('\n  twk_ssh:\n    path: /t/packages/twk_ssh\n'),
     );
-    expect(withTwkFrom(pubspec), isNot(contains('path:')));
   });
 
   test('a pubspec that takes a package of twk by no path is a StateError', () {

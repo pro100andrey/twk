@@ -98,6 +98,36 @@ bloc       full screen: a counter with its state in a bloc cubit
     );
   });
 
+  test('outside a checkout a template that takes a package not on pub is '
+      'refused, with the reason, and writes nothing', () async {
+    final dir = p.join(await temporary(), 'out');
+
+    for (final name in ['ssh', 'web', 'bloc', 'riverpod']) {
+      final template = templates.firstWhere((t) => t.name == name);
+      await expectLater(
+        createApp(template, 'my_app', dir: dir),
+        throwsA(
+          isA<UnpublishedPackages>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('not published'), contains('--path-to-twk')),
+          ),
+        ),
+        reason: name,
+      );
+    }
+    expect(Directory(dir).existsSync(), isFalse);
+    // from a checkout it is made
+    final made = await createApp(
+      templates.firstWhere((t) => t.name == 'ssh'),
+      'my_app',
+      dir: dir,
+      checkout: await repository(),
+      dryRun: true,
+    );
+    expect(made.plan.templateFiles, isNotEmpty);
+  });
+
   test('without a checkout the packages come from pub at the version of '
       'twk, which is that of every package of the release; a path YAML '
       'would read otherwise is quoted', () async {

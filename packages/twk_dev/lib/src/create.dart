@@ -186,6 +186,9 @@ final class CreateCommand extends Command<int> with Completes {
         stderr.writeln('twk create: ${_hinted(error)}');
       }
       return 1;
+    } on UnpublishedPackages catch (e) {
+      stderr.writeln('twk create: $e');
+      return 1;
     }
     final CreateAnswers answers;
     // a coding agent runs this with no terminal: nothing asked it, so the
@@ -234,6 +237,9 @@ final class CreateCommand extends Command<int> with Completes {
       for (final error in e.errors) {
         stderr.writeln('twk create: ${_hinted(error)}');
       }
+      return 1;
+    } on UnpublishedPackages catch (e) {
+      stderr.writeln('twk create: $e');
       return 1;
     } on AgentsException catch (e) {
       stderr.writeln('twk create: $e');

@@ -118,6 +118,37 @@ const optionalTwkPackages = {
   'twk_web': '0.1.0',
 };
 
+/// The [optionalTwkPackages] not on pub yet (`publish_to: none` in their
+/// pubspecs): a project takes them from a checkout only. Drop a package
+/// from it when it is published.
+const unpublishedTwkPackages = {
+  'twk_bloc',
+  'twk_riverpod',
+  'twk_ssh',
+  'twk_web',
+};
+
+/// A template takes packages of twk that are not on pub, and `twk create`
+/// has no checkout to take them from.
+final class UnpublishedPackages implements Exception {
+  /// The refusal of a template that takes [packages].
+  UnpublishedPackages(this.packages);
+
+  /// The packages the template takes that are not published.
+  final List<String> packages;
+
+  /// What is wrong and what to do about it.
+  String get message =>
+      '${packages.join(', ')} ${packages.length == 1 ? 'is' : 'are'} not '
+      'published to pub yet, so a project that takes '
+      '${packages.length == 1 ? 'it' : 'them'} can only be made from a '
+      'checkout of the twk repository: --path-to-twk=<dir> names one, or '
+      'run twk from one';
+
+  @override
+  String toString() => message;
+}
+
 /// [pubspec], a template's, with the [twkPackages] it takes by a path in
 /// the repository taken by path from the twk repository checked out at
 /// [checkout] or, when null, from pub at [twkVersion].
@@ -129,7 +160,9 @@ const optionalTwkPackages = {
 /// in the block form, `path:` alone on the line under its name, as the
 /// templates write it: a flow mapping or a comment among its lines is
 /// none. Throws a [StateError] when [pubspec] does not take one of them by
-/// path, or does not override by path just the packages of [overridden].
+/// path, or does not override by path just the packages of [overridden];
+/// and an [UnpublishedPackages] when [checkout] is null and it takes one of
+/// the [unpublishedTwkPackages].
 ///
 /// twk, twk_test and twk_dev take the packages under them by version and
 /// the others take them by path, so a template overrides twk, twk_core,
@@ -137,6 +170,19 @@ const optionalTwkPackages = {
 /// `dependency_overrides`): a project from a checkout with the checkout's,
 /// one from pub not at all.
 String withTwkFrom(String pubspec, {String? checkout}) {
+  if (checkout == null) {
+    final unpublished = [
+      for (final package in unpublishedTwkPackages)
+        if (RegExp(
+          '^  $package:\n    path: ',
+          multiLine: true,
+        ).hasMatch(pubspec))
+          package,
+    ];
+    if (unpublished.isNotEmpty) {
+      throw UnpublishedPackages(unpublished..sort());
+    }
+  }
   String source(String package) => checkout == null
       ? ' ^${optionalTwkPackages[package] ?? twkVersion}'
       : '\n    path: ${_yaml(p.join(checkout, 'packages', package))}';

@@ -194,6 +194,23 @@ int? markerKeyByte(String name) {
       : byte;
 }
 
+/// Waits [delay], or until [done] completes, whichever is first; the timer
+/// is cancelled when [done] is first, as one left pending keeps the process
+/// alive until it fires.
+Future<void> sleepUnless(Duration delay, Future<void> done) {
+  final over = Completer<void>();
+  final timer = Timer(delay, over.complete);
+  unawaited(
+    done.then<void>((_) {
+      timer.cancel();
+      if (!over.isCompleted) {
+        over.complete();
+      }
+    }),
+  );
+  return over.future;
+}
+
 /// Runs [command] in a pseudo-terminal of this terminal's size (twk_term's
 /// [Pty]) and records the session to [out] as asciicast v2.
 ///
@@ -605,10 +622,7 @@ final class Recorder {
       if (left <= Duration.zero) {
         return;
       }
-      await Future.any([
-        Future<void>.delayed(left),
-        _outputDone.future,
-      ]);
+      await sleepUnless(left, _outputDone.future);
     }
   }
 
@@ -616,10 +630,7 @@ final class Recorder {
   Future<void> _wait(bool Function() done, Duration limit) async {
     final end = _clock.elapsed + limit;
     while (!_outputDone.isCompleted && !done() && _clock.elapsed < end) {
-      await Future.any([
-        Future<void>.delayed(const Duration(milliseconds: 5)),
-        _outputDone.future,
-      ]);
+      await sleepUnless(const Duration(milliseconds: 5), _outputDone.future);
     }
   }
 
@@ -632,10 +643,7 @@ final class Recorder {
       if (left <= Duration.zero) {
         return;
       }
-      await Future.any([
-        Future<void>.delayed(left),
-        _outputDone.future,
-      ]);
+      await sleepUnless(left, _outputDone.future);
     }
   }
 
