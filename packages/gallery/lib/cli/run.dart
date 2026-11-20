@@ -119,8 +119,8 @@ final class CliRun extends StatefulWidget {
 
 /// A run of a program: its terminal and the clock it runs on, from
 /// [start] on the app's clock.
-final class _Run {
-  _Run(this.start, this.width, this.height, this.brightness);
+final class CliRunSession {
+  CliRunSession(this.start, this.width, this.height, this.brightness);
 
   final int start;
   final int width;
@@ -136,6 +136,42 @@ final class _Run {
 
   /// Whether the program ended.
   var ended = false;
+
+  // the program's Cli, once it runs
+  Cli? _cli;
+
+  /// Ends the program's app where it still runs, so that its views are
+  /// disposed.
+  void close() {
+    if (_cli case final cli? when !ended) {
+      // its frames and futures run on the clock: moved on past them
+      clock.run(() => unawaited(cli.close()));
+      if (_elapsing) {
+        // the clock does not move twice at once: after the move
+        _closing = true;
+      } else {
+        unawaited(clock.elapse(const Duration(seconds: 1)));
+      }
+    }
+  }
+
+  var _elapsing = false;
+  var _closing = false;
+
+  /// Moves the clock on by [duration]; where the run was closed meanwhile,
+  /// on past what its closing runs.
+  Future<void> move(Duration duration) async {
+    _elapsing = true;
+    try {
+      await clock.elapse(duration);
+    } finally {
+      _elapsing = false;
+    }
+    if (_closing) {
+      _closing = false;
+      await clock.elapse(const Duration(seconds: 1));
+    }
+  }
 
   /// Whether the clock is moving, and the time it moves to, in ms.
   var moving = false;
@@ -166,7 +202,10 @@ final class _Run {
       }
       unawaited(
         Cli.run(
-          (cli) => program(cli, const []),
+          (cli) {
+            _cli = cli;
+            return program(cli, const []);
+          },
           open: ({ansi, interactive}) => terminal,
           theme: CliTheme(data: ThemeData.terminal(brightness)),
           sourceLines: script.sourceLines,
@@ -241,7 +280,7 @@ final class _Run {
 }
 
 final class _CliRunState extends State<CliRun> {
-  _Run? _run;
+  CliRunSession? _run;
   AppBinding? _binding;
   int? _wake;
 
@@ -251,6 +290,7 @@ final class _CliRunState extends State<CliRun> {
   @override
   void dispose() {
     _cancelWake();
+    _run?.close();
     _run = null;
     super.dispose();
   }
@@ -280,7 +320,7 @@ final class _CliRunState extends State<CliRun> {
         run.width != width ||
         run.height != height ||
         run.brightness != brightness) {
-      run = _run = _Run(start, width, height, brightness)
+      run = _run = CliRunSession(start, width, height, brightness)
         ..begin(widget.script, widget.program);
     }
     final live = widget.at == null;
@@ -310,7 +350,7 @@ final class _CliRunState extends State<CliRun> {
 
   /// Moves [run]'s clock to its target a step at a time, reading the
   /// screen at each; then builds again.
-  Future<void> _move(_Run run) async {
+  Future<void> _move(CliRunSession run) async {
     if (run.moving) {
       return;
     }
@@ -324,7 +364,7 @@ final class _CliRunState extends State<CliRun> {
         final next = run.shots.isEmpty
             ? now
             : math.min(run.target, (now ~/ _step + 1) * _step);
-        await run.clock.elapse(Duration(milliseconds: next - now));
+        await run.move(Duration(milliseconds: next - now));
         run.shots[next] = run.read();
       }
     } finally {

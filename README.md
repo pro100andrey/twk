@@ -1,9 +1,31 @@
 # twk
 
 Flutter's widget model for terminal apps in Dart: widgets, layout, the mouse,
-hot reload, and tests that run the real app on a fake clock.
+hot reload, and tests that run the real app, with no sleeps and no flakes.
 
 ![The widget gallery: the Table page in the dark theme](packages/gallery/doc/shots/screens/table-dark.svg)
+
+## What it looks like
+
+A widget is the one you know from Flutter, and its test runs it for real:
+
+```dart
+final class _CounterState extends State<Counter> {
+  var _n = 0;
+
+  @override
+  Widget build(BuildContext context) => KeyBindings({
+    'up': () => setState(() => _n++),
+  }, child: Text('Count: $_n'));
+}
+
+testTwk('Up counts', (t) async {
+  await t.pumpWidget(const Counter(), size: (20, 3));
+  await t.press('up up up');
+  await t.pump();
+  expect(t, containsLine('Count: 3'));
+});
+```
 
 ## Getting started
 
@@ -15,8 +37,9 @@ dart pub get
 dart run twk_dev:twk run bin/main.dart
 ```
 
-That is a notes app, running in your terminal. Edit a file in `my_app/lib/`
-and save: the app shows the change and keeps its state. Ctrl+Q quits.
+`twk create` asks which app to write: with the notes app, the default, that
+is a list of notes running in your terminal. Edit a file in `my_app/lib/` and
+save: the app shows the change and keeps its state. Ctrl+Q quits.
 
 To see every widget, clone this repository and run the gallery:
 

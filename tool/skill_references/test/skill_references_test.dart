@@ -186,6 +186,34 @@ void main() {
       expect(rewriteGuide('g.md', guide, const {}), guide);
     });
 
+    test('a fence closes only on a marker at least as long', () {
+      const guide =
+          '````md\n'
+          '```dart\n'
+          '[a](b)\n'
+          '```\n'
+          '[c](d)\n'
+          '````\n'
+          'After [e](f).\n';
+      expect(
+        rewriteGuide('g.md', guide, const {}),
+        guide.replaceFirst('After [e](f)', 'After e'),
+      );
+    });
+
+    test('a code span pairs only a closing run of equal length', () {
+      expect(
+        rewriteGuide(
+          'g.md',
+          'A ` lone [t](../dropped/x.md) tick `` here.\n'
+              'And ``a ` b [u](../dropped/y.md)`` c.\n',
+          const {},
+        ),
+        'A ` lone t tick `` here.\n'
+        'And ``a ` b [u](../dropped/y.md)`` c.\n',
+      );
+    });
+
     test('a linked picture leaves its link, the picture gone', () {
       expect(
         rewriteGuide('g.md', 'See [![a](s.svg)](other.md).\n', const {}),

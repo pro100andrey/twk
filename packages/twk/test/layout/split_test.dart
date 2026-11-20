@@ -116,7 +116,7 @@ void main() {
   group('SplitView', () {
     testTwk('shares the room equally by default, a line between each two '
         'panes, side by side or one below another', (t) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -152,7 +152,7 @@ void main() {
     });
 
     testTwk('keeps the shares of its panes across resizes', (t) async {
-      final c = SplitController(fractions: [1, 3]);
+      final c = disposing(SplitController(fractions: [1, 3]));
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(controller: c, panes: [pane('a'), pane('b')]),
@@ -179,7 +179,7 @@ void main() {
         'the focused style while dragged; a press elsewhere drags nothing', (
       t,
     ) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       var told = 0;
       c.addListener(() => told++);
       await t.pumpWidget(
@@ -217,7 +217,7 @@ void main() {
     testTwk('a pane gets no fewer cells than its least and no more than its '
         'most; the cells all panes leave stay empty, and a short room is '
         'shared by their least', (t) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -266,7 +266,7 @@ void main() {
 
     testTwk('Tab focuses a divider: the arrows move it a cell, Home and End '
         'as far as it goes, hinted', (t) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -362,7 +362,7 @@ void main() {
     testTwk('each key of those in one read moves a divider: two arrows two '
         'cells, five arrows five, Home and an arrow from as far as it goes, '
         'collapsing a pane on the way', (t) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: Column(
@@ -416,7 +416,7 @@ void main() {
         'collapses it, and back out expands it; the pane keeps its share', (
       t,
     ) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -453,7 +453,7 @@ void main() {
         'expand it moving into it; the controller collapses any pane', (
       t,
     ) async {
-      final c = SplitController(fractions: [3, 7]);
+      final c = disposing(SplitController(fractions: [3, 7]));
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -488,7 +488,7 @@ void main() {
     testTwk('the focus leaves a collapsed pane, and Tab passes it by', (
       t,
     ) async {
-      final c = SplitController();
+      final c = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -525,7 +525,7 @@ void main() {
 
     testTwk('splits nest: each divider drags its own panes, the panes '
         'inside keeping their shares', (t) async {
-      final inner = SplitController();
+      final inner = disposing(SplitController());
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -640,7 +640,7 @@ void main() {
         'boxes with merged borders share their edges, joined where they '
         'meet; the outer divider is dragged at a joint', (t) async {
       const box = Box(border: Border.all(merge: true));
-      final outer = SplitController();
+      final outer = disposing(SplitController());
       final key = GlobalKey();
       await t.pumpWidget(
         Theme.terminal(
@@ -785,7 +785,7 @@ void main() {
 
     testTwk('the controller restores the shares and the collapsed panes, '
         'and refuses those of no pane', (t) async {
-      final c = SplitController(collapsed: {2});
+      final c = disposing(SplitController(collapsed: {2}));
       await t.pumpWidget(
         Theme.terminal(
           child: SplitView(
@@ -807,7 +807,10 @@ void main() {
       expect(() => c.fractions = [1, -1, 2], throwsArgumentError);
       expect(() => c.collapse(3), throwsRangeError);
       expect(() => c.collapsed = {-1}, throwsRangeError);
-      expect(() => SplitController(collapsed: {-1}), throwsRangeError);
+      expect(
+        () => disposing(SplitController(collapsed: {-1})),
+        throwsRangeError,
+      );
     });
   });
 

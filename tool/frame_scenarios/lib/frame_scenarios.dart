@@ -16,20 +16,24 @@ export 'src/branch_api.dart' show cellStyleOf;
 /// style table, a glyph table, a surface of `width` × `height` cells, the
 /// canvas that paints it and the presenter that writes its changes.
 final class FrameRig {
-  /// A rig of `width` × `height` cells, the presenter's terminal of the
-  /// default capabilities; its text measured with ambiguous characters
-  /// `ambiguousWidth` columns wide (1 or 2).
-  FrameRig(int width, int height, {this.ambiguousWidth = 1})
-    : styles = StyleTable(),
-      glyphs = GlyphTable(),
-      surface = Surface(width, height) {
+  /// A rig of `width` × `height` cells, the presenter's terminal of
+  /// [caps], the default capabilities unless given; its text measured with
+  /// ambiguous characters `ambiguousWidth` columns wide (1 or 2).
+  FrameRig(
+    int width,
+    int height, {
+    this.ambiguousWidth = 1,
+    TerminalCaps caps = const TerminalCaps(),
+  }) : styles = StyleTable(),
+       glyphs = GlyphTable(),
+       surface = Surface(width, height) {
     canvas = Canvas(
       surface,
       styles,
       glyphs,
       segmenter: TextSegmenter(ambiguousWidth: ambiguousWidth),
     );
-    presenter = Presenter(width, height, styles, glyphs);
+    presenter = Presenter(width, height, styles, glyphs, caps: caps);
   }
 
   /// The columns the characters of ambiguous East Asian width take.
@@ -81,6 +85,7 @@ final class FrameScenario {
     this.write = true,
     this.ambiguousWidth = 1,
     this.steps = 2000,
+    this.caps = const TerminalCaps(),
   });
 
   /// Its name in a report: `wrap`, `list-scroll`.
@@ -108,9 +113,13 @@ final class FrameScenario {
   /// a full collection.
   final int steps;
 
+  /// What the terminal it is for can do: its [FrameRig]'s presenter and the
+  /// emulator that checks its frames are made with it (images).
+  final TerminalCaps caps;
+
   /// The rig of `width` × `height` cells this scenario runs on.
   FrameRig rig(int width, int height) =>
-      FrameRig(width, height, ambiguousWidth: ambiguousWidth);
+      FrameRig(width, height, ambiguousWidth: ambiguousWidth, caps: caps);
 }
 
 const _spinner = <String>['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧'];
@@ -519,7 +528,224 @@ final frameScenarios = <FrameScenario>[
       ambiguousWidth: 2,
     ),
   ],
+  FrameScenario(
+    'dash',
+    'the dashboard of Hawk TUI as twk widgets build it: 40 list rows whose '
+        'text changes, the selected row moved, the progress bar grown',
+    (hs) {
+      final s = _Dash(hs)..render();
+      return (i) {
+        s
+          ..rows(i)
+          ..select(i)
+          ..progress(i);
+        return s.render();
+      };
+    },
+    steps: 1000,
+  ),
+  FrameScenario(
+    'dash-rows',
+    "the same, only the rows' text changed",
+    (hs) {
+      final s = _Dash(hs)..render();
+      return (i) {
+        s.rows(i);
+        return s.render();
+      };
+    },
+    steps: 1000,
+  ),
+  FrameScenario('dash-one', 'the same, only the progress bar grown', (hs) {
+    final s = _Dash(hs)..render();
+    return (i) {
+      s.progress(i);
+      return s.render();
+    };
+  }),
+  FrameScenario(
+    'dash-bd',
+    'dash with its List and Body panels in repaint boundaries',
+    (hs) {
+      final s = _Dash(hs, boundaries: true)..render();
+      return (i) {
+        s
+          ..rows(i)
+          ..select(i)
+          ..progress(i);
+        return s.render();
+      };
+    },
+    steps: 1000,
+  ),
+  if (hasKittyAnimation)
+    FrameScenario(
+      'img-kitty-anim',
+      'an animation of $_imageFrames frames kitty plays itself, sent and '
+          'painted before, on screen beside the spinner that changes',
+      (hs) {
+        final s = _Images(hs);
+        final image = animatedKittyImage(
+          s.frames(GraphicsProtocol.kitty).first.data,
+          [for (final f in s.frames(GraphicsProtocol.kitty).skip(1)) f.data],
+          List.filled(_imageFrames, const Duration(milliseconds: 80)),
+          pixelWidth: _imageCols * 10,
+          pixelHeight: _imageRows * 20,
+        );
+        s.render(image, 0);
+        // the image's widget paints it once: the terminal plays it
+        return s.spin;
+      },
+      caps: kittyAnimationCaps,
+    ),
+  FrameScenario(
+    'img-kitty',
+    'the next of $_imageFrames frames of an image of $_imageCols × '
+        "$_imageRows cells on kitty's protocol without its animation, as an "
+        'Image draws it: each frame sent once and kept, then placed again',
+    (hs) {
+      final s = _Images(hs);
+      final frames = keptKittyFrames(
+        [for (final f in s.frames(GraphicsProtocol.kitty)) f.data],
+        pixelWidth: _imageCols * 10,
+        pixelHeight: _imageRows * 20,
+      );
+      s.render(frames.first, 0);
+      return (i) => s.render(frames[i % frames.length], i);
+    },
+    caps: const TerminalCaps(graphics: GraphicsProtocol.kitty),
+  ),
+  FrameScenario(
+    'img-sixel',
+    'the next of $_imageFrames frames of the image drawn in sixel',
+    (hs) {
+      final s = _Images(hs);
+      final frames = s.frames(GraphicsProtocol.sixel);
+      s.render(frames.first, 0);
+      return (i) => s.render(frames[i % frames.length], i);
+    },
+    caps: const TerminalCaps(graphics: GraphicsProtocol.sixel),
+  ),
+  FrameScenario(
+    'img-blocks',
+    'the next of $_imageFrames frames of the image drawn in half blocks: '
+        'its ${_imageCols * _imageRows} cells recolored',
+    (hs) {
+      final s = _Images(hs)..blocks(0);
+      return s.blocks;
+    },
+  ),
 ];
+
+/// The image of the image scenarios: [_imageFrames] frames of
+/// [_imageCols] × [_imageRows] cells of 10 × 20 pixels.
+const _imageFrames = 12;
+const _imageCols = 40;
+const _imageRows = 12;
+
+/// The bytes of a kitty frame: about what a PNG of a GIF's frame of
+/// 400 × 240 pixels takes. The emulator reads base64 and not the image.
+const _kittyFrameBytes = 12000;
+
+/// The sixels of a frame, the rows of six pixels drawn in one color each.
+const int _sixelBands = _imageRows * 20 ~/ 6;
+
+/// An image's frames on a rig, beside a spinner in the top row: sent as
+/// kitty or sixel images, or drawn in half blocks.
+final class _Images {
+  _Images(this.hs)
+    : _pen = hs.styles.pen(
+        const Pen(fg: Color.rgb(200, 200, 200), bg: Color.rgb(16, 18, 24)),
+      ) {
+    hs.canvas.fill(0, 0, hs.surface.width, hs.surface.height, _pen);
+  }
+
+  final FrameRig hs;
+  final int _pen;
+
+  /// Where the image's top left cell is.
+  static const _x = 4;
+  static const _y = 3;
+
+  /// [_imageFrames] images of [protocol], made once, each of other bytes.
+  List<TerminalImage> frames(GraphicsProtocol protocol) => [
+    for (var f = 0; f < _imageFrames; f++)
+      TerminalImage(
+        protocol,
+        protocol == GraphicsProtocol.sixel ? _sixel(f) : _bytes(f),
+        pixelWidth: _imageCols * 10,
+        pixelHeight: _imageRows * 20,
+      ),
+  ];
+
+  static Uint8List _bytes(int seed) => Uint8List.fromList([
+    for (var k = 0; k < _kittyFrameBytes; k++)
+      (k * 31 + seed * 7 + k ~/ 97) & 0xFF,
+  ]);
+
+  /// A sixel image of the frame's size, each band's sixels of two colors
+  /// and of no runs to compress, as a photo's are: about as many bytes as
+  /// a kitty frame.
+  static Uint8List _sixel(int seed) {
+    const w = _imageCols * 10;
+    final b = StringBuffer('0;1;0q"1;1;$w;${_sixelBands * 6}')
+      ..write('#1;2;${seed * 8 % 100};40;80#2;2;90;${seed * 5 % 100};20');
+    for (var band = 0; band < _sixelBands; band++) {
+      for (final color in const [1, 2]) {
+        b.write('#$color');
+        for (var x = 0; x < w; x++) {
+          final bits = (x * 7 + band * 13 + seed * 5) % 63 + 1;
+          b.writeCharCode(0x3F + (color == 1 ? bits : 63 - bits));
+        }
+        b.write(color == 1 ? r'$' : '-');
+      }
+    }
+    return Uint8List.fromList(b.toString().codeUnits);
+  }
+
+  /// Writes frame [i]'s spinner, the image as it was; the bytes written.
+  int spin(int i) {
+    hs.canvas.text(0, 0, _spin(i), _pen);
+    return hs.presenter.present(hs.surface);
+  }
+
+  /// Places [image] and writes frame [i]'s spinner; the bytes written.
+  int render(TerminalImage image, int i) {
+    hs.canvas
+      ..image(_x, _y, _imageCols, _imageRows, image)
+      ..text(0, 0, _spin(i), _pen);
+    return hs.presenter.present(hs.surface);
+  }
+
+  /// The pens of the half blocks: colors that move with the frame.
+  late final List<int> _blockPens = [
+    for (var c = 0; c < 64; c++)
+      hs.styles.pen(
+        Pen(
+          fg: Color.rgb(c * 4, 255 - c * 4, 128),
+          bg: Color.rgb(255 - c * 4, 64, c * 4),
+        ),
+      ),
+  ];
+
+  /// Frame [i] in half blocks, each cell's upper and lower pixel in
+  /// [_blockPens]; the bytes written.
+  int blocks(int i) {
+    final f = i % _imageFrames;
+    for (var y = 0; y < _imageRows; y++) {
+      for (var x = 0; x < _imageCols; x++) {
+        hs.canvas.text(
+          _x + x,
+          _y + y,
+          '▀',
+          _blockPens[(x + y * 3 + f * 5) & 63],
+        );
+      }
+    }
+    hs.canvas.text(0, 0, _spin(i), _pen);
+    return hs.presenter.present(hs.surface);
+  }
+}
 
 /// Throws [ScenarioBroken] unless line [line] (from 1) of the rig's
 /// surface holds [ellipsis], the cells of its glyphs in a row.
@@ -565,6 +791,170 @@ List<int> _utf8(int cp) => cp < 0x80
     : cp < 0x800
     ? [0xC0 | cp >> 6, 0x80 | cp & 0x3F]
     : [0xE0 | cp >> 12, 0x80 | cp >> 6 & 0x3F, 0x80 | cp & 0x3F];
+
+/// The text of the dashboard's Header and Body.
+const _lorem =
+    'The quick brown fox jumps over the lazy dog while the terminal renderer '
+    'diffs two frame buffers and emits the minimal escape sequence stream '
+    'required to bring the screen up to date without flicker or tearing on '
+    'any modern emulator.';
+
+/// Hawk TUI's dashboard on a 200 × 50 rig, of the render objects twk's
+/// widgets make for it (the adapter of a third party's benchmark,
+/// rtwk-hawk-benchmark: Column, Row, Expanded, SizedBox, Box with a border
+/// and a title, Text): a Header, a List of 40 rows in boxes, a Body of
+/// word-wrapped text in green, a progress bar. A frame changes the rows'
+/// text ([rows]), the selected row ([select]), the bar ([progress]) as a
+/// widget update sets them; with `boundaries` the List and the Body are in
+/// repaint boundaries, as twk's `RepaintBoundary` makes them.
+final class _Dash extends _Scene {
+  _Dash(super.hs, {bool boundaries = false}) {
+    if (hs.surface.width < 40 || hs.surface.height < 46) {
+      throw ScenarioBroken('the dashboard needs 40 × 46 cells at least');
+    }
+    RenderObject boxed(RenderObject child) =>
+        boundaries ? (_Boundary()..child = child) : child;
+    for (var i = 0; i < 40; i++) {
+      final text = RenderParagraph([
+        (_row(i, 0), const Pen()),
+      ], autoKeepsPaint: true);
+      _rows.add(text);
+      _boxes.add(RenderDecoratedBox(background: _plain, child: text));
+    }
+    _boxes.first.background = _reverse;
+    _bar = RenderParagraph(
+      [(_barText(0), const Pen())],
+      wrap: TextWrap.none,
+      autoKeepsPaint: true,
+    );
+    final middle = RenderFlex(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _expanded(
+          boxed(
+            _panel(
+              'List',
+              _plain,
+              RenderFlex(
+                direction: Axis.vertical,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: _boxes,
+              ),
+            ),
+          ),
+        ),
+        _expanded(
+          boxed(
+            _panel(
+              'Body',
+              _green,
+              RenderParagraph([(_lorem, const Pen())], autoKeepsPaint: true),
+            ),
+          ),
+        ),
+      ],
+    );
+    owner.root = RenderFlex(
+      direction: Axis.vertical,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _tall(
+          3,
+          _panel(
+            'Header',
+            _plain,
+            RenderParagraph(
+              [(_lorem, const Pen())],
+              wrap: TextWrap.none,
+              autoKeepsPaint: true,
+            ),
+          ),
+        ),
+        _expanded(middle),
+        _tall(3, _panel('Progress', _plain, _bar)),
+      ],
+    );
+  }
+
+  static const _plain = Pen();
+  static const _green = Pen(fg: Color.green);
+  static const _reverse = Pen(attrs: Attr.reverse);
+
+  final _rows = <RenderParagraph>[];
+  final _boxes = <RenderDecoratedBox>[];
+  late final RenderParagraph _bar;
+  var _selected = 0;
+
+  static String _row(int i, int frame) =>
+      'item ${i.toString().padLeft(3)} - tick ${frame % 1000}';
+
+  static String _barText(int frame) {
+    final label = '${frame % 100}%';
+    final left = (198 - label.length) ~/ 2;
+    final bar = (198 * ((frame % 100) / 100)).round();
+    final chars = List.generate(198, (i) => i < bar ? '█' : ' ')
+      ..setRange(left, left + label.length, label.split(''));
+    return chars.join();
+  }
+
+  static RenderDecoratedBox _panel(
+    String title,
+    Pen pen,
+    RenderObject child,
+  ) => RenderDecoratedBox(
+    background: pen,
+    border: BoxBorder.all(pen: pen),
+    titles: [BoxTitle(title)],
+    child: child,
+  );
+
+  static RenderObject _expanded(RenderObject child) {
+    final data = FlexParentData()..flex = 1;
+    return child..parentData = data;
+  }
+
+  static RenderObject _tall(int rows, RenderObject child) =>
+      RenderConstrainedBox(
+        additionalConstraints: BoxConstraints.tightFor(height: rows),
+        child: child,
+      );
+
+  /// The rows' text of frame [i].
+  void rows(int i) {
+    for (var k = 0; k < 40; k++) {
+      _rows[k].spans = [(_row(k, i), const Pen())];
+    }
+  }
+
+  /// The row of frame [i] selected, the one before not.
+  void select(int i) {
+    _boxes[_selected].background = _plain;
+    _selected = i % 40;
+    _boxes[_selected].background = _reverse;
+  }
+
+  /// The progress bar of frame [i].
+  void progress(int i) => _bar.spans = [(_barText(i), const Pen())];
+}
+
+/// A repaint boundary as twk's `RepaintBoundary` widget makes it.
+final class _Boundary extends RenderEffect {
+  @override
+  bool get hasEffect => false;
+
+  @override
+  void effectCell(
+    int x,
+    int y,
+    int glyph,
+    StyleId style,
+    int underGlyph,
+    StyleId underStyle,
+  ) {
+    effectGlyph = glyph;
+    effectStyle = style;
+  }
+}
 
 /// A render tree on a rig, driven the way `TwkApp` drives it.
 abstract base class _Scene {

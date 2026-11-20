@@ -15,12 +15,12 @@ text
 │     Listener, MouseRegi…       ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  selected in                │
 │     IgnorePointer, Abso…                                                                 │   two Texts                 │
 │ ▎   SelectionArea              ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │   a painted log             │
-│     Draggable, DragTarg…                                                                 │                             │
-│                                ·  ┌                                              ┐ ·     │  copy on release     ▐  ●▌  │
-│   FOCUS AND KEYS       5            An app that reads the mouse keeps the                │                             │
-│     Focus, FocusScope          ·    terminal from selecting its text, so it        ·     │  style                      │
-│     ActiveItem                      selects the text itself.                             │   the theme's  reverse      │
-│     ExcludeFocus               ·                                                   ·     │                             │
+│     Draggable, DragTarg…                                                                 │   a numbered listing        │
+│                                ·  ┌                                              ┐ ·     │                             │
+│   FOCUS AND KEYS       5            An app that reads the mouse keeps the                │  copy on release     ▐  ●▌  │
+│     Focus, FocusScope          ·    terminal from selecting its text, so it        ·     │                             │
+│     ActiveItem                      selects the text itself.                             │  style                      │
+│     ExcludeFocus               ·                                                   ·     │   the theme's  reverse      │
 │     KeyBindings, Leader…            A drag goes on from one paragraph to the             │                             │
 │     Shortcuts, Actions         ·    next.                                          ·     │                             │
 │                           ▐                                                              │                             │
@@ -52,12 +52,12 @@ styles
 │aaaaaoooooooooaooooooooooaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnnhnnhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooaoooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhEFFFEFFFFFEhhhhhhhhhhhhhhhh│
 │aGEEEFFFFFFFFFFFFFEEEEEEEEEahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhuvuvvvvvvvuvvvuhhhhhhhhhhhh│
-│aaaaaooooooooooaoooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhphhnnnnhnnhnnnnnnnhhhhhqwwxqhh│
-│aaadddddadddaddddaaaaaaaAaaahhhhhhhhhyyhyyyhyyyyhyyyyyhyyyhyyyyyhyyyyyhyyyhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaooooooooooaaaaaahhhhphhhhyyyyyyyyhyyyyhyyyyyyyyyhyyyhyyyyyhyyhyyhhhhhhhhphhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhyyyyyyyhyyyhyyyyhyyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhEFFFEFFFFFFFEuvvvvvvvuhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaoooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhuvuvvvvvvvvuvvvvvvvuhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddadddaddddaaaaaaaAaaahhhhhhhhhyyhyyyhyyyyhyyyyyhyyyhyyyyyhyyyyyhyyyhhhhhhhhhhhhhhhhphhnnnnhnnhnnnnnnnhhhhhqwwxqhh│
+│aaaaaooooooaooooooooooaaaaaahhhhphhhhyyyyyyyyhyyyyhyyyyyyyyyhyyyhyyyyyhyyhyyhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooaaaaaaaaaaaaahhhhhhhhhyyyyyyyhyyyhyyyyhyyyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhEFFFEFFFFFFFEuvvvvvvvuhhhhh│
 │aaaaaooooooooooooaoooooooaaahhhhhhhhhyhyyyyhyyyyhyyhyyyyhyyyhyyyyyyyyyhyyhyyyhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooaoooooooaaaaahhhhphhhhyyyyyhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -96,6 +96,6 @@ F bold #1f2328 on #b6d4fe
 G #0969da on #b6d4fe
 u on #eef0f3
 v #656d76 on #eef0f3
+y #1f2328 on #fafafb
 w on #0969da
 x #ffffff on #0969da
-y #1f2328 on #fafafb

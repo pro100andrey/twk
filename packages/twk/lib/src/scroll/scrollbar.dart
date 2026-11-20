@@ -9,6 +9,7 @@ import 'package:twk_core/twk_core.dart'
         BorderType,
         BoxConstraints,
         Canvas,
+        ClockElapsed,
         ContainerParentDataMixin,
         ContainerRenderObjectMixin,
         PaintContext,
@@ -69,7 +70,9 @@ enum ScrollbarVisibility {
 /// and the place of the thumb.
 ///
 /// Dragging the thumb with the left button scrolls the content as far as
-/// the thumb moves, wherever the mouse goes until the release; pressing
+/// the thumb moves, wherever the mouse goes until the release (where the
+/// terminal reports pixels, [PointerEvent.subY], as far as a part of a
+/// cell the mouse moved: a row of a long list is a pixel or less); pressing
 /// the track before or after the thumb scrolls a window that way. A press
 /// of the bar is its own: a `GestureDetector` around it gets nothing of
 /// it. The wheel over the bar scrolls the scrollable as over it.
@@ -148,17 +151,19 @@ final class Scrollbar extends StatefulWidget {
 }
 
 final class _ScrollbarState extends State<Scrollbar> {
-  late final _track = _Track(
-    AppBinding.maybeOf(context),
-    MouseTracker.of(context),
-  );
+  // made by the first build; a state disposed before one has none, and
+  // dispose must not look anything up from a context that is gone
+  _Track? _made;
+
+  _Track get _track =>
+      _made ??= _Track(AppBinding.maybeOf(context), MouseTracker.of(context));
 
   // the mouse over the bar, which a slim one is wide for
   var _hovered = false;
 
   @override
   void dispose() {
-    _track.dispose();
+    _made?.dispose();
     super.dispose();
   }
 
@@ -304,16 +309,18 @@ final class BorderScrollbar extends StatefulWidget {
 }
 
 final class _BorderScrollbarState extends State<BorderScrollbar> {
-  late final _track = _Track(
-    AppBinding.maybeOf(context),
-    MouseTracker.of(context),
-  );
+  // made by the first build; a state disposed before one has none, and
+  // dispose must not look anything up from a context that is gone
+  _Track? _made;
+
+  _Track get _track =>
+      _made ??= _Track(AppBinding.maybeOf(context), MouseTracker.of(context));
 
   var _hovered = false;
 
   @override
   void dispose() {
-    _track.dispose();
+    _made?.dispose();
     super.dispose();
   }
 
@@ -449,10 +456,11 @@ final class _Track with ChangeNotifier {
   Duration _hideAt = Duration.zero;
   int? _hiding;
 
-  // a drag of the thumb: the cell along the bar it was pressed at and
-  // where the thumb started then, in steps; null while there is none
-  int? _grabAt;
-  var _grabStart = 0;
+  // a drag of the thumb: where along the bar it was pressed, in cells
+  // (a fraction of a cell more where the terminal reports pixels) and
+  // the position's pixels then; null while there is none
+  double? _grabAt;
+  var _grabPixels = 0;
 
   /// Whether the thumb is being dragged.
   bool get dragging => _grabAt != null;
@@ -582,8 +590,8 @@ final class _Track with ChangeNotifier {
     } else if (at * _steps >= end) {
       p.jumpTo(p.pixels + page);
     } else {
-      _grabAt = at;
-      _grabStart = start;
+      _grabAt = axis == Axis.vertical ? event.exactY : event.exactX;
+      _grabPixels = p.pixels;
       mouse?.whenReleased(_released);
       _changed();
     }
@@ -602,10 +610,18 @@ final class _Track with ChangeNotifier {
     if (room <= 0) {
       return;
     }
-    final at = axis == Axis.vertical ? event.y : event.x;
-    final start = _grabStart + (at - grabAt) * _steps;
-    final along = _ratio(p.maxScrollExtent, start < 0 ? 0 : start, room);
-    p.jumpTo(p.reverse ? p.maxScrollExtent - along : along);
+    final vertical = axis == Axis.vertical;
+    final sub = (vertical ? event.subY : event.subX) != null;
+    final at = vertical ? event.exactY : event.exactX;
+    // the pointer's travel in steps; within a cell the thumb is not on a
+    // step, and the content follows the pointer, as many rows as it comes to
+    final travel = (at - grabAt) * _steps;
+    final moved = sub ? travel : travel.round();
+    final max = p.maxScrollExtent;
+    // from where the content was at the press, not from where the thumb's
+    // rounded start was: grabbing it moves nothing
+    final along = _grabPixels + (p.reverse ? -moved : moved) * max / room;
+    p.jumpTo((along < 0 ? 0.0 : (along > max ? max : along)).round());
   }
 
   void _released() {

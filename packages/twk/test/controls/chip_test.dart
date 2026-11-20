@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
 import '../text/plain_lines.dart';
 
 const List<Choice<String>> tags = [

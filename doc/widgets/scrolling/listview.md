@@ -2,14 +2,14 @@
 title: "ListView"
 group: "Scrolling"
 package: "twk"
-about: "Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it."
+about: "Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it, or selected with the mouse as one text."
 image: "packages/gallery/doc/shots/scrolling/listview.dark.svg"
 image_light: "packages/gallery/doc/shots/scrolling/listview.light.svg"
 route: "#/scrolling/listview"
 ---
 # ListView
 
-Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it.
+Items built as they come into view, however many there are; the wheel and the keys scroll it. Separated, reversed as a chat, or kept on what it shows as items come before it, or selected with the mouse as one text.
 
 | Dark | Light |
 | --- | --- |
@@ -92,6 +92,7 @@ What the gallery lets you change, and what each starts at:
 | items | 100, 10 000, 1 000 000, growing, chat, feed | 100 |
 | heights | one row, different | one row |
 | separated | on, off | false |
+| selectable | on, off | false |
 | stuck by | stickToBottom, stickToEnd | stickToBottom |
 
 ## More

@@ -8,7 +8,7 @@ import 'package:twk/twk.dart';
 Future<void> main() => runApp(
   // Catppuccin's dark flavor on a dark terminal, its light one on a light
   // one, switched when the terminal reports another color scheme; without
-  // a Theme, ThemeData.dark and ThemeData.light
+  // a Theme, the terminal's own colors
   const Theme.adaptive(
     dark: ThemeData.catppuccinMocha,
     light: ThemeData.catppuccinLatte,

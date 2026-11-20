@@ -104,6 +104,11 @@
         "category": "twk"
       },
       {
+        "command": "twk.frames.show",
+        "title": "Show the Frames Panel (Each Frame's Time and Bytes)",
+        "category": "twk"
+      },
+      {
         "command": "twk.inspector.refresh",
         "title": "Refresh the Widget Tree",
         "category": "twk",
@@ -202,6 +207,11 @@
         "title": "Play a Recording (asciicast) in a twk Terminal",
         "category": "twk",
         "icon": "$(play)"
+      },
+      {
+        "command": "twk.openTrace",
+        "title": "Open a Driver Trace (a Failed driverTest's)",
+        "category": "twk"
       },
       {
         "command": "twk.replayInput",
@@ -537,7 +547,24 @@
         ]
       }
     ],
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "twk",
+          "title": "twk",
+          "icon": "$(pulse)"
+        }
+      ]
+    },
     "views": {
+      "twk": [
+        {
+          "id": "twk.frames",
+          "name": "Frames",
+          "type": "webview",
+          "contextualTitle": "twk"
+        }
+      ],
       "debug": [
         {
           "id": "twk.inspector",
@@ -685,6 +712,11 @@
         }
       ],
       "explorer/context": [
+        {
+          "command": "twk.openTrace",
+          "when": "resourceFilename =~ /\\.trace\\.jsonl$/",
+          "group": "navigation"
+        },
         {
           "command": "twk.play",
           "when": "resourceExtname == .cast",

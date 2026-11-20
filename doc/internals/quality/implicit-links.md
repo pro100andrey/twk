@@ -67,7 +67,7 @@ Paths are under `packages/` unless they start with `tool/`.
   works the same way. Outside `testTwk`, `Finder.evaluate` throws a
   `StateError` rather than finding nothing.
 - **5, FakeClock and SyncClock.** Neither holds a zone value. The app's
-  clock is passed explicitly (`clock: clock.stopwatch`); the zone only
+  clock is passed explicitly (`clock: clock.clock`); the zone only
   replaces timers and microtasks, as fake_async does.
 - **6, `IOOverrides` for stderr.** `TwkTester.stderrLines` is what the
   app wrote to stderr, including its own `stderr.writeln`, which only an

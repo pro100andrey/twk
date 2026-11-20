@@ -15,7 +15,7 @@ export type TokenKind = 'text' | 'control' | 'esc' | 'ss3' | 'csi' | 'osc' | 'dc
 /** A piece of the stream: [raw] is its bytes as latin1, so as long as they are. */
 export type Token =
   /** Text, decoded from UTF-8 (a character cut between reads put together). */
-  | { readonly kind: 'text'; readonly raw: string; readonly text: string }
+  | { readonly kind: 'text'; readonly raw: string; readonly text: string; readonly counted?: true }
   /** A C0 control or DEL. */
   | { readonly kind: 'control'; readonly raw: string; readonly code: number }
   /** ESC, intermediates (0x20-0x2F), a final byte; or ESC alone at the end of input (the Escape key). */
@@ -114,7 +114,8 @@ export class SequenceReader {
       this.carry = carried;
     } else if (carried.length > 0 && (data[0] < 0x20 || data[0] === 0x7f)) {
       // the next read does not go on with the character: it is cut for good
-      tokens.push({ kind: 'text', raw: latin1(carried, 0, carried.length), text: new TextDecoder('utf-8').decode(carried) });
+      // its bytes are in the raw of the token that cut them (a text run's raw ends where the read does): [counted] says not to count them again
+      tokens.push({ kind: 'text', raw: latin1(carried, 0, carried.length), counted: true, text: new TextDecoder('utf-8').decode(carried) });
     }
     let i = 0;
     let textFrom = -1;
@@ -167,6 +168,14 @@ export class SequenceReader {
     }
     flushText(data.length);
     return tokens;
+  }
+
+  /** Forgets what waits for the rest of a sequence or of a character: the stream it was of has ended. */
+  reset(): void {
+    this.pending = new Uint8Array(0);
+    this.scanned = 0;
+    this.carry = new Uint8Array(0);
+    this.lead = [];
   }
 
   /** What waits for the rest of a sequence, as latin1; empty when nothing does. */

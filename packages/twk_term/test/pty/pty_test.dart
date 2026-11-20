@@ -45,6 +45,7 @@ final class Run {
     String? workingDirectory,
     Map<String, String>? environment,
     bool includeParentEnvironment = true,
+    PtyOutput output = PtyOutput.system,
   }) : pty = Pty.start(
          executable,
          arguments,
@@ -53,6 +54,7 @@ final class Run {
          workingDirectory: workingDirectory,
          environment: environment,
          includeParentEnvironment: includeParentEnvironment,
+         output: output,
        ) {
     subscription = pty.output.listen(
       bytes.addAll,
@@ -516,6 +518,76 @@ void main() {
     // macOS revokes the controlling terminal of a session whose leader
     // ended: what it left running writes to it no more
     testOn: 'linux',
+  );
+
+  test(
+    'the output flags a terminal has are set before the program runs',
+    () async {
+      // the program's first act is to say its terminal's output flags
+      const script =
+          r'stty -a | tr ";" "\n" | tr " " "\n" | grep -E '
+          r'"^-?(opost|onlcr|ocrnl|onocr|onlret|xtabs|tab[0-9])$" | sort';
+      final run = Run('sh', ['-c', script], output: PtyOutput.terminal);
+      expect(await run.ended(), exits(0));
+      final flags = run.text.split('\r\n').where((f) => f.isNotEmpty).toSet();
+      expect(flags, containsAll(['onlcr', 'opost', '-onocr', '-onlret']));
+      // macOS's stty does not name OCRNL at all, Linux's names it '-ocrnl'
+      // when clear: on both, never 'ocrnl'
+      expect(flags, isNot(contains('ocrnl')));
+      expect(flags.any((f) => f == 'xtabs' || f == 'tab3'), isFalse);
+      expect(run.pty.nlToCrNl, isTrue);
+    },
+  );
+
+  test(
+    'nlToCrNl is still known once the program ended and the master closed',
+    () async {
+      final run = Run('sh', ['-c', 'true'], output: PtyOutput.terminal);
+      expect(await run.ended(), exits(0));
+      // what the master's closing, soon after the end, does at any moment
+      // under load: here at once
+      run.pty.close();
+      expect(run.pty.nlToCrNl, isTrue);
+    },
+  );
+
+  test('nlToCrNl follows the flag the program sets', () async {
+    const script =
+        r'stty -onlcr -icanon -echo; printf "a\nb"; echo; '
+        'head -c 1 >/dev/null; stty onlcr';
+    // a bare LF reaches the master as it was written
+    final run = sh(script);
+
+    // read after the program's own stty -onlcr ran
+    await waitUntil(() => run.text.contains('a\nb'), 'the program to write');
+    expect(run.text, isNot(contains('\r')));
+    expect(run.pty.nlToCrNl, isFalse);
+    run.pty.write([0x78]);
+    expect(await run.ended(), exits(0));
+  });
+
+  test('nlToCrNl is false with OPOST off, though ONLCR is still set', () async {
+    const script =
+        r'stty -opost -icanon -echo; printf "a\nb\n"; '
+        'head -c 1 >/dev/null; stty opost';
+    final run = sh(script);
+
+    // no CR is added by the terminal: the LFs reach the master bare
+    await waitUntil(() => run.text.contains('a\nb\n'), 'the program to write');
+    expect(run.text, isNot(contains('\r')));
+    expect(run.pty.nlToCrNl, isFalse);
+    run.pty.write([0x78]);
+    expect(await run.ended(), exits(0));
+  });
+
+  test(
+    'nlToCrNl is false from modesAtEnd when the program left OPOST off',
+    () async {
+      final run = Run('sh', ['-c', 'stty -opost'], output: PtyOutput.terminal);
+      expect(await run.ended(), exits(0));
+      run.pty.close();
+      expect(run.pty.nlToCrNl, isFalse);
+    },
   );
 
   test('the modes the program left its terminal in, read at its end', () {

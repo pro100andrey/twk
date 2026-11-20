@@ -28,7 +28,7 @@ final class _Run {
       ),
     );
     _done = clock.run(
-      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch).run(app),
+      () => AppBinding(term, maxFps: 1000, clock: clock.clock).run(app),
     )..ignore(); // an error it ends with is thrown by quit
   }
 

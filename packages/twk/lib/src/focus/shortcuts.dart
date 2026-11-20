@@ -832,6 +832,25 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     return false;
   }
 
+  /// The combo [event] is to this layer: the key it types, unless that is
+  /// bound to nothing here and the key it is on a US layout
+  /// ([KeyCombo.layoutOf]) is, which makes Ctrl and `с` the `ctrl+c` of a
+  /// Russian layout.
+  KeyCombo _comboOf(KeyEvent event) {
+    final typed = KeyCombo.fromEvent(event);
+    final layout = KeyCombo.layoutOf(event);
+    if (layout == null || layout == typed || _bindsKey(typed)) {
+      return typed;
+    }
+    return _bindsKey(layout) ? layout : typed;
+  }
+
+  /// Whether [key] is one of the keys this layer is bound to.
+  bool _bindsKey(KeyCombo key) =>
+      _alone.containsKey(key) ||
+      _starts.contains(key) ||
+      _sequences.any((b) => b.keys.contains(key));
+
   KeyEventResult _onKeyEvent(FocusNode node, KeyEvent event) {
     if (_bound == null || event.kind == KeyKind.release) {
       return KeyEventResult.ignored;
@@ -839,7 +858,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     if (_held.isNotEmpty && !_holding) {
       _letGo();
     }
-    final combo = KeyCombo.fromEvent(event);
+    final combo = _comboOf(event);
     if (_held.isEmpty) {
       if (_starts.contains(combo) && _leadsOn(node, [combo])) {
         _hold(node, event);
@@ -850,7 +869,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
           ? KeyEventResult.handled
           : KeyEventResult.ignored;
     }
-    final keys = [for (final e in _held) KeyCombo.fromEvent(e), combo];
+    final keys = [for (final e in _held) _comboOf(e), combo];
     if (_leadsOn(node, keys)) {
       _hold(node, event);
       return KeyEventResult.handled;
@@ -910,7 +929,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
     List<KeyEvent> held,
     KeyEvent? event,
   ) {
-    final keys = [for (final e in held) KeyCombo.fromEvent(e)];
+    final keys = [for (final e in held) _comboOf(e)];
     for (var n = keys.length; n > 0; n--) {
       final bound = _find(keys.sublist(0, n));
       if (bound != null && _take(node, bound.value, invoke: true)) {
@@ -995,7 +1014,7 @@ abstract class _LayerState<W extends StatefulWidget, V> extends State<W> {
       return false;
     }
     if (_holding) {
-      final held = [for (final e in _held) KeyCombo.fromEvent(e)];
+      final held = [for (final e in _held) _comboOf(e)];
       for (final b in bound) {
         if (b.keys.length > held.length &&
             _startsWith(b.keys, held) &&

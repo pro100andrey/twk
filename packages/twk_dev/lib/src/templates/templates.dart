@@ -8,9 +8,13 @@ import 'dart:convert';
 import 'package:path/path.dart' as p;
 
 import 'app.g.dart';
+import 'bloc.g.dart';
 import 'dashboard.g.dart';
 import 'form.g.dart';
 import 'inline.g.dart';
+import 'riverpod.g.dart';
+import 'ssh.g.dart';
+import 'web.g.dart';
 
 /// A kind of app `twk create` starts: its [name], what it is in a line
 /// ([description]) and its package packed with mold, in base64 ([packed]).
@@ -20,6 +24,10 @@ final class Template {
     required this.name,
     required this.description,
     required this.packed,
+    this.run = const [
+      'dart run bin/main.dart',
+      'dart run twk_dev:twk run bin/main.dart  # hot reloaded',
+    ],
   });
 
   /// What `--template` names it.
@@ -30,6 +38,10 @@ final class Template {
 
   /// Its package packed with mold, in base64.
   final String packed;
+
+  /// The commands that run the app, after `dart pub get`, as `twk create`
+  /// shows them: hot reloaded unless the app is not one `twk run` runs.
+  final List<String> run;
 
   /// The archive mold unpacks.
   List<int> get archive => base64.decode(packed);
@@ -58,6 +70,31 @@ const templates = [
         'full screen: panels of live readings in a chart, a gauge and bars',
     packed: kDashboardTemplateBase64,
   ),
+  Template(
+    name: 'ssh',
+    description: 'served over SSH: each client that logs in gets its own app',
+    packed: kSshTemplateBase64,
+    run: ['dart run bin/main.dart  # then: ssh -t -p 2222 localhost'],
+  ),
+  Template(
+    name: 'web',
+    description: 'in a browser, on xterm.js, built with dart2wasm',
+    packed: kWebTemplateBase64,
+    run: [
+      'dart compile wasm web/main.dart -o web/main.wasm',
+      'python3 -m http.server -d web 8080  # then: http://localhost:8080',
+    ],
+  ),
+  Template(
+    name: 'riverpod',
+    description: 'full screen: a counter with its state in riverpod providers',
+    packed: kRiverpodTemplateBase64,
+  ),
+  Template(
+    name: 'bloc',
+    description: 'full screen: a counter with its state in a bloc cubit',
+    packed: kBlocTemplateBase64,
+  ),
 ];
 
 /// The mold variable a template's package name replaces.
@@ -71,6 +108,47 @@ const twkPackages = ['twk', 'twk_dev', 'twk_lints', 'twk_test'];
 /// from pub.
 const twkVersion = '0.3.0';
 
+/// The packages a template takes by path that only some of them do, each
+/// with its version on pub: [withTwkFrom] rewrites those a pubspec has,
+/// like the [twkPackages], which it must have.
+const optionalTwkPackages = {
+  'twk_bloc': '0.1.0',
+  'twk_riverpod': '0.1.0',
+  'twk_ssh': '0.1.0',
+  'twk_web': '0.1.0',
+};
+
+/// The [optionalTwkPackages] not on pub yet (`publish_to: none` in their
+/// pubspecs): a project takes them from a checkout only. Drop a package
+/// from it when it is published.
+const unpublishedTwkPackages = {
+  'twk_bloc',
+  'twk_riverpod',
+  'twk_ssh',
+  'twk_web',
+};
+
+/// A template takes packages of twk that are not on pub, and `twk create`
+/// has no checkout to take them from.
+final class UnpublishedPackages implements Exception {
+  /// The refusal of a template that takes [packages].
+  UnpublishedPackages(this.packages);
+
+  /// The packages the template takes that are not published.
+  final List<String> packages;
+
+  /// What is wrong and what to do about it.
+  String get message =>
+      '${packages.join(', ')} ${packages.length == 1 ? 'is' : 'are'} not '
+      'published to pub yet, so a project that takes '
+      '${packages.length == 1 ? 'it' : 'them'} can only be made from a '
+      'checkout of the twk repository: --path-to-twk=<dir> names one, or '
+      'run twk from one';
+
+  @override
+  String toString() => message;
+}
+
 /// [pubspec], a template's, with the [twkPackages] it takes by a path in
 /// the repository taken by path from the twk repository checked out at
 /// [checkout] or, when null, from pub at [twkVersion].
@@ -82,16 +160,31 @@ const twkVersion = '0.3.0';
 /// in the block form, `path:` alone on the line under its name, as the
 /// templates write it: a flow mapping or a comment among its lines is
 /// none. Throws a [StateError] when [pubspec] does not take one of them by
-/// path, or does not override by path just the packages of [overridden].
+/// path, or does not override by path just the packages of [overridden];
+/// and an [UnpublishedPackages] when [checkout] is null and it takes one of
+/// the [unpublishedTwkPackages].
 ///
 /// twk, twk_test and twk_dev take the packages under them by version and
-/// the others take them by path, so a template overrides twk, twk_core
-/// and twk_term with the repository's ([overridden],
+/// the others take them by path, so a template overrides twk, twk_core,
+/// twk_driver and twk_term with the repository's ([overridden],
 /// `dependency_overrides`): a project from a checkout with the checkout's,
 /// one from pub not at all.
 String withTwkFrom(String pubspec, {String? checkout}) {
+  if (checkout == null) {
+    final unpublished = [
+      for (final package in unpublishedTwkPackages)
+        if (RegExp(
+          '^  $package:\n    path: ',
+          multiLine: true,
+        ).hasMatch(pubspec))
+          package,
+    ];
+    if (unpublished.isNotEmpty) {
+      throw UnpublishedPackages(unpublished..sort());
+    }
+  }
   String source(String package) => checkout == null
-      ? ' ^$twkVersion'
+      ? ' ^${optionalTwkPackages[package] ?? twkVersion}'
       : '\n    path: ${_yaml(p.join(checkout, 'packages', package))}';
   var result = pubspec;
   for (final package in twkPackages) {
@@ -99,6 +192,10 @@ String withTwkFrom(String pubspec, {String? checkout}) {
     if (!dependency.hasMatch(result)) {
       throw StateError('The pubspec takes no $package by path');
     }
+    result = result.replaceFirst(dependency, '  $package:${source(package)}');
+  }
+  for (final package in optionalTwkPackages.keys) {
+    final dependency = RegExp('^  $package:\n    path: .*\$', multiLine: true);
     result = result.replaceFirst(dependency, '  $package:${source(package)}');
   }
   final block = _overrides.firstMatch(result)?[0] ?? '';
@@ -133,7 +230,7 @@ String withTwkFrom(String pubspec, {String? checkout}) {
 }
 
 /// The packages a template overrides with the repository's.
-const overridden = ['twk', 'twk_core', 'twk_term'];
+const overridden = ['twk', 'twk_core', 'twk_driver', 'twk_term'];
 
 /// A template's overrides: the block, every line of it indented.
 final _overrides = RegExp(r'\ndependency_overrides:\n(?:  .*(?:\n|$))+');

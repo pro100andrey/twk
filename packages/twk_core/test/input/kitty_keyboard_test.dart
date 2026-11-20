@@ -21,10 +21,15 @@ KeyEvent key(
   String char = '',
   int mods = 0,
   KeyKind kind = KeyKind.press,
-}) => KeyEvent(code, char: char, modifiers: mods, kind: kind);
+  int kitty = 0,
+}) => KeyEvent(code, char: char, modifiers: mods, kind: kind, kittyCode: kitty);
 
 KeyEvent char(String c, {int mods = 0, KeyKind kind = KeyKind.press}) =>
     key(KeyCode.char, char: c, mods: mods, kind: kind);
+
+List<String> bases(String s) => [
+  for (final e in parse(s)) (e as KeyEvent).baseChar,
+];
 
 const KeyKind repeat = KeyKind.repeat;
 const KeyKind release = KeyKind.release;
@@ -137,16 +142,76 @@ void main() {
     });
 
     test('a shortcut is its unshifted key, modifiers kept, whatever its '
-        'text or shifted key, and the base layout key is not decoded', () {
+        'text or shifted key; the base layout key is kept apart', () {
       expect(
         parse('\x1b[97:65;6u\x1b[97;3;97u\x1b[1089::99;5u\x1b[97:65:97;10u'),
         [
           char('a', mods: Mod.ctrl | Mod.shift),
           char('a', mods: Mod.alt),
-          char('с', mods: Mod.ctrl),
-          char('a', mods: Mod.superKey | Mod.shift),
+          const KeyEvent(
+            KeyCode.char,
+            char: 'с',
+            modifiers: Mod.ctrl,
+            baseChar: 'c',
+          ),
+          const KeyEvent(
+            KeyCode.char,
+            char: 'a',
+            modifiers: Mod.superKey | Mod.shift,
+            baseChar: 'a',
+          ),
         ],
       );
+      // == leaves the base key out, so it is read apart
+      expect(
+        bases('\x1b[97:65;6u\x1b[97;3;97u\x1b[1089::99;5u\x1b[97:65:97;10u'),
+        [
+          '',
+          '',
+          'c',
+          'a',
+        ],
+      );
+    });
+
+    test('the base layout key of a key is the one a US layout types: Ctrl '
+        'and Cyrillic or Greek letters, with Shift, with event types', () {
+      expect(
+        parse('\x1b[1099::121;5u\x1b[1089:1057:99;6u\x1b[952::104;5:3u'),
+        const [
+          KeyEvent(
+            KeyCode.char,
+            char: 'ы',
+            modifiers: Mod.ctrl,
+            baseChar: 'y',
+          ),
+          KeyEvent(
+            KeyCode.char,
+            char: 'с',
+            modifiers: Mod.ctrl | Mod.shift,
+            baseChar: 'c',
+          ),
+          KeyEvent(
+            KeyCode.char,
+            char: 'θ',
+            modifiers: Mod.ctrl,
+            kind: KeyKind.release,
+            baseChar: 'h',
+          ),
+        ],
+      );
+      expect(bases('\x1b[1099::121;5u\x1b[1089:1057:99;6u\x1b[952::104;5:3u'), [
+        'y',
+        'c',
+        'h',
+      ]);
+    });
+
+    test('a base key that is no character is none', () {
+      expect(parse('\x1b[1089::7;5u\x1b[1089::0;5u'), [
+        char('с', mods: Mod.ctrl),
+        char('с', mods: Mod.ctrl),
+      ]);
     });
 
     test('text that is no character falls back to the key', () {
@@ -163,19 +228,140 @@ void main() {
       expect(parse('\x1b[97;2;u'), [char('a', mods: Mod.shift)]);
     });
 
-    test('Enter, Tab and Backspace come as CSI u; modifier keys alone '
-        'make no key', () {
+    test('Enter, Tab and Backspace come as CSI u', () {
       expect(parse('\x1b[13u\x1b[9;2u\x1b[127;5u\x1b[13;1:3u'), [
         key(KeyCode.enter),
         key(KeyCode.tab, mods: Mod.shift),
         key(KeyCode.backspace, mods: Mod.ctrl),
         key(KeyCode.enter, kind: release),
       ]);
-      // left Shift, right Control: pressed, then released
+    });
+
+    test('modifier keys, pressed, repeated and released, with the kitty '
+        'code of each', () {
+      // left Shift, right Control: pressed, then released (the modifier
+      // bits are those held after the event)
       expect(
-        parse('\x1b[57441;2u\x1b[57441;1:3u\x1b[57448;5u\x1b[57448;1:3u')
-            .whereType<KeyEvent>(),
-        isEmpty,
+        parse(
+          '\x1b[57441;2u\x1b[57441;2:2u\x1b[57441;1:3u'
+          '\x1b[57448;5u\x1b[57448;1:3u',
+        ),
+        [
+          key(KeyCode.modifier, mods: Mod.shift, kitty: KittyKey.leftShift),
+          key(
+            KeyCode.modifier,
+            mods: Mod.shift,
+            kind: repeat,
+            kitty: KittyKey.leftShift,
+          ),
+          key(KeyCode.modifier, kind: release, kitty: KittyKey.leftShift),
+          key(KeyCode.modifier, mods: Mod.ctrl, kitty: KittyKey.rightControl),
+          key(
+            KeyCode.modifier,
+            kind: release,
+            kitty: KittyKey.rightControl,
+          ),
+        ],
+      );
+      // each of the twelve and the two ISO shifts
+      for (var c = 57441; c <= 57454; c++) {
+        expect(parse('\x1b[$c;1u'), [
+          key(KeyCode.modifier, kitty: c),
+        ], reason: '$c');
+      }
+    });
+
+    test('lock keys, pressed and released', () {
+      expect(parse('\x1b[57358u\x1b[57358;1:3u\x1b[57360;129u\x1b[57359u'), [
+        key(KeyCode.lock, kitty: KittyKey.capsLock),
+        key(KeyCode.lock, kind: release, kitty: KittyKey.capsLock),
+        // Num Lock's own state is no modifier
+        key(KeyCode.lock, kitty: KittyKey.numLock),
+        key(KeyCode.lock, kitty: KittyKey.scrollLock),
+      ]);
+    });
+
+    test('media keys, pressed and released', () {
+      expect(parse('\x1b[57430u\x1b[57430;1:3u\x1b[57439;1:2u'), [
+        key(KeyCode.media, kitty: KittyKey.mediaPlayPause),
+        key(KeyCode.media, kind: release, kitty: KittyKey.mediaPlayPause),
+        key(KeyCode.media, kind: repeat, kitty: KittyKey.raiseVolume),
+      ]);
+      for (var c = 57428; c <= 57440; c++) {
+        expect(parse('\x1b[$c;1u'), [key(KeyCode.media, kitty: c)]);
+      }
+    });
+
+    test('the codes between the families stay what they were', () {
+      // F13 (57376) has no KeyCode: no event; the keypad is its keys
+      expect(parse('\x1b[57376u').whereType<KeyEvent>(), isEmpty);
+      expect(parse('\x1b[57399u'), [char('0')]);
+      expect(parse('\x1b[57427u').whereType<KeyEvent>(), isEmpty);
+    });
+
+    test('a key names itself as kitty does', () {
+      String? name(int c) => KeyEvent(KeyCode.modifier, kittyCode: c).kittyName;
+      expect(name(57441), 'left_shift');
+      expect(name(57358), 'caps_lock');
+      expect(name(57430), 'media_play_pause');
+      expect(name(57454), 'iso_level5_shift');
+      expect(name(57376), isNull);
+      expect(const KeyEvent(KeyCode.enter).kittyName, isNull);
+      // every code of the three families has a name, and no other
+      for (var c = 57358; c <= 57454; c++) {
+        if (c >= 57361 && c <= 57427) {
+          expect(name(c), isNull, reason: '$c');
+          continue;
+        }
+        final read = parse('\x1b[$c;1u').whereType<KeyEvent>();
+        expect(read, hasLength(1), reason: '$c');
+        expect(name(c), isNotNull, reason: '$c');
+      }
+    });
+
+    test('the base layout key is no part of == or hashCode, the kitty code '
+        'is', () {
+      const ctrlC = KeyEvent(KeyCode.char, char: 'c', modifiers: Mod.ctrl);
+      const onRussian = KeyEvent(
+        KeyCode.char,
+        char: 'c',
+        modifiers: Mod.ctrl,
+        baseChar: 'c',
+      );
+      const other = KeyEvent(
+        KeyCode.char,
+        char: 'c',
+        modifiers: Mod.ctrl,
+        baseChar: 'x',
+      );
+      expect(onRussian, ctrlC);
+      expect(onRussian.hashCode, ctrlC.hashCode);
+      expect(other, onRussian);
+      expect(parse('\x1b[99::99;5u').single, ctrlC);
+      expect(
+        const KeyEvent(KeyCode.lock, kittyCode: KittyKey.capsLock) ==
+            const KeyEvent(KeyCode.lock, kittyCode: KittyKey.numLock),
+        isFalse,
+      );
+    });
+
+    test('a kitty code tells two keys of one family apart', () {
+      final a = key(KeyCode.modifier, kitty: KittyKey.leftShift);
+      final b = key(KeyCode.modifier, kitty: KittyKey.rightShift);
+      expect(a == b, isFalse);
+      expect(a.hashCode == b.hashCode, isFalse);
+      expect(a.toString(), 'Key(modifier:left_shift)');
+      // the code and the modifiers share a field, and stay apart
+      final c = key(
+        KeyCode.modifier,
+        mods: Mod.ctrl | Mod.superKey,
+        kitty: KittyKey.isoLevel5Shift,
+      );
+      expect(c.modifiers, Mod.ctrl | Mod.superKey);
+      expect(c.kittyCode, KittyKey.isoLevel5Shift);
+      expect(
+        c == key(KeyCode.modifier, mods: Mod.ctrl, kitty: c.kittyCode),
+        isFalse,
       );
     });
   });
@@ -189,5 +375,17 @@ void main() {
       (parse('\x1b[97;5u').single as KeyEvent).kind,
       KeyKind.press,
     );
+  });
+
+  test('Alt before a kitty sequence keeps the base key and the kitty code', () {
+    // ESC, then Ctrl+с with its base key c, and ESC then the left shift key
+    final events = parse('\x1b\x1b[1089::99;5u\x1b\x1b[57441;2u');
+    final ctrl = events[0] as KeyEvent;
+    expect((ctrl.char, ctrl.baseChar), ('с', 'c'));
+    expect(ctrl.modifiers, Mod.ctrl | Mod.alt);
+    final shift = events[1] as KeyEvent;
+    expect(shift.code, KeyCode.modifier);
+    expect(shift.kittyCode, 57441);
+    expect(shift.modifiers, Mod.shift | Mod.alt);
   });
 }

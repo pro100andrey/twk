@@ -438,7 +438,12 @@ String? _badShares(List<double> shares, int n) {
 /// app that made it disposes of it.
 final class DockController extends ChangeNotifier {
   /// A layout of no panels when [layout] is null.
-  DockController([DockLayout? layout]) : _layout = layout ?? DockLayout();
+  DockController([DockLayout? layout]) : _layout = layout ?? DockLayout() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   DockLayout _layout;
 

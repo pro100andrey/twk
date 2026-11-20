@@ -1,10 +1,13 @@
 # gallery
 
-The twk gallery: every widget of `twk`, `twk_rich` (its
-`package:twk_rich/image.dart` too) and `twk_term` on a page of its own, live, with its options and the Dart that
-builds it, and a run of a program on twk's console as a terminal shows it. It is its own design: how it looks and why, and the rules a
-page keeps, are in [doc/design.md](doc/design.md); how every page looks
-is held by its golden screens (below).
+See every widget of twk at work before you write a line: `twk`, `twk_rich`
+(its `package:twk_rich/image.dart` too) and `twk_term`, each on a page of its
+own, live, with its options to change and the Dart that builds it, and a run
+of a program on twk's console as a terminal shows it.
+
+It is its own design: how it looks and why, and the rules a page keeps, are
+in [doc/design.md](doc/design.md); how every page looks is held by its golden
+screens (below).
 
 | Dark, 120×36 | Light, 120×36 |
 | --- | --- |
@@ -177,16 +180,16 @@ columns (a terminal of 80) says so with `minWidth:`, so that the options
 go under the stage where beside it they would leave fewer. `modalTab: false` says
 that what the page opens over the gallery takes Tab itself (a menu, a
 command palette), so the hint bar leaves `tab next` out while it is open.
-`hintLabel` names a key as the gallery's hint bar does (`alt+↓`, `esc`,
-`pgdn`), for a page's own `KeyHintsBar(keyLabel: hintLabel)`. The hint bar
+A page's own `KeyHintsBar` names a key as the gallery's hint bar does
+(`alt+↓`, `esc`, `pgdn`): `KeyHintsBar.signs`, its default. The hint bar
 lists the hinted keys of the layers above the focus; hints that are no
 key a layer binds (`type take over`, `wheel scroll back`) come from `PageHints(hints: [...], child:
 …)` around the focusable widget, listed first while the focus is in it.
 
 `Options` gives each option's value by the option's constant (`o(_wrap)`,
 of the option's type: a `ChoiceOption<T>`'s `T`, a switch's `bool`, a
-slider's `num`, a colour's name), its name as the inspector and a route
-write it (`o.nameOf`), and the theme's style of a colour option
+slider's `num`, a color's name), its name as the inspector and a route
+write it (`o.nameOf`), and the theme's style of a color option
 (`o.styleOf`); a key mistyped is a name the analyzer does not know.
 Options that several pages share are one constant (`pageColorOption`,
 Animation's `_cycleOption`); an option a function makes for each page
@@ -253,7 +256,7 @@ goes on has another by the route's time), made into a program
 (`tool/code_check/wrap.dart`: a `main`, a `State`, a State's members or a
 `build()`'s body), run in twk's tester on a terminal the size of the
 stage's room, in the page's theme, to the route's time; then its cells
-against those of the widget on the stage, the glyph, the colours (the
+against those of the widget on the stage, the glyph, the colors (the
 default ones as the theme's) and the attributes, a blank by its
 background.
 
@@ -293,7 +296,7 @@ same file and lines; the routes of its other programs are checked with
 every page's own (`tool/code_check/stages.dart`, `_more`).
 
 Where the stage is the app's terminal in the terminal's own
-colours, as `runApp` gives them (Debugging › FrameOverlay, Repaint
+colors, as `runApp` gives them (Debugging › FrameOverlay, Repaint
 rainbow: `codeInTerminalColors`), the Code runs under
 `ThemeData.terminal` on a terminal the widget's size.
 

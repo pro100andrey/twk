@@ -170,36 +170,115 @@ void main() {
       expect(log, containsAll(['a reads light', 'b reads nord']));
     });
 
-    test("without one, the widgets get twk's own theme of the terminal's "
-        "brightness; the terminal's own colors where it did not say it", () {
+    test("without one, the widgets get the terminal's own colors: of its "
+        'background where it told it, of its brightness where it did not', () {
       final log = <String>[];
+      final seen = <String, ThemeData>{};
+      Probe watcher(String name) => Probe(
+        name,
+        log,
+        builder: (state) {
+          seen[name] = Theme.of(state.context);
+          return Leaf(name);
+        },
+      );
       Tree().pump(
         Multi([
           TerminalBrightness(
             brightness: Brightness.dark,
-            child: reader('a', log),
+            background: 0x16181d,
+            foreground: 0xd0d0d0,
+            cursor: 0xff8800,
+            palette: const {4: 0x0000ee, 12: 0x5c5cff},
+            child: watcher('a'),
           ),
           TerminalBrightness(
             brightness: Brightness.light,
-            child: reader('b', log),
+            background: 0xfafafb,
+            child: watcher('b'),
+          ),
+          TerminalBrightness(
+            brightness: Brightness.light,
+            child: watcher('c'),
           ),
           TerminalBrightness(
             brightness: Brightness.dark,
             known: false,
-            child: reader('c', log),
+            child: watcher('d'),
           ),
-          reader('d', log),
+          watcher('e'),
         ]),
       );
       expect(
-        log,
-        containsAll([
-          'a reads dark',
-          'b reads light',
-          'c reads terminal dark',
-          'd reads terminal dark',
-        ]),
+        seen['a'],
+        ThemeData.terminalOn(
+          0x16181d,
+          foreground: 0xd0d0d0,
+          cursor: 0xff8800,
+          palette: const {4: 0x0000ee, 12: 0x5c5cff},
+        ),
       );
+      expect(seen['b'], ThemeData.terminalOn(0xfafafb));
+      expect(seen['c'], const ThemeData.terminal(Brightness.light));
+      expect(seen['d'], const ThemeData.terminal(Brightness.dark));
+      expect(seen['e'], const ThemeData.terminal(Brightness.dark));
+      expect(
+        seen['a'],
+        isNot(ThemeData.dark),
+        reason: "not twk's own theme of the brightness",
+      );
+    });
+
+    test("the terminal's cursor color is the theme's cursor: the one it "
+        'told, else its text color, else none', () {
+      final seen = <ThemeData>[];
+      final log = <String>[];
+      Widget under({int? foreground, int? cursor}) => TerminalBrightness(
+        brightness: Brightness.dark,
+        background: 0x16181d,
+        foreground: foreground,
+        cursor: cursor,
+        child: Probe(
+          'p',
+          log,
+          builder: (state) {
+            seen.add(Theme.of(state.context));
+            return const Leaf('p');
+          },
+        ),
+      );
+      Tree()
+        ..pump(under(foreground: 0xd0d0d0, cursor: 0xff8800))
+        ..pump(under(foreground: 0xd0d0d0))
+        ..pump(under());
+      expect(seen.map((t) => t.cursorColor), [
+        const Color.rgb(0xff, 0x88, 0x00),
+        const Color.rgb(0xd0, 0xd0, 0xd0),
+        null,
+      ]);
+      expect(const ThemeData.terminal(Brightness.dark).cursorColor, isNull);
+    });
+
+    test('a cursor color told later rebuilds the widgets that read the '
+        'theme', () {
+      final log = <String>[];
+      Widget app(int? cursor) => TerminalBrightness(
+        brightness: Brightness.dark,
+        background: 0x16181d,
+        cursor: cursor,
+        child: Probe(
+          'a',
+          log,
+          builder: (state) {
+            Theme.of(state.context);
+            return const Leaf('a');
+          },
+        ),
+      );
+      final tree = Tree()..pump(app(null));
+      log.clear();
+      tree.pump(app(0xff8800));
+      expect(log, contains('a build'));
     });
 
     test("Theme.terminal gives the terminal's own colors, of its "

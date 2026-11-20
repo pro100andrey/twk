@@ -178,4 +178,18 @@ void main() {
       [('a', true), ('b', true), ('c', false), ('q', false)],
     );
   });
+
+  test('replaySteps count what the program had written before each', () {
+    final cast = Cast(const CastHeader(width: 80, height: 24), const [
+      CastEvent(0.1, 'o', 'abc'),
+      CastEvent(0.2, 'o', 'de'),
+      CastEvent(0.5, 'i', '+'),
+      CastEvent(0.6, 'o', 'fgh'),
+      CastEvent(0.9, 'i', 'q'),
+    ]);
+    expect(
+      [for (final s in replaySteps(cast)) (s.keys, s.written)],
+      [('+', 5), ('q', 8)],
+    );
+  });
 }

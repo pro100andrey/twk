@@ -93,9 +93,11 @@ void main() {
   group('Table marks', () {
     testTwk('a checkbox column before the columns shows the rows marked, '
         'a blank above it', (t) async {
-      final marks = SelectionController<Object>(
-        multiple: true,
-        selected: ['main.dart'],
+      final marks = disposing(
+        SelectionController<Object>(
+          multiple: true,
+          selected: ['main.dart'],
+        ),
       );
       await t.pumpWidget(Theme.terminal(child: marked(marks)), size: (30, 4));
       expect(t.lines, [
@@ -108,8 +110,8 @@ void main() {
 
     testTwk('Space marks and unmarks the row selected, which stays '
         'selected', (t) async {
-      final marks = SelectionController<Object>(multiple: true);
-      final controller = TableController();
+      final marks = disposing(SelectionController<Object>(multiple: true));
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(child: marked(marks, controller: controller)),
         size: (30, 4),
@@ -133,7 +135,7 @@ void main() {
     });
 
     testTwk('Space with no row selected marks nothing', (t) async {
-      final marks = SelectionController<Object>(multiple: true);
+      final marks = disposing(SelectionController<Object>(multiple: true));
       await t.pumpWidget(Theme.terminal(child: marked(marks)), size: (30, 4));
       await t.press('space');
       await t.pump();
@@ -142,8 +144,8 @@ void main() {
 
     testTwk('a click on a checkbox toggles the mark and selects the row, a '
         'click on the rest of the row only selects it', (t) async {
-      final marks = SelectionController<Object>(multiple: true);
-      final controller = TableController();
+      final marks = disposing(SelectionController<Object>(multiple: true));
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(child: marked(marks, controller: controller)),
         size: (30, 4),
@@ -159,11 +161,13 @@ void main() {
     });
 
     testTwk('the marks stay on their rows as the rows are sorted', (t) async {
-      final marks = SelectionController<Object>(
-        multiple: true,
-        selected: ['a'],
+      final marks = disposing(
+        SelectionController<Object>(
+          multiple: true,
+          selected: ['a'],
+        ),
       );
-      final controller = TableController();
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(child: marked(marks, controller: controller)),
         size: (30, 4),
@@ -178,7 +182,7 @@ void main() {
     });
 
     testTwk('the marks are drawn again as the controller changes', (t) async {
-      final marks = SelectionController<Object>(multiple: true);
+      final marks = disposing(SelectionController<Object>(multiple: true));
       await t.pumpWidget(Theme.terminal(child: marked(marks)), size: (30, 4));
       marks.selectAll(['a', 'readme.md']);
       await t.pump();
@@ -191,8 +195,8 @@ void main() {
 
     testTwk('the columns are found by a click and the keys with the '
         'checkbox column before them', (t) async {
-      final marks = SelectionController<Object>(multiple: true);
-      final controller = TableController();
+      final marks = disposing(SelectionController<Object>(multiple: true));
+      final controller = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: marked(
@@ -218,8 +222,8 @@ void main() {
   group('TreeTable marks', () {
     testTwk('a node marks itself alone, as Space and a click on its '
         'checkbox say, not its children', (t) async {
-      final marks = SelectionController<Object>(multiple: true);
-      final expanded = TreeController(expanded: ['src']);
+      final marks = disposing(SelectionController<Object>(multiple: true));
+      final expanded = disposing(TreeController(expanded: ['src']));
       await t.pumpWidget(
         Theme.terminal(child: treeTable(marks, controller: expanded)),
         size: (30, 5),
@@ -246,12 +250,14 @@ void main() {
 
     testTwk('the marks stay on their nodes as they are sorted and '
         'collapsed', (t) async {
-      final marks = SelectionController<Object>(
-        multiple: true,
-        selected: ['a.dart', 'test'],
+      final marks = disposing(
+        SelectionController<Object>(
+          multiple: true,
+          selected: ['a.dart', 'test'],
+        ),
       );
-      final expanded = TreeController(expanded: ['src']);
-      final table = TableController();
+      final expanded = disposing(TreeController(expanded: ['src']));
+      final table = disposing(TableController());
       await t.pumpWidget(
         Theme.terminal(
           child: treeTable(marks, controller: expanded, tableController: table),
@@ -275,13 +281,13 @@ void main() {
     testTwk('the row of a load has no checkbox and cannot be marked', (
       t,
     ) async {
-      final marks = SelectionController<Object>(multiple: true);
+      final marks = disposing(SelectionController<Object>(multiple: true));
       final load = Completer<List<N>>();
       await t.pumpWidget(
         Theme.terminal(
           child: treeTable(
             marks,
-            controller: TreeController(expanded: ['test']),
+            controller: disposing(TreeController(expanded: ['test'])),
             children: (n) => n.name == 'test' ? load.future : n.children,
           ),
         ),

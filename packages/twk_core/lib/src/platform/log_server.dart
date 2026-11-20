@@ -80,7 +80,8 @@ final class LogServer {
     _clients[client] = false;
     unawaited(client.done.then<void>((_) {}, onError: (Object _) {}));
     final token = <int>[];
-    final timer = Timer(_tokenTimeout, client.destroy);
+    // real time, the app's clock (`TWK_DRIVEN`) is not for a client's wait
+    final timer = Zone.root.createTimer(_tokenTimeout, client.destroy);
     void end() {
       timer.cancel();
       _drop(client);

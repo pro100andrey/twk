@@ -396,11 +396,13 @@ void _writePackage(String dir) {
       '  twk_rich: {path: ${pkg('packages/twk_rich')}}',
       '  twk_term: {path: ${pkg('packages/twk_term')}}',
       '  twk_test: {path: ${pkg('packages/twk_test')}}',
-      // twk and twk_test take the packages under them by version, the
-      // others by path: the checkout's
+      // twk, twk_test and twk_driver take the packages under them by
+      // version, the others by path: the checkout's
       'dependency_overrides:',
       '  twk: {path: ${pkg('packages/twk')}}',
       '  twk_core: {path: ${pkg('packages/twk_core')}}',
+      '  twk_driver: {path: ${pkg('packages/twk_driver')}}',
+      '  twk_term: {path: ${pkg('packages/twk_term')}}',
       '',
     ].join('\n'),
   );

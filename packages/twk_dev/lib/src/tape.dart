@@ -6,15 +6,17 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 import 'package:twk_core/twk_core.dart'
-    show Attr, Color, KeyCode, KeyEvent, StyleId, StyleTable, kCont;
+    show Attr, Clock, Color, StyleId, StyleTable, kCont;
+import 'package:twk_driver/twk_driver.dart';
 import 'package:twk_term/twk_term.dart';
 
-import 'cast.dart';
 import 'completion.dart';
+import 'tape/recording.dart';
 import 'tape/script.dart';
 import 'tape/svg.dart';
 
@@ -106,20 +108,26 @@ final class TapeCommand extends Command<int> with Completes {
   }
 }
 
-/// A [tape] run: its program in a pseudo-terminal (twk_term's [Pty]) of
-/// the tape's size, whose screen twk_term's emulator keeps, answering the
-/// program's queries as a terminal of the tape's theme does; what the
-/// tape types goes through the emulator too, encoded as the program's
-/// modes want it (application cursor keys, the kitty keyboard protocol).
+/// A [tape] run: its program in a pseudo-terminal of the tape's size, run
+/// as twk_driver's [Session] of ports of the tape's own: a recording
+/// [TerminalPort] around the program's pty ([RecordingProcessPort]),
+/// twk_term's emulators answering the program's queries as a terminal of the
+/// tape's theme does, and the tape's [TapeClock]. What the tape types goes
+/// through the session (`type`, `press`), encoded as the program's modes
+/// want it (application cursor keys, the kitty keyboard protocol); a Wait
+/// on the screen is the session's wait on its output; for a program that
+/// is a twk app (`Run dart app.dart`, when the tape has a `Wait Widget`,
+/// `Wait Text` or `Click`) the session is connected to the app's VM
+/// service, and the tape finds and clicks its widgets.
 ///
-/// What the program writes is recorded, its time real time from the
-/// start without what lay between a Hide and its Show: as asciicast v2
-/// (each piece an `o` event; at a Show one that draws the screen as it is
-/// then) and as the frames of an animated SVG (the screen after each
-/// piece that leaves no synchronized update open, at most `Framerate` a
-/// second). When the steps are done, the recording ends, the program is
-/// hung up ([Pty.close]) and, still running [patience] later, killed
-/// through its terminal ([Pty.kill]); then the outputs are written.
+/// What the program writes is recorded, its time that of the tape's clock
+/// from the start without what lay between a Hide and its Show: as
+/// asciicast v2 (each piece an `o` event; at a Show one that draws the
+/// screen as it is then) and as the frames of an animated SVG (the screen
+/// after each piece that leaves no synchronized update open, at most
+/// `Framerate` a second). When the steps are done, the recording ends, the
+/// program is ended through its terminal ([Session.close]: killed, its
+/// terminal hung up); then the outputs are written.
 final class TapeRunner {
   /// A run of [tape]: [title] in the recording's header, what goes wrong
   /// told to `log` (by default a line of stderr each), its time that of
@@ -131,7 +139,10 @@ final class TapeRunner {
     TapeClock? clock,
     this.check = false,
     void Function(String line)? report,
-  }) : _log = log ?? stderr.writeln,
+    this.program,
+    Future<AppServicePort> Function(Uri uri)? connect,
+  }) : _connectTo = connect ?? _connect,
+       _log = log ?? stderr.writeln,
        _report = report ?? stdout.writeln,
        _clock = clock ?? TapeClock();
 
@@ -150,10 +161,16 @@ final class TapeRunner {
 
   final void Function(String line) _log;
 
-  /// How long the program is given to end once hung up.
-  static const patience = Duration(seconds: 2);
+  /// What starts the program in place of a pseudo-terminal, a port a test
+  /// gives for a fake; null for the pty. What connects to its VM service
+  /// is the other (`connect`).
+  final ProcessPort? program;
+  final Future<AppServicePort> Function(Uri uri) _connectTo;
 
-  late final Pty _pty;
+  late Session _session;
+
+  /// The session's answering emulator, which every chunk of the program's
+  /// output is fed to as it arrives: the screen of the recording.
   late final TerminalEmulator _screen;
   late final CastWriter _cast;
   final _castText = StringBuffer();
@@ -167,13 +184,11 @@ final class TapeRunner {
 
   var _typing = const Duration(milliseconds: 50);
   var _timeout = const Duration(seconds: 15);
-  void Function()? _waiting;
-  var _ended = false;
 
   final _stop = Completer<void>();
   late int _stopCode;
 
-  /// The time of the recording: the real time since the start, but for
+  /// The time of the recording: the tape's time since the start, but for
   /// the time hidden.
   Duration get _now => (_hiddenAt ?? _clock.elapsed) - _cut;
 
@@ -205,6 +220,19 @@ final class TapeRunner {
 
   var _passed = 0;
 
+  /// The file and arguments of `dart <file> <args>`, a Dart program the
+  /// driver can attach the VM service to; null for any other command.
+  static (String, List<String>)? _dartProgram(List<String> command) {
+    if (command.length < 2 ||
+        p.basenameWithoutExtension(command.first) != 'dart') {
+      return null;
+    }
+    final file = command[1];
+    return file.endsWith('.dart') || file.endsWith('.dill')
+        ? (file, command.sublist(2))
+        : null;
+  }
+
   Future<int> _run() async {
     final settings = tape.settings;
     final theme = settings.theme;
@@ -219,11 +247,23 @@ final class TapeRunner {
       _look,
       minGap: Duration(microseconds: 1000000 ~/ settings.framerate),
     );
-    _screen = TerminalEmulator(width: settings.width, height: settings.height)
-      ..defaultForeground = theme.foreground
-      ..defaultBackground = theme.background
-      ..defaultCursorColor = theme.cursor;
-    _screen.palette.setAll(0, theme.ansi);
+    final emulators = <TerminalEmulator>[];
+    final screens = EmulatorScreen(
+      width: settings.width,
+      height: settings.height,
+      emulator: (width, height) {
+        final emulator = TerminalEmulator(width: width, height: height)
+          ..defaultForeground = theme.foreground
+          ..defaultBackground = theme.background
+          ..defaultCursorColor = theme.cursor;
+        emulator.palette.setAll(0, theme.ansi);
+        emulators.add(emulator);
+        return emulator;
+      },
+    );
+    // the first the screens make is the answering one, which takes every
+    // chunk as it comes
+    _screen = emulators.first;
     final line = command.map(_quoted).join(' ');
     _cast = CastWriter(
       _castText.write,
@@ -236,36 +276,61 @@ final class TapeRunner {
         env: const {'TERM': 'xterm-256color'},
       ),
     );
+    final environment = {
+      'COLORTERM': 'truecolor',
+      // a terminal, the recording's, also in CI, where an app that
+      // inherited CI=true would write plain text only
+      'CI': 'false',
+      // the shell's prompt, not the user's
+      if (tape.command == null) ...{'PS1': r'$ ', 'HISTFILE': '/dev/null'},
+      ...tape.environment,
+    };
+    // a twk app is attached to when the tape finds or clicks its widgets
+    final dart = _dartProgram(command);
+    final app =
+        dart != null &&
+        tape.steps.any((s) => s is WaitNodeStep || s is ClickStep);
+    final spec = app
+        ? ProcessSpec(
+            dart.$1,
+            arguments: dart.$2,
+            environment: environment,
+            width: settings.width,
+            height: settings.height,
+          )
+        : ProcessSpec(
+            command.first,
+            arguments: command.sublist(1),
+            environment: environment,
+            width: settings.width,
+            height: settings.height,
+          );
+    _film.add(Duration.zero, _screen);
+    _clock.start();
     try {
-      _pty = Pty.start(
-        command.first,
-        command.sublist(1),
-        width: settings.width,
-        height: settings.height,
-        environment: {
-          'COLORTERM': 'truecolor',
-          // a terminal, the recording's, also in CI, where an app that
-          // inherited CI=true would write plain text only
-          'CI': 'false',
-          // the shell's prompt, not the user's
-          if (tape.command == null) ...{'PS1': r'$ ', 'HISTFILE': '/dev/null'},
-          ...tape.environment,
-        },
+      _session = await Session.compose(
+        spec,
+        process: RecordingProcessPort(
+          program ??
+              (app
+                  ? PtyProcessPort(dart: command.first)
+                  : const PtyCommandPort()),
+          now: () => _now,
+          recorded: _recorded,
+        ),
+        screen: screens,
+        connect: app ? _connectTo : null,
+        clock: _clock,
+        // the first frame of an app, which may be compiled first
+        timeout: const Duration(minutes: 1),
       );
     } on ProcessException catch (e) {
       _log('twk tape: cannot run ${command.first}: ${e.message}');
       return 127;
+    } on DriverError catch (e) {
+      _log('twk tape: cannot run ${command.first}: ${e.message}');
+      return 1;
     }
-    _screen.onOutput = _pty.write;
-    _clock.start();
-    _film.add(Duration.zero, _screen);
-    final output = _pty.output.listen(
-      _output,
-      onDone: () {
-        _ended = true;
-        _waiting?.call();
-      },
-    );
     Duration end;
     try {
       for (final step in tape.steps) {
@@ -291,8 +356,7 @@ final class TapeRunner {
       return 1;
     } finally {
       _recording = false;
-      await _hangUp();
-      await output.cancel();
+      await _session.close();
     }
     _cast.close(end);
     if (check) {
@@ -314,20 +378,21 @@ final class TapeRunner {
     return 0;
   }
 
-  /// What the program wrote: on the screen, and recorded unless hidden.
-  void _output(List<int> bytes) {
-    if (!_recording) {
+  static Future<AppServicePort> _connect(Uri uri) async {
+    final service = await VmAppClient.connect(uri);
+    return VmAppClient.attach(service, '$uri');
+  }
+
+  /// What the program wrote, at [at], now on the screen: recorded unless
+  /// hidden.
+  void _recorded(Duration at, Uint8List bytes) {
+    if (!_recording || check || _hiddenAt != null) {
       return;
     }
-    _screen.feed(bytes);
-    if (!check && _hiddenAt == null) {
-      final now = _now;
-      _cast.output(now, bytes);
-      if (!_screen.mode(TerminalMode.synchronizedOutput)) {
-        _film.add(now, _screen);
-      }
+    _cast.output(at, bytes);
+    if (!_screen.mode(TerminalMode.synchronizedOutput)) {
+      _film.add(at, _screen);
     }
-    _waiting?.call();
   }
 
   Future<void> _step(TapeStep step) async {
@@ -335,22 +400,26 @@ final class TapeRunner {
       case TypeStep(:final text, :final delay):
         for (final rune in text.runes) {
           final char = String.fromCharCode(rune);
-          _screen.sendKey(
-            char == '\t'
-                ? const KeyEvent(KeyCode.tab)
-                : KeyEvent(KeyCode.char, char: char),
+          await _input(
+            step,
+            () => char == '\t' ? _session.press('tab') : _session.type(char),
           );
           await _pause(delay ?? _typing);
         }
       case KeyStep(:final key, :final count, :final delay):
         for (var i = 0; i < count; i++) {
-          _screen.sendKey(key);
+          await _input(step, () => _session.pressKey(key));
           await _pause(delay ?? _typing);
         }
+      case ClickStep(:final finder, :final delay):
+        await _input(step, () => _session.tap(finder));
+        await _pause(delay ?? _typing);
       case SleepStep(:final duration):
         await _pause(duration);
       case WaitStep():
         await _wait(step);
+      case WaitNodeStep():
+        await _waitNode(step);
       case HideStep(hide: true):
         // hidden before anything was recorded: from the start
         _hiddenAt ??= _cast.count == 0 ? Duration.zero : _clock.elapsed;
@@ -376,6 +445,27 @@ final class TapeRunner {
     }
   }
 
+  /// Does [act], an input of [step] to the session. A program that has
+  /// ended takes no more input, as before; anything else the session says
+  /// fails the step.
+  Future<void> _input(TapeStep step, Future<Object?> Function() act) async {
+    try {
+      await act();
+    } on AppEnded {
+      // nothing is listening
+    } on DriverError catch (e) {
+      throw _failed(step, e.message);
+    } on FormatException catch (e) {
+      throw _failed(step, e.message);
+    }
+  }
+
+  _Failed _failed(TapeStep step, String why) => _Failed(
+    step.line,
+    _label(step),
+    '${tape.name}:${step.line}: ${_label(step)}: $why',
+  );
+
   /// Waits [duration], unless stopped.
   Future<void> _pause(Duration duration) async {
     await _clock.pause(duration, _stop.future);
@@ -385,7 +475,8 @@ final class TapeRunner {
   }
 
   /// Waits until the screen shows what [step] waits for, but no longer
-  /// than its timeout.
+  /// than its timeout: the session's wait on the screen after each piece
+  /// of output.
   Future<void> _wait(WaitStep step) async {
     String text() => step.scope == WaitScope.line
         ? _screen.lineText(_screen.cursorY)
@@ -397,38 +488,103 @@ final class TapeRunner {
     if (shows()) {
       return;
     }
-    final found = Completer<void>();
-    _waiting = () {
-      if (!found.isCompleted && shows()) {
-        found.complete();
-      }
-    };
+    final where = step.scope == WaitScope.line ? ' on the line' : '';
     final timeout = step.timeout ?? _timeout;
-    final timedOut = Completer<void>();
-    final deadline = _clock.alarm(timeout, timedOut.complete);
+    var ended = false;
+    var found = true;
     try {
-      await Future.any([found.future, timedOut.future, _stop.future]);
-    } finally {
-      deadline.cancel();
-      _waiting = null;
+      await Future.any([
+        _session.waitForScreen(
+          (_) => shows(),
+          timeout: timeout,
+          what: step.source,
+        ),
+        _stop.future,
+      ]);
+    } on AppEnded {
+      ended = true;
+    } on DriverError {
+      found = false;
     }
     if (_stop.isCompleted) {
       throw const _Stopped();
     }
-    if (!found.isCompleted) {
-      final seconds = timeout.inMicroseconds / 1e6;
-      final where = step.scope == WaitScope.line ? ' on the line' : '';
-      final ended = _ended ? ', the program having ended' : '';
-      final rows = [
-        for (var y = 0; y < _screen.height; y++) '│${_screen.lineText(y)}',
-      ];
-      throw _Failed(
-        step.line,
-        _label(step),
-        '${tape.name}:${step.line}: Wait timed out after ${seconds}s for '
-        '${step.source}$where$ended; the screen:\n${rows.join('\n')}',
-      );
+    if (ended || !found) {
+      throw _timedOut(step, step.source + where, timeout, ended: ended);
     }
+  }
+
+  /// Waits until the app's tree has what [step] looks for, but no longer
+  /// than its timeout on the tape's clock: the tree is asked once, and again
+  /// after each frame the app draws, as twk_test's `waitForFinder` does.
+  Future<void> _waitNode(WaitNodeStep step) async {
+    final timeout = step.timeout ?? _timeout;
+    final end = _clock.elapsed + timeout;
+    try {
+      while (true) {
+        final seen = _session.frame;
+        final found = await _find(step);
+        if (found.isNotEmpty) {
+          return;
+        }
+        final left = end - _clock.elapsed;
+        if (left <= Duration.zero) {
+          throw _timedOut(step, step.source, timeout, ended: false);
+        }
+        try {
+          // a frame after the one the tree was read at, its screen not
+          // looked at: only that the app drew
+          await Future.any([
+            _session.waitForScreen(
+              (_) => _session.frame != seen,
+              timeout: left,
+              what: step.source,
+            ),
+            _stop.future,
+          ]);
+        } on AppEnded {
+          rethrow;
+        } on DriverError {
+          throw _timedOut(step, step.source, timeout, ended: false);
+        }
+        if (_stop.isCompleted) {
+          throw const _Stopped();
+        }
+      }
+    } on AppEnded {
+      throw _timedOut(step, step.source, timeout, ended: true);
+    }
+  }
+
+  Future<List<Found>> _find(WaitNodeStep step) async {
+    try {
+      return await _session.find(step.finder);
+    } on AppEnded {
+      rethrow;
+    } on DriverError catch (e) {
+      throw _failed(step, e.message);
+    }
+  }
+
+  /// The failure of a Wait for [what] that was not answered.
+  _Failed _timedOut(
+    TapeStep step,
+    String what,
+    Duration timeout, {
+    required bool ended,
+  }) {
+    final seconds = timeout.inMicroseconds / 1e6;
+    final rows = [
+      for (var y = 0; y < _screen.height; y++) '│${_screen.lineText(y)}',
+    ];
+    final why = ended
+        ? 'Wait for $what failed, the program having ended'
+        : 'Wait timed out after ${seconds}s for $what';
+    return _Failed(
+      step.line,
+      _label(step),
+      '${tape.name}:${step.line}: $why; the screen:\n${rows.join('\n')}',
+    );
   }
 
   /// [step] as a line of a check says it.
@@ -444,6 +600,9 @@ final class TapeRunner {
       WaitStep(:final source, :final scope, :final timeout) =>
         'Wait${scope == WaitScope.line ? '+Line' : ''}${at(timeout)} '
             '$source',
+      WaitNodeStep(:final source, :final timeout) =>
+        'Wait${at(timeout)} $source',
+      ClickStep(:final source, :final delay) => 'Click${at(delay)} $source',
       HideStep(:final hide) => hide ? 'Hide' : 'Show',
       ScreenshotStep(:final path) => 'Screenshot $path (not written)',
       DelayStep(:final delay, :final timeout) =>
@@ -465,20 +624,6 @@ final class TapeRunner {
     _log('twk tape: wrote $path');
   }
 
-  /// Hangs the program up; kills it through its terminal when it is still
-  /// running [patience] later.
-  Future<void> _hangUp() async {
-    _pty.close();
-    final exited = _pty.exitCode;
-    await exited.timeout(
-      patience,
-      onTimeout: () {
-        _pty.kill(ProcessSignal.sigkill);
-        return exited.timeout(patience, onTimeout: () => null);
-      },
-    );
-  }
-
   /// [word] as a shell takes it.
   static String _quoted(String word) =>
       RegExp(r'^[\w@%+=:,./-]+$').hasMatch(word)
@@ -487,26 +632,35 @@ final class TapeRunner {
 }
 
 /// The time a tape runs by: the real time since [start], which a pause
-/// (the typing speed, Sleep) waits out.
-class TapeClock {
+/// (the typing speed, Sleep) waits out and the session's timeouts run on.
+/// A test gives the runner one it moves: [elapsed], [pause] and [timer]
+/// are what it overrides.
+class TapeClock implements Clock {
   final _watch = Stopwatch();
 
   /// The time since [start].
   Duration get elapsed => _watch.elapsed;
 
+  @override
+  int get elapsedMicroseconds => elapsed.inMicroseconds;
+
   /// Starts the time, at zero.
   void start() => _watch.start();
 
-  /// Calls [fire] after [duration], unless the timer returned is
-  /// cancelled: the timeout of a Wait.
-  Timer alarm(Duration duration, void Function() fire) => Timer(duration, fire);
+  @override
+  Timer timer(Duration after, void Function() callback) =>
+      Timer(after, callback);
+
+  @override
+  Timer periodic(Duration every, void Function(Timer) callback) =>
+      Timer.periodic(every, callback);
 
   /// Waits [duration], or until [stop] completes.
   Future<void> pause(Duration duration, Future<void> stop) async {
     final done = Completer<void>();
-    final timer = Timer(duration, done.complete);
+    final alarm = timer(duration, done.complete);
     await Future.any([done.future, stop]);
-    timer.cancel();
+    alarm.cancel();
   }
 }
 

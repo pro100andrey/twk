@@ -203,7 +203,10 @@ export class AppLogs {
           break;
         }
       }
-      this.packages.set(project, found);
+      // none found, or an empty one, is not remembered: `pub get` may write it later
+      if (found.size > 0) {
+        this.packages.set(project, found);
+      }
     }
     return found;
   }

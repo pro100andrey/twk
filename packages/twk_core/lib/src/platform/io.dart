@@ -123,6 +123,9 @@ List<StreamSubscription<void>> watchSignals(
 /// nothing: the handler is the first word of its struct on Linux and macOS.
 bool _ignoresHangup() {
   final action = c.calloc(1, _sigactionBytes);
+  if (action == nullptr) {
+    return false;
+  }
   try {
     return c.sigaction(1, nullptr, action) == 0 &&
         action.cast<IntPtr>().value == 1; // SIG_IGN

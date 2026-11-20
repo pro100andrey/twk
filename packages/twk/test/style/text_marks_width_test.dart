@@ -90,7 +90,7 @@ void main() {
       children: (n) => n.children,
       nodeKey: (n) => n.name,
       columns: [TableColumn(title: 'Name', cell: (n) => TableCell(n.name))],
-      controller: TreeController(expanded: ['src']),
+      controller: disposing(TreeController(expanded: ['src'])),
     );
 
     testTwk('an expander two columns wide is the ASCII one, warned of', (
@@ -229,9 +229,11 @@ void main() {
           windows: [
             Window(
               title: 'W',
-              controller: WindowController(
-                width: 16,
-                height: 3,
+              controller: disposing(
+                WindowController(
+                  width: 16,
+                  height: 3,
+                ),
               ),
               onClose: () {},
               child: const Text('body'),

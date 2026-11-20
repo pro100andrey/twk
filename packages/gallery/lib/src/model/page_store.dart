@@ -1,6 +1,8 @@
 // What the gallery keeps of each page while it runs: the raw values of its
 // options, its own state (PageControl.state), and the control its widget
 // reaches the gallery by.
+import 'package:twk/twk.dart' show ChangeNotifier;
+
 import '../page.dart';
 
 /// The options and the state of each page, by the page's key
@@ -49,6 +51,21 @@ final class PageStore {
     _states.remove(key);
     _resets[key] = resetsOf(key) + 1;
   });
+
+  /// Disposes the controllers the pages kept in their state: they live as
+  /// long as the gallery, which is over.
+  void dispose() {
+    for (final state in _states.values) {
+      for (final value in state.values) {
+        if (value is ChangeNotifier) {
+          value.dispose();
+        } else if (value is Disposable) {
+          value.dispose();
+        }
+      }
+    }
+    _states.clear();
+  }
 
   /// The control of [page], whose key is [key], for its widget.
   PageControl controlOf(String key, GalleryPage? page) =>

@@ -9,7 +9,7 @@ void main() {
       'the list around, and keeps its keys and its stop of Tab', (t) async {
     final outer = ScrollController();
     addTearDown(outer.dispose);
-    final controller = TreeController();
+    final controller = disposing(TreeController());
     final node = FocusNode();
     addTearDown(node.dispose);
     await t.pumpWidget(

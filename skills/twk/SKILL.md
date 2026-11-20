@@ -82,30 +82,26 @@ right (`+`).
 
 ## An app
 
-Depend on the packages by path, and override `twk` and `twk_core` with the
-checkout's. `dart pub get`, then `dart run bin/main.dart`: type a task and
-Enter adds it, Tab goes to the list, Space marks the task done there.
+`twk create my_app` (twk_dev's, `dart pub global activate twk_dev`) makes
+the project. Its pubspec takes twk from pub.dev, or by path when twk_dev runs
+from a checkout of twk (`dart pub global activate --source path
+<twk>/packages/twk_dev`): what this skill names and pub.dev has not had yet
+is there. By hand, take the packages from pub.dev (`dart pub add twk
+dev:twk_test dev:test`, or this pubspec). `dart pub get`, then `dart run
+bin/main.dart`: type a task and Enter adds it, Tab goes to the list, Space
+marks the task done there.
 
 ```yaml
-# pubspec.yaml; <twk> is where the twk repository is checked out
+# pubspec.yaml
 name: my_app
 publish_to: none
 environment:
   sdk: ^3.13.5
 dependencies:
-  twk:
-    path: <twk>/packages/twk
+  twk: ^0.3.0
 dev_dependencies:
   test: ^1.33.0
-  twk_test:
-    path: <twk>/packages/twk_test
-dependency_overrides:
-  twk:
-    path: <twk>/packages/twk
-  twk_core:
-    path: <twk>/packages/twk_core
-  twk_term:
-    path: <twk>/packages/twk_term
+  twk_test: ^0.3.0
 ```
 
 ```dart

@@ -109,6 +109,20 @@ Map<String, String> ptyEnvironment(
   ...?given,
 };
 
+/// How the program's terminal processes what it writes (`c_oflag`), set
+/// before the program runs ([Pty.start]'s `output`).
+enum PtyOutput {
+  /// As the system made it: the flags are left alone.
+  system,
+
+  /// As a terminal gives them: output processed, NL written as CR NL
+  /// (OPOST and ONLCR), tabs not expanded (TAB0), no CR written as NL,
+  /// none left out in column 0 and NL not doing CR's work (no OCRNL,
+  /// ONOCR or ONLRET). What reaches [Pty.output] is then the program's
+  /// bytes with a CR before each LF ([Pty.nlToCrNl]).
+  terminal,
+}
+
 /// Bigger than `struct termios` on Linux (60 bytes) and macOS (72).
 const _termiosBytes = 256;
 
@@ -183,6 +197,8 @@ final class Pty {
   /// COLORTERM to `truecolor`, and [environment] over all of them: a
   /// program in the emulator is not told it runs in the terminal around
   /// it. An [executable] without a slash is looked for in its PATH.
+  /// [output] says how the terminal processes the program's output; it is
+  /// set before the program runs, so its first byte is already so.
   /// Throws a [ProcessException] when the program can't be started (on
   /// macOS, where sh execs it through env, one found and executable that
   /// still won't run, of another architecture or with a bad `#!` line,
@@ -197,6 +213,7 @@ final class Pty {
     String? workingDirectory,
     Map<String, String>? environment,
     bool includeParentEnvironment = true,
+    PtyOutput output = PtyOutput.system,
   }) {
     if (!Platform.isLinux && !Platform.isMacOS) {
       throw UnsupportedError('Pty runs on Linux and macOS only');
@@ -268,6 +285,14 @@ final class Pty {
       final termios = scope.alloc<Uint32>(256);
       if (c.tcgetattr(slave, termios.cast()) == 0) {
         termios.value |= c.iutf8;
+        if (output == PtyOutput.terminal) {
+          // c_oflag follows c_iflag, as wide as it: 32 bits on Linux, 64 on
+          // macOS (little-endian on both, so its low half is the first)
+          final oflag = termios + (Platform.isMacOS ? 2 : 1);
+          oflag.value =
+              (oflag.value | c.opost | c.onlcr) &
+              ~(c.ocrnl | c.onocr | c.onlret | c.tabExpand);
+        }
         c.tcsetattr(slave, c.tcsanow, termios.cast());
       }
 
@@ -538,6 +563,38 @@ final class Pty {
   /// them here.
   Uint8List? get modesAtEnd => _modesAtEnd;
 
+  /// Whether the terminal writes the program's NL as CR NL (OPOST and ONLCR of
+  /// `c_oflag`), read through the master when asked, a system call each
+  /// time: a program's bare LF reaches [output] with the CR before it
+  /// while it is true. Once the master is closed (soon after the program
+  /// ended, or [close]) it is the flag as [modesAtEnd] has it, so a
+  /// program that ended before the question was asked still has its
+  /// answer; null where the kernel would not say, or when the terminal
+  /// closed before the attributes were read.
+  bool? get nlToCrNl {
+    if (_master < 0) {
+      final left = _modesAtEnd;
+      if (left == null) {
+        return null;
+      }
+      final oflag = Platform.isMacOS ? 2 : 1;
+      final flags = ByteData.sublistView(left)
+          .getUint32(oflag * 4, Endian.host);
+      return flags & (c.opost | c.onlcr) == (c.opost | c.onlcr);
+    }
+    final scope = c.NativeScope();
+    try {
+      final termios = scope.alloc<Uint32>(_termiosBytes);
+      if (c.tcgetattr(_master, termios.cast()) != 0) {
+        return null;
+      }
+      final oflag = termios + (Platform.isMacOS ? 2 : 1);
+      return oflag.value & (c.opost | c.onlcr) == (c.opost | c.onlcr);
+    } finally {
+      scope.release();
+    }
+  }
+
   /// The process group in the foreground of the terminal (tcgetpgrp(3) on
   /// the master): the program's own, [pid], while it alone runs there, and
   /// another while a shell started in it runs a job in the foreground
@@ -641,7 +698,8 @@ final class Pty {
     } else {
       _wake(_quit);
     }
-    Timer(_hangUpGrace, () {
+    // real time: the app's clock (`TWK_DRIVEN`) is not for a program's end
+    Zone.root.createTimer(_hangUpGrace, () {
       // once the I/O isolate ended, the program was reaped or killed
       if (!_ended && !_exit.isCompleted) {
         signalProcess(pid, _pidfd, ProcessSignal.sigkill);
@@ -703,7 +761,8 @@ final class Pty {
       _exit.complete(null);
     } else if (!_exit.isCompleted) {
       final status = c.calloc(1, sizeOf<Int>()).cast<Int>();
-      Timer.periodic(const Duration(milliseconds: 10), (timer) {
+      // real time, as the hang-up grace
+      Zone.root.createPeriodicTimer(const Duration(milliseconds: 10), (timer) {
         final r = c.waitpid(pid, status, c.wnohang);
         if (r != 0) {
           timer.cancel();
@@ -867,7 +926,7 @@ void _reapKilled(int pid) {
     return;
   }
   var tries = 0;
-  Timer.periodic(const Duration(milliseconds: 10), (timer) {
+  Zone.root.createPeriodicTimer(const Duration(milliseconds: 10), (timer) {
     if (reaped() || ++tries >= 100) {
       timer.cancel();
       c.free(status.cast());

@@ -8,8 +8,9 @@ screen the user would see.
 
 - **The real app:** `testTwk` runs your widget under `runApp`'s binding, not
   a stand-in, so a test sees what the user sees.
-- **A fake clock:** timers, animations and frames wait for the test, which
-  moves time with `pump`. No test waits on the wall clock.
+- **No sleeps, no flakes:** timers, animations and frames wait for the test,
+  which moves time with `pump`, so waiting out a five-second timeout costs a
+  test no time.
 - **Input as a terminal sends it:** `press('ctrl+s')`, `type('text')`,
   `paste`, `click` and `resize`, decoded by the same parser the app uses.
 - **The screen as text:** `lines`, `cell(x, y)` for colors and attributes,
@@ -77,6 +78,8 @@ void main() {
   writing a test, time, input, errors.
 - [The screen](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/screen.md):
   reading it, matchers, golden files, finders and frames.
+- [Driving the real app](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/driver.md):
+  `driverTest`: the program in a pseudo-terminal, on time the test moves.
 - [Other libraries](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/libraries.md):
   the emulator, `Shot`, `FakeClock` on its own, and tests that run processes.
 - [How it is tested](https://github.com/pro100andrey/twk/blob/main/packages/twk_test/doc/internals.md):

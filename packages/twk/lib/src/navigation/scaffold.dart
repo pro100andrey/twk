@@ -68,7 +68,12 @@ final class ScaffoldController extends ChangeNotifier {
   ScaffoldController({bool? sidebarOpen, int sidebarWidth = 24})
     : assert(sidebarWidth >= 0, 'a sidebarWidth of 0 or more'),
       _choice = sidebarOpen,
-      _width = sidebarWidth;
+      _width = sidebarWidth {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   // shown or hidden by the app or the user, null as the width has it
   bool? _choice;

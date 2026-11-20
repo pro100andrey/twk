@@ -19,10 +19,13 @@ import 'package:twk_core/twk_core.dart'
         BidiReordering,
         BoxConstraints,
         Brightness,
+        Clock,
+        ClockElapsed,
         ClusterScan,
         Color,
         ColorReport,
         ColorSchemeReport,
+        CountingBackend,
         CursorShape,
         HeadlessTerminal,
         InputEvent,
@@ -58,6 +61,7 @@ import '../debug/frame_overlay.dart';
 import '../debug/inspector.dart';
 import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
+import '../finders/finders.dart' show ElementFinder;
 import '../focus/focus.dart';
 import '../foundation/constants.dart'
     show debugAssertsEnabled, kDebugMode, kReleaseMode;
@@ -71,6 +75,8 @@ import '../platform/platform.dart'
     show environment, processId, runOnTerminal, startApart, tempFile;
 import '../semantics/semantics.dart';
 import '../style/theme.dart';
+import 'driven_clock.dart';
+import 'driven_start.dart';
 import 'error_widget.dart';
 import 'source_excerpt.dart';
 import 'terminal_status.dart' show TerminalStatus;
@@ -141,8 +147,9 @@ enum ScreenMode {
 /// [stopOnCtrlZ] [AppBinding.stopOnCtrlZ], [restCursor]
 /// [AppBinding.restCursor].
 /// [clock] is the app's clock, which spaces its frames (`TwkApp.clock`),
-/// a stopwatch started here by default: a test hands it the stopwatch of
-/// a fake clock it moves, and runs the app in that clock's zone.
+/// a `SystemClock` started here by default: a test hands it the clock of
+/// a fake clock it moves (`DrivenClock`), and runs the app in that
+/// clock's zone.
 ///
 /// The binding places no `Overlay` around [app]: an app that shows
 /// dialogs, menus, tooltips or toasts puts one at its root, above its own
@@ -174,7 +181,7 @@ Future<void> runApp(
   bool restCursor = true,
   bool? screenReader,
   BidiReordering? bidi,
-  Stopwatch? clock,
+  Clock? clock,
   ErrorReporter? onError,
 }) async {
   final fullscreen = mode == ScreenMode.fullscreen;
@@ -192,6 +199,12 @@ Future<void> runApp(
       'not ordered by the ${bidi.name}',
     );
   }
+  // TWK_DRIVEN: a driver moves the time. The terminal opens on real time,
+  // as the I/O it is; the binding and the app run in the driven zone.
+  final driven = clock == null ? DrivenStart.of() : null;
+  if (driven != null) {
+    await DrivenStart.requireService();
+  }
   final reader = screenReader ?? AppBinding._readerAsked(environment);
   final term =
       terminal ??
@@ -203,7 +216,7 @@ Future<void> runApp(
           bidi: bidi,
         ),
       );
-  await AppBinding(
+  Future<void> start() => AppBinding(
     term,
     viewport: viewport,
     maxFps: maxFps,
@@ -214,10 +227,12 @@ Future<void> runApp(
     exitOnCtrlC: exitOnCtrlC,
     stopOnCtrlZ: stopOnCtrlZ,
     restCursor: restCursor,
-    clock: clock,
+    clock: clock ?? driven?.clock,
+    startTime: driven?.startTime,
     screenReader: screenReader,
     onError: onError,
   ).run(app);
+  await (driven == null ? start() : driven.zone.run(start));
 }
 
 /// A widget tree run as an app on a terminal by a `TwkApp` ([twkApp]),
@@ -301,7 +316,7 @@ Future<void> runApp(
 final class AppBinding implements FrameClock {
   /// A binding of a `TwkApp` on [terminal], made with [viewport], [maxFps],
   /// [maxInputFps], [maxInlineRows], [clearInlineOnExit], [logs] and [clock]
-  /// (the app's clock, a new stopwatch by default); [exitOnCtrlC],
+  /// (the app's clock, a new `SystemClock` by default); [exitOnCtrlC],
   /// [stopOnCtrlZ], [restCursor] and [screenReader] are as [runApp] takes
   /// them. [run] runs an app on it. `startTime` is what [now] is when
   /// [clock] reads zero, which a test fixes; null (the default) leaves
@@ -339,7 +354,7 @@ final class AppBinding implements FrameClock {
     this.exitOnCtrlC = true,
     this.stopOnCtrlZ = true,
     this.restCursor = true,
-    Stopwatch? clock,
+    Clock? clock,
     this._startTime,
     bool? screenReader,
     Map<String, String>? environment,
@@ -397,7 +412,7 @@ final class AppBinding implements FrameClock {
   /// Starts a timer that calls [callback] after [duration] on the app's
   /// clock, in the zone its frames run in (an error the callback throws ends
   /// the app, as one of a frame's), wherever it is called from: a
-  /// test's body, outside the fake clock's zone, gets a fake timer that
+  /// test's body, outside the fake clock's zone, gets a timer of the clock that
   /// `pump` and `elapse` move, as a widget's own code does. Every timer
   /// the library starts goes through it or [startPeriodic], none through
   /// `Timer` itself, but the polls of `tailFile` and
@@ -414,12 +429,12 @@ final class AppBinding implements FrameClock {
   /// without an app there is no input, so only a hand-made tree reaches
   /// one.
   Timer startTimer(Duration duration, void Function() callback) =>
-      _zone.createTimer(duration, callback);
+      twkApp.clock.timer(duration, _zone.bindCallbackGuarded(callback));
 
   /// Starts a timer that calls [callback] every [period], on the app's
   /// clock and in the zone the app runs in, as [startTimer] does.
   Timer startPeriodic(Duration period, void Function(Timer) callback) =>
-      _zone.createPeriodicTimer(period, callback);
+      twkApp.clock.periodic(period, _zone.bindUnaryCallbackGuarded(callback));
 
   /// Told of every error the binding reports, in addition to what happens
   /// to it: see [ErrorReporter]. Null (the default) tells no one.
@@ -543,7 +558,12 @@ final class AppBinding implements FrameClock {
   }
 
   // routes the mouse, and counts what it is to report
-  late final _mouse = MouseTracker(twkApp.owner.hitTest, _mouseFailed);
+  late final _mouse = MouseTracker(twkApp.owner.hitTest, _mouseFailed)
+    ..cellPixels = () => switch (twkApp.terminal) {
+      // the live size: a font change moves it, the probe's does not
+      final MouseTrackingBackend terminal => terminal.cellPixels,
+      _ => null,
+    };
 
   late final _owner = BuildOwner(
     onBuildScheduled: _scheduleBuild,
@@ -598,6 +618,7 @@ final class AppBinding implements FrameClock {
   // the default background and text color the terminal told, 0xRRGGBB
   late int? _background = twkApp.terminal.info.backgroundRgb;
   late int? _foreground = twkApp.terminal.info.foregroundRgb;
+  late int? _cursor = twkApp.terminal.info.cursorRgb;
 
   // the entries of the 16 colors the terminal told, RGB by index; a new
   // map at each report, so that TerminalBrightness tells it changed
@@ -609,6 +630,7 @@ final class AppBinding implements FrameClock {
     final background? => ThemeData.terminalOn(
       background,
       foreground: _foreground,
+      cursor: _cursor,
       palette: _palette,
     ),
     null => ThemeData.terminal(_brightness),
@@ -784,10 +806,14 @@ final class AppBinding implements FrameClock {
     'ext.twk.properties',
     'ext.twk.layout',
     'ext.twk.select',
+    'ext.twk.find',
+    'ext.twk.hitTest',
     'ext.twk.highlight',
     'ext.twk.flags',
     'ext.twk.reassemble',
     'ext.twk.log',
+    'ext.twk.status',
+    'ext.twk.clock',
   ];
 
   /// The version of the shape of what [callServiceExtension] answers: an
@@ -842,6 +868,32 @@ final class AppBinding implements FrameClock {
   ///   not where the inline region is on it: the row that far from the
   ///   cursor's in the region (`Presenter.cursorRow`), or `y` itself where
   ///   the app does not know where its cursor is.
+  /// * `ext.twk.find`, `finder`: the elements of the app's widget and
+  ///   below it that a finder ([ElementFinder]) finds, as JSON in the
+  ///   parameter: `frame`, the number of frames the app has run, `count`,
+  ///   and `matches` in the order of the tree, each with `id`, `type` (its
+  ///   widget's `runtimeType`), `key` (as the tree has it, or null), `text`
+  ///   (the whole of a `Text`'s, not cut at the tree's 24 columns; null for
+  ///   any other widget), `rect` (the cells of its render object, null
+  ///   before it is laid out) and `shown` (the part of them the screen
+  ///   shows, `shown`, null for none), each a rectangle of `x`, `y`,
+  ///   `width` and `height`. A `finder` that is none of the kinds is
+  ///   [ServiceExtensionResponse.invalidParams]; a `node` of it that has
+  ///   left the tree is [ServiceExtensionResponse.extensionError].
+  /// * `ext.twk.layout` also answers `shown`, as `ext.twk.find` does.
+  /// * `ext.twk.hitTest`, `x`, `y` (and `cursorY`, as `ext.twk.select`
+  ///   takes it): what a click at that cell reaches: `frame`, `cell` (`x`
+  ///   and `y`, in the rows of the screen of the app), `takenBy`, `pick`
+  ///   while the pick of `ext.twk.flags` takes the mouse, `console` where
+  ///   the open console does, else null (the tree gets it); `path`, the
+  ///   elements that own the render objects hit, the deepest first, each
+  ///   `id`, `type` and `render`; `listeners`, the `Listener`s among them,
+  ///   and those given by `listenOver`, with a callback, the deepest first,
+  ///   each with `render`, `type`, `callbacks` (`down`, `up`, `hover`,
+  ///   `drag`, `scroll`) and `over` for one that listens over another
+  ///   render object; and `absorbedBy`, the render object of the
+  ///   `AbsorbPointer` that takes the press, null for none. It calls no
+  ///   callback and moves no hover.
   /// * `ext.twk.highlight`, `id`: has the render object of that node, as
   ///   in `ext.twk.layout`, outlined ([DebugAids.highlight]), or, without
   ///   `id`, none: `id`, null for none, and `render`.
@@ -851,11 +903,30 @@ final class AppBinding implements FrameClock {
   ///   `selectMany` (the pick going on after a cell picked,
   ///   [DebugAids.selectMany]) and `treeEvents` (the event
   ///   `twk.treeChanged` after each frame that built,
-  ///   [DebugAids.treeEvents]), and `framesInRow` (`TwkApp.framesInRow`,
+  ///   [DebugAids.treeEvents]), `frameEvents` (the events `twk.frame` and
+  ///   `twk.input` a driver syncs on, and `twk.scheduled` of a driven app,
+  ///   [DebugAids.frameEvents]), and
+  ///   `framesInRow` (`TwkApp.framesInRow`,
   ///   which the app is built with), each true or false; any of the first
   ///   eight passed as a parameter, `true` or `false`, is set first.
+  /// * `ext.twk.status`: where the app is, as `twk.frame` says it
+  ///   ([DebugAids.frameEvents]) without `drawn`: `frame`, `size`,
+  ///   `inputRead` (sampled now), `outputWritten`, `inputPending`,
+  ///   `scheduled`, `frameDue`, `time`, `nextDue` (null) and `quitting`
+  ///   (`TwkApp.quitting`). It changes nothing, and answers whether
+  ///   `frameEvents` is on or not: the baseline a driver starts from.
+  /// * `ext.twk.clock`, `op` (`status`, the default, `advance` with `by`,
+  ///   `advanceTo` with `to`, `next`; microseconds) and `describe`: where
+  ///   the app's clock stands: `ext.twk.status` with `driven` (the clock is
+  ///   a [DrivenClock], as a driver of the app, `TWK_DRIVEN`, makes it),
+  ///   `timers`, `quiet` and, with `describe=true`, the timers; null for
+  ///   the last three on real time, where the other ops are refused. The
+  ///   ops move a driven clock, firing the timers in due order, each
+  ///   timer's microtasks and a running frame awaited after it; one call at
+  ///   a time.
   /// * `ext.twk.reassemble`: [reassemble]s the app, after a hot reload of
-  ///   its code; nothing else.
+  ///   its code; it answers `frame` (the frames run) and `frameDue`, which
+  ///   a driver moves a driven clock to.
   /// * `ext.twk.log`, `message`, `level` (`debug`, `info`, the default,
   ///   `warning` or `error`) and `error`, if any: adds that record to the
   ///   app's log (`TwkApp.logs`), where a tool that runs the app says what
@@ -866,7 +937,9 @@ final class AppBinding implements FrameClock {
     Map<String, String> parameters,
   ) async {
     try {
-      final answer = _answer(method, parameters);
+      final answer = method == 'ext.twk.clock'
+          ? await _clockCall(parameters)
+          : _answer(method, parameters);
       return ServiceExtensionResponse.result(
         jsonEncode({'version': serviceExtensionsVersion, ...answer}),
       );
@@ -955,6 +1028,10 @@ final class AppBinding implements FrameClock {
         return inspector.layout(_node(params));
       case 'ext.twk.select':
         return inspector.select(_int(params, 'x'), _selectedRow(params));
+      case 'ext.twk.find':
+        return _find(params);
+      case 'ext.twk.hitTest':
+        return _hitTest(params);
       case 'ext.twk.highlight':
         final node = params.containsKey('id') ? _node(params) : null;
         final o = debug.highlight = node == null
@@ -966,9 +1043,12 @@ final class AppBinding implements FrameClock {
         };
       case 'ext.twk.flags':
         return debug._flags(params);
+      case 'ext.twk.status':
+        return debug._status();
       case 'ext.twk.reassemble':
         reassemble();
-        return const {};
+        // the frame a driven app moves its clock to, and the last that ran
+        return {'frame': twkApp.framesRun, 'frameDue': twkApp.frameDue};
       case 'ext.twk.log':
         final record = _record(params);
         // the console, made now if it wasn't, opens on an error
@@ -976,6 +1056,146 @@ final class AppBinding implements FrameClock {
         return const {};
     }
     throw ArgumentError.value(method, 'method', 'not a service extension');
+  }
+
+  var _clockMoving = false;
+
+  /// What `ext.twk.clock` answers: the `ext.twk.status` of the app, and
+  /// the clock: `driven` (its clock is a [DrivenClock]), `timers` (how many
+  /// wait), `quiet` (no timer waits, no frame is asked for or runs, the
+  /// input parser holds nothing: nothing happens until something is read)
+  /// and, with `describe=true`, `describe`, the timers by due time. Not
+  /// driven, `timers` and `quiet` are null and only `op=status` is
+  /// answered.
+  ///
+  /// `op=advance` with `by` (microseconds), `advanceTo` with `to` and `next`
+  /// (the time the next timer is due, none: stays) move the clock, firing
+  /// the timers in due order. After each the zone of the root runs what it
+  /// queued (a timer of zero delay and the microtasks before it) and a
+  /// frame that runs ends, flush included; the app's time then is the
+  /// target. One call is answered at a time.
+  Future<Map<String, Object?>> _clockCall(Map<String, String> params) async {
+    final op = params['op'] ?? 'status';
+    final clock = twkApp.clock;
+    final driven = clock is DrivenClock ? clock : null;
+    if (op != 'status') {
+      if (driven == null) {
+        throw const _ExtensionError.params('the app is not driven');
+      }
+      final int target;
+      switch (op) {
+        case 'advance':
+          final by = _int(params, 'by');
+          if (by < 0) {
+            throw const _ExtensionError.params('by: not negative');
+          }
+          target = driven.elapsedMicroseconds + by;
+        case 'advanceTo':
+          target = _int(params, 'to');
+          if (target < driven.elapsedMicroseconds) {
+            throw const _ExtensionError.params("to: not before the clock's");
+          }
+        case 'next':
+          final due = driven.nextDue;
+          target = due == null || due < driven.elapsedMicroseconds
+              ? driven.elapsedMicroseconds
+              : due;
+        default:
+          throw _ExtensionError.params(
+            'op: status, advance, advanceTo or next, not $op',
+          );
+      }
+      if (_clockMoving) {
+        throw const _ExtensionError.gone('the clock is already moving');
+      }
+      _clockMoving = true;
+      try {
+        await _moveClock(driven, target);
+      } finally {
+        _clockMoving = false;
+      }
+    }
+    return {
+      ...debug._status(),
+      'driven': driven != null,
+      'timers': driven?.pendingTimers,
+      'quiet': driven == null
+          ? null
+          : driven.pendingTimers == 0 &&
+                !twkApp.scheduled &&
+                !twkApp.inFrame &&
+                !twkApp.inputPending,
+      if (driven != null && params['describe'] == 'true')
+        'describe': [
+          for (final t in driven.waiting)
+            {'due': t.due, 'periodic': t.periodic, 'created': t.created},
+        ],
+    };
+  }
+
+  Future<void> _moveClock(DrivenClock clock, int target) async {
+    for (var fired = 0; clock.fireNext(target); fired++) {
+      if (fired >= clock.maxFired) {
+        throw _ExtensionError.gone(
+          'the clock fired ${clock.maxFired} timers in one move: a timer '
+          'that starts itself again with no wait?\n${clock.describeTimers()}',
+        );
+      }
+      await _settled();
+    }
+    clock.moveTo(target);
+    await _settled();
+  }
+
+  /// Completes once what the timer fired queued has run: the microtasks
+  /// and a zero timer of the root zone behind them, the running frame's end
+  /// after.
+  Future<void> _settled() async {
+    final done = Completer<void>();
+    Zone.root.createTimer(Duration.zero, done.complete);
+    await done.future;
+    await twkApp.frameEnd;
+  }
+
+  /// What `ext.twk.find` answers for the finder in `finder`.
+  Map<String, Object?> _find(Map<String, String> params) {
+    final text =
+        params['finder'] ?? (throw const _ExtensionError.params('no finder'));
+    final ElementFinder finder;
+    try {
+      finder = ElementFinder.fromJson(
+        jsonDecode(text),
+        nodeOf: (id) => switch (_inspector.nodeOf(id)) {
+          final Element e => e,
+          _ => null,
+        },
+      );
+    } on FormatException catch (e) {
+      throw _ExtensionError.params('finder: ${e.message}');
+    }
+    try {
+      return {'frame': twkApp.framesRun, ..._inspector.find(finder)};
+      // ignore: avoid_catching_errors, a node that left the tree
+    } on StateError catch (e) {
+      throw _ExtensionError.gone(e.message);
+    }
+  }
+
+  /// What `ext.twk.hitTest` answers for the cell `x`, `y` names.
+  Map<String, Object?> _hitTest(Map<String, String> params) {
+    final x = _int(params, 'x');
+    final y = _selectedRow(params);
+    final takenBy = debug.select
+        ? 'pick'
+        : debug._consoleCovers(x, y)
+        ? 'console'
+        : null;
+    return {
+      'frame': twkApp.framesRun,
+      'cell': {'x': x, 'y': y},
+      'takenBy': takenBy,
+      ..._inspector.hitAt(x, y, _mouse.targetsAt(x, y)),
+    };
   }
 
   /// The record `ext.twk.log` adds.
@@ -1196,9 +1416,9 @@ final class AppBinding implements FrameClock {
     if (first != null) {
       _dueAt = first;
       final wait = first - twkApp.clock.elapsedMicroseconds;
-      _dueTimer = _zone.createTimer(
+      _dueTimer = twkApp.clock.timer(
         Duration(microseconds: wait > 0 ? wait : 0),
-        _due,
+        _zone.bindCallbackGuarded(_due),
       );
     }
   }
@@ -1222,12 +1442,16 @@ final class AppBinding implements FrameClock {
   // the TwkApp runs it at the start of each frame
   void _beforeLayout() {
     _zone = Zone.current;
-    final now = twkApp.clock.elapsed;
+    final micros = twkApp.clock.elapsedMicroseconds;
+    final now = Duration(microseconds: micros);
     _framing = true;
+    if (debug._frameEvents) {
+      debug._frameBegins();
+    }
     _frameTime = now;
     _framesBegun++;
     if (_callbacks.isNotEmpty) {
-      _callFrameCallbacks(now.inMicroseconds);
+      _callFrameCallbacks(micros);
     }
     if (_buildScheduled) {
       _buildScheduled = false;
@@ -1315,6 +1539,9 @@ final class AppBinding implements FrameClock {
       _callPostFrameCallbacks();
     } finally {
       _framing = false;
+      if (debug._frameEvents) {
+        debug._postFrame();
+      }
     }
   }
 
@@ -1471,6 +1698,10 @@ final class AppBinding implements FrameClock {
       _foreground = rgb;
       _brightnessState?._changed();
     }
+    if (event case ColorReport(which: 12, :final rgb) when rgb != _cursor) {
+      _cursor = rgb;
+      _brightnessState?._changed();
+    }
     if (event case ColorReport(which: 4, :final index, :final rgb)
         when index < 16 && _palette[index] != rgb) {
       _palette = {..._palette, index: rgb};
@@ -1540,13 +1771,11 @@ final class AppBinding implements FrameClock {
       } else {
         from.previousFocus();
       }
-    } else if (event
-        case KeyEvent(char: 'c', modifiers: Mod.ctrl, kind: KeyKind.press)
-        when exitOnCtrlC) {
+    } else if (event case KeyEvent(modifiers: Mod.ctrl, kind: KeyKind.press)
+        when exitOnCtrlC && KeyCombo.charFor(event, 'cz') == 'c') {
       quit();
-    } else if (event
-        case KeyEvent(char: 'z', modifiers: Mod.ctrl, kind: KeyKind.press)
-        when stopOnCtrlZ) {
+    } else if (event case KeyEvent(modifiers: Mod.ctrl, kind: KeyKind.press)
+        when stopOnCtrlZ && KeyCombo.charFor(event, 'cz') == 'z') {
       if (twkApp.terminal case final Terminal terminal
           when terminal.stopsForShell) {
         unawaited(twkApp.suspendToShell());
@@ -1811,6 +2040,19 @@ final class DebugAids {
     return true;
   }
 
+  /// Whether the open console takes the mouse at [x], [y] ([_takeMouse]),
+  /// changing nothing.
+  bool _consoleCovers(int x, int y) {
+    final panel = _consolePanel;
+    if (panel == null || _console == null || panel.owner == null) {
+      return false;
+    }
+    final (left, top) = panel.globalOffset;
+    final dx = x - left;
+    final dy = y - top;
+    return dx >= 0 && dy >= 0 && dx < panel.width && dy < panel.height;
+  }
+
   void _consoleChanged() {
     final console = _console!;
     if (console.isOpen == (_consolePanel != null)) {
@@ -1850,6 +2092,184 @@ final class DebugAids {
   /// a frame's work gains a test of this flag; on, a post, which does
   /// nothing while no client listens to that stream.
   var treeEvents = false;
+
+  /// Whether the binding tells a driver what each frame did with the input
+  /// it was given (`ext.twk.flags` `frameEvents` sets it): `twk.frame`
+  /// after every frame, drawn or not, and `twk.input` after a read of the
+  /// terminal or an event that led to no frame yet, both with `version`,
+  /// `frame` (the frames run), `drawn`, `size`, `inputRead` (the bytes of
+  /// input the app had taken in when the frame's build began, see
+  /// `TwkApp.inputRead`), `outputWritten` (the bytes accepted for the
+  /// terminal), `inputPending`, `scheduled` and `frameDue` (a frame is
+  /// asked for, and when it is due, in microseconds of the app's clock),
+  /// `time` (the app's clock), `nextDue`, null: no timer of the app's
+  /// clock is known, and `quitting` (`TwkApp.quitting`). `twk.scheduled`,
+  /// with the same data, is posted by a driven app once per turn of the
+  /// event loop when its clock's timers change outside a move of the clock
+  /// and outside input. `twk.frame` also
+  /// carries `stats`: for a drawn frame `micros`, `build`, `layout`,
+  /// `paint` and `present` (the microseconds the frame and its stages took)
+  /// and `bytes` (what it wrote), from `TwkApp.stats`; null for a frame
+  /// that wrote nothing. `twk.input` and `ext.twk.status` do not carry it.
+  /// `twk.log`, with `version` and `records` (`LogRecord.toJson` each:
+  /// `time`, `level`, `message`, and `error` and `stack` where there are),
+  /// carries what `TwkApp.logs` took in, the records the console and `twk
+  /// logs` show, once per turn of the event loop and before the next
+  /// `twk.frame`, `twk.input` or `twk.scheduled`, so the event a driver
+  /// syncs on has the records before it behind it.
+  /// Off by default; off, a frame's work gains a test of this flag and the
+  /// app arms no timer for input; on, a post, which does nothing while no
+  /// client listens to the `Extension` stream.
+  bool get frameEvents => _frameEvents;
+  var _frameEvents = false;
+  set frameEvents(bool on) {
+    _frameEvents = on;
+    _framesDrawn = _binding.twkApp.stats.frames;
+    _binding.twkApp.onInputSettled = on ? _postInput : null;
+    final clock = _binding.twkApp.clock;
+    if (clock is DrivenClock) {
+      clock.onChange = on ? _scheduleChanged : null;
+    }
+    final logs = _binding.twkApp.logs..removeListener(_logListener);
+    if (on) {
+      logs.addListener(_logListener);
+    } else {
+      _scheduledTimer?.cancel();
+      _scheduledTimer = null;
+      _logTimer?.cancel();
+      _logTimer = null;
+      _logPending.clear();
+    }
+  }
+
+  late final void Function(LogRecord) _logListener = _onLog;
+  final _logPending = <Map<String, Object?>>[];
+  Timer? _logTimer;
+
+  /// Keeps [record] for `twk.log`, posted before the next event of the
+  /// frames or, failing one, from a root-zone timer once the turn of the
+  /// event loop has run: the records of a turn go in one event.
+  void _onLog(LogRecord record) {
+    _logPending.add(record.toJson());
+    _logTimer ??= Zone.root.createTimer(Duration.zero, _flushLog);
+  }
+
+  /// Posts `twk.log` with the records kept since the last, `version` and
+  /// `records` (`LogRecord.toJson` each), oldest first; nothing for none.
+  void _flushLog() {
+    _logTimer?.cancel();
+    _logTimer = null;
+    if (_logPending.isEmpty) {
+      return;
+    }
+    final records = List<Map<String, Object?>>.of(_logPending);
+    _logPending.clear();
+    AppBinding.postEvent('twk.log', {
+      'version': AppBinding.serviceExtensionsVersion,
+      'records': records,
+    });
+  }
+
+  Timer? _scheduledTimer;
+
+  /// The timers of the driven clock changed outside a move: a frame was
+  /// asked for, or the earliest timer moved. Posts [_postScheduled] once
+  /// for the turn of the event loop, from a root-zone timer after what the
+  /// turn queued has run.
+  void _scheduleChanged() {
+    if (_scheduledTimer != null || _binding._clockMoving) {
+      return;
+    }
+    _scheduledTimer = Zone.root.createTimer(Duration.zero, () {
+      _scheduledTimer = null;
+      _postScheduled();
+    });
+  }
+
+  /// Posts `twk.scheduled`: a frame was asked for, or a timer started or
+  /// cancelled, by what is outside a step of the driver (a child's answer,
+  /// a socket), which no frame or read of input says. Not for a move of the
+  /// clock (the driver made it and has its answer) and not for input: a
+  /// read of the terminal is acknowledged by `twk.input` or the frame.
+  void _postScheduled() {
+    final app = _binding.twkApp;
+    if (_binding._clockMoving || app.sampleInput() != _postedInputRead) {
+      return;
+    }
+    _flushLog();
+    AppBinding.postEvent('twk.scheduled', _frameData(false, app.inputRead));
+  }
+
+  /// The `inputRead` of the last event posted.
+  var _postedInputRead = 0;
+
+  var _framesDrawn = 0;
+  var _frameInputRead = 0;
+
+  /// Notes what the build of a frame that begins now finds.
+  void _frameBegins() {
+    _frameInputRead = _binding.twkApp.inputRead;
+  }
+
+  /// Posts `twk.frame` for the frame that ends now.
+  void _postFrame() {
+    final app = _binding.twkApp;
+    final drawn = app.stats.frames != _framesDrawn;
+    _framesDrawn = app.stats.frames;
+    final stats = app.stats;
+    _flushLog();
+    AppBinding.postEvent('twk.frame', {
+      ..._frameData(drawn, _frameInputRead),
+      'stats': drawn
+          ? {
+              'micros': stats.lastMicros,
+              'build': stats.lastBuildMicros,
+              'layout': stats.lastLayoutMicros,
+              'paint': stats.lastPaintMicros,
+              'present': stats.lastPresentMicros,
+              'bytes': stats.lastBytes,
+            }
+          : null,
+    });
+  }
+
+  /// Posts `twk.input`: what was read or dispatched did not, or does not
+  /// yet, lead to a frame.
+  void _postInput() {
+    final app = _binding.twkApp;
+    _flushLog();
+    AppBinding.postEvent('twk.input', _frameData(false, app.inputRead));
+  }
+
+  /// What `ext.twk.status` answers: what `twk.frame` carries, now, with
+  /// [TwkApp.inputRead] sampled afresh; nothing is changed.
+  Map<String, Object?> _status() =>
+      _frameData(false, _binding.twkApp.sampleInput())..remove('drawn');
+
+  Map<String, Object?> _frameData(bool drawn, int inputRead) {
+    final app = _binding.twkApp;
+    _postedInputRead = inputRead;
+    final terminal = app.terminal;
+    return {
+      'version': AppBinding.serviceExtensionsVersion,
+      'frame': app.framesRun,
+      'drawn': drawn,
+      'quitting': app.quitting,
+      'size': {'width': app.screen.width, 'height': app.screen.height},
+      'inputRead': inputRead,
+      'outputWritten': terminal is CountingBackend
+          ? terminal.bytesWritten
+          : null,
+      'inputPending': app.inputPending,
+      'scheduled': app.scheduled,
+      'frameDue': app.frameDue,
+      'time': app.clock.elapsedMicroseconds,
+      'nextDue': switch (app.clock) {
+        final DrivenClock clock => clock.nextDue,
+        _ => null,
+      },
+    };
+  }
 
   /// Whether what was laid out since the last frame is outlined
   /// (`PipelineOwner.debugRelayoutHighlight`).
@@ -1989,6 +2409,7 @@ final class DebugAids {
     final select = asked('select');
     final selectMany = asked('selectMany');
     final treeEvents = asked('treeEvents');
+    final frameEvents = asked('frameEvents');
     if (overlay != null) {
       this.overlay = overlay;
     }
@@ -2020,6 +2441,9 @@ final class DebugAids {
     if (treeEvents != null) {
       this.treeEvents = treeEvents;
     }
+    if (frameEvents != null) {
+      this.frameEvents = frameEvents;
+    }
     return {
       'overlay': this.overlay,
       'console': _console?.isOpen ?? false,
@@ -2030,6 +2454,7 @@ final class DebugAids {
       'select': this.select,
       'selectMany': this.selectMany,
       'treeEvents': this.treeEvents,
+      'frameEvents': this.frameEvents,
       'framesInRow': _binding.twkApp.framesInRow,
     };
   }
@@ -2500,6 +2925,7 @@ final class _BrightnessState extends State<_Brightness> {
     known: widget.binding._brightnessKnown,
     background: widget.binding._background,
     foreground: widget.binding._foreground,
+    cursor: widget.binding._cursor,
     palette: widget.binding._palette,
     child: widget.child,
   );

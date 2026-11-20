@@ -77,7 +77,7 @@ the theme's `primary` underlined by default.
 
 `StatusBar(left:, center:, right:, spacing: 1, style:)`, one row of three
 sections, `left` at its left edge, `right` at its right edge and `center` in
-its middle, at least `gap` columns between two, each as wide as it likes
+its middle, at least `spacing` columns between two, each as wide as it likes
 while they all fit; when they do not, `right` keeps its width first, as far
 as it fits, then `left` takes what it leaves, then `center` goes in the
 middle of the room between them, cut to that room or gone without one. A

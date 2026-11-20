@@ -56,6 +56,10 @@ final class DirectoryTreeController extends ChangeNotifier {
   /// A controller that selects nothing and expands nothing but the root
   /// its tree expands as it starts.
   DirectoryTreeController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
     _tree.addListener(_treeChanged);
   }
 

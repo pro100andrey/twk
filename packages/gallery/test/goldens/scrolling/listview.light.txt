@@ -5,7 +5,7 @@ text
 │   ⌕ Filter             /      ListView                                                                         3 of 5  │
 │                               Items built as they come into view, however many there are; the wheel and the keys       │
 │                               scroll it. Separated, reversed as a chat, or kept on what it shows as items come         │
-│   STYLE                4      before it.                                                                               │
+│   STYLE                4      before it, or selected with the mouse as one text.                                       │
 │     Theme                                                                                                              │
 │     TerminalBrightness        Preview   Code                                                                           │
 │     GradientBackground     ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -21,11 +21,11 @@ text
 │   DATA                13       ·   ·     │item 3                          │    ·   ·     │                             │
 │     Sparkline                            │item 4                          │              │  separated           ▐●  ▌  │
 │     Gauge, LineGauge           ·   ·     │item 5                          │    ·   ·     │                             │
-│     BarChart                             │item 6                          │              │  stuck by                   │
-│     Chart                      ·   ·     ╰────────────────────────────────╯    ·   ·     │   stickToBottom             │
-│     DotCanvas                                                                            │   stickToEnd                │
-│     Calendar                   ·   ·      top   item 40   middle               ·   ·     │                             │
-│     Heatmap, ActivityHe…                                                                 │                             │
+│     BarChart                             │item 6                          │              │  selectable          ▐●  ▌  │
+│     Chart                      ·   ·     ╰────────────────────────────────╯    ·   ·     │                             │
+│     DotCanvas                                                                            │  stuck by                   │
+│     Calendar                   ·   ·      top   item 40   middle               ·   ·     │   stickToBottom             │
+│     Heatmap, ActivityHe…                                                                 │   stickToEnd                │
 │     Table                      ·   ·     offset 0 of 94                        ·   ·     │                             │
 │     DescriptionList                    └                                    ┘            │                             │
 │     TreeView                   ·   ·   ·   ·   ·   ·   ·   ·   ·   · 34 × 12   ·   ·     │                             │
@@ -42,7 +42,7 @@ styles
 │aaiGiGGGGGGiiiiiiiiiiiiiHiaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhIhIIhIhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnhnnnnnhnnhnnnnhnnnnhnnnnhnnnnnhnnnnnnnhnnnnhnnnnnhnnnnhnnnhnnnnnhnnnhnnnhnnnnhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnnnnnnnhnnnnnnnnhnnhnhnnnnnhnnhnnnnhnnhnnnnhnnhnnnnnhnnhnnnnnhnnnnhhhhhhhhh│
-│aaadddddaaaaaaaaaaaaaaaaFaaahhhnnnnnnhnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddaaaaaaaaaaaaaaaaFaaahhhnnnnnnhnnnhnnhnnnnnnnnhnnnnhnnnhnnnnnhnnhnnnhnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooooaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
@@ -58,11 +58,11 @@ styles
 │aaaddddaaaaaaaaaaaaaaaaFFaaahhhhphhhphhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhxzAAxhh│
 │aaaaaooooooaoooooooooaaaaaaahhhhphhhphhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhhphhIIIIIhIIhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhMNNNNNNNNNNNNNMhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhuOOOOOOOOOOuhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhhhuEEEuhuEEEEuEEuhuEEEEEEuhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhxyyyyhyhhhhhhhhhhhhhhhhhhhhhhhhhhxhhhhhhhhhhhhhhphhnnnnnnnnnnhhhhhhhhhhxzAAxhh│
+│aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhhhxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhIIIIIhIIhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhhhuEEEuhuEEEEuEEuhuEEEEEEuhhhhhhhhhhhhhhphhhphhhhhphhMNNNNNNNNNNNNNMhhhhhhhhhhhh│
+│aaaaaooooooooaoooooooooooaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhuOOOOOOOOOOuhhhhhhhhhhhhhhh│
 │aaaaaoooooaaaaaaaaaaaaaaaaaahhhhphhhphhhhhnnnnnnhyhnnhyyhhhhhhhhhhhhhhhhhhhhhhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooooaaaaaaaahhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphIIhIhIIhhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -100,7 +100,7 @@ x #c8cdd5 on #fafafb
 y #1f2328 on #fafafb
 z #ffffff on #c8cdd5
 A on #c8cdd5
+E bold #0969da on #eef0f3
 M on #d8e5f7
 N #656d76 on #d8e5f7
 O #838991 on #eef0f3
-E bold #0969da on #eef0f3

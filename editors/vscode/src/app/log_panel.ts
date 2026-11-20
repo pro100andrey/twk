@@ -7,7 +7,7 @@
 // came before it was opened is the screen's [Traffic], kept as bytes from
 // the screen's start (its probe, its modes), and decoded only then.
 import { Clock, Disposable, Emitter } from '../core/events';
-import { LogFilter, SequenceLog, wholeLog } from '../core/seqlog';
+import { AppOffset, LogFilter, SequenceLog, entryAtAppBytes, wholeLog } from '../core/seqlog';
 import { TrafficPiece, logCast, logText, noteOf } from '../core/seqlog_save';
 import { ToLog, isFromLog } from '../webview/log_protocol';
 import { Screen } from './ports';
@@ -49,6 +49,31 @@ class Pieces {
 
 const weight = (p: Piece): number => ('output' in p ? p.output.length : 'input' in p ? p.input.length : p.note.length);
 
+/** Where the app's output is in the app's own count of the bytes it wrote: a run for each app the screen had, counted from its start. */
+class AppCount {
+  constructor(
+    private run = 0,
+    private offset = 0,
+  ) {}
+
+  /** A new app took the screen. */
+  start(): void {
+    this.run++;
+    this.offset = 0;
+  }
+
+  /** Takes [length] bytes of the app's output; where the first of them is. */
+  take(length: number): AppOffset {
+    const at = { run: this.run, offset: this.offset };
+    this.offset += length;
+    return at;
+  }
+
+  copy(): AppCount {
+    return new AppCount(this.run, this.offset);
+  }
+}
+
 /**
  * What a screen wrote and sent since it was made, as it came, up to
  * [budget] bytes (the oldest dropped first): what a log opened later
@@ -59,6 +84,7 @@ export class Traffic {
   readonly start: number;
   private readonly pieces: Pieces;
   private readonly listening: Disposable[];
+  private readonly count = new AppCount();
 
   constructor(
     screen: Screen,
@@ -69,11 +95,17 @@ export class Traffic {
     this.start = clock.now();
     this.pieces.add({ time: this.start, note: `${screen.name} opened, at ${screen.view.columns}x${screen.view.lines}` });
     this.listening = [
-      screen.onDidOutput((o) => this.pieces.add({ time: clock.now(), output: o.bytes, fromApp: o.fromApp })),
+      screen.onDidOutput((o) => this.pieces.add({ time: clock.now(), output: o.bytes, fromApp: o.fromApp, ...(o.fromApp ? { app: this.count.take(o.bytes.length) } : {}) })),
       screen.onDidInput((bytes) => this.pieces.add({ time: clock.now(), input: bytes })),
       screen.onDidNote((note) => this.pieces.add({ time: clock.now(), note })),
       screen.onDidDispose(() => this.dispose()),
+      ...(screen.onDidAppStart ? [screen.onDidAppStart(() => this.count.start())] : []),
     ];
+  }
+
+  /** Where the app's output is now: a log opened after it goes on from there. */
+  appCount(): AppCount {
+    return this.count.copy();
   }
 
   /** Each piece kept, the oldest first. */
@@ -106,6 +138,10 @@ export class LogPanel {
   private ready = false;
   private ended = false;
   private readonly start: number;
+  /** Where the app's output is in the app's own count, as the log follows it. */
+  private readonly count: AppCount;
+  /** An entry to show once the webview is up. */
+  private revealing: number | undefined;
   /** What the webview said it shows, last. */
   shown: { readonly rows: number; readonly held: number; readonly last: readonly string[]; readonly filter?: LogFilter } | undefined;
   private readonly saves = new Emitter<void>();
@@ -121,6 +157,7 @@ export class LogPanel {
   ) {
     this.log = new SequenceLog();
     this.start = history?.start ?? clock.now();
+    this.count = history?.appCount() ?? new AppCount();
     const at = (time: number) => Math.round(time - this.start);
     const apply = (p: Piece) => this.apply(p);
     if (history) {
@@ -130,7 +167,7 @@ export class LogPanel {
     }
     this.following = [
       screen.onDidOutput((o) => {
-        apply({ time: at(clock.now()), output: o.bytes, fromApp: o.fromApp });
+        apply({ time: at(clock.now()), output: o.bytes, fromApp: o.fromApp, ...(o.fromApp ? { app: this.count.take(o.bytes.length) } : {}) });
         this.later();
       }),
       screen.onDidInput((bytes) => {
@@ -142,6 +179,7 @@ export class LogPanel {
         this.later();
       }),
       screen.onDidDispose(() => this.end()),
+      ...(screen.onDidAppStart ? [screen.onDidAppStart(() => this.count.start())] : []),
     ];
     this.listening = [
       panel.onMessage((m) => {
@@ -157,6 +195,9 @@ export class LogPanel {
           this.ready = true;
           this.log.take();
           void this.panel.post({ type: 'reset', title: this.title(), entries: this.log.all() });
+          if (this.revealing !== undefined) {
+            void this.panel.post({ type: 'reveal', id: this.revealing });
+          }
           if (this.ended) {
             void this.panel.post({ type: 'ended' });
           }
@@ -176,6 +217,26 @@ export class LogPanel {
 
   reveal(): void {
     this.panel.reveal();
+  }
+
+  /**
+   * Shows the entry where the app had written [count] bytes (a frame's `outputWritten`, which the app counts from its
+   * own start): the panel shown, the entry found by the bytes the log kept (the app's output as the screen gave it, which
+   * its socket carries as the app wrote it: no line discipline adds a CR to an LF). `dropped` where the log begins after
+   * it (the oldest traffic was let go) and the first entry is shown instead; `found` false where no entry is of the app.
+   */
+  revealAppBytes(count: number): { readonly found: boolean; readonly dropped: boolean } {
+    this.flush();
+    const at = entryAtAppBytes(this.log.all(), count);
+    this.panel.reveal();
+    if (!at) {
+      return { found: false, dropped: false };
+    }
+    this.revealing = at.entry.id;
+    if (this.ready) {
+      void this.panel.post({ type: 'reveal', id: at.entry.id });
+    }
+    return { found: true, dropped: at.dropped };
   }
 
   /** What it shows, as the webview was sent it: for the tests. */
@@ -232,7 +293,7 @@ export class LogPanel {
     this.pieces.add(p);
     if ('output' in p) {
       if (p.fromApp) {
-        this.log.output(p.time, p.output);
+        this.log.output(p.time, p.output, p.app);
       } else {
         this.log.note(p.time, noteOf(p.output));
       }
@@ -248,6 +309,7 @@ export class LogPanel {
       return;
     }
     this.ended = true;
+    this.log.finish(Math.round(this.clock.now() - this.start));
     this.apply({ time: Math.round(this.clock.now() - this.start), note: `${this.screen.name} was closed` });
     this.flush();
     void this.panel.post({ type: 'ended' });

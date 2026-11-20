@@ -29,7 +29,7 @@ Widget plain(LogController c, {bool wrap = false}) => LogView(
 /// The render objects looked at per line added to a view [rows] tall,
 /// scrolled up, at the cap of its controller.
 Future<double> visitsPerAdd(TwkTester t, int rows, {bool wrap = false}) async {
-  final c = LogController(maxLines: 1000)
+  final c = disposing(LogController(maxLines: 1000))
     ..addAll([for (var i = 0; i < 1000; i++) 'line $i']);
   await t.pumpWidget(plain(c, wrap: wrap), size: (40, rows));
   // a few windows up: past the end, where the list lays out a window more
@@ -82,7 +82,7 @@ Future<int> rebuiltScrolledUp(
   int n = 20,
   bool wrap = false,
 }) async {
-  final c = LogController(maxLines: maxLines)
+  final c = disposing(LogController(maxLines: maxLines))
     ..addAll([for (var i = 0; i < 1000; i++) 'line $i']);
   await t.pumpWidget(plain(c, wrap: wrap), size: (40, rows));
   for (var i = 0; i < 3; i++) {
@@ -112,7 +112,7 @@ void main() {
       'selection text again; one after the lines were filtered does', (
     t,
   ) async {
-    final c = LogController()
+    final c = disposing(LogController())
       ..addAll([for (var i = 0; i < 10000; i++) 'line $i']);
     await t.pumpWidget(plain(c), size: (40, 10));
     await t.click(2, 2);
@@ -163,7 +163,7 @@ void main() {
     t,
   ) async {
     Future<int> visitsOfN(int rows) async {
-      final c = LogController()
+      final c = disposing(LogController())
         ..addAll([for (var i = 0; i < 1000; i++) 'line $i'])
         ..query = 'line 5';
       await t.pumpWidget(plain(c), size: (40, rows));

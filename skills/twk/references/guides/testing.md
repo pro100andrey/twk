@@ -9,7 +9,8 @@ order: 7
 same `runApp` binding — on a terminal in memory, under a fake clock. Keys,
 the mouse and pasted text go in as the bytes a terminal sends, and the
 screen is rebuilt from the bytes the app wrote by a strict terminal
-emulator, which the matchers read.
+emulator, which the matchers read. Timers and animations move only when the
+test says, so a test has no sleeps and no flakes.
 
 ```sh
 dart pub add dev:twk_test
@@ -244,13 +245,54 @@ void main() {
 `testTwk` runs the app in the test's own process, on a screen the tester
 keeps. What it cannot show is the app as `runApp` runs it: the process, the
 terminal's modes and the bytes it writes (what `runApp` does with them is in
-[Running an app](running.md)). For that the test runs the app in a
-pseudo-terminal, twk_term's `Pty`, and reads what it writes through
-twk_term's emulator, `TerminalEmulator`, as a terminal would:
-`compiledProgram` of twk_test compiles the app once, `waitUntil` and
-`waitFor` wait for the screen and for the exit in real time, within a bound
-that fails saying what was waited for, never a sleep, and the tear-down
-kills the one process the test started, through its `Pty`.
+[Running an app](running.md)). For that `driverTest` of
+`package:twk_test/driver.dart` runs the program in a pseudo-terminal: its
+keys are real bytes, its screen is read through an emulator, and the app's
+time is the test's (its timers fire when the test moves its clock, so there
+is nothing to sleep for). The screen is read with the matchers of `testTwk`
+(`app.screen`), the widgets are found by its finders (`find.text`,
+`find.byKey`: they are asked of the app, `await app.find(...)`,
+`app.tap(find.text('Save'))` checks that a click reaches the widget),
+`app.waitFor` and `app.waitForFinder` wait for a frame that shows what the
+test expects, and `profiles: ['truecolor', '16 colors']` runs the test once
+for each terminal. When the test ends, the strict emulator's complaints
+(a sequence no terminal takes, a print that wraps) and the terminal an app
+that exited did not give back (the tty not cooked, the alternate screen not
+left, the cursor hidden) fail it; a test that fails prints the screen, the
+last frames and the widget tree.
+
+<!-- file: packages/twk_test/test/example/driver_counter_test.dart -->
+```dart
+@Tags(['process'])
+@TestOn('linux || mac-os')
+library;
+
+import 'package:test/test.dart';
+import 'package:twk_test/driver.dart';
+import 'package:twk_test/twk_test.dart';
+
+void main() {
+  driverTest('the counter counts on Up and quits on q', (d) async {
+    // the real program in a pseudo-terminal, on time the test moves
+    final app = await d.start('../twk/example/counter.dart', size: (40, 7));
+    expect(app.screen, containsLine(contains('Count: 0')));
+    await app.press('up');
+    expect(app.screen, containsLine(contains('Count: 1')));
+    // the app's exit, and the terminal it gave back, are checked
+    final step = await app.press('q');
+    expect(step.exit!.code, 0);
+  });
+}
+```
+
+The app is a program of its own, with a `main` that calls `runApp`; the
+test runs on Linux and macOS, and is tagged `process`. Where a test needs
+the terminal itself and nothing of the driver, twk_term's `Pty` and
+`TerminalEmulator` are underneath: `compiledProgram` of twk_test compiles
+the app once, `waitUntil` and `waitFor` wait for the screen and for the exit
+in real time, within a bound that fails saying what was waited for, never a
+sleep, and the tear-down kills the one process the test started, through its
+`Pty`.
 
 <!-- file: packages/twk_term/test/example/run_app_test.dart -->
 ```dart
@@ -308,9 +350,7 @@ void main() {
 }
 ```
 
-The app is a program of its own, with a `main` that calls `runApp`; the
-test needs `twk_term` among its `dev_dependencies`, and runs on Linux and
-macOS. A program that needs no terminal, a command-line tool whose output
+The test needs `twk_term` among its `dev_dependencies`. A program that needs no terminal, a command-line tool whose output
 is what is wanted, is started with twk_test's `startProcess` or
 `runProcess` instead, which end it with the test too.
 
@@ -337,6 +377,33 @@ it runs out the timers that end what a test may look for: a toast, which
 shows for 3 s, and a highlight on a timer are gone when it returns. To
 see them, pump by a duration shorter than theirs. An app with a periodic
 timer or a spinner is never idle: pump it by a duration instead.
+
+## What a test leaves behind
+
+`testTwk` fails a test that made a controller and never disposed it, as
+Flutter's leak tracker does: after the app quits and the test's tear-downs
+ran, each `TextEditingController`, `ScrollController`, `FocusNode`,
+`AnimationController`, `ValueNotifier`, and each `TabController`,
+`TreeController`, `TableController`, `SelectionController`, `SplitController`
+and the other controllers of twk's widgets that the test made is looked for
+among the disposed ones, and the failure names each with the stack that made
+it. A controller made in a test is disposed by it:
+
+```
+final name = TextEditingController();
+addTearDown(name.dispose);
+```
+
+`disposing(object)` of twk_test does the same where the object is made, and
+returns it: `final name = disposing(TextEditingController());` is disposed
+when the test ends, with no `dispose` to remember, and a cascade works on the
+result (`disposing(TreeController())..expand('a')`).
+
+The controller a widget makes for itself is the widget's to dispose, and a
+test that finds one undisposed has found a bug of the widget. An object that
+outlives the test on purpose (a singleton of the app) is no leak: say
+`testTwk(..., trackDisposables: false)` in that test. The check needs
+asserts, which `dart test` has on.
 
 ## When a test fails
 

@@ -19,7 +19,7 @@ void main() {
         (
           String,
           bool,
-          Future<void> Function(Widget, TerminalBackend, Stopwatch),
+          Future<void> Function(Widget, TerminalBackend, Clock),
           Object? Function(AppBinding),
           Matcher,
         )
@@ -114,12 +114,12 @@ void main() {
         () => start(
           Probe(key: key, (_) => const Label('app')),
           term,
-          clock.stopwatch,
+          clock.clock,
         ),
       );
       await clock.settle();
       final binding = AppBinding.of(key.currentContext!);
-      expect(binding.twkApp.clock, same(clock.stopwatch));
+      expect(binding.twkApp.clock, same(clock.clock));
       expect(shown(binding), matcher);
       binding.quit();
       await clock.elapseUntil(done);

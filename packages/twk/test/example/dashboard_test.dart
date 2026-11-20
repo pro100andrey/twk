@@ -8,6 +8,7 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../../example/dashboard.dart' show Dashboard, deploys;
+import 'theme_cases.dart';
 
 /// The dashboard on a terminal of 80 × 24, as it starts.
 const dashboard = '''
@@ -110,245 +111,267 @@ void expectTheme(TwkTester t, ThemeData theme) {
 }
 
 void main() {
-  testTwk('on a dark terminal, the panels share their borders, in the dark '
-      'theme; the heatmap has the focus, its cursor on the first day', (
-    t,
-  ) async {
-    await t.pumpWidget(
-      const Dashboard(),
-      size: (80, 24),
-      backgroundRgb: 0x16181d,
-    );
-    expect(t, matchesScreen(dashboard));
-    expectTheme(t, ThemeData.dark);
-    expect(t, styleAt(6, 16, hasBg(ThemeData.dark.selection.bg!)));
-  });
+  forEachTheme(() {
+    testTwk('the panels share their borders, in the theme; the heatmap has the '
+        'focus, its cursor on the first day', (t) async {
+      await t.pumpWidget(
+        current.wrap(const Dashboard()),
+        size: (80, 24),
+        backgroundRgb: current.background,
+      );
+      expect(t, matchesScreen(dashboard));
+      expectTheme(t, theme);
+      expect(t, styleAt(6, 16, hasBg(theme.selection.bg!)));
+    });
 
-  testTwk('on a light terminal, the light theme, and the dark one once the '
-      'terminal reports a dark color scheme', (t) async {
-    await t.pumpWidget(
-      const Dashboard(),
-      size: (80, 24),
-      backgroundRgb: 0xfafafb,
-    );
-    expect(t, matchesScreen(dashboard));
-    expectTheme(t, ThemeData.light);
+    testTwk('each second the clock and the figures move on, and every three '
+        'the log has a line more, at its bottom', (t) async {
+      await t.pumpWidget(
+        current.wrap(const Dashboard()),
+        size: (80, 24),
+        backgroundRgb: current.background,
+      );
+      final figures = t.lines.sublist(2, 5);
+      await t.pump(const Duration(seconds: 1));
+      expect(t.lines.first, endsWith(' 14:30:01'));
+      expect(t.lines.sublist(2, 5), isNot(figures));
+      await t.pump(const Duration(seconds: 2));
+      expect(t.lines.first, endsWith(' 14:30:03'));
+      expect(t.lines[22], contains('14:30:03.000 INFO  POST /api/session'));
+    });
 
-    await t.type('\x1b[?997;1n');
-    await t.pump();
-    expect(t, matchesScreen(dashboard));
-    expectTheme(t, ThemeData.dark);
-  });
-
-  testTwk('each second the clock and the figures move on, and every three '
-      'the log has a line more, at its bottom', (t) async {
-    await t.pumpWidget(
-      const Dashboard(),
-      size: (80, 24),
-      backgroundRgb: 0x16181d,
-    );
-    final figures = t.lines.sublist(2, 5);
-    await t.pump(const Duration(seconds: 1));
-    expect(t.lines.first, endsWith(' 14:30:01'));
-    expect(t.lines.sublist(2, 5), isNot(figures));
-    await t.pump(const Duration(seconds: 2));
-    expect(t.lines.first, endsWith(' 14:30:03'));
-    expect(t.lines[22], contains('14:30:03.000 INFO  POST /api/session'));
-  });
-
-  testTwk('Enter shows what was deployed on the day of the cursor in a '
-      'toast for three seconds, and logs it, in the log panel too', (
-    t,
-  ) async {
-    await t.pumpWidget(
-      const Dashboard(),
-      size: (80, 24),
-      backgroundRgb: 0x16181d,
-    );
-    final first = DateTime(2026, 7, 6);
-    await t.press('enter');
-    // the toast slides in
-    await t.pump(const Duration(milliseconds: 300));
-    expect(t, containsLine(contains('▌ ${deployed(first)}')));
-    expect(t.lines[22], contains(deployed(first).substring(0, 20)));
-    await t.pump(const Duration(seconds: 3));
-    expect(t, isNot(containsLine(contains('▌ '))));
-
-    // down a day, right a week
-    await t.press('down right enter');
-    await t.pump(const Duration(milliseconds: 300));
-    final next = DateTime(2026, 7, 14);
-    expect(t, containsLine(contains('▌ ${deployed(next)}')));
-    expect(t.logs.records.map((r) => r.message), [
-      deployed(first),
-      deployed(next),
-    ]);
-  });
-
-  group('the debug keys:', () {
-    testTwk('Ctrl+G shows them over the bottom row until the next key; then '
-        'o shows the frame overlay at the top right, and hides it again', (
+    testTwk('Enter shows what was deployed on the day of the cursor in a '
+        'toast for three seconds, and logs it, in the log panel too', (
       t,
     ) async {
       await t.pumpWidget(
-        const Dashboard(),
+        current.wrap(const Dashboard()),
         size: (80, 24),
-        backgroundRgb: 0x16181d,
+        backgroundRgb: current.background,
       );
-      await t.type(ctrlG);
-      await t.pump();
-      expect(t.lines.take(23), dashboard.split('\n').take(23));
-      expect(t.lines.last, keysLine);
-      await t.press('o');
-      await t.pump();
-      expect(t.binding.debug.overlay, isTrue);
-      expect(t, containsLine(contains(' frames')));
-      expect(t, containsLine(endsWith(' fps')));
-      expect(t, containsLine(contains(' build µs ')));
-
-      await t.type(ctrlG);
-      await t.press('o');
-      await t.pump();
-      expect(t.binding.debug.overlay, isFalse);
-      expect(t, isNot(containsLine(contains(' build µs '))));
-    });
-
-    testTwk('Ctrl+G, r tints all of the dashboard at once, then each repaint '
-        'in the next color: moving the cursor repaints the heatmap', (
-      t,
-    ) async {
-      await t.pumpWidget(
-        const Dashboard(),
-        size: (80, 24),
-        backgroundRgb: 0x16181d,
-      );
-      await t.type(ctrlG);
-      await t.pump();
-      await t.press('r');
-      await t.pump();
-      expect(t.binding.debug.rainbow, isTrue);
-      int bg(int x, int y) => t.cell(x, y).bg;
-      final (heatmap, tiles, services) = (bg(2, 16), bg(2, 2), bg(62, 7));
-      expect(heatmap, isNot(ThemeData.dark.background.bg!.value));
-      expect((tiles, services), (heatmap, heatmap));
-
-      await t.press('right');
-      await t.pump();
-      expect(bg(8, 16), isNot(heatmap));
-    });
-
-    testTwk('Ctrl+G, c opens the log console over the bottom rows, with what '
-        'Enter logged, and closes it', (t) async {
-      await t.pumpWidget(
-        const Dashboard(),
-        size: (80, 24),
-        backgroundRgb: 0x16181d,
-      );
+      final first = DateTime(2026, 7, 6);
       await t.press('enter');
-      await t.type(ctrlG);
-      await t.press('c');
-      await t.pump();
-      expect(t.binding.debug.console.isOpen, isTrue);
-      expect(t, containsLine(startsWith(' console  debug+  1 of 1')));
-      expect(
-        t,
-        containsLine(endsWith(' INFO  ${deployed(DateTime(2026, 7, 6))}')),
-      );
+      // the toast slides in
+      await t.pump(const Duration(milliseconds: 300));
+      expect(t, containsLine(contains('▌ ${deployed(first)}')));
+      expect(t.lines[22], contains(deployed(first).substring(0, 20)));
+      await t.pump(const Duration(seconds: 3));
+      expect(t, isNot(containsLine(contains('▌ '))));
 
-      await t.type(ctrlG);
-      await t.press('c');
-      await t.pump();
-      expect(t.binding.debug.console.isOpen, isFalse);
-      expect(t, isNot(containsLine(startsWith(' console '))));
+      // down a day, right a week
+      await t.press('down right enter');
+      await t.pump(const Duration(milliseconds: 300));
+      final next = DateTime(2026, 7, 14);
+      expect(t, containsLine(contains('▌ ${deployed(next)}')));
+      expect(t.logs.records.map((r) => r.message), [
+        deployed(first),
+        deployed(next),
+      ]);
     });
 
-    testTwk('the keys a user typed in Konsole, read for read: Ctrl+G shows '
-        'the debug keys until the next key, a second Ctrl+G goes to the '
-        'app, c and r without Ctrl+G do nothing, and Ctrl+G r tints all of '
-        'the screen at once', (t) async {
-      await t.pumpWidget(
-        const Dashboard(),
-        size: (180, 55),
-        backgroundRgb: 0x16181d,
-      );
-      final debug = t.binding.debug;
-      final background = ThemeData.dark.background.bg!.value;
-      // what shows after each read
-      String seen() {
-        final lines = t.lines;
-        var tinted = true;
-        for (var y = 0; y < 55 && tinted; y++) {
-          for (var x = 0; x < 180 && tinted; x++) {
-            tinted = t.cell(x, y).bg != background;
-          }
-        }
-        return [
-          if (lines.last.startsWith(' ctrl+g  o overlay')) 'keys',
-          if (debug.overlay) 'overlay',
-          if (debug.console.isOpen) 'console',
-          if (debug.rainbow) 'rainbow',
-          if (tinted) 'tinted',
-          // the toasts shown, also while they slide in from off the screen
-          for (final _
-              in find
-                  .byWidgetPredicate(
-                    (w) =>
-                        w is Text &&
-                        (w.data ?? w.spans!.map((s) => s.text).join()).contains(
-                          ' deployed',
-                        ) &&
-                        // not the log panel's lines
-                        w.data == null,
-                  )
-                  .evaluate())
-            'toast',
-        ].join(' ');
-      }
-
-      final seenAfter = <String>[];
-      for (final (micros, read) in konsoleReads) {
-        final wait = Duration(microseconds: micros) - t.clock.elapsed;
-        if (wait > Duration.zero) {
-          await t.pump(wait);
-        }
-        await t.type(read);
-        if (!t.isRunning) {
-          seenAfter.add('quit');
-          break;
-        }
+    group('the debug keys:', () {
+      testTwk('Ctrl+G shows them over the bottom row until the next key; then '
+          'o shows the frame overlay at the top right, and hides it again', (
+        t,
+      ) async {
+        await t.pumpWidget(
+          current.wrap(const Dashboard()),
+          size: (80, 24),
+          backgroundRgb: current.background,
+        );
+        await t.type(ctrlG);
         await t.pump();
-        seenAfter.add(seen());
-      }
-      expect(seenAfter, [
-        // the terminal's focus going and coming back
-        '', '', '', '',
-        // Ctrl+G; Up after it dropped
-        'keys', '',
-        // Right × 3, Up
-        '', '', '', '',
-        // Ctrl+G twice: the second to the app; then c c r r for the app
-        'keys', '', '', '', '', '',
-        // Right, Left, Enter twice: the day's deploys in a toast each;
-        // Ctrl+F
-        '', '', 'toast', 'toast toast', 'toast toast',
-        // Ctrl+G r: the rainbow on, all of the screen tinted; r c for the
-        // app
-        'keys', 'rainbow tinted', 'rainbow tinted', 'rainbow tinted',
-        // Ctrl+G w: w dropped; q quits
-        'keys rainbow tinted', 'rainbow tinted', 'quit',
-      ]);
-      // Right × 3 from the first day: three weeks on
-      final day = deployed(DateTime(2026, 7, 27));
-      expect(t.logs.records.map((r) => r.message), [day, day]);
+        expect(t.lines.take(23), dashboard.split('\n').take(23));
+        expect(t.lines.last, keysLine);
+        await t.press('o');
+        await t.pump();
+        expect(t.binding.debug.overlay, isTrue);
+        expect(t, containsLine(contains(' frames')));
+        expect(t, containsLine(endsWith(' fps')));
+        expect(t, containsLine(contains(' build µs ')));
+
+        await t.type(ctrlG);
+        await t.press('o');
+        await t.pump();
+        expect(t.binding.debug.overlay, isFalse);
+        expect(t, isNot(containsLine(contains(' build µs '))));
+      });
+
+      testTwk('Ctrl+G, r tints all of the dashboard at once, then each repaint '
+          'in the next color: moving the cursor repaints the heatmap', (
+        t,
+      ) async {
+        await t.pumpWidget(
+          current.wrap(const Dashboard()),
+          size: (80, 24),
+          backgroundRgb: current.background,
+        );
+        await t.type(ctrlG);
+        await t.pump();
+        await t.press('r');
+        await t.pump();
+        expect(t.binding.debug.rainbow, isTrue);
+        int bg(int x, int y) => t.cell(x, y).bg;
+        final (heatmap, tiles, services) = (bg(2, 16), bg(2, 2), bg(62, 7));
+        expect(heatmap, isNot(theme.background.bg!.value));
+        expect((tiles, services), (heatmap, heatmap));
+
+        await t.press('right');
+        await t.pump();
+        expect(bg(8, 16), isNot(heatmap));
+      });
+
+      testTwk('Ctrl+G, c opens the log console over the bottom rows, with what '
+          'Enter logged, and closes it', (t) async {
+        await t.pumpWidget(
+          current.wrap(const Dashboard()),
+          size: (80, 24),
+          backgroundRgb: current.background,
+        );
+        await t.press('enter');
+        await t.type(ctrlG);
+        await t.press('c');
+        await t.pump();
+        expect(t.binding.debug.console.isOpen, isTrue);
+        expect(t, containsLine(startsWith(' console  debug+  1 of 1')));
+        expect(
+          t,
+          containsLine(endsWith(' INFO  ${deployed(DateTime(2026, 7, 6))}')),
+        );
+
+        await t.type(ctrlG);
+        await t.press('c');
+        await t.pump();
+        expect(t.binding.debug.console.isOpen, isFalse);
+        expect(t, isNot(containsLine(startsWith(' console '))));
+      });
+
+      testTwk('the keys a user typed in Konsole, read for read: Ctrl+G shows '
+          'the debug keys until the next key, a second Ctrl+G goes to the '
+          'app, c and r without Ctrl+G do nothing, and Ctrl+G r tints all of '
+          'the screen at once', (t) async {
+        await t.pumpWidget(
+          current.wrap(const Dashboard()),
+          size: (180, 55),
+          backgroundRgb: current.background,
+        );
+        final debug = t.binding.debug;
+        final background = theme.background.bg!.value;
+        // what shows after each read
+        String seen() {
+          final lines = t.lines;
+          var tinted = true;
+          for (var y = 0; y < 55 && tinted; y++) {
+            for (var x = 0; x < 180 && tinted; x++) {
+              tinted = t.cell(x, y).bg != background;
+            }
+          }
+          return [
+            if (lines.last.startsWith(' ctrl+g  o overlay')) 'keys',
+            if (debug.overlay) 'overlay',
+            if (debug.console.isOpen) 'console',
+            if (debug.rainbow) 'rainbow',
+            if (tinted) 'tinted',
+            // the toasts shown, also while they slide in from off the screen
+            for (final _
+                in find
+                    .byWidgetPredicate(
+                      (w) =>
+                          w is Text &&
+                          (w.data ?? w.spans!.map((s) => s.text).join())
+                              .contains(
+                                ' deployed',
+                              ) &&
+                          // not the log panel's lines
+                          w.data == null,
+                    )
+                    .evaluate())
+              'toast',
+          ].join(' ');
+        }
+
+        final seenAfter = <String>[];
+        for (final (micros, read) in konsoleReads) {
+          final wait = Duration(microseconds: micros) - t.clock.elapsed;
+          if (wait > Duration.zero) {
+            await t.pump(wait);
+          }
+          await t.type(read);
+          if (!t.isRunning) {
+            seenAfter.add('quit');
+            break;
+          }
+          await t.pump();
+          seenAfter.add(seen());
+        }
+        expect(seenAfter, [
+          // the terminal's focus going and coming back
+          '', '', '', '',
+          // Ctrl+G; Up after it dropped
+          'keys', '',
+          // Right × 3, Up
+          '', '', '', '',
+          // Ctrl+G twice: the second to the app; then c c r r for the app
+          'keys', '', '', '', '', '',
+          // Right, Left, Enter twice: the day's deploys in a toast each;
+          // Ctrl+F
+          '', '', 'toast', 'toast toast', 'toast toast',
+          // Ctrl+G r: the rainbow on, all of the screen tinted; r c for the
+          // app
+          'keys', 'rainbow tinted', 'rainbow tinted', 'rainbow tinted',
+          // Ctrl+G w: w dropped; q quits
+          'keys rainbow tinted', 'rainbow tinted', 'quit',
+        ]);
+        // Right × 3 from the first day: three weeks on
+        final day = deployed(DateTime(2026, 7, 27));
+        expect(t.logs.records.map((r) => r.message), [day, day]);
+      });
+    });
+
+    testTwk('q quits', (t) async {
+      await t.pumpWidget(
+        current.wrap(const Dashboard()),
+        backgroundRgb: current.background,
+      );
+      await t.press('q');
+      expect(t.isRunning, isFalse);
     });
   });
 
-  testTwk('q quits', (t) async {
-    await t.pumpWidget(
-      const Dashboard(),
-      backgroundRgb: 0x16181d,
-    );
-    await t.press('q');
-    expect(t.isRunning, isFalse);
+  group('the terminal reports another color scheme:', () {
+    testTwk('in its own colors, those of the background it tells then', (
+      t,
+    ) async {
+      await t.pumpWidget(
+        const Dashboard(),
+        size: (80, 24),
+        backgroundRgb: 0xfafafb,
+      );
+      expect(t, matchesScreen(dashboard));
+      expectTheme(t, ThemeData.terminalOn(0xfafafb));
+
+      // the color scheme report, then the answer to the colors asked again
+      await t.type('\x1b[?997;1n');
+      await t.type('\x1b]11;rgb:1616/1818/1d1d\x1b\\');
+      await t.pump();
+      expect(t, matchesScreen(dashboard));
+      expectTheme(t, ThemeData.terminalOn(0x16181d));
+    });
+
+    testTwk('under a Theme.adaptive, the light theme on a light terminal and '
+        'the dark one once it reports a dark color scheme', (t) async {
+      await t.pumpWidget(
+        const Theme.adaptive(child: Dashboard()),
+        size: (80, 24),
+        backgroundRgb: 0xfafafb,
+      );
+      expect(t, matchesScreen(dashboard));
+      expectTheme(t, ThemeData.light);
+
+      await t.type('\x1b[?997;1n');
+      await t.pump();
+      expect(t, matchesScreen(dashboard));
+      expectTheme(t, ThemeData.dark);
+    });
   });
 }

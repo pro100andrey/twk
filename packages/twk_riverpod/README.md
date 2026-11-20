@@ -1,16 +1,18 @@
 # twk_riverpod — Riverpod for twk widgets
 
-[Riverpod](https://riverpod.dev) for widgets of [twk](../twk/README.md),
-as flutter_riverpod is for Flutter's: a `ProviderScope` keeps the state of
-providers, and widgets watch them through a `WidgetRef`, rebuilt when what
-they watch changes and only then. It takes package:riverpod (`^3.4.3`,
-pure Dart) as a dependency and twk as a path one, and
-[twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
-tests, as a path dev dependency.
+Keep the state of a [twk](../twk/README.md) app in
+[Riverpod](https://riverpod.dev), as flutter_riverpod does for Flutter's: a
+`ProviderScope` keeps the state of providers, and widgets watch them through
+a `WidgetRef`, rebuilt when what they watch changes and only then.
 
 `lib/twk_riverpod.dart` exports package:riverpod's own library with the
 widgets, so an app imports nothing else; `misc.dart` exports riverpod's
 library of that name (`ProviderListenable`, `Override`).
+
+The package is in this repository, not on pub.dev yet. It takes package:riverpod
+(`^3.4.3`, pure Dart) as a dependency and twk as a path one, and
+[twk_test](../twk_test/doc/guide.md), whose tester (`testTwk`) runs its
+tests, as a path dev dependency.
 
 ## A counter
 

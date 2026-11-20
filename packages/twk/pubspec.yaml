@@ -26,5 +26,8 @@ dependencies:
 dev_dependencies:
   pro_lints: ^6.2.0
   test: ^1.33.0
+  # the export surface from the analyzer's element model, for exports tests
+  twk_api_names:
+    path: ../../tool/api_names
   twk_test:
     path: ../twk_test

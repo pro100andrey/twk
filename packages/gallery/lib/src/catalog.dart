@@ -210,7 +210,8 @@ const catalog = [
       'ListView',
       'Items built as they come into view, however many there are; the wheel '
           'and the keys scroll it. Separated, reversed as a chat, or kept on '
-          'what it shows as items come before it.',
+          'what it shows as items come before it, or selected with the mouse '
+          'as one text.',
     ),
     CatalogPage(
       'LogView',
@@ -799,7 +800,8 @@ const catalog = [
     CatalogPage(
       'DiffView',
       'The changes between two texts, unified or side by side, the words '
-          'that changed marked and both sides highlighted.',
+          'that changed marked and both sides highlighted; its lines are '
+          'selected and copied without their numbers.',
     ),
     CatalogPage(
       'JsonView',
@@ -822,9 +824,10 @@ const catalog = [
   CatalogGroup('Images', 'packages/twk_rich', [
     CatalogPage(
       'Image',
-      "A PNG or JPEG fitted to its cells: placed with the terminal's "
-          'graphics protocol (kitty, sixel, iTerm2), or drawn in half blocks '
-          'or quadrants where it has none.',
+      'A PNG, JPEG, GIF or APNG fitted to its cells: placed with the '
+          "terminal's graphics protocol (kitty, sixel, iTerm2), or drawn in "
+          'blocks (sextants where the terminal draws them, else half blocks) '
+          'where it has none.',
     ),
   ]),
   CatalogGroup('Terminal', 'packages/twk_term', [

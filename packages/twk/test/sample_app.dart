@@ -23,6 +23,7 @@ part 'sample_app/controls.dart';
 part 'sample_app/data.dart';
 part 'sample_app/debug.dart';
 part 'sample_app/editing.dart';
+part 'sample_app/finders.dart';
 part 'sample_app/focus.dart';
 part 'sample_app/foundation.dart';
 part 'sample_app/framework.dart';
@@ -37,9 +38,9 @@ part 'sample_app/text.dart';
 
 /// Runs the app in a viewport of a terminal in memory until it painted
 /// its first frame and took a `q`; returns what it logged. Its frames are
-/// spaced by [clock]: a test hands it a fake clock's stopwatch, and runs
-/// this in that clock's zone.
-Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
+/// spaced by [clock], by default the system's: a test hands it a fake
+/// clock's clock, and runs this in that clock's zone.
+Future<List<LogRecord>> runInMemory({Clock? clock}) async {
   final terminal = HeadlessTerminal(
     width: 122,
     height: 82,
@@ -57,11 +58,11 @@ Future<List<LogRecord>> runInMemory({required Stopwatch clock}) async {
     bidi: BidiReordering.terminal,
   )..type('q');
   final logs = LogSink();
-  await _run(terminal, logs, clock);
+  await _run(terminal, logs, clock ?? SystemClock());
   return logs.records;
 }
 
-Future<void> _run(TerminalBackend terminal, LogSink logs, Stopwatch clock) =>
+Future<void> _run(TerminalBackend terminal, LogSink logs, Clock clock) =>
     runApp(
       const SampleApp(),
       viewport: const Viewport.fixed(1, 1, 120, 80),
@@ -74,6 +75,12 @@ Future<void> _run(TerminalBackend terminal, LogSink logs, Stopwatch clock) =>
 /// One line of [Glyphs] painted on its own, as text.
 String snapshot() =>
     renderToString(RenderGlyphs('snap'), 8, 1, styles: StyleTable());
+
+/// The core's extension [ClockElapsed] and extension type [StyleId], which
+/// no widget takes, named: a clock's reading as a [Duration] and the base
+/// style.
+(Duration, StyleId) elapsedAndBase(Clock clock) =>
+    (ClockElapsed(clock).elapsed, StyleId.base);
 
 final class SampleApp extends StatefulWidget {
   const SampleApp({super.key});
@@ -114,6 +121,7 @@ final class _SampleAppState extends State<SampleApp> {
               ..._data(),
               ..._debug(),
               ..._editing(),
+              ..._finders(),
               ..._focus(),
               ..._foundation(),
               ..._framework(),

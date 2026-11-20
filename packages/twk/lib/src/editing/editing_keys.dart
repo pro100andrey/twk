@@ -11,6 +11,7 @@ import 'package:twk_core/twk_core.dart'
 
 import '../binding/app_binding.dart';
 import '../focus/focus_tree.dart';
+import '../focus/key_combo.dart';
 import '../foundation/change_notifier.dart';
 import '../framework/framework.dart';
 import 'text_buffer.dart';
@@ -66,6 +67,10 @@ class CaretStops {
   int lineEnd(TextBuffer text, int offset) => text.length;
 }
 
+/// The letters the editing keys are bound to with Ctrl or Alt: what
+/// [KeyCombo.charFor] picks among, so that they work on any keyboard layout.
+const editingLetters = 'abcdefkuwxyz';
+
 /// Does what [event] does to [controller] as an editing key, and returns
 /// whether it is one; a release is none. Text typed goes to [type]; the
 /// caret moves to [stops].
@@ -109,13 +114,14 @@ bool editingKey(
   final c = controller;
   final s = c.selection;
   final mods = event.modifiers;
-  if (event case KeyEvent(code: KeyCode.char, char: 'c' || 'x')
-      when mods == Mod.ctrl) {
-    if (copy == null || s.isCollapsed || (readOnly && event.char == 'x')) {
+  final key = KeyCombo.charFor(event, editingLetters);
+  if (event case KeyEvent(code: KeyCode.char)
+      when mods == Mod.ctrl && (key == 'c' || key == 'x')) {
+    if (copy == null || s.isCollapsed || (readOnly && key == 'x')) {
       return false;
     }
     copy(textBufferOf(c.value).substring(s.start, s.end));
-    if (event.char == 'x') {
+    if (key == 'x') {
       c.deleteTo(s.extentOffset);
     }
     return true;
@@ -150,17 +156,17 @@ bool editingKey(
       c.moveCaret(stops.wordLeft(text, caret), extend: shift);
     case KeyCode.right when word:
       c.moveCaret(stops.wordRight(text, caret), extend: shift);
-    case KeyCode.char when mods == Mod.alt && event.char == 'b':
+    case KeyCode.char when mods == Mod.alt && key == 'b':
       c.moveCaret(stops.wordBefore(text, caret));
-    case KeyCode.char when mods == Mod.alt && event.char == 'f':
+    case KeyCode.char when mods == Mod.alt && key == 'f':
       c.moveCaret(stops.wordAfter(text, caret));
     case KeyCode.home when rest == 0:
       c.moveCaret(stops.lineStart(text, caret), extend: shift);
     case KeyCode.end when rest == 0:
       c.moveCaret(stops.lineEnd(text, caret), extend: shift);
-    case KeyCode.char when rest == Mod.ctrl && event.char == 'a':
+    case KeyCode.char when rest == Mod.ctrl && key == 'a':
       c.moveCaret(stops.lineStart(text, caret), extend: shift);
-    case KeyCode.char when rest == Mod.ctrl && event.char == 'e':
+    case KeyCode.char when rest == Mod.ctrl && key == 'e':
       c.moveCaret(stops.lineEnd(text, caret), extend: shift);
     case KeyCode.backspace when rest == 0:
       c.deleteTo(stops.characterBefore(text, caret));
@@ -170,31 +176,31 @@ bool editingKey(
       c.deleteTo(stops.characterAfter(text, caret));
     case KeyCode.delete when word:
       c.deleteTo(stops.wordAfter(text, caret));
-    case KeyCode.char when mods == Mod.alt && event.char == 'd':
+    case KeyCode.char when mods == Mod.alt && key == 'd':
       c.deleteTo(stops.wordAfter(text, caret));
-    case KeyCode.char when mods == Mod.ctrl && event.char == 'd':
+    case KeyCode.char when mods == Mod.ctrl && key == 'd':
       if (s.isCollapsed && caret == text.length) {
         return false;
       }
       c.deleteTo(stops.characterAfter(text, caret));
-    case KeyCode.char when mods == Mod.ctrl && event.char == 'w':
+    case KeyCode.char when mods == Mod.ctrl && key == 'w':
       c.deleteTo(stops.wordBefore(text, caret, blankDelimited: true));
-    case KeyCode.char when mods == Mod.ctrl && event.char == 'u':
+    case KeyCode.char when mods == Mod.ctrl && key == 'u':
       final start = stops.lineStart(text, caret);
       c.deleteTo(
         start == caret ? stops.characterBefore(text, caret) : start,
       );
-    case KeyCode.char when mods == Mod.ctrl && event.char == 'k':
+    case KeyCode.char when mods == Mod.ctrl && key == 'k':
       final end = stops.lineEnd(text, caret);
       c.deleteTo(end == caret ? stops.characterAfter(text, caret) : end);
-    case KeyCode.char when mods == Mod.ctrl && event.char == 'z':
+    case KeyCode.char when mods == Mod.ctrl && key == 'z':
       if (!c.canUndo) {
         return false;
       }
       c.undo();
     case KeyCode.char
-        when (mods == Mod.ctrl && event.char == 'y') ||
-            (mods == Mod.ctrl | Mod.shift && event.char.toLowerCase() == 'z'):
+        when (mods == Mod.ctrl && key == 'y') ||
+            (mods == Mod.ctrl | Mod.shift && key.toLowerCase() == 'z'):
       if (!c.canRedo) {
         return false;
       }
@@ -212,7 +218,7 @@ bool _movingKey(KeyEvent event) {
   final rest = mods & ~Mod.shift;
   return switch (event.code) {
     KeyCode.left || KeyCode.right || KeyCode.home || KeyCode.end => true,
-    KeyCode.char => switch (event.char) {
+    KeyCode.char => switch (KeyCombo.charFor(event, editingLetters)) {
       'b' || 'f' => mods == Mod.alt,
       'a' || 'e' => rest == Mod.ctrl,
       _ => false,

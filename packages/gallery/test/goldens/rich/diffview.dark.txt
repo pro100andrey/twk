@@ -4,24 +4,24 @@ text
 │                                                                                                                        │
 │   ⌕ Filter             /      DiffView                                                                         4 of 7  │
 │                               The changes between two texts, unified or side by side, the words that changed           │
-│     Static                    marked and both sides highlighted.                                                       │
-│     TerminalProgress                                                                                                   │
-│     Viewport                  Preview   Code                                                                           │
-│     Window title           ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
-│     Notifications                                                                        │                             │
-│     Cli                     ┌                                                          ┐ │  OPTIONS                    │
-│                               bin/greet.dart                                             │                             │
-│   SCREEN READERS       1       1  1   import 'dart:io';                                  │  layout                     │
-│     Semantics                  2  2                                                      │   unified  sideBySide       │
-│                                3    - /// Greets [name] on the terminal.                 │                             │
-│   DEBUGGING            4       4    - String greet(String name) {                        │  context                    │
-│     Console                    5    -   return 'Hello, ' + name + '!';                   │   3 lines  1  0             │
-│     FrameOverlay                  3 + /// Greets [name] on the terminal, in [language    │                             │
-│     Repaint rainbow               4 + String greet(String name, {String language = 'e    │  edit live           ▐●  ▌  │
-│     RepaintBoundary               5 +   return '${hello[language]}, $name!';             │                             │
-│                                6  6   }                                                  │  language                   │
-│   RICH                 7       7  7                                                      │   the path's  plain         │
-│     MarkdownView                  8 + const hello = {'en': 'Hello', 'uk': 'Привіт'};     │                             │
+│     Static                    marked and both sides highlighted; its lines are selected and copied without their       │
+│     TerminalProgress          numbers.                                                                                 │
+│     Viewport                                                                                                           │
+│     Window title              Preview   Code                                                                           │
+│     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
+│     Cli                     ┌                                                          ┐ │                             │
+│                               bin/greet.dart                                             │  OPTIONS                    │
+│   SCREEN READERS       1       1  1   import 'dart:io';                                  │                             │
+│     Semantics                  2  2                                                      │  layout                     │
+│                                3    - /// Greets [name] on the terminal.                 │   unified  sideBySide       │
+│   DEBUGGING            4       4    - String greet(String name) {                        │                             │
+│     Console                    5    -   return 'Hello, ' + name + '!';                   │  context                    │
+│     FrameOverlay                  3 + /// Greets [name] on the terminal, in [language    │   3 lines  1  0             │
+│     Repaint rainbow               4 + String greet(String name, {String language = 'e    │                             │
+│     RepaintBoundary               5 +   return '${hello[language]}, $name!';             │  edit live           ▐●  ▌  │
+│                                6  6   }                                                  │                             │
+│   RICH                 7       7  7                                                      │  language                   │
+│     MarkdownView                  8 + const hello = {'en': 'Hello', 'uk': 'Привіт'};     │   the path's  plain         │
 │     CodeView                      9 +                                                    │                             │
 │     SyntaxThemeScope           8 10   /// The names to greet, one a line.                │                             │
 │ ▎   DiffView                   9 11   List<String> readNames(String path) {              │                             │
@@ -33,7 +33,7 @@ text
 │     Image                 ▐      19 +   final language = args.length > 1 ? args[1] :     │                             │
 │                           ▐   17 20     for (final name in names) {                      │                             │
 │   TERMINAL             1  ▐ └                                                          ┘ │                             │
-│     TerminalView          ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·56 × 22  │                             │
+│     TerminalView          ▐                                                     56 × 22  │                             │
 │                                                                                          │                             │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
@@ -41,24 +41,24 @@ styles
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aai"i""""""iiiiiiiiiiiii#iaahhhllllllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh$h$$h$hh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnnnhnnnnnnnhnnnnnnnhnnnhnnnnnnhnnnnnnnhnnhnnnnhnnhnnnnnhnnnhnnnnnhnnnnhnnnnnnnhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnhnnnnnhnnnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaoooooaaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
-│aaaaaoooooooooooooaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrrrrrrrrrrrrrrsssssssssssssssssssssssssssssssssssssssssthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaddddddadddddddaaaaaaa!aaahhhhnhhnhhhuuuuuuhvvvvvvvvvwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhxyyyyyyyxizzzzzzzzzzihhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhABAAAACADDDADDDDDDADDDDDDADDADDDADDDDDDDDDAAAAAAAAAAAAAthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaadddddddddaaaaaaaaaaaa!aaahhhABAAAACAEEEEEEAFFFFFGEEEEEEAGGGGGAGAAAAAAAAAAAAAAAAAAAAthhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhABAAAACAAAHHHHHHAIJJJJJIAJKLKGGGGKLKJIIGAAAAAAAAAAAAAAAthhhphhxyxyyyyyxiziizihhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhMMMMNMOMPPPMPPPPPPMPPPPPPMPPMPPPMPPPPPPPPQRQQRQQQQQQQQQthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhMMMMNMOMSSSSSSMTTTTTUSSSSSSMUUUUVRVWWWWWWRVVVVVVVVRWRXXthhhphhnnnnhnnnnhhhhhhhhhhhYZ00Yhh│
-│aaaaaoooooooooooooooaaaaaaaahhhMMMMNMOMMM111111MOVVVVVVVVVVVVVVVVVVOM23333OOUMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhnhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaa!aaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhxyyyxyyyyyyxizzzzzihhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhMMMMNMOM11111MUUUUUMSMUOOOOUMOOOOOOOUMOOOOUMOOOOOOOOUUMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnhnnnhnnnnhnnnnnhnnnnnnnnnnnnhnnnhnnnnnhnnnhnnnnnnnnhnnnhnnnnnnhnnnnnnnhnnnnnhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
+│aaaaaoooaaaaaaaaaaaaaaaaaaaahphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhrrrrrrrrrrrrrrsssssssssssssssssssssssssssssssssssssssssthhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaddddddadddddddaaaaaaa!aaahhhhnhhnhhhuuuuuuhvvvvvvvvvwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooaaaaaaaaaaaaaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhABAAAACADDDADDDDDDADDDDDDADDADDDADDDDDDDDDAAAAAAAAAAAAAthhhphhxyyyyyyyxizzzzzzzzzzihhhhhh│
+│aaadddddddddaaaaaaaaaaaa!aaahhhABAAAACAEEEEEEAFFFFFGEEEEEEAGGGGGAGAAAAAAAAAAAAAAAAAAAAthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhABAAAACAAAHHHHHHAIJJJJJIAJKLKGGGGKLKJIIGAAAAAAAAAAAAAAAthhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhMMMMNMOMPPPMPPPPPPMPPPPPPMPPMPPPMPPPPPPPPQRQQRQQQQQQQQQthhhphhxyxyyyyyxiziizihhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhMMMMNMOMSSSSSSMTTTTTUSSSSSSMUUUUVRVWWWWWWRVVVVVVVVRWRXXthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhMMMMNMOMMM111111MOVVVVVVVVVVVVVVVVVVOM23333OOUMMMMMMMMMthhhphhnnnnhnnnnhhhhhhhhhhhYZ00Yhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhnhhnhhhwhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaa!aaahhhhnhhnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhthhhphhnnnnnnnnhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhMMMMNMOM11111MUUUUUMSMUOOOOUMOOOOOOOUMOOOOUMOOOOOOOOUUMthhhphhxyyyxyyyyyyxizzzzzihhhhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhMMMMNMOMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooooooooooooaaaaaaahhhhnhnnhhh444h444h44444h44h444444h444h4h44444hhhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │a5xxxyyyyyyyyxxxxxxxxxxxxxxahhhhnhnnhhh666666666666hqqqqqqqqqw666666hwwwwwhwhhhhhhhhhhthhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
@@ -70,7 +70,7 @@ styles
 │aaaaaoooooaaaaaaaaaaaaaaaaadhhhMMMNNMOMMM11111MUUUUUUUUMSMUUUUUUUUUUUMSM9MSMUUUUU9UMUMhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhnnhnnhhhhhuuuhwuuuuuhwwwwhuuhwwwwwwhwhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaddddddddaaaaaaaaaaaaa!aadhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhp$$h$h$$hhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh$$h$h$$hhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend
@@ -97,13 +97,13 @@ t reverse #3e444f on #16181d
 u #c792ea on #16181d
 v #5fd38d on #16181d
 w #e6e8eb on #16181d
-x on #2b4566
-y bold #e6e8eb on #2b4566
-z #8b929c on #13151a
 A on #42282c
 B #8b929c on #42282c
 C #ff6b6b on #42282c
 D italic #8b929c on #42282c
+x on #2b4566
+y bold #e6e8eb on #2b4566
+z #8b929c on #13151a
 E #5cc8e6 on #42282c
 F #5fa8ff on #42282c
 G #e6e8eb on #42282c
@@ -124,12 +124,12 @@ U #e6e8eb on #243b32
 V #e6e8eb on #3e7e5a
 W #5cc8e6 on #3e7e5a
 X #5fd38d on #3e7e5a
-Y #383d48 on #16181d
-Z #e6e8eb on #383d48
-0 on #383d48
 1 #c792ea on #243b32
 2 #ff6b6b on #3e7e5a
 3 #ff6b6b on #243b32
+Y #383d48 on #16181d
+Z #e6e8eb on #383d48
+0 on #383d48
 4 italic #8b929c on #16181d
 5 #5fa8ff on #2b4566
 6 #5cc8e6 on #16181d

@@ -39,7 +39,7 @@ export interface Capabilities {
   readonly answers: boolean;
   /** DECRQM 2026, which xterm.js has; off, the mode is not recognised. */
   readonly synchronizedOutput: boolean;
-  /** kitty's keyboard protocol: the webview answers `CSI ? u` and encodes keys as the app pushed (disambiguation). */
+  /** kitty's keyboard protocol: the webview answers `CSI ? u` and encodes keys as the app pushed (all five flags). */
   readonly kittyKeyboard: boolean;
   /** `CSI 16 t`, a cell's size in pixels, answered by the webview. */
   readonly cellSize: boolean;

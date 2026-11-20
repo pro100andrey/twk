@@ -269,3 +269,13 @@ abstract interface class DeclaringLink implements TerminalLink {
   /// What the terminal declares; empty where it declares nothing.
   TerminalDeclaration get declaration;
 }
+
+/// A [TerminalLink] that can tell a cell's size in pixels from where its
+/// terminal is (the tty's `TIOCGWINSZ`): the process's own link. `Terminal`
+/// takes it where the terminal's own answer (`CSI 16 t`) did not come, and
+/// again at each resize, for the pixel mouse (mode 1016) to be divided
+/// into cells.
+abstract interface class PixelSizedLink implements TerminalLink {
+  /// A cell's size in pixels now; null where the terminal reports none.
+  ({int width, int height})? get cellPixelSize;
+}

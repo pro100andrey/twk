@@ -44,6 +44,10 @@ final class PosixOutput {
 
   final int _fd;
 
+  // the zone it was opened in: its retries run on real time, whichever
+  // zone writes (a driven app's frame, `TWK_DRIVEN`)
+  final Zone _zone = Zone.current;
+
   final _pending = ListQueue<Uint8List>();
 
   /// How much of the first of [_pending] is written.
@@ -138,7 +142,7 @@ final class PosixOutput {
     if (_pending.isEmpty) {
       _finish();
     } else {
-      _timer = Timer(_took ? Duration.zero : _retry, _drain);
+      _timer = _zone.createTimer(_took ? Duration.zero : _retry, _drain);
     }
   }
 

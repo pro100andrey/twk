@@ -128,8 +128,8 @@ no part of `twk_core.dart`, which compiles for the web too.
 `HeadlessTerminal` is a terminal in memory to run an app on in a test, and
 `renderToString` paints a render tree once to text. The
 [twk_test](https://github.com/pro100andrey/twk/tree/main/packages/twk_test)
-package adds a tester on a fake clock and a strict terminal emulator to
-hold the bytes to.
+package adds a tester whose time moves only when the test says, and a
+strict terminal emulator to hold the bytes to.
 
 ## Platforms
 

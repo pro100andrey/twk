@@ -34,6 +34,7 @@ terminal.dart class ByteSink
 terminal.dart class ClusterScan
 terminal.dart class ColorReport
 terminal.dart class ColorSchemeReport
+terminal.dart class CountingBackend
 terminal.dart class CursorReport
 terminal.dart class DeclaringLink
 terminal.dart class DeviceAttributes
@@ -42,6 +43,7 @@ terminal.dart class InputEvent
 terminal.dart class InputParser
 terminal.dart class KeyEvent
 terminal.dart class KeyboardFlagsReport
+terminal.dart class KittyKey
 terminal.dart class KittyKeyboardFlags
 terminal.dart class LineEncoder
 terminal.dart class LocalAddress
@@ -54,6 +56,7 @@ terminal.dart class MouseEvent
 terminal.dart class MouseTrackingBackend
 terminal.dart class PasteEvent
 terminal.dart class Pen
+terminal.dart class PixelSizedLink
 terminal.dart class ResizeEvent
 terminal.dart class StyleTable
 terminal.dart class SuspendableBackend
@@ -118,9 +121,11 @@ twk_core.dart class BoxTitle
 twk_core.dart class ByteSink
 twk_core.dart class Canvas
 twk_core.dart class CellKeeper
+twk_core.dart class Clock
 twk_core.dart class ClusterScan
 twk_core.dart class ColorReport
 twk_core.dart class ColorSchemeReport
+twk_core.dart class CountingBackend
 twk_core.dart class CursorReport
 twk_core.dart class DeclaringLink
 twk_core.dart class DeviceAttributes
@@ -138,11 +143,14 @@ twk_core.dart class GridParentData
 twk_core.dart class GridTrack
 twk_core.dart class HeadlessTerminal
 twk_core.dart class HitTestResult
+twk_core.dart class ImageAnimation
+twk_core.dart class ImageKeep
 twk_core.dart class ImagePlacement
 twk_core.dart class InputEvent
 twk_core.dart class InputParser
 twk_core.dart class KeyEvent
 twk_core.dart class KeyboardFlagsReport
+twk_core.dart class KittyKey
 twk_core.dart class KittyKeyboardFlags
 twk_core.dart class LineEncoder
 twk_core.dart class ListItemManager
@@ -158,6 +166,7 @@ twk_core.dart class ParentData
 twk_core.dart class PasteEvent
 twk_core.dart class Pen
 twk_core.dart class PipelineOwner
+twk_core.dart class PixelSizedLink
 twk_core.dart class PresentStats
 twk_core.dart class Presenter
 twk_core.dart class RenderBox
@@ -189,6 +198,7 @@ twk_core.dart class StackParentData
 twk_core.dart class StyleTable
 twk_core.dart class Surface
 twk_core.dart class SuspendableBackend
+twk_core.dart class SystemClock
 twk_core.dart class Terminal
 twk_core.dart class TerminalBackend
 twk_core.dart class TerminalCaps
@@ -256,6 +266,7 @@ twk_core.dart enum TextWrap
 twk_core.dart enum TraceDirection
 twk_core.dart enum WrapAlignment
 twk_core.dart enum WrapCrossAlignment
+twk_core.dart extension ClockElapsed
 twk_core.dart extension PipelineTextOrder
 twk_core.dart extension type Color
 twk_core.dart extension type StyleId

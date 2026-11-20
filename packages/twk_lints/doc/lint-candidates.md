@@ -28,7 +28,7 @@ right as written.
 | # | candidate | what it would report | blind spots | false alarms measured | fix | verdict |
 |---|---|---|---|---|---|---|
 | 1 | ambiguous-width glyphs reaching a Text | a string literal holding an East Asian Ambiguous character that reaches a twk widget or `Span` | glyphs from variables and other files; the width the terminal really has | apps: 61 literals reach a widget and all 61 are fine, because twk measures them. The narrow `'─' * n` form has 3 hits outside tests, 1 of them a minor real defect | none general: `Divider` for lines, `canvas.segmenter` in a painter | **don't**; test at `ambiguousWidth: 2` instead |
-| 2 | hard-coded colours in `build` | `Color.rgb`, `Color.indexed`, `Color.<ansi name>` written in a `build` | builds written as closures in fields (the gallery's style), helpers called from `build` | apps: 2 in `build`, both debatable; 61 more outside `build` are deliberate (demos, chart series, decoders). twk: 3 in `build`, all deliberate | ANSI name → slot is a guess (`red` → `error`?); `Dataset.color` has no slot | **don't** (an assist at most) |
+| 2 | hard-coded colors in `build` | `Color.rgb`, `Color.indexed`, `Color.<ansi name>` written in a `build` | builds written as closures in fields (the gallery's style), helpers called from `build` | apps: 2 in `build`, both debatable; 61 more outside `build` are deliberate (demos, chart series, decoders). twk: 3 in `build`, all deliberate | ANSI name → slot is a guess (`red` → `error`?); `Dataset.color` has no slot | **don't** (an assist at most) |
 | 3 | key conflicts between KeyBindings | the same key in an inner and an outer layer of one expression, the outer never firing | layers in different classes (the usual case); `Shortcuts` whose action may be disabled; maps that are not literals | 3 nested pairs in all the code; 1 shares keys, and it is an intentional pass-on demo | none | **don't** (but see 6) |
 | 4 | interactive widget with no label | `TextField`/`TextArea` with neither `semanticsLabel` nor `placeholder`, `TextFormField` with no `placeholder`, `Slider` with no `semanticsLabel`, `Checkbox`/`Switch` with neither label, `Button` whose literal label has no letter or digit | labels from variables; custom controls built from `Focus`/`Pressable` | 5 hits (3 in apps, 2 in twk), 0 false alarms | insert `semanticsLabel: ''`; `TextFormField` needs the parameter first | **built**: `unnamed_control` |
 | 5 | `BuildContext` used after an `await` | a use of `State.context` or of a `BuildContext` variable after an `await` (or in a `Future` callback) with no `mounted` check since | contexts kept in fields; guards of the app's own (`if (!cancelled)`) | with `set_state_after_dispose`'s logic copied: 12 hits, 12 false alarms; with two easy fixes, 5, all false alarms needing flow analysis | `if (!mounted) return;` / `if (!context.mounted) return;` before the statement | **built**: `context_after_await`, on the flow analysis of `mounted_flow.dart` |
@@ -108,14 +108,14 @@ is after is caught by running the screen at ambiguous width 2. twk_test's
 already exist, and `packages/twk/test/text/ambiguous.dart` (`WideApp`)
 does exactly this for twk's own widgets.
 
-## 2. Hard-coded colours in `build`
+## 2. Hard-coded colors in `build`
 
 **What twk has.** `Color` is an extension type in `packages/twk_core/lib/src/style.dart`,
 with `Color.rgb`, `Color.indexed` and the ANSI constants. The analyzer sees
 it as an `InterfaceElement`, so `isTwkClass` finds it. `ThemeData`
 (`packages/twk/lib/src/style/theme.dart`) has twelve `Style` slots
 (`primary`, `error`, `success`, …) and derived tokens. `ThemeData.terminal`
-itself is made of the ANSI colours.
+itself is made of the ANSI colors.
 
 **What a rule would report.** A
 `Color.rgb(…)`/`Color.indexed(…)` `InstanceCreationExpression`, or a
@@ -134,7 +134,7 @@ inside a `build` method. Hits inside a `ThemeData(…)` or a
     `theme.info.fg ?? Color.defaultColor`.
 - Apps, outside `build`: 61 more. 44 are in top-level or field
   declarations, which is where the gallery writes its pages (closures in
-  fields): colour and gradient demos, the fruit colours of the mouse
+  fields): color and gradient demos, the fruit colors of the mouse
   page, chart series. 17 are in functions and methods, such as decoders
   (`Color.rgb(v >> 16 & 0xFF, …)`) and lerps.
 - twk: 3 in `build`, all deliberate: the press flash mixes towards white
@@ -143,14 +143,14 @@ inside a `build` method. Hits inside a `ThemeData(…)` or a
   rest are SGR decoders in twk_rich and twk_term.
 
 **Blind spots.** Builds written as closures in fields, which is the
-gallery's whole style. Helpers that `build` calls. Colours passed in from
+gallery's whole style. Helpers that `build` calls. Colors passed in from
 elsewhere.
 
 **Fix.** Turning `Color.red` into `theme.error.fg` guesses at intent, and
 needs a `Theme.of(context)` in reach. Chart series have no slot.
 
 **Verdict: don't.** Two debatable hits in 109 files, and every other
-colour in the code is deliberate. If anything, this is an assist ("use the
+color in the code is deliberate. If anything, this is an assist ("use the
 theme's slot") rather than a lint.
 
 ## 3. Key conflicts between KeyBindings

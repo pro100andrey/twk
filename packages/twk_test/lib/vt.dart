@@ -226,7 +226,8 @@ final class Vt {
   /// [segmenter] splits printed text into cells, by default as the
   /// application's [TextSegmenter] does. [strict] throws each error as it
   /// happens; off, they are only kept in [errors]. [allowLineFeed] takes
-  /// LF, [scrollback] keeps the lines scrolled off the top in [history],
+  /// LF ([lineFeedOnNormalScreen]: only off the alternate screen),
+  /// [scrollback] keeps the lines scrolled off the top in [history],
   /// and [relativeOnly] makes an absolute row an error, as drawing on the
   /// alternate screen is (going there to ask queries is not): the three of
   /// an inline region's normal screen. [cellPixelWidth] and [cellPixelHeight]
@@ -240,6 +241,7 @@ final class Vt {
     TextSegmenter? segmenter,
     this.strict = true,
     this.allowLineFeed = false,
+    this.lineFeedOnNormalScreen = false,
     this.scrollback = false,
     this.relativeOnly = false,
     this.cellPixelWidth = 10,
@@ -295,6 +297,12 @@ final class Vt {
   /// the cursor to column 0).
   final bool allowLineFeed;
 
+  /// Accept LF while the normal screen is up, not while the alternate one
+  /// is: what a fullscreen app's own output after it left the alternate
+  /// screen is (the log it prints at exit, one line each), where the
+  /// terminal's ONLCR makes it CR LF. Off, only [allowLineFeed] says.
+  final bool lineFeedOnNormalScreen;
+
   /// A normal screen: lines scrolled off its top (by LF or SU over the
   /// whole screen) are kept in [history] instead of being dropped.
   final bool scrollback;
@@ -312,6 +320,15 @@ final class Vt {
 
   /// kitty: the images the terminal holds, by id, and their bytes.
   final kittyImages = <int, int>{};
+
+  /// kitty: of each image given frames after its first (`a=f`), by id, how
+  /// many.
+  final kittyFrames = <int, int>{};
+
+  /// kitty: of each image whose animation was set (`a=a`), by id, whether
+  /// it plays (`s=2`, `s=3`) or stands (`s=1`), and how many times it plays
+  /// (`v` less one; 0 for ever).
+  final kittyAnimations = <int, ({bool playing, int loops})>{};
 
   /// DEC mode 8452: a sixel image leaves the cursor to its right, on its
   /// last row, instead of below it.
@@ -643,7 +660,8 @@ final class Vt {
         cx = 0;
         pendingWrap = false;
         i++;
-      } else if (b == 0x0A && allowLineFeed) {
+      } else if (b == 0x0A &&
+          (allowLineFeed || (lineFeedOnNormalScreen && !_alternate))) {
         flushText();
         pendingWrap = false;
         _lineFeed();
@@ -1149,7 +1167,8 @@ final class Vt {
 
   /// A kitty graphics command (`APC G keys ; payload ST`): a transmission,
   /// possibly in chunks (`m=1` on all but the last), a placement, a
-  /// deletion or a query; one with no id keeps nothing.
+  /// deletion, a frame of an animation or its control (`a=f`, `a=a`), or a
+  /// query; one with no id keeps nothing.
   void _kitty(List<int> body) {
     final semi = body.indexOf(0x3B);
     final keys = <String, String>{
@@ -1204,9 +1223,54 @@ final class Vt {
           return;
         }
         kittyImages[id] = data.length;
+        kittyFrames.remove(id);
+        kittyAnimations.remove(id);
         if (action == 'T') {
           _kittyPlace(keys, id);
         }
+      case 'f':
+        if (!kittyImages.containsKey(id)) {
+          _err('a kitty frame of image $id, which the terminal lacks');
+          return;
+        }
+        if ((keys['t'] ?? 'd') != 'd') {
+          _err('kitty data not sent in the command (t=${keys['t']})');
+          return;
+        }
+        try {
+          base64.decode(String.fromCharCodes(payload));
+        } on FormatException {
+          _err('kitty data not in base64');
+          return;
+        }
+        kittyFrames[id] = (kittyFrames[id] ?? 0) + 1;
+      case 'a':
+        if (!kittyImages.containsKey(id)) {
+          _err('a kitty animation of image $id, which the terminal lacks');
+          return;
+        }
+        final frames = 1 + (kittyFrames[id] ?? 0);
+        for (final k in ['r', 'c']) {
+          if (keys.containsKey(k) && (key(k) < 1 || key(k) > frames)) {
+            _err('kitty animation $k=${keys[k]} of image $id, of $frames');
+          }
+        }
+        final was = kittyAnimations[id] ?? (playing: false, loops: 0);
+        final playing = switch (keys['s']) {
+          null => was.playing,
+          '1' => false,
+          '2' || '3' => true,
+          final s => () {
+            _err('unsupported kitty animation state s=$s');
+            return was.playing;
+          }(),
+        };
+        // v: 1 for ever, n plays n - 1 times; 0 is ignored
+        final v = key('v');
+        kittyAnimations[id] = (
+          playing: playing,
+          loops: v == 0 ? was.loops : (v == 1 ? 0 : v - 1),
+        );
       case 'p':
         if (!kittyImages.containsKey(id)) {
           _err('a kitty placement of image $id, which the terminal lacks');
@@ -1282,7 +1346,11 @@ final class Vt {
           ids.remove(c.kitty?.id);
         }
       }
-      ids.forEach(kittyImages.remove);
+      for (final id in ids) {
+        kittyImages.remove(id);
+        kittyFrames.remove(id);
+        kittyAnimations.remove(id);
+      }
     }
   }
 

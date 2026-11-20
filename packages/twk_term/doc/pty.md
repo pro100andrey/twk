@@ -31,6 +31,18 @@ too (`tool/web_check.dart`'s gallery case).
   terminal is read no further and the program blocks in its writes, as with a
   terminal that scrolls no more. It ends when the terminal hangs up: the
   program and whatever it left running closed it, or `close` was called.
+- **Its output flags**: `Pty.start(output: PtyOutput.terminal)` sets the
+  slave's output flags (`c_oflag`) to those of a terminal before the program
+  runs: OPOST and ONLCR on (the program's NL is written as CR NL), tabs not
+  expanded, no OCRNL, ONOCR or ONLRET. `PtyOutput.system`, the default, leaves
+  them as the system made them. `nlToCrNl` says whether the terminal writes
+  the program's NL as CR NL now, the bytes a driver counts the program's by:
+  true only with OPOST on as well as ONLCR (a program that did `stty -opost`
+  writes its bare LF as it is), read through the master when asked, and once
+  the master is closed from `modesAtEnd`, so a program that ended before the
+  question was asked still has its answer; null where the kernel would not
+  say or the terminal closed before its attributes were read (always null on
+  the web).
 - **In**: `write(bytes)`; what the terminal doesn't take now (the program
   isn't reading) waits, in order.
 - **Size**: `resize(width, height)` sets what the program reads with

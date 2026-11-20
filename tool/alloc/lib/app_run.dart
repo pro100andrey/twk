@@ -39,7 +39,7 @@ final class AppRun {
       // shell's TWK_* variables, so that each run measures the same app
       binding = AppBinding(
         term,
-        clock: clock.stopwatch,
+        clock: clock,
         logs: LogSink(),
         environment: const {},
       );

@@ -20,6 +20,20 @@ import '../support/environment.dart';
 
 Uint8List bytesOf(String s) => utf8.encode(s);
 
+/// A stopwatch that reads [clock]: the trace writer's times are a real
+/// stopwatch's, which this test moves by the fake clock.
+final class _Watch implements Stopwatch {
+  _Watch(this.clock);
+  final FakeClock clock;
+
+  @override
+  int get elapsedMicroseconds => clock.elapsed.inMicroseconds;
+
+  @override
+  Never noSuchMethod(Invocation invocation) =>
+      throw UnsupportedError('Stopwatch.${invocation.memberName}');
+}
+
 void main() {
   // the programs run in processes of their own, compiled once
   late String traceFull;
@@ -59,7 +73,7 @@ void main() {
         TraceDirection.output,
         80,
         24,
-        clock: clock.stopwatch,
+        clock: _Watch(clock),
       )..add(bytesOf('\x1b[?1049h'));
       await clock.elapse(const Duration(milliseconds: 5));
       writer

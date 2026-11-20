@@ -226,7 +226,7 @@ controller:, tableController:, marks:, selection: TableSelection.row,
 onActivated:, showGuides: true, columnGap: 1, border: BorderType.none, showHeader: true,
 sampleRows:, focusNode:, autofocus:, canRequestFocus:, style:, headerStyle:,
 borderStyle:, guideStyle:, selectedStyle:, unfocusedSelectedStyle:,
-cursorStyle:, pointerShapes: true)` is a tree whose nodes are the rows of a
+cursorStyle:)` is a tree whose nodes are the rows of a
 `Table` (htop's tree, a file manager's sizes and dates, a dependency
 browser): the first of its `TableColumn`s shows a `TreeView`'s guides and
 expander before the node's text, the others the node's columns, sized,
@@ -318,7 +318,7 @@ semanticsValue:)` (a widget; `DescriptionItem.text(term, value, style:)` for
 a string) is its term and `separator`, placed as `termAlign` says in a
 column as wide as the longest term of its group, or `termWidth`, but where
 the group's rows do not all fit so no wider than `maxTermFraction` of the
-list (a term cut off with `…`), then its value `gap` columns after it, laid
+list (a term cut off with `…`), then its value `spacing` columns after it, laid
 out in the room to the right edge: a text that does not fit wraps under its
 own column and a widget is given that width (a `ProgressBar` fills it).
 

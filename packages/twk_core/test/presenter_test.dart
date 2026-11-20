@@ -161,8 +161,11 @@ void main() {
   test('a frame that only moves the visible cursor leaves it shown', () {
     final hs = Harness(20, 3);
     hs.canvas.text(0, 0, 'hello', hs.pens[1]);
+    // an underline cursor: a block one rewrites the blank it reaches
+    // (presenter_cursor_cell_test.dart)
     hs.presenter
       ..cursorVisible = true
+      ..cursorShape = CursorShape.underline
       ..cursorX = 2
       ..cursorY = 1;
     hs.frame();
@@ -217,8 +220,11 @@ void main() {
     for (var y = 0; y < 4; y++) {
       hs.canvas.text(0, y, 'row $y of the quick brown fox', hs.pens[1]);
     }
+    // a bar: a block cursor rewrites the blank it reaches
+    // (presenter_cursor_cell_test.dart)
     hs.presenter
       ..cursorVisible = true
+      ..cursorShape = CursorShape.bar
       ..cursorX = 5
       ..cursorY = 1;
     hs.frame();

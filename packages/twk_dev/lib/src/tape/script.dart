@@ -2,6 +2,7 @@
 /// line, for a program run in a pseudo-terminal.
 library;
 
+import 'package:twk/twk.dart' show ElementFinder;
 import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, Mod;
 
 import 'svg.dart';
@@ -19,6 +20,8 @@ import 'theme.dart';
 /// Env NAME "value"
 /// Run dart example/tally.dart     # the program; sh by default
 /// Wait /q quit/                   # Wait+Line, Wait@5s, Wait "text"
+/// Wait Widget Tabs                # twk apps: Wait Text "Saved", Click "Save"
+///                                 # or Click Key "save"
 /// Type "+"                        # Type@200ms
 /// Down 2                          # Enter, Tab, Space, Ctrl+C, Alt+x, ...
 /// Sleep 1.5s                      # 500ms, 2 (seconds), 1m
@@ -185,6 +188,42 @@ final class WaitStep extends TapeStep {
   final Duration? timeout;
 }
 
+/// Waits until [finder] finds a widget of the app's tree, at most
+/// [timeout] (the tape's `WaitTimeout` when null): `Wait Widget <Type>`,
+/// `Wait Text "<text>"`. Only for a program that is a twk app.
+final class WaitNodeStep extends TapeStep {
+  /// `Wait Widget DropDown<String>`, `Wait@5s Text "Saved"`.
+  const WaitNodeStep(super.line, this.finder, this.source, {this.timeout});
+
+  /// What is waited for.
+  final ElementFinder finder;
+
+  /// The statement's words as the tape wrote them: `Widget Tabs`,
+  /// `Text "Saved"`.
+  final String source;
+
+  /// The longest wait; null for the tape's `WaitTimeout`.
+  final Duration? timeout;
+}
+
+/// Clicks the one widget [finder] finds, after checking that a click
+/// there reaches it (`Session.tap`): `Click "<text>"`, `Click Key "<id>"`.
+/// Only for a program
+/// that is a twk app.
+final class ClickStep extends TapeStep {
+  /// `Click "Save"`.
+  const ClickStep(super.line, this.finder, this.source, {this.delay});
+
+  /// What is clicked.
+  final ElementFinder finder;
+
+  /// The statement's word as the tape wrote it: `"Save"`, `Key "save"`.
+  final String source;
+
+  /// The time after the click; null for the typing speed.
+  final Duration? delay;
+}
+
 /// Stops recording ([hide]) or records again: the time between is cut,
 /// what the program wrote meanwhile shows at once.
 final class HideStep extends TapeStep {
@@ -270,7 +309,7 @@ const Map<String, int> _modifiers = {
 
 /// The statements that take `@<duration>`: the typing speed or the
 /// timeout (and the keys).
-const _timed = {'Type', 'Wait', 'Wait+Screen', 'Wait+Line'};
+const _timed = {'Type', 'Click', 'Wait', 'Wait+Screen', 'Wait+Line'};
 
 /// The statements other than keys.
 const Set<String> _statements = {
@@ -422,6 +461,8 @@ final class _Parser {
           _error('Screenshot writes an .svg file, not $path');
         }
         _steps.add(ScreenshotStep(_line, path));
+      case 'Click':
+        _click(rest, delay);
       case 'Wait' || 'Wait+Screen' || 'Wait+Line':
         _wait(word, rest, delay);
       default:
@@ -444,7 +485,59 @@ final class _Parser {
     }
   }
 
+  /// `Click "<text>"` and `Click Key "<id>"`: [rest] after the word.
+  void _click(String rest, Duration? delay) {
+    const usage =
+        'Click takes the quoted text of a widget or its key: Click "Save", '
+        'Click Key "save"';
+    final byKey = RegExp(r'^Key(?:\s+(.*))?$').firstMatch(rest);
+    final words = _words(byKey == null ? rest : byKey[1] ?? '');
+    if (words.length != 1 || words.single.regex) {
+      _error(usage);
+    }
+    final w = words.single;
+    if (byKey == null) {
+      if (!w.quoted) {
+        _error(usage);
+      }
+      _steps.add(
+        ClickStep(
+          _line,
+          ElementFinder.text(w.text),
+          '"${w.text}"',
+          delay: delay,
+        ),
+      );
+      return;
+    }
+    // a quoted id is a String key, a bare whole number an int one
+    final number = w.quoted ? null : int.tryParse(w.text);
+    if (!w.quoted && number == null) {
+      _error(
+        'Click Key takes a quoted id, or a whole number: Click Key "save"',
+      );
+    }
+    _steps.add(
+      ClickStep(
+        _line,
+        ElementFinder.fromJson({
+          'key': {'value': number ?? w.text},
+        }),
+        w.quoted ? 'Key "${w.text}"' : 'Key $number',
+        delay: delay,
+      ),
+    );
+  }
+
   void _wait(String word, String rest, Duration? timeout) {
+    final node = RegExp(r'^(Widget|Text)(?:\s+(.*))?$').firstMatch(rest);
+    if (node != null) {
+      if (word != 'Wait') {
+        _error('$word takes a /regular expression/ or "text"');
+      }
+      _waitNode(node[1]!, node[2] ?? '', timeout);
+      return;
+    }
     final words = _words(rest, regex: true);
     if (words.length != 1 || !words.single.quoted && !words.single.regex) {
       _error('$word takes a /regular expression/ or "text"');
@@ -465,6 +558,33 @@ final class _Parser {
         pattern,
         w.regex ? '/${w.text}/' : '"${w.text}"',
         scope: word == 'Wait+Line' ? WaitScope.line : WaitScope.screen,
+        timeout: timeout,
+      ),
+    );
+  }
+
+  /// `Wait Widget <Type>` and `Wait Text "<text>"`: [what] and its
+  /// argument [rest].
+  void _waitNode(String what, String rest, Duration? timeout) {
+    final words = _words(rest);
+    if (words.length != 1 || words.single.regex) {
+      _error(
+        what == 'Widget'
+            ? 'Wait Widget takes the type of a widget: Wait Widget Tabs'
+            : 'Wait Text takes the text of a widget: Wait Text "Saved"',
+      );
+    }
+    final w = words.single;
+    if (what == 'Text' && !w.quoted) {
+      _error('Wait Text takes the text of a widget: Wait Text "Saved"');
+    }
+    _steps.add(
+      WaitNodeStep(
+        _line,
+        what == 'Widget'
+            ? ElementFinder.fromJson({'type': w.text})
+            : ElementFinder.text(w.text),
+        what == 'Widget' ? 'Widget ${w.text}' : 'Text "${w.text}"',
         timeout: timeout,
       ),
     );

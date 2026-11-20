@@ -45,7 +45,7 @@ final class _Run {
   _Run(Widget Function(Widget child) title) {
     clock.run(() {
       term = HeadlessTerminal(width: 20, height: 2);
-      binding = AppBinding(term, maxFps: 1000, clock: clock.stopwatch);
+      binding = AppBinding(term, maxFps: 1000, clock: clock.clock);
       done = binding.run(_Shown(title, key: key));
     });
   }
@@ -201,7 +201,7 @@ void main() {
       ),
     );
     final binding = clock.run(
-      () => AppBinding(terminal, maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(terminal, maxFps: 1000, clock: clock.clock),
     );
     final done = clock.run(
       () => binding.run(

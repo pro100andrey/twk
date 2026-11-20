@@ -140,24 +140,30 @@ void main() {
     expect(errors, [isA<StateError>()]);
   });
 
-  test('the stopwatch reads the clock; stopped, it counts no more', () async {
+  test("the clock port reads the clock and its timers are the zone's, in "
+      'one queue', () async {
     final clock = FakeClock();
-    final watch = clock.stopwatch;
-    expect(watch.isRunning, isTrue);
+    final port = clock.clock;
+    expect(port.elapsedMicroseconds, 0);
+    final order = <String>[];
+    // a timer of the port, then one of the zone, due together, and one of
+    // each before them
+    port.timer(const Duration(milliseconds: 20), () => order.add('port 20'));
+    clock
+      ..run(
+        () =>
+            Timer(const Duration(milliseconds: 20), () => order.add('zone 20')),
+      )
+      ..run(
+        () =>
+            Timer(const Duration(milliseconds: 10), () => order.add('zone 10')),
+      );
+    port.timer(const Duration(milliseconds: 5), () => order.add('port 5'));
+    expect(clock.pendingTimers, 4);
     await clock.elapse(const Duration(milliseconds: 1500));
-    expect(watch.elapsedMicroseconds, 1500000);
-    expect(watch.elapsedMilliseconds, 1500);
-    expect(watch.elapsed, const Duration(milliseconds: 1500));
-    expect(watch.elapsedTicks, 1500000);
-    expect(watch.frequency, 1000000);
-    watch.stop();
-    await clock.elapse(const Duration(seconds: 1));
-    expect(watch.elapsedMicroseconds, 1500000);
-    watch
-      ..start()
-      ..reset();
-    await clock.elapse(const Duration(milliseconds: 2));
-    expect(watch.elapsedMicroseconds, 2000);
+    expect(port.elapsedMicroseconds, 1500000);
+    expect(port.elapsed, const Duration(milliseconds: 1500));
+    expect(order, ['port 5', 'zone 10', 'port 20', 'zone 20']);
   });
 
   test('elapse is not re-entrant, nor negative', () async {
@@ -267,7 +273,7 @@ void main() {
       final clock = FakeClock();
       final term = clock.run(() => HeadlessTerminal(width: 20, height: 2));
       final done = clock.run(
-        () => AppBinding(term, clock: clock.stopwatch).run(const Text('hi')),
+        () => AppBinding(term, clock: clock.clock).run(const Text('hi')),
       );
       await clock.elapse(const Duration(milliseconds: 30));
       expect(term.frames, isNotEmpty);

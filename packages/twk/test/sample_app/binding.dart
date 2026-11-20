@@ -26,6 +26,7 @@ extension on _SampleAppState {
 
   bool _onEvent(InputEvent event) => switch (event) {
     KeyEvent(code: KeyCode.char, char: 'q', kind: KeyKind.press) => _quit(),
+    KeyEvent(code: KeyCode.modifier, kittyCode: KittyKey.leftShift) => false,
     MouseEvent(kind: MouseKind.wheelUp) => _bump(),
     ColorSchemeReport(brightness: Brightness.light) => false,
     PasteEvent() ||

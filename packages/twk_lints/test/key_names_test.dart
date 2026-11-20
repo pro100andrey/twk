@@ -13,7 +13,12 @@ void main() {
   test('the key names are those of KeyCode', () {
     expect(keyNames, [
       for (final code in KeyCode.values)
-        if (code != KeyCode.char) code.name.toLowerCase(),
+        // the modifier, lock and media keys are no shortcut's
+        if (code != KeyCode.char &&
+            code != KeyCode.modifier &&
+            code != KeyCode.lock &&
+            code != KeyCode.media)
+          code.name.toLowerCase(),
     ]);
   });
 

@@ -17,6 +17,8 @@ const _layers = <(String, List<String>)>[
   ('unicode', ['unicode/']),
   // Whether asserts are on: one probe, no imports.
   ('asserts', ['asserts.dart']),
+  // The app's time: a port and the real clock, dart:async only.
+  ('clock', ['clock.dart']),
   // Cells, pens and their bytes, and the input decoded: no dart:io.
   (
     'draw',
@@ -44,6 +46,7 @@ const _layers = <(String, List<String>)>[
       'terminal/isolate_input.dart',
       'terminal/link.dart',
       'terminal/outbox.dart',
+      'terminal/pixel_size.dart',
       'terminal/plain.dart',
       'terminal/posix_input.dart',
       'terminal/posix_output.dart',

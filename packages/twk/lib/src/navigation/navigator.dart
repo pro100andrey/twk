@@ -1226,30 +1226,35 @@ final class _RouteHostState extends State<_RouteHost>
       debugLabel: 'route guard',
     )..descendantsAreFocusable = route._guardFocusable;
     _scope = FocusScopeNode(debugLabel: route.settings.name ?? 'route');
-    // initState that throws is not followed by dispose: the nodes are
+    // initState that throws is not followed by dispose: what it made is
     // disposed here, and the route is given the host only once nothing
-    // can throw any more but the run's first step
-    final push = route.transitionDuration;
-    final pop = route.reverseTransitionDuration;
+    // can throw any more but the run's first step, which takes it back
     AnimationController? run;
-    if (push > Duration.zero || pop > Duration.zero) {
-      try {
+    try {
+      final push = route.transitionDuration;
+      final pop = route.reverseTransitionDuration;
+      if (push > Duration.zero || pop > Duration.zero) {
         run = _run = AnimationController(
           vsync: this,
           duration: push,
           reverseDuration: pop,
           value: route._entering ? 0 : 1,
         )..addStatusListener(_ran);
-      } catch (_) {
-        _guard.dispose();
-        _scope.dispose();
-        rethrow;
       }
-    }
-    // the route reads the nodes through the host
-    route._host = this;
-    if (run != null && route._entering) {
-      run.forward();
+      // the route reads the nodes through the host
+      route._host = this;
+      if (run != null && route._entering) {
+        run.forward();
+      }
+    } catch (_) {
+      if (identical(route._host, this)) {
+        route._host = null;
+      }
+      run?.dispose();
+      _run = null;
+      _guard.dispose();
+      _scope.dispose();
+      rethrow;
     }
   }
 

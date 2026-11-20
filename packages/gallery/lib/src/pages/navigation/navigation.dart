@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 
 import '../../motion.dart';
 import '../../page.dart';

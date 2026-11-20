@@ -3,10 +3,10 @@
 Images for apps on twk_core and twk, in a library of their own that
 `package:twk_rich/twk_rich.dart` does not export, so that an app which shows
 no image compiles none of it, nor carries the licences the
-[README](../README.md#license) names: PNG and JPEG
+[README](../README.md#license) names: PNG, JPEG and GIF
 files decoded, scaled to a box of cells, and encoded for the terminal's
 graphics protocol — PNG for kitty and iTerm2, sixel — or drawn with block
-characters in coloured cells where there is none; the `Image` widget shows one
+characters in colored cells where there is none; the `Image` widget shows one
 in an app. The decoders and encoders use nothing but the Dart SDK (dart:io's
 zlib inflates and deflates PNG on the VM; on the web, which has no dart:io, an
 inflater of the package's own, and stored deflate blocks, so that a PNG
@@ -14,8 +14,15 @@ decodes in a browser too, where `Image.memory` takes the bytes and
 `Image.file` throws); the widget depends on twk_core and twk, and its tests on
 twk_test, as the rest of twk_rich does. The core places what it encodes: its
 `TerminalImage` takes an `EncodedImage`'s `data`, `pixelWidth` and
-`pixelHeight` for the protocol it was encoded for. Still images only: an
-animated GIF is not read, and an APNG shows its default image.
+`pixelHeight` for the protocol it was encoded for. An animated GIF or APNG
+plays in the `Image` widget on the app's clock, each frame drawn as a still
+image is; where the terminal plays kitty's animations itself
+(`TerminalCaps.kittyAnimation`, kitty) the frames go to it once, as one
+`TerminalImage` with an `ImageAnimation`, and it steps them on its own clock,
+which a test's fake clock does not move: the first frame at once, the others
+made in the frames after, 4 ms of each, while it plays those it has (its
+loading mode); one past 64 MB decoded is drawn frame by frame. A `TickerMode` that is off stands an
+animation on the frame it shows.
 
 `lib/image.dart` exports one library per part, `lib/src/image/<part>.dart`;
 its tests are in `test/image/`, its examples in `example/image/`.
@@ -28,18 +35,52 @@ its tests are in `test/image/`, its examples in `example/image/`.
 
 ## `png`
 
-`decodePng(bytes)`: every colour type at every bit depth PNG allows (grey 1,
+`decodePng(bytes)`: every color type at every bit depth PNG allows (grey 1,
 2, 4, 8 and 16 bits, RGB 8 and 16, palette 1 to 8, grey and RGB with alpha 8
 and 16), interlaced (Adam7) or not, with a tRNS chunk's transparency (alpha
-for palette entries, a grey or RGB colour key compared at the full depth); a
-16-bit sample keeps its high byte. Gamma and colour space chunks (gAMA, cHRM,
+for palette entries, a grey or RGB color key compared at the full depth); a
+16-bit sample keeps its high byte. Gamma and color space chunks (gAMA, cHRM,
 sRGB, iCCP) are ignored, the samples taken as they are, and so are the other
-ancillary chunks: an APNG decodes to its default image. Each chunk's CRC is
+ancillary chunks: an APNG decodes to its default image. `decodeApng(bytes)`
+reads an APNG's frames, composed on the canvas by each frame's dispose
+(none, background, previous) and blend (source, over) operations, a default
+image that no `fcTL` precedes being no frame. Each chunk's CRC is
 checked; an unknown critical chunk, a file cut short or one that is not a PNG
 is a `FormatException`. `encodePng(image, level: 1)`: 8-bit RGB where the
 image is opaque, else RGBA, each row filtered with the filter whose bytes sum
 the least (libpng's choice), deflated at zlib `level`, by default 1, the
 fastest, since a terminal decodes the file at once. `isPng(bytes)`
+
+## `gif`
+
+`decodeGif(bytes)`: GIF87a and GIF89a, each frame composed on the logical
+screen as its disposal method says (leave, background to transparent,
+previous), a transparent index leaving what is under it, interlaced frames
+and local colour tables read, the delay of each (one of 10 ms or less shows
+for 100 ms, as browsers show it) and the plays of a NETSCAPE2.0 extension. A
+file cut short after its first frame has the frames before the cut. `isGif(bytes)`
+
+## `animated`
+
+`AnimatedImage` of a GIF or APNG (one frame for a still image): `frameCount`,
+`delays`, `loops` (the plays, 0 for ever), `duration` of one play,
+`indexAt(elapsed)` and `nextChangeAfter` read from the delays alone. The
+pictures are composed as they are reached: `bitmapAt(i)` is the whole canvas
+at frame i, composed on the frames before it, in order, and only the last
+`windowBytes` of them are kept (32 MB, `decodeGif(bytes, windowBytes:)`; a
+frame at least), so that 500 frames of 800 x 600 take a window's memory, not a
+gigabyte, and nothing is composed before it is shown. A frame past the window
+is composed again from the first: free in the order of playing, dear for a
+jump back. `frameAt(elapsed)` is the `ImageFrame` (`bitmap`, `delay`) showing
+that long after the start. A frame whose data does not decode throws a
+`FormatException` from `bitmapAt`; the first is checked by `decodeGif` and
+`decodeApng`. `AnimatedImage(frames)` is one of frames already in memory,
+`AnimatedImage.composed` one whose frames a function makes.
+
+`Image` keeps what it drew of each frame (the encoded frame for a protocol,
+or its blocks) for the frames drawn one by one, 16 MB at most, the least
+recently shown dropped and made again when shown again; the frames kept on a
+kitty terminal (`ImageKeep`) are not in it.
 
 ## `jpeg`
 
@@ -48,18 +89,20 @@ tables) and progressive JPEG with restart intervals, of one component (grey),
 three (YCbCr, or RGB where an Adobe marker says so or the components are named
 R, G and B) or four (CMYK and YCCK, the inks inverted as Adobe stores them),
 any sampling factors from 1 to 4. Its samples are libjpeg's: the integer IDCT
-and colour conversion are libjpeg's own, so that it decodes as `djpeg -dct int
+and color conversion are libjpeg's own, so that it decodes as `djpeg -dct int
 -nosmooth` does, byte for byte; subsampled chroma is replicated, not
 interpolated. Not read: arithmetic coding, lossless, hierarchical and 12-bit
 JPEG, a height given by a DNL marker (each a `FormatException`); the Exif
-orientation and colour profiles are not applied. Entropy-coded data cut short
+orientation and color profiles are not applied. Entropy-coded data cut short
 decodes as zeros. `isJpeg(bytes)`
 
 ## `image_file`
 
-`decodeImage(bytes)`, a PNG or JPEG file by its first bytes
-(`ImageFormat.of`); `imageSize(bytes)`, its `(width:, height:)` from its
-header (IHDR, the frame's SOF) without decoding it
+`decodeImage(bytes)`, a PNG, JPEG or GIF file by its first bytes
+(`ImageFormat.of`), the first frame of a GIF; `decodeAnimation(bytes)`, the
+frames of a GIF or an APNG as an `AnimatedImage`, one frame for any other;
+`imageSize(bytes)`, its `(width:, height:)` from its header (IHDR, the
+frame's SOF, the GIF's screen) without decoding it
 
 ## `scale`
 
@@ -77,15 +120,15 @@ image so scaled; the box's height is taken down to a multiple of `bandHeight`.
 `resize(image, width, height, cropX:, cropY:, cropWidth:, cropHeight:)`:
 shrinking, each pixel the mean of those under it, weighed by how much of each
 is; growing, bilinear; alpha premultiplied, so that a transparent pixel's
-colour does not bleed
+color does not bleed
 
 ## `sixel`
 
 `encodeSixel(image, colors: 256, dither: true, background:)`: the bytes a
 terminal takes between `ESC P` and `ESC \` — `0;1;0` (pixels not drawn keep
 what is under them), `q`, the raster attributes `"1;1;W;H`, the palette in
-percent, the bands of six rows a colour at a time, runs of four or more `!n`.
-The palette is the image's own colours where it has no more than `colors`,
+percent, the bands of six rows a color at a time, runs of four or more `!n`.
+The palette is the image's own colors where it has no more than `colors`,
 else median cut's (5 bits a channel, the box with the most pixels times its
 longest side split at its median), Floyd–Steinberg dithered where `dither`
 says. A pixel whose alpha is below 128 is not drawn; where `background` is
@@ -97,17 +140,17 @@ given, every pixel is blended over it
 fallback for a terminal without graphics: the image fitted to the box
 (`CellFit`) and drawn in `BlockCell`s, a `glyph` in `fg` on `bg` (`0xRRGGBB`,
 null for what is under the cell) — `BlockMode.half`, two pixels a cell, `▀` in
-the upper's colour on the lower's (`▄` where only the lower is drawn), or
+the upper's color on the lower's (`▄` where only the lower is drawn), or
 `quadrant`, four pixels a cell, the quadrant block that splits them best in
-two colours. `BlockImage.fromPixels(bitmap, mode:)` draws a bitmap's pixels as
+two colors. `BlockImage.fromPixels(bitmap, mode:)` draws a bitmap's pixels as
 they are; `cells`, `cellAt(column, row)`; `toAnsi()`, the rows as text with
-24-bit SGR colours, to print as they are
+24-bit SGR colors, to print as they are
 
 ## `protocols`
 
 `EncodedImage(data, pixelWidth:, pixelHeight:)`, what the core's
 `TerminalImage` takes. `kittyImage(file)`: a PNG file as it is, a JPEG one
-decoded and encoded as PNG. `iterm2Image(file)`: a PNG or JPEG file as it is,
+decoded and encoded as PNG. `iterm2Image(file)`: a PNG, JPEG or GIF file as it is,
 which iTerm2 decodes, its size read from its header. `pngImage(bitmap)`: a
 bitmap made or cut in memory, for either. `sixelImage(image, columns:, rows:,
 cell:, fit:, colors:, dither:, background:)`: scaled to the box, no taller
@@ -134,7 +177,16 @@ get a PNG of the fitted image as big as its cells, transparent past it, so
 that the terminal does not stretch it; sixel is scaled in whole bands of six
 pixels. Where the protocol is none, or with `forceBlocks`, it is drawn in
 `BlockImage` cells of `blockMode`, a transparent pixel leaving the cell under
-it. The file is read and its size taken from its header at the first layout,
+it. A `blockMode` left null is `defaultBlockMode`: the mode `TWK_IMAGE_BLOCKS`
+names (`half`, `quadrant`, `sextant`, `octant`, `braille` or `ascii`; the
+app's environment, `TwkApp.environment`), else `sextant` where the terminal is
+known to draw the sextants (U+1FB00..1FB3B) itself, whatever its font
+(`TerminalInfo.sextants`, from `sextantsFor`: kitty 0.19.3, foot, Ghostty,
+WezTerm 20210814 with `custom_block_glyphs`, Konsole 22.04, VTE 0.78,
+Contour 0.3.1, Rio 0.4.6), else `half`. A terminal that is not known to
+(Alacritty, Windows Terminal, iTerm2, mintty, xterm.js, xterm, Terminal.app,
+or any inside tmux or screen) is not guessed from a font twk cannot see: its
+user sets `TWK_IMAGE_BLOCKS=sextant`. The file is read and its size taken from its header at the first layout,
 decoded at the first paint; what is drawn is kept until the box, the protocol
 or a property changes, so that the presenter places the same image again
 without sending it. A file that can't be read or decoded is an error shown in
@@ -143,7 +195,7 @@ one is not shown
 
 ## Examples
 
-`example/image/viewer.dart` shows the PNG or JPEG file it is given below its
+`example/image/viewer.dart` shows the PNG, JPEG or GIF file it is given below its
 name and above the keys: `f` cycles the fit, `p` what it is drawn with — the
 terminal's protocol, half blocks, quadrants — and `q` quits. The protocol is
 the terminal's for the whole run, as the probe finds it when the app starts or

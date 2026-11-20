@@ -143,6 +143,13 @@ ctrl+z undo   ctrl+s save   ctrl+q quit
   for `q` never sees `q`. It lets Tab, Escape, Up, Down, Enter without
   `onSubmitted` and the Ctrl and Alt keys it does not edit with go up:
   bind `ctrl+q` rather than `q` in an app with fields.
+- A binding works on any keyboard layout in a terminal with the kitty
+  keyboard protocol (twk asks for its alternate keys): Ctrl and the key
+  that types `с` on a Russian layout is `ctrl+c`, as Ctrl and `c` is. A
+  field still gets `с` for plain typing, and key hints show the name the
+  binding is written with. Without the protocol, a terminal sends Ctrl
+  and a letter as a control character whatever the layout, so it works
+  there already.
 - `Shortcuts`, `Actions` and `Intent` are Flutter's, for keys that map to
   actions a widget below decides on.
 - `InputListener` gets what nobody else took: keys, pastes, resizes.

@@ -10,8 +10,11 @@ import 'dart:math' show max, min;
 import 'package:twk_core/twk_core.dart'
     show
         Axis,
+        BoxConstraints,
         HitTestBehavior,
+        PaintContext,
         RenderObject,
+        RenderObjectWithChildMixin,
         RenderParagraph,
         clipboardSequence;
 
@@ -21,6 +24,7 @@ import '../focus/focus.dart' show KeyBindings, KeyCombo;
 import '../foundation/change_notifier.dart';
 import '../foundation/controller_host.dart';
 import '../framework/framework.dart';
+import '../layout/one_child.dart';
 import '../scroll/scrollable.dart' show ScrollPosition, Scrollable;
 import '../style/style.dart';
 import '../text/widgets.dart' show Text;
@@ -43,7 +47,9 @@ export 'selectable.dart' hide selectInSelectable;
 /// triple one when it comes in the same cell within [multiClickInterval] of
 /// the release before it. A render object of an app's own that is a
 /// [Selectable] (a painted log, a code view) is selected in as a Text is,
-/// in its place in the order of the tree.
+/// in its place in the order of the tree, its children after it, and
+/// where the mouse is over a child and its own cell both, it is the
+/// child's.
 ///
 /// A drag past the top or bottom of the vertical [Scrollable] the mouse
 /// selects in scrolls it on, every 50 ms while it stays there, by the rows
@@ -72,7 +78,7 @@ export 'selectable.dart' hide selectInSelectable;
 /// that what is copied. While something is
 /// selected, [copyKey] and [clearKey] are among the keys a `KeyHintsBar`
 /// shows (`copy`, `clear`). A [controller] tells whether something is
-/// selected and what, and clears it, from outside.
+/// selected, what and where, and selects and clears from outside.
 ///
 /// It gets every press over it, anywhere in its bounds, as a [Listener]
 /// does, and the drags no `GestureDetector` inside it takes: one that
@@ -107,6 +113,7 @@ export 'selectable.dart' hide selectInSelectable;
 ///
 ///  * [SelectionAreaController], what is selected, read from outside.
 ///  * [Selectable], a render object of an app's own selected in.
+///  * [ExcludeSelection], a subtree left out of what is selected.
 final class SelectionArea extends StatefulWidget {
   /// Lets the Texts and Selectables below [child] be selected.
   const SelectionArea({
@@ -202,14 +209,50 @@ final class SelectionArea extends StatefulWidget {
 /// );
 /// ```
 final class SelectionAreaController with ChangeNotifier {
+  /// A controller no widget has yet.
+  SelectionAreaController() {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
+
   final _hosts = ControllerHost<_SelectionAreaState>();
 
   /// Whether anything is selected.
-  bool get hasSelection => _hosts.host?._selected.isNotEmpty ?? false;
+  bool get hasSelection => _hosts.host?._hasAttached ?? false;
 
   /// What is selected as the area copies it ([SelectionArea.copyTransform]
   /// included); empty while nothing is.
   String get text => _hosts.host?._text ?? '';
+
+  /// Where the selection starts: the paragraph of a [Text] or the
+  /// [Selectable], and the offset in its text (UTF-16 code units, the
+  /// range [Selectable.selection] has); null while nothing is selected.
+  /// The first of what is selected in the order of the tree.
+  SelectionPoint? get start => _hosts.host?._start;
+
+  /// Where the selection ends, as [start] says it: the last of what is
+  /// selected in the order of the tree, the offset after its last
+  /// character.
+  SelectionPoint? get end => _hosts.host?._end;
+
+  /// Selects from [start] to [end], the Texts and Selectables between
+  /// them whole, as a drag from one to the other does; whichever comes
+  /// first in the order of the tree is the start. Offsets past the text
+  /// are its end. Replaces what was selected; nothing is copied. Whether
+  /// anything is selected: not where an object is none of the area's, or
+  /// not laid out yet (the frame that shows it comes first), or the two
+  /// are one place.
+  ///
+  /// What an app that changes its content keeps the selection across it
+  /// with: read [start] and [end] before, and select between the same
+  /// places of the objects it has after, once they are drawn.
+  bool select(SelectionPoint start, SelectionPoint end) =>
+      _hosts.host?._selectBetween(start, end) ?? false;
+
+  /// Selects all the text of the area.
+  void selectAll() => _hosts.host?._selectAll();
 
   /// Clears the selection, a drag under way selecting nothing more.
   void clear() => _hosts.host?._clear();
@@ -237,6 +280,90 @@ final class SelectionAreaController with ChangeNotifier {
     super.dispose();
   }
 }
+
+/// Shows [child], which the [SelectionArea] above it leaves out: its
+/// [Text]s and [Selectable]s are neither selected nor copied, as if they
+/// were not there.
+///
+/// What is not part of the text (line numbers, a gutter, a heading over a
+/// section) goes in it, and the mouse still goes through it: a drag that
+/// starts or passes over it selects the Texts nearest the mouse outside it,
+/// by rows first. A [SelectionArea] inside selects in its own text, apart:
+/// a drag in it is its own, as a drag in a `GestureDetector` is, and the
+/// area above has nothing selected by the press.
+///
+/// As Flutter's `SelectionContainer.disabled`.
+///
+/// A listing whose line numbers are not copied with its lines:
+///
+/// ```dart
+/// SelectionArea(
+///   child: Row(
+///     children: const [
+///       ExcludeSelection(child: Text('1\n2')),
+///       Text(' first\n second'),
+///     ],
+///   ),
+/// )
+/// ```
+final class ExcludeSelection extends SingleChildRenderObjectWidget {
+  /// Leaves [child] out of what the [SelectionArea] above selects.
+  const ExcludeSelection({super.key, super.child});
+
+  @override
+  SingleChildRenderObjectElement createElement() => OneChildElement(this);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderExcludeSelection();
+}
+
+/// What [ExcludeSelection] puts in the render tree: its child, as big as
+/// the child is; the area does not look in it.
+final class _RenderExcludeSelection extends RenderObject
+    with RenderObjectWithChildMixin {
+  @override
+  void performLayout(BoxConstraints c) {
+    final child = this.child;
+    if (child == null) {
+      width = c.minWidth;
+      height = c.minHeight;
+      return;
+    }
+    child.layout(c, parentUsesSize: true);
+    width = child.width;
+    height = child.height;
+  }
+
+  @override
+  int computeMinIntrinsicWidth(int height) =>
+      child?.getMinIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMaxIntrinsicWidth(int height) =>
+      child?.getMaxIntrinsicWidth(height) ?? 0;
+
+  @override
+  int computeMinIntrinsicHeight(int width) =>
+      child?.getMinIntrinsicHeight(width) ?? 0;
+
+  @override
+  int computeMaxIntrinsicHeight(int width) =>
+      child?.getMaxIntrinsicHeight(width) ?? 0;
+
+  @override
+  void paint(PaintContext ctx) {
+    final child = this.child;
+    if (child != null) {
+      paintChild(ctx, child);
+    }
+  }
+}
+
+/// A place in what a [SelectionArea] selects in: `object`, the
+/// `RenderParagraph` of a [Text] or a [Selectable], and `offset` in its
+/// text, in UTF-16 code units.
+typedef SelectionPoint = ({RenderObject object, int offset});
 
 /// What is selected in below the area (the paragraph of a [Text], a
 /// [Selectable]), and the cell of the area its top left is at.
@@ -363,6 +490,9 @@ final class _SelectionAreaState extends State<SelectionArea> {
     }
     final placed = <_Placed>[];
     void visit(RenderObject o, int x, int y) {
+      if (o is _RenderExcludeSelection) {
+        return;
+      }
       if (o is RenderParagraph && (_mine[o] ?? false)) {
         if (o.width > 0 && o.height > 0) {
           placed.add((object: o, x: x, y: y));
@@ -390,7 +520,9 @@ final class _SelectionAreaState extends State<SelectionArea> {
   }
 
   /// The edge a click at [x], [y] of the area makes by [_unit]: in the
-  /// paragraph there, or else in the nearest one, by rows first.
+  /// paragraph there (the last of those that overlap there, as the one
+  /// painted over the others: a child of a [Selectable] over it), or else in
+  /// the nearest one, by rows first.
   _Edge? _edgeAt(List<_Placed> placed, int x, int y) {
     var best = -1;
     var bestRows = 0;
@@ -401,7 +533,10 @@ final class _SelectionAreaState extends State<SelectionArea> {
       final columns = _outside(x, left, object.width);
       if (best < 0 ||
           rows < bestRows ||
-          (rows == bestRows && columns < bestColumns)) {
+          (rows == bestRows && columns < bestColumns) ||
+          // one inside another, or one over another: the one the mouse is
+          // over is the later of them, a Selectable's child over it
+          (rows == 0 && columns == 0 && bestRows == 0 && bestColumns == 0)) {
         best = i;
         bestRows = rows;
         bestColumns = columns;
@@ -663,6 +798,19 @@ final class _SelectionAreaState extends State<SelectionArea> {
     final aLast =
         a > focus.index || (a == focus.index && anchor.end >= focus.end);
     final (to, end) = aLast ? (a, anchor.end) : (focus.index, focus.end);
+    _select(_between(placed, from, start, to, end));
+    _selectedByPress = _selected.isNotEmpty;
+  }
+
+  /// What is selected from [start] of the text of the [from]th of [placed]
+  /// to [end] of the [to]th, the ones between whole.
+  Map<RenderObject, (int, int)> _between(
+    List<_Placed> placed,
+    int from,
+    int start,
+    int to,
+    int end,
+  ) {
     final selected = <RenderObject, (int, int)>{};
     for (var i = from; i <= to; i++) {
       final p = placed[i].object;
@@ -672,8 +820,72 @@ final class _SelectionAreaState extends State<SelectionArea> {
         selected[p] = (s, e);
       }
     }
+    return selected;
+  }
+
+  /// Whether anything selected is still in the tree, as [_start] reads.
+  bool get _hasAttached => _selected.keys.any((o) => o.owner != null);
+
+  /// Where the selection starts, null while nothing is selected.
+  SelectionPoint? get _start {
+    for (final MapEntry(key: o, value: (s, _)) in _selected.entries) {
+      if (o.owner != null) {
+        return (object: o, offset: s);
+      }
+    }
+    return null;
+  }
+
+  /// Where the selection ends, null while nothing is selected.
+  SelectionPoint? get _end {
+    SelectionPoint? end;
+    for (final MapEntry(key: o, value: (_, e)) in _selected.entries) {
+      if (o.owner != null) {
+        end = (object: o, offset: e);
+      }
+    }
+    return end;
+  }
+
+  /// Selects from [start] to [end], whichever comes first in the order of
+  /// the tree; whether it did.
+  bool _selectBetween(SelectionPoint start, SelectionPoint end) {
+    _letGoOfDrag();
+    final placed = _placed();
+    final a = placed.indexWhere((p) => identical(p.object, start.object));
+    final b = placed.indexWhere((p) => identical(p.object, end.object));
+    if (a < 0 || b < 0) {
+      _select(const {});
+      return false;
+    }
+    int at(int i, int offset) =>
+        offset.clamp(0, _textOf(placed[i].object).length);
+    final sa = at(a, start.offset);
+    final sb = at(b, end.offset);
+    final aFirst = a < b || (a == b && sa <= sb);
+    final selected = aFirst
+        ? _between(placed, a, sa, b, sb)
+        : _between(placed, b, sb, a, sa);
     _select(selected);
-    _selectedByPress = _selected.isNotEmpty;
+    return selected.isNotEmpty;
+  }
+
+  /// Selects all of the text of the area.
+  void _selectAll() {
+    _letGoOfDrag();
+    final placed = _placed();
+    if (placed.isEmpty) {
+      return;
+    }
+    _select(
+      _between(
+        placed,
+        0,
+        0,
+        placed.length - 1,
+        _textOf(placed.last.object).length,
+      ),
+    );
   }
 
   /// Selects [selected]: the Texts whose part changed are built again, the
@@ -707,10 +919,14 @@ final class _SelectionAreaState extends State<SelectionArea> {
 
   /// Clears the selection, a drag under way selecting nothing more.
   void _clear() {
+    _letGoOfDrag();
+    _select(const {});
+  }
+
+  void _letGoOfDrag() {
     _stopDrag();
     _anchor = null;
     _selectedByPress = false;
-    _select(const {});
   }
 
   /// Copies what is selected, if anything is, to the system clipboard.

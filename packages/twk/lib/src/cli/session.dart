@@ -64,13 +64,13 @@ final class CliSession {
     void Function()? onInterrupt,
     void Function(String message)? onWarning,
   }) async {
-    final clock = terminal.clock;
-    final backend = await clock.run(terminal.openInline);
-    final binding = clock.run(
+    final backend = await terminal.run(terminal.openInline);
+    final binding = terminal.run(
       () => AppBinding(
         backend,
         clearInlineOnExit: true,
-        clock: clock.stopwatch(),
+        clock: terminal.clock,
+        startTime: terminal.startTime,
       ),
     );
     final session = CliSession._(
@@ -80,7 +80,7 @@ final class CliSession {
       onInterrupt,
       onWarning,
     );
-    session._running = clock.run(() => binding.run(_Host(session)));
+    session._running = terminal.run(() => binding.run(_Host(session)));
     unawaited(session._watch());
     return session;
   }

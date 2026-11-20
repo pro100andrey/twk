@@ -56,6 +56,14 @@ void main() {
     expect(lf.lines, ['a', ' b']);
   });
 
+  test('lineFeedOnNormalScreen takes LF off the alternate screen only', () {
+    final vt = Vt(10, 3, strict: false, lineFeedOnNormalScreen: true)
+      ..feed(utf8.encode('\x1b[?1049ha\nb'));
+    expect(vt.errors, ['raw control byte 0xa']);
+    vt.feed(utf8.encode('\x1b[?1049l\r\nlog'));
+    expect(vt.errors, ['raw control byte 0xa']);
+  });
+
   test('a print past the last column wraps, which is an error', () {
     final vt = Vt(3, 2, strict: false)..feed(utf8.encode('abcd'));
     expect(vt.errors, ['print after last column wrapped']);

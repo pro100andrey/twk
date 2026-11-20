@@ -22,6 +22,9 @@ String get pathSeparator => '/';
 /// 0 on the web.
 int get processId => 0;
 
+/// -1 on the web, which has no parent process.
+int get parentProcessId => -1;
+
 /// `/` on the web.
 String get currentDirectory => '/';
 

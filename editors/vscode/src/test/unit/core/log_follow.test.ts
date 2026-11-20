@@ -10,7 +10,7 @@ import * as path from 'node:path';
 
 import { LogFollower, LogFollowing } from '../../../core/log_follow';
 import { Lines, nodeLogEndpoints } from '../../../core/log_socket';
-import { FakeClock, FakeLogEndpoints, until } from '../fakes';
+import { FakeClock, FakeLogEndpoints, listenLocal, until } from '../fakes';
 
 describe('LogFollower', () => {
   let endpoints: FakeLogEndpoints;
@@ -128,7 +128,6 @@ describe('the endpoints of node', () => {
   });
 
   it('connect to a socket, send the token and a line feed first, and tell the lines and the end', async () => {
-    const socketPath = path.join(dir, 'logs.sock');
     const received: string[] = [];
     let serverSide: net.Socket | undefined;
     const server = net.createServer((s) => {
@@ -138,9 +137,10 @@ describe('the endpoints of node', () => {
         s.write('{"a":1}\n{"b"');
       });
     });
-    await new Promise<void>((r) => server.listen(socketPath, r));
+    // where twk_core's log server would listen: a Unix domain socket, TCP on Windows
+    const where = await listenLocal(server, dir, 'logs.sock');
     try {
-      const connection = await nodeLogEndpoints.connect({ where: `unix:${socketPath}`, token: 'secret' });
+      const connection = await nodeLogEndpoints.connect({ where, token: 'secret' });
       const lines: string[] = [];
       let ended = false;
       connection.onLine((l) => lines.push(l));

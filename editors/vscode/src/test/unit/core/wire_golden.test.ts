@@ -16,6 +16,7 @@ import { declarationOf, presetNamed } from '../../../core/capabilities';
 import { TerminalPane, TerminalShell } from '../../../core/shell';
 import { switchEnvironment, switchesOf } from '../../../core/switches';
 import { AppFrame, FrameReader, ShellFrame, Wire, appFrameOf, frame, jsonFrame } from '../../../core/wire';
+import { connectLocal, shellOnTcp } from '../fakes';
 
 /** From out/test/unit/core, where this runs compiled, to the repository's root. */
 const goldenPath = path.resolve(__dirname, '../../../../../../packages/twk_core/test/terminal/shell_wire.golden.json');
@@ -167,10 +168,8 @@ class Client {
       changes.changed();
     });
   }
-  static async connect(socketPath: string, changes: Changes): Promise<Client> {
-    const socket = net.connect(socketPath);
-    await new Promise((r) => socket.once('connect', r));
-    return new Client(socket, changes);
+  static async connect(where: string, changes: Changes): Promise<Client> {
+    return new Client(await connectLocal(where), changes);
   }
 }
 
@@ -292,15 +291,15 @@ describe('the golden of the wire', () => {
           welcome: () => ({ environment: { ...environment, ...switchEnvironment(switches) }, declares }),
           onEvent: () => {},
           temporaryRoot: root,
-          tcp: false,
+          tcp: shellOnTcp,
           token: hello.token,
         }));
-        const socketPath = fromVariable(s.variable)?.where.substring('unix:'.length) ?? '';
+        const where = fromVariable(s.variable)?.where ?? '';
         const apps = new Map<number, Client>();
         const app = async (by: number): Promise<Client> => {
           let client = apps.get(by);
           if (!client) {
-            client = await Client.connect(socketPath, changes);
+            client = await Client.connect(where, changes);
             clients.push(client);
             apps.set(by, client);
           }

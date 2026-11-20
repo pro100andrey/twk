@@ -9,6 +9,7 @@ import 'package:gallery/cli/install.dart' as install;
 import 'package:gallery/cli/run.dart';
 import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
+import 'package:twk/twk.dart' show Brightness;
 import 'package:twk_test/twk_test.dart';
 
 const _programs = <String, CliProgram>{
@@ -143,6 +144,17 @@ void main() {
       });
     });
   }
+
+  test('closing a run while its clock moves waits for the move', () async {
+    final run = CliRunSession(0, 60, 20, Brightness.dark)
+      ..begin(cliScripts['create']!, _programs['create']!);
+    await run.move(const Duration(milliseconds: 100));
+    final moving = run.move(const Duration(milliseconds: 100));
+    run.close();
+    await moving;
+    await run.clock.flushMicrotasks();
+    expect(run.ended, isTrue);
+  });
 
   testTwk('the page runs it in a terminal on the stage', (t) async {
     await t.pumpWidget(

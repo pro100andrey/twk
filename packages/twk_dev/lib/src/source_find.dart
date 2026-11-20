@@ -13,7 +13,7 @@
 /// `source_find.ts`, in the same steps.
 library;
 
-import 'app_client.dart' show Json;
+import 'package:twk_driver/twk_driver.dart' show Json;
 
 /// A node of a tree an app describes (`ext.twk.tree`).
 final class InspectNode {

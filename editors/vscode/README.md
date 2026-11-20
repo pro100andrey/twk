@@ -11,7 +11,7 @@ in a terminal of the extension's own, beside the editor.
   F5 on a `"type": "twk"` launch configuration.
 - **Hot reload on save**, and hot restart (Ctrl+Alt+R, Ctrl+Alt+Shift+R): every
   widget is rebuilt with its state kept.
-- **What the terminal is**: presets and switches (colours, sixel and iTerm2
+- **What the terminal is**: presets and switches (colors, sixel and iTerm2
   images, kitty's keyboard protocol, synchronized output, notifications,
   links, the clipboard), a screen reader, and twk's debug aids.
 - **The twk Inspector** in Run and Debug: the widget tree (or the render tree, switched in its title), a twk Node view of
@@ -28,7 +28,7 @@ in a terminal of the extension's own, beside the editor.
   (offered, never run for you).
 - **Golden screens**: a file of twk_test's `matchesScreenFile` opened with
   twk: Open Screen File as a twk Screen (or "Open With..." twk Screen) is drawn
-  cell by cell in its colours, with Text and Styles toggles. When a test
+  cell by cell in its colors, with Text and Styles toggles. When a test
   failed on it, twk_test leaves the screen it saw beside the file as
   `<file>.actual`; the editor then shows both with the cells that differ marked,
   and **Accept Actual** makes that screen the golden (the file

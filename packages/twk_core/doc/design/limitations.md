@@ -13,7 +13,7 @@
   pseudo-terminal run on it (`ci-os`); the POSIX path is the same as on
   Linux except the `struct termios` layout used to turn ISIG off.
   Terminal.app has 256 colors (by its `TERM_PROGRAM`), no styled or
-  coloured underlines and, of desktop notifications, only its bell
+  colored underlines and, of desktop notifications, only its bell
   ([§1.11](components.md)); the last two also where its secondary device
   attributes tell it ([§1.7](terminal.md)).
 * Raw mode beyond what `dart:io` does (ISIG, IXON, ICRNL off) needs the

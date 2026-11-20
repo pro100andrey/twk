@@ -78,7 +78,8 @@ jobs:
     # Where the terminal is another's: on macOS every package's tests (its
     # pseudo-terminal and BSD's tools too) and the end to end runs, on
     # Windows the portable packages' (the core's console backend and twk
-    # over it). The benchmark is Linux's (its `platforms:`).
+    # over it); on both the VS Code extension's install, compile and unit
+    # tests (node and npm from setup-node). The benchmark is Linux's (its `platforms:`).
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +91,11 @@ jobs:
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.13.7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
       - run: dart run tool/xtask.dart ci-os -j auto --keep-going --report xtask-report.json
       - uses: actions/upload-artifact@v7
         if: always()

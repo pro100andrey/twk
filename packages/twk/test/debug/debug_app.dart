@@ -15,7 +15,7 @@ Future<void> main() async {
   final clock = FakeClock();
   final term = HeadlessTerminal(width: 50);
   final binding = clock.run(
-    () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+    () => AppBinding(term, maxFps: 1000, clock: clock.clock),
   );
   final done = clock.run(() => binding.run(const Label('app')));
   await clock.elapse(const Duration(milliseconds: 300));

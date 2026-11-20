@@ -5,11 +5,11 @@
 // sent as `i` events and the notes as `m` events (markers, which `twk decode`
 // reads as notes). Pure: no node, no DOM.
 import { CastWriter } from './cast.js';
-import { LogEntry, LogFilter, entryMatches } from './seqlog.js';
+import { AppOffset, LogEntry, LogFilter, entryMatches } from './seqlog.js';
 
 /** A piece of a screen's traffic, at [time] ms of the log's clock. */
 export type TrafficPiece =
-  | { readonly time: number; readonly output: Uint8Array; readonly fromApp: boolean }
+  | { readonly time: number; readonly output: Uint8Array; readonly fromApp: boolean; readonly app?: AppOffset }
   | { readonly time: number; readonly input: Uint8Array }
   | { readonly time: number; readonly note: string };
 

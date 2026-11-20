@@ -73,6 +73,10 @@ final class CalendarController extends ChangeNotifier {
       'firstDate after lastDate',
     );
     _cursor = _clamp(_cursor);
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
   }
 
   // days since 1970-01-01

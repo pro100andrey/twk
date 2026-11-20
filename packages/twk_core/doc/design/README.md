@@ -89,7 +89,7 @@ don't import each other, ← app. Two public libraries sit on them:
 `package:twk_core/terminal.dart`, the terminal without the render tree and
 the app, for a logger, a prompt or a command-line tool that writes lines
 and reads keys: `Terminal` and what it is opened with and says it is,
-`colorModeFor`, `plainAsked` and `runsInCi`, styles and colours, the
+`colorModeFor`, `plainAsked` and `runsInCi`, styles and colors, the
 `LineEncoder`, the input parser and its events, widths, the terminal's own
 sequences and the log sink. Its names are `twk_core.dart`'s own
 declarations, so a program may import both. A program importing it

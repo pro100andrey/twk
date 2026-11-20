@@ -183,6 +183,10 @@ final class RenderFlex extends RenderObject
 
   Axis _direction;
 
+  // its children side by side, none over another
+  @override
+  bool get _childrenMayOverlap => false;
+
   /// The main axis, along which the children go one after another.
   Axis get direction => _direction;
   set direction(Axis d) {

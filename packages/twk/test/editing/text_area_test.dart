@@ -20,7 +20,6 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../data/shot.dart' show Counted, PaintCount;
-import '../disposing.dart';
 
 /// The microseconds of a pass over [text] that taking it in at all makes:
 /// its UTF-8 bytes decoded and its lines found, the mean of three.

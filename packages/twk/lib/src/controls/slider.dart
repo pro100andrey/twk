@@ -37,8 +37,10 @@ import 'pressable.dart';
 /// not. Left and Right are hinted. A press of the left button on the
 /// thumb grabs it; elsewhere on the track, it moves the thumb there and
 /// grabs it. Dragged, the thumb moves as many cells as the mouse, wherever
-/// the mouse goes until the release. A press of the track is its own: a
-/// `GestureDetector` around it gets nothing of it.
+/// the mouse goes until the release; where the terminal reports pixels
+/// ([PointerEvent.subX]) the part of a cell too, snapped to the divisions.
+/// A press of the track is its own: a `GestureDetector` around it gets
+/// nothing of it.
 ///
 /// Each calls [onChanged] with the value the slider is to take, once that
 /// is another; the app builds it with that one. Keys that come before the
@@ -178,7 +180,8 @@ final class _SliderState extends State<Slider> {
   // the value the last key or drag gave, until the slider is built again
   late double _value = widget.value;
 
-  // a grab of the thumb: the cell it was pressed at and where the thumb
+  // a grab of the thumb: where along the track it was pressed, in steps
+  // (within a cell where the terminal reports pixels), and where the thumb
   // was then, in steps; null while there is none
   int? _grabAt;
   var _grabStart = 0;
@@ -256,12 +259,13 @@ final class _SliderState extends State<Slider> {
       steps,
     );
     final at = event.x;
-    _grabAt = at;
+    final pressed = _stepsAt(event, steps);
+    _grabAt = pressed;
     widget.onChangeStart?.call(_fit(_value));
     if (at * steps < start + steps && (at + 1) * steps > start) {
       _grabStart = start;
     } else {
-      _grabStart = at * steps;
+      _grabStart = pressed;
       _moveTo(_grabStart, render);
     }
   }
@@ -272,8 +276,16 @@ final class _SliderState extends State<Slider> {
     if (grabAt == null || render == null) {
       return;
     }
-    _moveTo(_grabStart + (event.x - grabAt) * render.steps, render);
+    _moveTo(
+      _grabStart + _stepsAt(event, render.steps) - grabAt,
+      render,
+    );
   }
+
+  /// Where [event] is along the track, in steps: its cell's start, with
+  /// the pointer's place within the cell where the terminal reports one.
+  static int _stepsAt(PointerEvent event, int steps) =>
+      event.x * steps + ((event.subX ?? 0) * steps).floor();
 
   /// Takes the value of the thumb at [start], in steps.
   void _moveTo(int start, _RenderTrack render) {

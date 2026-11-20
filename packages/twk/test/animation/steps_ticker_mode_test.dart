@@ -20,7 +20,7 @@ void main() {
     'ProgressBar': ((_) => const ProgressBar(), 10),
     'ProgressList': (
       (t) {
-        final tracker = ProgressTracker(clock: t.clock.stopwatch)
+        final tracker = ProgressTracker(clock: t.clock.clock)
           ..add('Index').start();
         addTearDown(tracker.dispose);
         return ProgressList(tracker: tracker);
@@ -84,7 +84,7 @@ void main() {
 
   testTwk('a muted ProgressList keeps the mark of its spinner as the tracker '
       'repaints it', (t) async {
-    final tracker = ProgressTracker(clock: t.clock.stopwatch);
+    final tracker = ProgressTracker(clock: t.clock.clock);
     addTearDown(tracker.dispose);
     tracker.add('Index', total: 100).start();
     await t.pumpWidget(

@@ -43,6 +43,31 @@
 // They use only what the baseline's core has (RenderParagraph and its wrap,
 // overflow and maxLines), so every baseline has their numbers.
 //
+// Scenarios of Hawk TUI's dashboard (a third party's benchmark of twk
+// against Rust frameworks, rtwk-hawk-benchmark, 2026-11), of the render
+// objects twk's widgets make for it: a Header, a List of 40 rows in boxes,
+// a word-wrapped Body, a progress bar, in bordered and titled panels:
+//   dash       the 40 rows' text changed, the selection moved, the bar
+//              grown, as the benchmark's every frame
+//   dash-rows  the rows' text alone
+//   dash-one   the bar alone
+//   dash-bd    dash with the List and the Body in repaint boundaries
+//
+// Scenarios of an image of 12 frames of 40 x 12 cells beside a spinner,
+// built of the core's TerminalImages (the decoders of twk_rich left out;
+// what a frame costs the core and the terminal):
+//   img-kitty-anim    on a terminal that plays kitty's animations
+//                     (TerminalCaps.kittyAnimation): the frames sent before,
+//                     a frame the image's bookkeeping and the spinner
+//   img-kitty         on kitty's protocol without it (Konsole, Ghostty), as
+//                     an Image draws it: each frame's image sent once and
+//                     kept (ImageKeep), then placed again
+//   img-sixel         the next frame in sixel, of no runs to compress
+//   img-blocks        the next frame in half blocks: 480 cells recolored
+// The emulator checks them as the others (images over reserved cells).
+// img-kitty-anim needs ImageAnimation: a baseline from before it has
+// no number for it.
+//
 // Before a scenario is timed it runs for 64 frames into the test emulator
 // (package:twk_test/vt.dart): a screen that differs from what was painted, or
 // output the emulator rejects, stops the benchmark, so a broken scenario
@@ -158,6 +183,7 @@ int _verify(FrameScenario s, int w, int h) {
     h,
     strict: false,
     segmenter: TextSegmenter(ambiguousWidth: s.ambiguousWidth),
+    konsoleImages: s.caps.konsoleImages,
   )..feed(rig.presenter.out.view);
   var bytes = 0;
   for (var i = 1; i <= _verifyFrames; i++) {

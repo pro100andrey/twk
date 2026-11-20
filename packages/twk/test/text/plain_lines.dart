@@ -31,7 +31,7 @@ Future<List<String>> plainLines(
     ),
   );
   final binding = clock.run(
-    () => AppBinding(terminal, maxFps: 1000, clock: clock.stopwatch),
+    () => AppBinding(terminal, maxFps: 1000, clock: clock.clock),
   );
   onRun?.call(binding);
   final running = clock.run(() => binding.run(app));

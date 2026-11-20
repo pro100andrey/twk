@@ -83,8 +83,10 @@ void main() {
     testTwk('in a SelectionList the bar is on the selected row while the '
         "list has not the focus, in the muted color, and on the cursor's "
         'when it has', (t) async {
-      final controller = SelectionController<String>(
-        selected: [files[1].$1],
+      final controller = disposing(
+        SelectionController<String>(
+          selected: [files[1].$1],
+        ),
       );
       const theme = ThemeData.nord;
       await t.pumpWidget(

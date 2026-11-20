@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:twk_dev/src/templates/templates.dart';
 
 import '../tool/pack_templates.dart';
+import 'create_cycle.dart' show repository;
 import 'twk.dart';
 
 void main() {
@@ -54,6 +55,16 @@ void main() {
             reason: '${p.basename(dir)} takes $twk by path',
           );
         }
+        if (optionalTwkPackages.keys.any(
+          (name) => pubspec.contains('\n  $name:\n    path: '),
+        )) {
+          // not on pub yet: only a checkout has them
+          expect(
+            () => withTwkFrom(pubspec),
+            throwsA(isA<UnpublishedPackages>()),
+          );
+          continue;
+        }
         expect(
           withTwkFrom(pubspec),
           isNot(contains('path:')),
@@ -62,6 +73,56 @@ void main() {
       }
     },
   );
+
+  test('a template takes twk_ssh, twk_web, twk_riverpod or twk_bloc by path '
+      'where it has them, by the version of the package from pub', () async {
+    for (final MapEntry(key: package, value: version)
+        in optionalTwkPackages.entries) {
+      expect(
+        File(
+          p.join(await repository(), 'packages', package, 'pubspec.yaml'),
+        ).readAsStringSync(),
+        contains('\nversion: $version\n'),
+        reason: package,
+      );
+      // the day one is published, `twk create` takes it from pub again: drop
+      // it from [unpublishedTwkPackages]
+      expect(
+        File(
+          p.join(await repository(), 'packages', package, 'pubspec.yaml'),
+        ).readAsStringSync().contains('\npublish_to: none\n'),
+        unpublishedTwkPackages.contains(package),
+        reason: package,
+      );
+    }
+    const pubspec =
+        'name: app\n'
+        'dependencies:\n'
+        '  twk:\n    path: ../../twk\n'
+        '  twk_ssh:\n    path: ../../twk_ssh\n'
+        'dev_dependencies:\n'
+        '  twk_dev:\n    path: ../../twk_dev\n'
+        '  twk_lints:\n    path: ../../twk_lints\n'
+        '  twk_test:\n    path: ../../twk_test\n'
+        'dependency_overrides:\n'
+        '  twk:\n    path: ../../twk\n'
+        '  twk_core:\n    path: ../../twk_core\n'
+        '  twk_driver:\n    path: ../../twk_driver\n'
+        '  twk_term:\n    path: ../../twk_term\n';
+    expect(
+      () => withTwkFrom(pubspec),
+      throwsA(
+        isA<UnpublishedPackages>()
+            .having((e) => e.packages, 'packages', ['twk_ssh'])
+            .having((e) => e.message, 'message', contains('twk_ssh')),
+      ),
+      reason: 'not published yet (publish_to: none): pub get would fail',
+    );
+    expect(
+      withTwkFrom(pubspec, checkout: '/t'),
+      contains('\n  twk_ssh:\n    path: /t/packages/twk_ssh\n'),
+    );
+  });
 
   test('a pubspec that takes a package of twk by no path is a StateError', () {
     expect(
@@ -75,8 +136,8 @@ void main() {
       ),
     );
   });
-  test('a pubspec without the overrides of twk, twk_core and twk_term by '
-      'path, or with others, is a StateError', () {
+  test('a pubspec without the overrides of twk, twk_core, twk_driver and '
+      'twk_term by path, or with others, is a StateError', () {
     const dependencies =
         'name: app\n'
         'dependencies:\n'
@@ -92,7 +153,8 @@ void main() {
       isA<StateError>().having(
         (e) => e.message,
         'message',
-        'The pubspec overrides $overrides by path, not twk, twk_core, twk_term',
+        'The pubspec overrides $overrides by path, '
+            'not twk, twk_core, twk_driver, twk_term',
       ),
     );
     expect(() => withTwkFrom(dependencies), refused('nothing'));
@@ -112,6 +174,8 @@ void main() {
         '    path: ../../twk\n'
         '  twk_core:\n'
         '    path: ../../twk_core\n'
+        '  twk_driver:\n'
+        '    path: ../../twk_driver\n'
         '  twk_term:\n'
         '    path: ../../twk_term',
       ),
@@ -143,6 +207,7 @@ void main() {
     const twk = '  twk:\n    path: ../../twk\n';
     const core =
         '  twk_core:\n    path: ../../twk_core\n'
+        '  twk_driver:\n    path: ../../twk_driver\n'
         '  twk_term:\n    path: ../../twk_term\n';
     for (final block in [
       '$twk$core  meta: ^1.16.0\n',

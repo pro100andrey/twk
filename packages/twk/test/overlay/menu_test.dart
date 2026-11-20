@@ -1015,8 +1015,8 @@ void main() {
     t,
   ) async {
     final host = GlobalKey<HostState>();
-    final first = MenuController();
-    final second = MenuController();
+    final first = disposing(MenuController());
+    final second = disposing(MenuController());
     await t.pumpWidget(
       Theme.terminal(
         child: Host(
@@ -1055,8 +1055,8 @@ void main() {
     final host = GlobalKey<HostState>();
     final bar = GlobalKey();
     final context = GlobalKey();
-    final menusOpen = MenuController();
-    final contextOpen = MenuController();
+    final menusOpen = disposing(MenuController());
+    final contextOpen = disposing(MenuController());
     final log = <String>[];
     Widget widgets() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,

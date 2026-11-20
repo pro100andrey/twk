@@ -321,7 +321,7 @@ void main() {
         maxFps: 1000,
         clearInlineOnExit: clearInlineOnExit,
         framesInRow: framesInRow,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       return (app, out);

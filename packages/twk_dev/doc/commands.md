@@ -62,7 +62,7 @@ started without a terminal (from the IDE, under the debugger)
 ### `twk logs [-C <dir>] [--[no-]color]`
 
 tails the log an app of the project serves over a local socket, with levels
-and colours
+and colors
 
 ### `twk run [--no-asserts] [--no-watch-deps] [--debug=<aids>] [--screen-reader] [--plain] <file> [<arguments>...]`
 
@@ -79,6 +79,12 @@ shows a running app's widget tree, or its render tree, the selected node's
 properties and layout, the node outlined on the app's screen, and selects the
 node under a cell clicked on the app's screen; the app at the address given,
 or the one `twk run` runs from the project
+
+### `twk mcp`
+
+serves the Model Context Protocol on stdin and stdout, so that a coding agent
+starts a twk app, looks at its screen and widget tree, presses keys, taps,
+moves its time, hot reloads it and reads its log (see [mcp.md](mcp.md))
 
 ### `twk record [--out=<file>] [--idle-limit=<s>] [--title=<text>] [--keys] -- <command>`
 
@@ -99,6 +105,16 @@ names the sequences of a recording or a byte trace, a row each, with its time
 runs a tape, a script of what to type into a program and when, in a
 pseudo-terminal, and writes the session as asciicast v2, as an animated SVG
 and as still SVGs of the screens it names
+
+### `twk test-from-cast <file.cast> [--out=<file>] [--no-goldens]`
+
+writes a regression test from a recording: copies the cast to
+`test/<name>.cast` and writes `test/<name>_test.dart` (or the file `--out`
+names) over `Cast.read` and twk_test's `screenFrames`, checking that the
+emulator took in all of the recording and that the screen at each of its
+markers is the golden `test/goldens/<name>/<k>.txt`. It runs the test once
+with `TWK_UPDATE_GOLDENS=1` to write the goldens (`--no-goldens` skips the
+run); review and commit them. See [record-play.md](record-play.md).
 
 ### `twk completion <bash|zsh|fish>`
 

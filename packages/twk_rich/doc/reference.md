@@ -96,7 +96,7 @@ width it is given, which must be bounded, and is as tall as its blocks (in a
 theme, glyphs: Glyphs.unicode)` makes the same document lines of styled text,
 `List<List<Span>>` wrapped to `width` columns (an empty line between blocks
 has no spans), for an app that draws it itself in a panel that cuts and
-colours by the cell: it parses, styles and words as the view does (wrapping by
+colors by the cell: it parses, styles and words as the view does (wrapping by
 words, CJK between characters; list markers, quote bars, table lines), the
 styles of its spans resolved (the quote's, a heading's and an emphasis's
 merged in), its links hyperlinks, to the web or an address, as the view's by
@@ -320,7 +320,14 @@ cut off. It takes all the room it is given, which must be bounded.
 `Theme`: added and removed rows on a tint of `success` and of `error` (their
 text color at alpha 0x30), the words changed on a stronger one (0x70), the
 signs in those colors, numbers `muted`, the rows of lines left out `muted` on
-`surface`, those of files bold `info` on `surface`, the divider `border`
+`surface`, those of files bold `info` on `surface`, the divider `border`. Below a
+`SelectionArea` its rows are selected with the mouse and copied (`selectable:
+true`, the default; false leaves them to the area as plain `Text`s), the lines
+of the diff as they read, the code of each as shown (a tab as the blanks it is
+drawn as), its numbers and signs left out, the file's name and the count of
+lines left out as shown, and side by side the old and the new line of a row
+joined by a tab; the rows out of view are selected too, as `ListView.itemText`
+says.
 
 ## JSON (`json_view`)
 

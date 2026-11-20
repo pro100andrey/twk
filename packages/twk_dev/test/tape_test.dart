@@ -16,6 +16,10 @@ String _describe(TapeStep step) => switch (step) {
   SleepStep(:final duration) => 'sleep ${duration.inMilliseconds}ms',
   WaitStep(:final pattern, :final source, :final scope, :final timeout) =>
     'wait ${scope.name} $source ${pattern.pattern}${_at(timeout)}',
+  WaitNodeStep(:final finder, :final source, :final timeout) =>
+    'wait node $source ${finder.toJson()}${_at(timeout)}',
+  ClickStep(:final finder, :final source, :final delay) =>
+    'click $source ${finder.toJson()}${_at(delay)}',
   HideStep(:final hide) => hide ? 'hide' : 'show',
   ScreenshotStep(:final path) => 'screenshot $path',
   DelayStep(:final delay, :final timeout) =>
@@ -105,6 +109,61 @@ Set WaitTimeout 3s
       final waits = tape.steps.whereType<WaitStep>().toList();
       expect(waits[1].pattern.hasMatch('one\n\$ #\nthree'), isTrue);
       expect(waits[2].pattern.hasMatch('axb'), isFalse);
+    });
+
+    test('reads the statements for a twk app: Wait Widget and Wait Text '
+        'with their timeouts, Click by text with its delay', () {
+      final tape = Tape.parse('''
+Wait Widget Tabs
+Wait@5s Widget "Map<String, int>"
+Wait Text "Saved # ok"
+Click "Save"
+Click@200ms 'Cancel'
+Click Key "save"
+Click@1s Key 3
+Click "Key"
+Wait "Widget"
+''');
+
+      expect(tape.steps.map(_describe), [
+        'wait node Widget Tabs {type: Tabs}',
+        'wait node Widget Map<String, int> {type: Map<String, int>} @5000ms',
+        'wait node Text "Saved # ok" {text: Saved # ok}',
+        'click "Save" {text: Save}',
+        'click "Cancel" {text: Cancel} @200ms',
+        'click Key "save" {key: {value: save}}',
+        'click Key 3 {key: {value: 3}} @1000ms',
+        'click "Key" {text: Key}',
+        'wait screen "Widget" Widget',
+      ]);
+    });
+
+    test('says what is wrong with Wait Widget, Wait Text and Click', () {
+      final cases = {
+        'Wait Widget':
+            '1: Wait Widget takes the type of a widget: Wait Widget Tabs',
+        'Wait Text Saved':
+            '1: Wait Text takes the text of a widget: Wait Text "Saved"',
+        'Wait Widget A B':
+            '1: Wait Widget takes the type of a widget: Wait Widget Tabs',
+        'Wait+Line Widget Tabs':
+            '1: Wait+Line takes a /regular expression/ '
+            'or "text"',
+        'Click': '1: $_clickUsage',
+        'Click Save': '1: $_clickUsage',
+        'Click Key': '1: $_clickUsage',
+        'Click Key "a" "b"': '1: $_clickUsage',
+        'Click Key save':
+            '1: Click Key takes a quoted id, or a whole number: Click Key '
+            '"save"',
+      };
+      for (final MapEntry(:key, :value) in cases.entries) {
+        expect(
+          () => Tape.parse(key, name: 't'),
+          _error('t:$value'),
+          reason: key,
+        );
+      }
     });
 
     test('a tape of nothing is sh at 80 by 24, dark, and writes nothing', () {
@@ -472,3 +531,7 @@ Set WaitTimeout 3s
     }
   });
 }
+
+const _clickUsage =
+    'Click takes the quoted text of a widget or its key: Click "Save", '
+    'Click Key "save"';

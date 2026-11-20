@@ -92,7 +92,9 @@ void main() {
       await t.pumpWidget(
         table(
           files,
-          controller: TreeController(expanded: ['src', 'data', 'widgets']),
+          controller: disposing(
+            TreeController(expanded: ['src', 'data', 'widgets']),
+          ),
         ),
         size: (24, 10),
       );
@@ -114,7 +116,10 @@ void main() {
       'the guides are ASCII where box drawing is two columns wide',
       () async {
         final app = await WideApp.start(
-          table(files, controller: TreeController(expanded: ['src', 'data'])),
+          table(
+            files,
+            controller: disposing(TreeController(expanded: ['src', 'data'])),
+          ),
           width: 24,
           height: 4,
         );
@@ -143,7 +148,7 @@ void main() {
     testTwk('Right expands the node selected, then selects its first child; '
         'Left collapses it, or selects its parent; +, - and * expand, '
         'collapse and expand all below; Enter toggles', (t) async {
-      final controller = TreeController(selectedKey: 'src');
+      final controller = disposing(TreeController(selectedKey: 'src'));
       await t.pumpWidget(table(files, controller: controller), size: (24, 6));
       await t.press('right');
       expect(controller.expanded, {'src'});
@@ -175,7 +180,7 @@ void main() {
 
     testTwk('Enter calls onActivated with the node selected', (t) async {
       final activated = <String>[];
-      final controller = TreeController(selectedKey: 'test');
+      final controller = disposing(TreeController(selectedKey: 'test'));
       await t.pumpWidget(
         table(
           files,
@@ -193,7 +198,7 @@ void main() {
         'it; collapsing the node above the one selected selects it', (
       t,
     ) async {
-      final controller = TreeController();
+      final controller = disposing(TreeController());
       await t.pumpWidget(table(files, controller: controller), size: (24, 6));
       // the expander of src
       await t.click(0, 1);
@@ -229,7 +234,7 @@ void main() {
         "node's indent, at the x of its expander, does not expand it", (
       t,
     ) async {
-      final controller = TreeController(expanded: ['src']);
+      final controller = disposing(TreeController(expanded: ['src']));
       await t.pumpWidget(
         table(
           files,
@@ -260,7 +265,7 @@ void main() {
   group('no selection', () {
     testTwk('the keys scroll the rows, select nothing and expand nothing; a '
         'click on an expander expands or collapses its node alone', (t) async {
-      final controller = TreeController();
+      final controller = disposing(TreeController());
       await t.pumpWidget(
         table(
           [
@@ -302,7 +307,7 @@ void main() {
     });
     testTwk('nor do they act on a node the controller selects', (t) async {
       final activated = <String>[];
-      final controller = TreeController(selectedKey: 'src');
+      final controller = disposing(TreeController(selectedKey: 'src'));
       await t.pumpWidget(
         table(
           files,
@@ -326,12 +331,14 @@ void main() {
     testTwk('a click on a title sorts the children of each node among '
         'themselves, every node above its children, either way; the guides '
         'follow the order', (t) async {
-      final tableController = TableController();
+      final tableController = disposing(TableController());
       await t.pumpWidget(
         table(
           files,
           tableController: tableController,
-          controller: TreeController(expanded: ['src', 'data', 'widgets']),
+          controller: disposing(
+            TreeController(expanded: ['src', 'data', 'widgets']),
+          ),
         ),
         size: (24, 10),
       );
@@ -369,11 +376,13 @@ void main() {
 
     testTwk('s sorts by name, the selection staying on its node, which '
         'the keys move through in the order shown', (t) async {
-      final controller = TreeController(
-        selectedKey: 'tree.dart',
-        expanded: ['src', 'data'],
+      final controller = disposing(
+        TreeController(
+          selectedKey: 'tree.dart',
+          expanded: ['src', 'data'],
+        ),
       );
-      final tableController = TableController();
+      final tableController = disposing(TableController());
       await t.pumpWidget(
         table(
           files,
@@ -423,8 +432,8 @@ void main() {
 
     testTwk('the selection stays on its node as nodes above it expand and '
         'collapse', (t) async {
-      final controller = TreeController(selectedKey: 'readme.md');
-      final tableController = TableController();
+      final controller = disposing(TreeController(selectedKey: 'readme.md'));
+      final tableController = disposing(TableController());
       await t.pumpWidget(
         table(
           files,
@@ -449,8 +458,8 @@ void main() {
   group('selection', () {
     testTwk('a node the controller selects is the row the table selects and '
         'shows, and the keys go on from it', (t) async {
-      final controller = TreeController();
-      final tableController = TableController();
+      final controller = disposing(TreeController());
+      final tableController = disposing(TableController());
       await t.pumpWidget(
         table(
           [for (var i = 0; i < 50; i++) N('r$i', i)],
@@ -473,7 +482,9 @@ void main() {
         await t.pumpWidget(
           table(
             files,
-            controller: TreeController(selectedKey: 'data', expanded: ['src']),
+            controller: disposing(
+              TreeController(selectedKey: 'data', expanded: ['src']),
+            ),
             selection: selection,
           ),
           size: (24, 6),
@@ -500,7 +511,7 @@ void main() {
     testTwk('children in a future show a spinner row until they come, which '
         'the keys go past', (t) async {
       final load = Completer<List<N>>();
-      final controller = TreeController(selectedKey: 'lazy');
+      final controller = disposing(TreeController(selectedKey: 'lazy'));
       await t.pumpWidget(
         table(
           const [N('lazy', 2), N('next', 3)],
@@ -605,7 +616,7 @@ void main() {
         t,
         (built) => table(
           roots,
-          controller: TreeController(expanded: expanded),
+          controller: disposing(TreeController(expanded: expanded)),
           columns: [
             nameColumn(
               width: const GridTrack.fixed(12),

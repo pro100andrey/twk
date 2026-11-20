@@ -30,7 +30,7 @@ says it was not.
   reload does not; a compile error is shown and the app runs on.
 - **What the terminal is**: a preset (`xterm.js`, `everything`,
   `256 colors`, `16 colors`, `no color`, `no synchronized output`, `bare`,
-  `no answers`) and each switch of it (colours, sixel or iTerm2 images,
+  `no answers`) and each switch of it (colors, sixel or iTerm2 images,
   the probe's answers, synchronized output, kitty's keyboard protocol, the
   cell size, notifications, progress, pointer shapes, REP, links, the
   clipboard), for the apps that connect next; the screen reader and twk's
@@ -40,6 +40,12 @@ says it was not.
   button is pressed, each click on the terminal picks the widget under it
   and opens where it was made; where a widget was made, from the tree;
   the frame overlay, the repaint rainbow, the relayout highlight.
+- **The frames panel** (twk, beside Terminal and Problems in the editor's
+  panel; twk: Show the Frames Panel): the last frames the app drew as bars,
+  their time or their bytes (the switch), the tallest the panel's height and
+  the slowest marked, with the count, the median and the slowest; a click on
+  a bar shows that frame in the terminal's sequence log (opened if it is
+  closed).
 - **The app's log** (the debug aid `logs`): the records the app serves
   (`LogSink.serve()`, what `twk logs` tails in another terminal), in a
   panel of the editor: time, level in its colour, message, error, and by
@@ -200,7 +206,7 @@ wrote, `←` what the terminal sent, `·` a note: an app connected or went
 away, a size, the extension's own lines), the name and the bytes (ESC as
 `ESC`, controls as `^M`). Names are those of the sequences
 (`CUP cursor to row 3, column 5`, `SGR bold, fg green`, `DECSET 1049
-alternate screen, cursor saved`, `OSC 11 query: the background colour`,
+alternate screen, cursor saved`, `OSC 11 query: the background color`,
 `DCS sixel image (…)`) and of what the terminal sent (`key Ctrl+Up`,
 `key Escape (kitty)`, `mouse left press at column 10, row 5`,
 `DECRPM answer: mode 2026 synchronized output set`, `DA1 answer: 1;2`).
@@ -346,7 +352,7 @@ Code: that a key reaches the app and not the command, which only a keyboard
 shows; the test holds the bindings and the command.
 
 **Copy the screen**: the rows the terminal shows now, without the blanks
-that end them or the blank rows at the bottom, as plain text (no colours).
+that end them or the blank rows at the bottom, as plain text (no colors).
 
 ### New Project and Install Agent Skill
 
@@ -674,7 +680,7 @@ The code is in layers (part 2b); what each part does:
     the switch panel (part 3), in quick picks: a preset (`xterm.js`,
     `everything`, `256 colors`, `16 colors`, `no color`, `no synchronized
     output`, `bare`, `no answers`), or each switch from the preset's:
-    the colours, the images (none, sixel, iTerm2), then the toggles at
+    the colors, the images (none, sixel, iTerm2), then the toggles at
     once (answers, synchronized output, kitty keyboard, cell size,
     notifications, progress, pointer shapes, REP, links, clipboard).
     Kept in `twk.terminal.profile` and `twk.terminal.capabilities` (the
@@ -789,17 +795,17 @@ What the tests cover:
   switches changed kept and read back, the title, the environment, the
   declaration in twk_core's order, the webview's answers, the presets, the
   toggles picked), the emulation's pure parts (`emulation.test.ts`, 6:
-  DECRQM denied, XTVERSION and the cell size, colour queries, an app's
+  DECRQM denied, XTVERSION and the cell size, color queries, an app's
   requests parsed, links only to the web and mail, the progress's text)
-  and kitty's keyboard protocol (`kitty_keyboard.test.ts`, 3: the stacks,
-  the keys encoded, those left to xterm.js); the emulation on
+  and kitty's keyboard protocol (`kitty_keyboard.test.ts`, 22: the stacks,
+  the keys encoded for each flag and for the flags together, those left to xterm.js); the emulation on
   @xterm/headless (`answers.test.ts`, 7: twk's probe answered in order,
   DA1 last; kitty keyboard pushed and popped per screen; off; no
   synchronized output; no answers; the requests on and off; links); and
   twk itself (`twk_probe.test.ts`, 8): twk_core's `info_app.dart` in a Dart
   VM of its own on a headless xterm.js with the emulation, served by
   core's shell and welcomed as `app/terminal.ts` welcomes, prints what it
-  found for each preset and switch (colours, everything, iTerm2, no
+  found for each preset and switch (colors, everything, iTerm2, no
   synchronized output, no cell size, bare, no answers), and reads Escape,
   Ctrl+C, Alt+X, Shift+Enter, a, Ctrl+Q back from kitty's encodings.
   TWK_SHELL's form (`address.test.ts`, 2, the strings of twk_core's test).
@@ -853,7 +859,7 @@ What the tests cover:
   rest declared, and a cell's size the real webview measured; its
   progress in the status bar and gone as it ends; the image addon loaded
   (it answers XTSMGRAPHICS) and the terminal drawing on after a sixel
-  image; with switches changed from `xterm.js`, 16 colours, no cell size,
+  image; with switches changed from `xterm.js`, 16 colors, no cell size,
   no progress (its OSC 9;4 dropped), no image addon, and the title saying
   so.
 - VS Code, the tooling features (without Dart-Code; `TWK_TEST_GREP=<mocha
@@ -1156,10 +1162,12 @@ WebSocket):
   --no-serve-devtools -DSILENT_VM_SERVICE=true --write-service-info=<a
   file of its own> <file>` with pipes and `TWK_SHELL` its terminal's,
   connects when the file names the service (the directory watched, the
-  wait bounded: part 2c, item 11). Restart: the app it started ended
-  through its `ChildProcess` (SIGTERM, which has twk put the terminal
-  back, then SIGKILL after 5 s) and started again; the shell takes the new
-  app, so the terminal stays.
+  wait bounded: part 2c, item 11). The app is a group of its own
+  (`group`), as `dart` on Windows starts the VM as a child, which ending
+  `dart` alone leaves running (elsewhere `dart` becomes the VM). Restart:
+  the app it started ended through its handle (SIGTERM, which has twk put
+  the terminal back, then SIGKILL after 5 s; on Windows `taskkill /T`)
+  and started again; the shell takes the new app, so the terminal stays.
 - **Debug**: the launch gets `env: {TWK_DEBUG: keys, TWK_SHELL: ...}` and
   a `twkSession` field, the key of its terminal; a debug adapter tracker
   on such sessions connects to the address
@@ -1434,7 +1442,7 @@ read waits for the next, as twk_test's `Vt` and xterm.js wait; of what
 the terminal sends each read is whole (a lone ESC is the Escape key, `CSI
 M` and three bytes an X10 mouse report). Each piece is named twice over:
 as the app wrote it (`describeOutput`: the CSIs twk and the probe write,
-SGR's attributes and colours, DEC modes by name, OSC by number, sixel,
+SGR's attributes and colors, DEC modes by name, OSC by number, sixel,
 kitty graphics, the queries) and as the terminal sent it (`describeInput`:
 keys with their modifiers in xterm's and kitty's encodings, SGR and X10
 mouse reports, focus, bracketed paste, and the answers: DA1, DA2, DECRPM,
@@ -1623,6 +1631,48 @@ messages); a recording with Dart-Code's debug session (its redraw is
 replay of `twk tape`'s or `twk record`'s files in VS Code (the golden and
 the counter's recording are of the same format).
 
+### The trace viewer
+
+twk_driver's trace (`packages/twk_driver/DESIGN.md` part 8) is read here from
+the two files it writes beside each other: `<name>.cast` (asciicast v2: one
+output event for each frame's bytes, a marker for each step) and
+`<name>.trace.jsonl` (header, frame, step and tree lines). twk: Open a Driver
+Trace (`twk.openTrace`) opens one in an editor tab beside the editor, from
+the explorer's menu on a `.trace.jsonl`, from an Open Trace lens over each
+`driverTest(` of a `*_test.dart` file (a pick of the traces kept under
+`.dart_tool/twk_test/traces`, the newest first: the trace is named by the
+program and the process, not by the test, so a lens cannot tell which is its
+test's), or from a click on a path in a terminal's output (the failure report
+of twk_test's `driverTest` names both files; a path in Dart-Code's test
+results is not a terminal link, so there the explorer or the pick serves).
+
+- **Layers.** `core/trace.ts` (pure) reads the lines and makes of them the
+  rows of the list, the cast events each screen is replayed to
+  (`eventOfFrame`: a frame ends in the cast event the frames table names;
+  one the table lacks is the last before it), the facts of a step, the tree
+  it ended with (a step that kept none saw the last kept) and the sequences
+  it wrote (core/seqlog.ts's `SequenceLog` over the output events from its
+  marker to its last frame, laid out as `twk decode`). `app/trace_viewer.ts`
+  sends them over a `WebviewPanelPort` once the page is up, and the detail of
+  a step when it is selected; `webview/trace.ts` is the page.
+- **The page** has the steps in a list (passed, failed; the first that failed
+  selected), the screen of the step drawn by xterm.js (reset, and the cast's
+  output and resizes up to the event) as before it, after it or at one of the
+  frames it drew, the step's target cells outlined over it (the `shown`
+  rectangle of the step's `target`), and the tabs facts, tree, log and
+  sequences. It does not use the replay player: that one plays a recording in
+  a terminal of its own with a bar, where here a place in the cast is chosen
+  by a step, and the screens of before and after are one click apart.
+- **Tests** (`core/trace.test.ts`, `app/trace_viewer.test.ts`,
+  `webview/trace_protocol.test.ts`, over a trace written by hand in
+  `trace_fixture.ts`, the shape of `TraceRecorder`'s): the lines by type and
+  a file with no header refused saying the line; the cast event of each frame;
+  the screens of a step replayed in a headless xterm (`Count: 0` before,
+  `Count: 1` after); the facts, tree and sequences of a failed step; the
+  viewer's messages over a fake panel; the protocol's checks. Not done: the
+  page in VS Code, the outline's place over the cells (it is measured from
+  xterm.js's `.xterm-screen`), a terminal link clicked.
+
 ## 2e'. The app's log
 
 What `twk logs` does (twk_dev's `lib/src/logs.dart`), in the editor.
@@ -1738,10 +1788,10 @@ The switches, each held to what twk finds by a twk app in the unit tests
 
 | switch | how | twk finds |
 |---|---|---|
-| colours: 24-bit, 256, 16, none | environment (`COLORTERM`, `TERM`, `NO_COLOR`) | trueColor, ansi256, ansi16, none |
+| colors: 24-bit, 256, 16, none | environment (`COLORTERM`, `TERM`, `NO_COLOR`) | trueColor, ansi256, ansi16, none |
 | answers off (`no answers`) | DECRQM denied "not recognised", OSC 10/11/4 queries and DA1 dropped, nothing of the webview's | answered false (after the probe's timeout) |
 | synchronized output off | DECRQM 2026 "not recognised" | sync off |
-| kitty keyboard | the webview answers `CSI ? u` with the flags in force, keeps the flags pushed, popped and set (`CSI > u`, `CSI < u`, `CSI = u`), one stack per screen, and encodes keys as disambiguation says (flag 1, what twk pushes; more is not done, the flags told back say so): Escape, Ctrl and Alt keys, modified Enter, Tab and Backspace as `CSI code ; mods u`, by the key's place for letters and digits; Meta (Cmd) left to VS Code | kittyKeyboard, flags 1; the keys read back as Escape, Ctrl+C, Alt+X, Shift+Enter, Ctrl+Q |
+| kitty keyboard | the webview answers `CSI ? u` with the flags in force, keeps the flags pushed, popped and set (`CSI > u`, `CSI < u`, `CSI = u`), one stack per screen, and encodes keys as the flags ask, all five (`core/kitty_keyboard.ts`; the flags told back are those pushed, masked to 31). 1, disambiguation (what twk pushes): Escape, Ctrl and Alt keys, modified Enter, Tab and Backspace as `CSI code ; mods u`, by the key's place for letters and digits (a layout does not change the code unless 4 is on), and F13 to F24 (57376 and on); 2, event types: `:2` a repeat and `:3` a release after the modifiers (`CSI 97 ; 5:3 u`; the legacy forms `CSI 1 ; 1:3 A`, `CSI 3 ; 1:2 ~`, a press of those left to xterm.js, which sends the same), the text keys released as `CSI u` and repeated as their text, Enter, Tab and Backspace never released without 8, and without 2 a repeat a press and a release nothing (the page's `keydown`/`repeat`/`keyup`); 4, alternate keys: `CSI code : shifted : base u`, the code the layout's lower case (`1089` for `с`), the shifted key where Shift is held, the base layout key (a US layout's, from `KeyboardEvent.code`) where it differs, as `CSI 1089::99;5u`; macOS Option's letters stay by place; 8, all keys: text, Enter, Tab and Backspace as `CSI u`, the modifier keys alone (57441 to 57453, AltGr 57453, the modifier in the press's own field), lock, Print Screen, Pause, Menu and some media keys, the keypad's own codes (57399 and on, by `location` 3; Num Lock off by what the key does), Caps Lock and Num Lock among the modifiers (64, 128); 16, associated text, with 8: the code points the key typed after the modifiers (`CSI 97 ; 2 ; 65 u`), for a press and a repeat of text without Ctrl or Alt. Meta (Cmd) and a key in an input method's composition are left to VS Code and xterm.js | kittyKeyboard, flags 1; the keys read back as Escape, Ctrl+C, Alt+X, Shift+Enter, Ctrl+Q; and with all flags pushed the text, its release, Enter, an arrow's release and a shortcut read back (`twk_probe.test.ts`) |
 | images: none, sixel, iTerm2 | declared; shown by `@xterm/addon-image` 0.9.0 (sixel and IIP; the page's CSP allows its WebAssembly and blob: images) | graphics none, sixel, iterm2 |
 | cell size | `CSI 16 t` answered with the screen element's size per cell | 9x18 (the test's), 0x0 off |
 | notifications | declared `osc777`, else `none`; OSC 777 `notify` shown as VS Code's notification | osc777 / none |
@@ -1765,7 +1815,7 @@ none of the names twk knows a terminal by. Offered, and why not:
 - **Bidi**: xterm.js reorders nothing and doesn't know BDSM, so the only
   true answer is what twk finds anyway (the app orders right-to-left
   text); a terminal that reorders can't be emulated. Not offered.
-- **Graphemes (2027), in-band resize (2048), margins (69), colour scheme
+- **Graphemes (2027), in-band resize (2048), margins (69), color scheme
   reports (2031) on**: an answer alone would draw wrong cells; xterm.js
   has none of them.
 
@@ -1860,7 +1910,7 @@ What the repository offers for the wished features:
    and passed on by a `TerminalShell` whose link declares
    (`DeclaringLink`). The probe takes each declared one over the guess by
    the environment (`notificationProtocolFor`, `progressReportsFor`,
-   `pointerShapesFor`, REP's known terminals, `graphicsProtocolFor`),
+   `pointerNamesFor`, REP's known terminals, `graphicsProtocolFor`),
    which stays for real terminals, as they declare nothing; a field of
    another type or value declares nothing (`fromJson`). Not an
    environment variable: the process's own environment is the app's, and
@@ -1958,9 +2008,12 @@ What the repository offers for the wished features:
   traffic with times, decoded; recorded as asciicast for `twk play`;
   replayed into a terminal of its own; the screen copied as text.
 
-Left for later: kitty keyboard's flags beyond disambiguation (event
-types, all keys as escape codes, alternate keys, text), the
-external-terminal flavour of B (`twk shell` already is).
+Left for later: the external-terminal flavour of B (`twk shell` already
+is). Kitty keyboard's flags beyond disambiguation (event types, alternate
+keys, all keys as escape codes, associated text) are done, part 3 of the
+table below; what twk_core does not read of them: the base layout key
+(`CSI 1089::99 ; 5 u` is Ctrl+с for it, not Ctrl+C), and key releases of
+the keypad and modifier keys, which are no `KeyEvent`.
 
 ## 2g. Golden screens
 
@@ -2005,3 +2058,63 @@ the screen it is.
   checked by their parts: the protocol, the state and the editor over a fake
   panel).
 
+
+## 2h. The frames panel
+
+A webview view (`twk.frames`, `viewsContainers.panel` `twk`) in the bottom
+panel; part 0 says what it shows, here how.
+
+- **Data.** The app's `twk.frame` events (`DebugAids._frameData`, posted while
+  `ext.twk.flags` `frameEvents` is on): `frame`, `drawn`, `outputWritten`, and
+  `stats` (`FrameStats`: `micros`, `build`, `layout`, `paint`, `present`,
+  `bytes` of that frame; the app's side is the task frame-stats-event). The
+  extension turns `frameEvents` on while the view is on the screen, off when
+  it is hidden, when the app shown changes and at deactivate (it costs a post
+  a frame), and again for an app whose binding comes after its VM service, as
+  the inspector's `treeEvents`. `core/frames.ts` (pure) reads an event only of
+  `version` 1 (as `isTreeChanged`: another's is no frame) and keeps the last
+  100 drawn frames (`FrameHistory`); an event that drew nothing is no frame,
+  but its output count is where the next frame's bytes begin.
+- **An app without `stats`** (older): the bytes of a frame are the difference
+  of `outputWritten` between two events, the times unknown (a bar of none, a
+  note saying so); stats with a field that is no measure count as none. An app
+  without the `frameEvents` flag says it posts no frame events.
+- **The bars and the summary** (`barsOf`, `summarize`): a bar's height is its
+  share of the tallest known value; the median is of the known values (the mean
+  of the middle two where even); the slowest (the largest in bytes) is the
+  latest of equal values; the count is of the frames shown, and of all drawn
+  since the panel followed the app. `src/app/frames.ts` follows the newest app
+  as the inspector does, sends the state at most every 100 ms to
+  `src/vscode/frames_view.ts` (the page `src/webview/frames.ts`, its messages
+  `frames_protocol.ts` checked at both ends).
+- **A click finds the frame in the sequence log by the bytes**, not by time:
+  `outputWritten` is the app's count of the bytes it had written at the frame's
+  end (twk_core's `bytesWritten`, the probe's included), and the log keeps
+  the app's output by the same count. `Traffic` and `LogPanel` count the app's
+  output bytes in runs (`TwkTerminal.onDidAppStart`, fired as an app connects,
+  begins a new run counted from 0: the app counts from its own start, the
+  terminal's earlier output and the extension's own lines are not in it), each
+  piece of traffic stamped with where it is, so that what the 4 MB cap let go
+  leaves the count right; `SequenceLog.output` gives each entry `run`, `at`,
+  `end` (a token's `raw` is its bytes, a char each) and `entryAtAppBytes` the
+  first entry of the latest run whose end reaches the count. The driver's rule
+  (twk_driver's `ByteLog`: received minus the LFs a pty's ONLCR added) is not
+  needed here: the extension's terminal is twk's socket terminal
+  (`core/shell.ts`), whose `output` frames are written to the view as the app
+  wrote them, no line discipline between, so the counts agree as they are.
+  Not checked against a live app: the probe's bytes are counted by the app's
+  `bytesWritten` and are in the socket's output; a mismatch would show as the
+  frame found a few entries off.
+- **The log** opens if it is closed (`LogPanels.show`); `reveal` in the log's
+  protocol has the webview show the whole log (filter reset, held entries
+  shown), open the frame and scroll to its row, marked. A frame the log no
+  longer has (the traffic cap) shows the first entry kept, and the status bar
+  says "Frame N is no longer in the log."; one the log has no entry of at all
+  says it is not in the log; an app that counts no output (`outputWritten`
+  null) says it cannot be found.
+- **Tests** (`src/test/unit`): `core/frames.test.ts` (events, history, bars,
+  summary), `app/frames.test.ts` (flags on and off by visibility, the version
+  filter, the bars, a click, the notices, restarts), `core/seqlog.test.ts` and
+  `app/log_panel.test.ts` (the count, the run, the cap). Not run: the view and
+  the page in a real VS Code (`npm test` needs a display; the page is checked
+  by its protocol and the state).

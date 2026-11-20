@@ -128,7 +128,150 @@ enum KeyCode {
 
   /// The function key F12.
   f12,
+
+  /// A modifier key itself (Shift, Ctrl, Alt, Super, Hyper, Meta, left or
+  /// right, or an ISO level shift) pressed or released: only with the
+  /// kitty keyboard protocol's [KittyKeyboardFlags.allKeysAsEscapes].
+  /// [KeyEvent.kittyCode] tells which ([KittyKey]); never a shortcut.
+  modifier,
+
+  /// A lock key (Caps Lock, Num Lock, Scroll Lock): as [modifier],
+  /// [KeyEvent.kittyCode] tells which.
+  lock,
+
+  /// A media key (play, pause, track, volume, ...): as [modifier],
+  /// [KeyEvent.kittyCode] tells which.
+  media,
 }
+
+/// The codes of the kitty keyboard protocol's keys that have no character
+/// or [KeyCode] of their own, as [KeyEvent.kittyCode] holds them for
+/// [KeyCode.modifier], [KeyCode.lock] and [KeyCode.media] events.
+abstract final class KittyKey {
+  /// Caps Lock.
+  static const capsLock = 57358;
+
+  /// Scroll Lock.
+  static const scrollLock = 57359;
+
+  /// Num Lock.
+  static const numLock = 57360;
+
+  /// Media Play.
+  static const mediaPlay = 57428;
+
+  /// Media Pause.
+  static const mediaPause = 57429;
+
+  /// Media Play/Pause.
+  static const mediaPlayPause = 57430;
+
+  /// Media Reverse.
+  static const mediaReverse = 57431;
+
+  /// Media Stop.
+  static const mediaStop = 57432;
+
+  /// Media Fast Forward.
+  static const mediaFastForward = 57433;
+
+  /// Media Rewind.
+  static const mediaRewind = 57434;
+
+  /// Media Next Track.
+  static const mediaTrackNext = 57435;
+
+  /// Media Previous Track.
+  static const mediaTrackPrevious = 57436;
+
+  /// Media Record.
+  static const mediaRecord = 57437;
+
+  /// Volume Down.
+  static const lowerVolume = 57438;
+
+  /// Volume Up.
+  static const raiseVolume = 57439;
+
+  /// Mute.
+  static const muteVolume = 57440;
+
+  /// Left Shift.
+  static const leftShift = 57441;
+
+  /// Left Ctrl.
+  static const leftControl = 57442;
+
+  /// Left Alt.
+  static const leftAlt = 57443;
+
+  /// Left Super.
+  static const leftSuper = 57444;
+
+  /// Left Hyper.
+  static const leftHyper = 57445;
+
+  /// Left Meta.
+  static const leftMeta = 57446;
+
+  /// Right Shift.
+  static const rightShift = 57447;
+
+  /// Right Ctrl.
+  static const rightControl = 57448;
+
+  /// Right Alt.
+  static const rightAlt = 57449;
+
+  /// Right Super.
+  static const rightSuper = 57450;
+
+  /// Right Hyper.
+  static const rightHyper = 57451;
+
+  /// Right Meta.
+  static const rightMeta = 57452;
+
+  /// ISO Level 3 Shift (AltGr).
+  static const isoLevel3Shift = 57453;
+
+  /// ISO Level 5 Shift.
+  static const isoLevel5Shift = 57454;
+}
+
+/// The names kitty gives its keys, by code.
+const Map<int, String> _kittyNames = {
+  KittyKey.capsLock: 'caps_lock',
+  KittyKey.scrollLock: 'scroll_lock',
+  KittyKey.numLock: 'num_lock',
+  KittyKey.mediaPlay: 'media_play',
+  KittyKey.mediaPause: 'media_pause',
+  KittyKey.mediaPlayPause: 'media_play_pause',
+  KittyKey.mediaReverse: 'media_reverse',
+  KittyKey.mediaStop: 'media_stop',
+  KittyKey.mediaFastForward: 'media_fast_forward',
+  KittyKey.mediaRewind: 'media_rewind',
+  KittyKey.mediaTrackNext: 'media_track_next',
+  KittyKey.mediaTrackPrevious: 'media_track_previous',
+  KittyKey.mediaRecord: 'media_record',
+  KittyKey.lowerVolume: 'lower_volume',
+  KittyKey.raiseVolume: 'raise_volume',
+  KittyKey.muteVolume: 'mute_volume',
+  KittyKey.leftShift: 'left_shift',
+  KittyKey.leftControl: 'left_control',
+  KittyKey.leftAlt: 'left_alt',
+  KittyKey.leftSuper: 'left_super',
+  KittyKey.leftHyper: 'left_hyper',
+  KittyKey.leftMeta: 'left_meta',
+  KittyKey.rightShift: 'right_shift',
+  KittyKey.rightControl: 'right_control',
+  KittyKey.rightAlt: 'right_alt',
+  KittyKey.rightSuper: 'right_super',
+  KittyKey.rightHyper: 'right_hyper',
+  KittyKey.rightMeta: 'right_meta',
+  KittyKey.isoLevel3Shift: 'iso_level3_shift',
+  KittyKey.isoLevel5Shift: 'iso_level5_shift',
+};
 
 /// One thing a terminal sent: what the user did ([KeyEvent],
 /// [MouseEvent], [PasteEvent], [FocusEvent]), the terminal's new size
@@ -181,7 +324,9 @@ enum KeyKind {
 ///
 /// Text typed comes as one event per grapheme cluster; a key that types
 /// text with Shift (no other modifier) is the text it types, `A`, without
-/// [Mod.shift]. Two events are equal when every field is.
+/// [Mod.shift]. Two events are equal when their [code], [char],
+/// [modifiers], [kittyCode] and [kind] are: the [baseChar] a terminal adds
+/// does not tell keys apart, so `key == ctrlC` holds on any layout.
 ///
 /// ```dart
 /// const ctrlC = KeyEvent(KeyCode.char, char: 'c', modifiers: Mod.ctrl);
@@ -206,9 +351,12 @@ final class KeyEvent extends InputEvent {
   const KeyEvent(
     this.code, {
     this.char = '',
-    this.modifiers = 0,
+    int modifiers = 0,
     this.kind = KeyKind.press,
-  });
+    this.baseChar = '',
+    int kittyCode = 0,
+  }) : assert(modifiers >= 0 && modifiers < 256, 'modifiers: 0 to 255'),
+       _bits = modifiers | kittyCode << 8;
 
   /// The key.
   final KeyCode code;
@@ -217,12 +365,36 @@ final class KeyEvent extends InputEvent {
   /// other keys.
   final String char;
 
+  // The modifiers in the low byte, the kitty code above it: one field for
+  // both keeps a KeyEvent as small as before the kitty code (the keys
+  // benchmark decodes thousands of them).
+  final int _bits;
+
   /// The [Mod] bits of the modifier keys held, 0 for none.
-  final int modifiers;
+  int get modifiers => _bits & 0xFF;
 
   /// Whether the key went down, repeats or came up; [KeyKind.press] where
   /// the terminal doesn't tell.
   final KeyKind kind;
+
+  /// The character the same physical key types on a US layout, where the
+  /// terminal tells ([KittyKeyboardFlags.alternateKeys]): `c` for Ctrl and
+  /// the key that types `с` on a Russian layout, whose [char] is `с`. ''
+  /// where it does not, which is most of the time: a terminal sends it
+  /// for keys that are escape sequences, shortcuts and, with
+  /// [KittyKeyboardFlags.allKeysAsEscapes], text. A shortcut matches by it
+  /// when [char] names no shortcut, so it works on any layout.
+  final String baseChar;
+
+  /// Which key of [KeyCode.modifier], [KeyCode.lock] or [KeyCode.media] it
+  /// is, as the kitty keyboard protocol numbers them ([KittyKey]); 0 for
+  /// the other keys.
+  int get kittyCode => _bits >> 8;
+
+  /// The name kitty gives the key [kittyCode] is in lower case
+  /// (`left_shift`, `caps_lock`, `media_play_pause`); null for the other
+  /// keys.
+  String? get kittyName => _kittyNames[kittyCode];
 
   /// Whether Ctrl is held ([Mod.ctrl]).
   bool get ctrl => modifiers & Mod.ctrl != 0;
@@ -238,18 +410,23 @@ final class KeyEvent extends InputEvent {
       other is KeyEvent &&
       other.code == code &&
       other.char == char &&
-      other.modifiers == modifiers &&
+      other._bits == _bits &&
       other.kind == kind;
 
   @override
-  int get hashCode => Object.hash(code, char, modifiers, kind);
+  int get hashCode => Object.hash(code, char, _bits, kind);
 
   @override
   String toString() {
-    final name = code == KeyCode.char ? '"$char"' : code.name;
+    final name = code == KeyCode.char
+        ? '"$char"'
+        : kittyCode != 0
+        ? '${code.name}:${kittyName ?? kittyCode}'
+        : code.name;
     final mod = modifiers != 0 ? ' mod=$modifiers' : '';
     final k = kind != KeyKind.press ? ' ${kind.name}' : '';
-    return 'Key($name$mod$k)';
+    final b = baseChar.isNotEmpty ? ' base="$baseChar"' : '';
+    return 'Key($name$mod$k$b)';
   }
 }
 
@@ -308,9 +485,25 @@ final class MouseEvent extends InputEvent {
     this.kind,
     this.x,
     this.y, {
-    this.button = 0,
-    this.modifiers = 0,
-  });
+    int button = 0,
+    int modifiers = 0,
+    int? offsetX,
+    int? offsetY,
+  }) : assert(modifiers >= 0 && modifiers < 256, 'modifiers: 0 to 255'),
+       assert(button >= 0 && button < 256, 'button: 0 to 255'),
+       _bits =
+           modifiers |
+           button << 8 |
+           (offsetX == null
+               ? 0
+               : (offsetX < 0 ? 0 : (offsetX > 0xFFFE ? 0xFFFE : offsetX)) +
+                         1 <<
+                     16) |
+           (offsetY == null
+               ? 0
+               : (offsetY < 0 ? 0 : (offsetY > 0xFFFE ? 0xFFFE : offsetY)) +
+                         1 <<
+                     32);
 
   /// What the mouse did.
   final MouseKind kind;
@@ -325,12 +518,34 @@ final class MouseEvent extends InputEvent {
   /// [MouseKind.up] and [MouseKind.drag]: 0 left, 1 middle, 2 right, 8
   /// back, 9 forward, 10 and 11 further side buttons. 0 for a move and the
   /// wheel.
-  final int button;
+  int get button => _bits >> 8 & 0xFF;
+
+  // The modifiers, the button and the pixel offsets (each plus one, 0 for
+  // none) in one field: a MouseEvent stays as small as it was before the
+  // offsets (the mouse benchmarks allocate one for every move).
+  final int _bits;
 
   /// The [Mod] bits held: [Mod.shift], [Mod.alt] and [Mod.ctrl] only, as
   /// far as the terminal reports them rather than acting on them itself
   /// (many take Shift with the mouse for their own selection).
-  final int modifiers;
+  int get modifiers => _bits & 0xFF;
+
+  /// How many pixels right of the cell's left edge the pointer is, where
+  /// the terminal reports pixels (SGR-Pixels, mode 1016) and the cell's
+  /// size is known: 0 up to the cell's width less one. Null where it is
+  /// not known: most terminals report whole cells. Held in 16 bits: one
+  /// beyond 65534 is 65534, a negative one 0.
+  int? get offsetX {
+    final v = _bits >> 16 & 0xFFFF;
+    return v == 0 ? null : v - 1;
+  }
+
+  /// How many pixels below the cell's top edge the pointer is; null as
+  /// [offsetX] is.
+  int? get offsetY {
+    final v = _bits >> 32 & 0xFFFF;
+    return v == 0 ? null : v - 1;
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -338,14 +553,15 @@ final class MouseEvent extends InputEvent {
       other.kind == kind &&
       other.x == x &&
       other.y == y &&
-      other.button == button &&
-      other.modifiers == modifiers;
+      other._bits == _bits;
 
   @override
-  int get hashCode => Object.hash(kind, x, y, button, modifiers);
+  int get hashCode => Object.hash(kind, x, y, _bits);
 
   @override
-  String toString() => 'Mouse(${kind.name} $x,$y b$button m$modifiers)';
+  String toString() =>
+      'Mouse(${kind.name} $x,$y b$button m$modifiers'
+      '${offsetX == null ? '' : ' +$offsetX,+$offsetY'})';
 }
 
 /// Text pasted into the terminal, all in one event: what bracketed paste
@@ -470,7 +686,8 @@ abstract final class KittyKeyboardFlags {
   /// A key's code comes with the key Shift makes of it and the key in the
   /// same place on a US layout (`CSI 97:65 ; 2 u`, `CSI 1089::99 ; 5 u`).
   /// The shifted key is what a key that types text types where nothing
-  /// else tells it ([associatedText]); the base layout key is not decoded.
+  /// else tells it ([associatedText]); the base layout key is
+  /// [KeyEvent.baseChar].
   static const alternateKeys = 4;
 
   /// Every key comes as an escape sequence: text typed (`CSI 97 u`, its
@@ -517,8 +734,8 @@ final class DeviceAttributes extends InputEvent {
   final List<int> params;
 }
 
-/// Reply to OSC 10/11 (foreground/background color query) or OSC 4 (a
-/// palette entry: [which] 4, the entry's [index]).
+/// Reply to OSC 10, 11 or 12 (the foreground, background or cursor color
+/// query) or OSC 4 (a palette entry: [which] 4, the entry's [index]).
 ///
 /// Each channel is scaled to 8 bits from the 1 to 4 hex digits the
 /// terminal answers with (`rgb:ffff/8080/0000`).
@@ -527,7 +744,7 @@ final class ColorReport extends InputEvent {
   const ColorReport(this.which, this.rgb, {this.index = 0});
 
   /// The color the reply is about, as its OSC number: 10 the default
-  /// foreground, 11 the default background, 4 a palette entry.
+  /// foreground, 11 the default background, 12 the cursor, 4 a palette entry.
   final int which;
 
   /// The color, 0xRRGGBB.

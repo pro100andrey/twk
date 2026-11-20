@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'animated.dart';
 import 'bitmap.dart';
 import 'limits.dart';
 import 'zlib.dart';
@@ -13,6 +14,9 @@ const _ihdr = 0x49484452;
 const _plte = 0x504C5445;
 const _trns = 0x74524E53;
 const _idat = 0x49444154;
+const _actl = 0x6163544C;
+const _fctl = 0x6663544C;
+const _fdat = 0x66644154;
 const _iend = 0x49454E44;
 
 /// The interlacing passes of Adam7: the first column and row of each, and
@@ -47,7 +51,8 @@ bool isPng(List<int> bytes) {
 /// entries of a palette, or a grey or RGB colour that is transparent. A
 /// 16-bit sample keeps its high byte. Gamma and colour space chunks (gAMA,
 /// cHRM, sRGB, iCCP) are ignored, the samples taken as they are, and so are
-/// the other ancillary chunks: an APNG decodes to its default image. A
+/// the other ancillary chunks: an APNG decodes to its default image
+/// ([decodeApng] reads its frames). A
 /// palette index past the palette's end is opaque black.
 ///
 /// Throws a [FormatException] when [bytes] are not a PNG file, are cut
@@ -62,11 +67,12 @@ bool isPng(List<int> bytes) {
 ///
 ///  * `decodeImage`, for a file that may be a JPEG too.
 Bitmap decodePng(Uint8List bytes) {
-  if (!isPng(bytes)) {
-    throw const FormatException('Not a PNG file');
-  }
-  final data = ByteData.sublistView(bytes);
-  var pos = _signature.length;
+  final file = _readChunks(bytes);
+  return _decodeFrame(file, file.width, file.height, file.idat.toBytes());
+}
+
+/// What a PNG file's chunks say, read whole and checked.
+final class _PngFile {
   var width = 0;
   var height = 0;
   var depth = 0;
@@ -74,7 +80,48 @@ Bitmap decodePng(Uint8List bytes) {
   var interlaced = false;
   Uint8List? palette;
   Uint8List? transparency;
-  final compressed = BytesBuilder(copy: false);
+  final idat = BytesBuilder(copy: false);
+
+  /// acTL: the frames and plays of an APNG; null for a still PNG.
+  int? frameCount;
+  var plays = 0;
+
+  /// The APNG's frames in file order: an fcTL, then the compressed data of
+  /// its IDAT (the first, where the fcTL comes before it) or fdAT chunks.
+  final frames = <_PngFrame>[];
+}
+
+/// One frame of an APNG: its fcTL and its compressed data.
+final class _PngFrame {
+  _PngFrame(Uint8List control)
+    : width = ByteData.sublistView(control).getUint32(4),
+      height = ByteData.sublistView(control).getUint32(8),
+      x = ByteData.sublistView(control).getUint32(12),
+      y = ByteData.sublistView(control).getUint32(16),
+      delayNum = ByteData.sublistView(control).getUint16(20),
+      delayDen = ByteData.sublistView(control).getUint16(22),
+      dispose = control[24],
+      blend = control[25];
+
+  final int width;
+  final int height;
+  final int x;
+  final int y;
+  final int delayNum;
+  final int delayDen;
+  final int dispose;
+  final int blend;
+  final data = BytesBuilder(copy: false);
+}
+
+_PngFile _readChunks(Uint8List bytes) {
+  if (!isPng(bytes)) {
+    throw const FormatException('Not a PNG file');
+  }
+  final file = _PngFile();
+  final data = ByteData.sublistView(bytes);
+  var pos = _signature.length;
+  _PngFrame? current;
   for (var ended = false; !ended;) {
     if (pos + 12 > bytes.length) {
       throw const FormatException('PNG file cut short');
@@ -89,7 +136,7 @@ Bitmap decodePng(Uint8List bytes) {
     if (_crc32(bytes, pos + 4, end) != data.getUint32(end)) {
       throw const FormatException('PNG chunk fails its CRC');
     }
-    if (width == 0 && type != _ihdr) {
+    if (file.width == 0 && type != _ihdr) {
       throw const FormatException('PNG file does not start with IHDR');
     }
     final body = Uint8List.sublistView(bytes, start, end);
@@ -98,28 +145,49 @@ Bitmap decodePng(Uint8List bytes) {
         if (length != 13) {
           throw const FormatException('PNG IHDR of a wrong length');
         }
-        width = data.getUint32(start);
-        height = data.getUint32(start + 4);
-        depth = body[8];
-        color = body[9];
-        interlaced = body[12] == 1;
-        if (!_validDepth(color, depth) ||
+        file
+          ..width = data.getUint32(start)
+          ..height = data.getUint32(start + 4)
+          ..depth = body[8]
+          ..color = body[9]
+          ..interlaced = body[12] == 1;
+        if (!_validDepth(file.color, file.depth) ||
             body[10] != 0 ||
             body[11] != 0 ||
             body[12] > 1) {
           throw FormatException(
-            'PNG of colour type $color, depth $depth is not supported',
+            'PNG of colour type ${file.color}, depth ${file.depth} is not '
+            'supported',
           );
         }
-        if (width == 0 || height == 0 || width * height > maxImagePixels) {
-          throw FormatException('PNG of $width × $height pixels');
+        if (file.width == 0 ||
+            file.height == 0 ||
+            file.width * file.height > maxImagePixels) {
+          throw FormatException('PNG of ${file.width} × ${file.height} pixels');
         }
       case _plte:
-        palette = body;
+        file.palette = body;
       case _trns:
-        transparency = body;
+        file.transparency = body;
+      case _actl:
+        if (length == 8 && file.frameCount == null) {
+          file
+            ..frameCount = data.getUint32(start)
+            ..plays = data.getUint32(start + 4);
+        }
+      case _fctl:
+        if (file.frameCount != null && length == 26) {
+          current = _PngFrame(body);
+          file.frames.add(current);
+        }
       case _idat:
-        compressed.add(body);
+        file.idat.add(body);
+        // an fcTL before the IDAT makes the default image the first frame
+        current?.data.add(body);
+      case _fdat:
+        if (current != null && length >= 4) {
+          current.data.add(Uint8List.sublistView(body, 4));
+        }
       case _iend:
         ended = true;
       default:
@@ -129,9 +197,18 @@ Bitmap decodePng(Uint8List bytes) {
     }
     pos = end + 4;
   }
-  if (color == 3 && palette == null) {
+  if (file.color == 3 && file.palette == null) {
     throw const FormatException('PNG of a palette without PLTE');
   }
+  return file;
+}
+
+/// The pixels of [width] × [height] in the compressed [idat] data of
+/// [file]'s format.
+Bitmap _decodeFrame(_PngFile file, int width, int height, Uint8List idat) {
+  final depth = file.depth;
+  final color = file.color;
+  final interlaced = file.interlaced;
   final bitsPerPixel = _channels(color) * depth;
   // the rows IHDR declares, a filter byte each: inflated no further, as a
   // few KB of deflate can hold gigabytes
@@ -146,8 +223,15 @@ Bitmap decodePng(Uint8List bytes) {
     passes.add((x0, y0, dx, dy, passWidth, passHeight));
     size += passHeight * (((passWidth * bitsPerPixel + 7) >> 3) + 1);
   }
-  final raw = zlibInflate(compressed.takeBytes(), limit: size);
-  final rows = _Rows(width, height, color, depth, palette, transparency);
+  final raw = zlibInflate(idat, limit: size);
+  final rows = _Rows(
+    width,
+    height,
+    color,
+    depth,
+    file.palette,
+    file.transparency,
+  );
   final bpp = bitsPerPixel < 8 ? 1 : bitsPerPixel >> 3;
   var offset = 0;
   for (final (x0, y0, dx, dy, passWidth, passHeight) in passes) {
@@ -170,6 +254,204 @@ Bitmap decodePng(Uint8List bytes) {
     }
   }
   return Bitmap.fromRgba(width, height, rows.out);
+}
+
+/// Decodes the frames of an APNG file, each composed on the canvas as its
+/// dispose and blend operations say (`dispose_op` none, background to
+/// transparent, or previous; `blend_op` source or over), with its delay
+/// (a delay of 10 ms or less shows for 100 ms, as browsers show it) and the
+/// plays the file asks for ([AnimatedImage.loops]).
+///
+/// A PNG without an `acTL` chunk, or whose default image is no frame (no
+/// `fcTL` before its `IDAT`) and which has no other, is one frame, the
+/// image [decodePng] reads. Where the default image is no frame, it is
+/// left out and the animation is the `fdAT` frames. A frame outside the
+/// canvas, or the first frame's data that does not decode, is a
+/// [FormatException], as is everything [decodePng] refuses; the data of a
+/// later frame is decoded as [AnimatedImage.bitmapAt] reaches it, and fails
+/// there.
+///
+/// The frames are composed one after the other as they are reached, and
+/// only a window of them is kept, [windowBytes] of them at most
+/// ([AnimatedImage.windowBytes]).
+///
+/// ```dart
+/// final apng = decodeApng(File('spinner.png').readAsBytesSync());
+/// print('${apng.frameCount} frames, ${apng.duration} a play');
+/// ```
+AnimatedImage decodeApng(
+  Uint8List bytes, {
+  int windowBytes = AnimatedImage.defaultWindowBytes,
+}) {
+  final file = _readChunks(bytes);
+  final frames = file.frames;
+  if (frames.isEmpty) {
+    final still = _decodeFrame(
+      file,
+      file.width,
+      file.height,
+      file.idat.toBytes(),
+    );
+    return AnimatedImage([ImageFrame(still, Duration.zero)]);
+  }
+  final width = file.width;
+  final height = file.height;
+  if (frames.length > _maxFrames) {
+    throw FormatException(
+      'APNG of ${frames.length} frames of $width × $height pixels',
+    );
+  }
+  if (width * height > maxAnimationPixels) {
+    throw FormatException('APNG canvas of $width × $height pixels');
+  }
+  for (final frame in frames) {
+    if (frame.x + frame.width > width ||
+        frame.y + frame.height > height ||
+        frame.width == 0 ||
+        frame.height == 0) {
+      throw const FormatException('APNG frame outside its canvas');
+    }
+  }
+  final composer = _ApngComposer(file);
+  final image = AnimatedImage.composed(
+    width: width,
+    height: height,
+    delays: [
+      for (final f in frames)
+        frameDelay(
+          f.delayNum * 1000000 ~/ (f.delayDen == 0 ? 100 : f.delayDen),
+        ),
+    ],
+    compose: composer.next,
+    rewind: composer.rewind,
+    loops: file.plays,
+    windowBytes: windowBytes,
+  );
+  // a first frame that does not decode is refused here
+  return image..bitmapAt(0);
+}
+
+/// Composes the frames of an APNG one after the other on one canvas.
+final class _ApngComposer {
+  _ApngComposer(this.file) : canvas = Bitmap(file.width, file.height);
+
+  final _PngFile file;
+  final Bitmap canvas;
+  var _at = 0;
+  _PngFrame? _last;
+  // the canvas before a frame that is to be restored to it
+  Uint8List? _before;
+
+  void rewind() {
+    canvas.pixels.fillRange(0, canvas.pixels.length, 0);
+    _at = 0;
+    _last = null;
+    _before = null;
+  }
+
+  /// The canvas with the next frame composed, as a bitmap of its own.
+  Bitmap next() {
+    final frame = file.frames[_at];
+    final pixels = _decodeFrame(
+      file,
+      frame.width,
+      frame.height,
+      frame.data.toBytes(),
+    );
+    if (_last case final last?) {
+      // the first frame's "previous" is the background
+      switch (last.dispose) {
+        case 1:
+          _clear(canvas, last);
+        case 2:
+          if (_before case final before?) {
+            _put(canvas, last, before);
+          } else {
+            _clear(canvas, last);
+          }
+      }
+    }
+    _before = frame.dispose == 2 && _at > 0 ? _save(canvas, frame) : null;
+    _blend(canvas, pixels, frame);
+    _last = frame;
+    _at++;
+    return Bitmap.fromRgba(
+      canvas.width,
+      canvas.height,
+      Uint8List.fromList(canvas.pixels),
+    );
+  }
+}
+
+/// The most frames an animation may have.
+const int _maxFrames = 1 << 14;
+
+/// Makes the region of [frame] in [canvas] transparent.
+void _clear(Bitmap canvas, _PngFrame frame) {
+  for (var y = frame.y; y < frame.y + frame.height; y++) {
+    final from = (y * canvas.width + frame.x) * 4;
+    canvas.pixels.fillRange(from, from + frame.width * 4, 0);
+  }
+}
+
+/// The pixels of [frame]'s region of [canvas], row after row.
+Uint8List _save(Bitmap canvas, _PngFrame frame) {
+  final out = Uint8List(frame.width * frame.height * 4);
+  for (var y = 0; y < frame.height; y++) {
+    final from = ((frame.y + y) * canvas.width + frame.x) * 4;
+    out.setRange(
+      y * frame.width * 4,
+      (y + 1) * frame.width * 4,
+      canvas.pixels,
+      from,
+    );
+  }
+  return out;
+}
+
+/// Puts what [_save] gave back in [frame]'s region of [canvas].
+void _put(Bitmap canvas, _PngFrame frame, Uint8List saved) {
+  for (var y = 0; y < frame.height; y++) {
+    final from = ((frame.y + y) * canvas.width + frame.x) * 4;
+    canvas.pixels.setRange(
+      from,
+      from + frame.width * 4,
+      saved,
+      y * frame.width * 4,
+    );
+  }
+}
+
+/// Draws [pixels] in [canvas] at [frame]'s place: replacing what is there,
+/// or over it by alpha.
+void _blend(Bitmap canvas, Bitmap pixels, _PngFrame frame) {
+  final out = canvas.pixels;
+  final src = pixels.pixels;
+  for (var y = 0; y < frame.height; y++) {
+    var o = ((frame.y + y) * canvas.width + frame.x) * 4;
+    var s = y * frame.width * 4;
+    for (var x = 0; x < frame.width; x++, o += 4, s += 4) {
+      final sa = src[s + 3];
+      if (frame.blend == 0 || sa == 255) {
+        out[o] = src[s];
+        out[o + 1] = src[s + 1];
+        out[o + 2] = src[s + 2];
+        out[o + 3] = sa;
+      } else if (sa != 0) {
+        final da = out[o + 3];
+        // non-premultiplied alpha over, rounded
+        final outA = sa * 255 + da * (255 - sa);
+        for (var c = 0; c < 3; c++) {
+          out[o + c] =
+              (src[s + c] * sa * 255 +
+                  out[o + c] * da * (255 - sa) +
+                  outA ~/ 2) ~/
+              outA;
+        }
+        out[o + 3] = (outA + 127) ~/ 255;
+      }
+    }
+  }
 }
 
 bool _validDepth(int color, int depth) => switch (color) {

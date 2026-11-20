@@ -2,32 +2,42 @@
 
 ## Unreleased
 
-Fixed:
-
-- `TerminalView.canRequestFocus` is `bool?`, null by default: a `focusNode`
-  given keeps its own `canRequestFocus` (it was forced back to true by every
-  build).
-- The check `feed` ends with looks at the screens and the scrollback lines
-  pushed since the last check, not every line of the scrollback (a resize and
-  `debugAssertInvariants()` check all).
-- `TerminalEmulator.debugCorrupt` does nothing outside a debug run.
-- `TerminalSession.resize` gave the program's terminal the size asked for
-  where the emulator kept at least one column and row: `resize(0, 0)`
-  outside a `TerminalView` threw a `RangeError` from `Pty.resize`. Both
-  get the size kept.
-
 Added:
 
+- SGR-Pixels (mode 1016): `TerminalMode.mousePixels`, answered by DECRQM;
+  with it set and a cell size known, `sendMouse` and `mouseSequence`
+  (`cellWidth:`, `cellHeight:`) report pixels: the cell's origin plus the
+  event's `offsetX` and `offsetY` (the cell's middle without them).
+- `Pty.start(output: PtyOutput.terminal)` sets the slave's output flags a
+  terminal has (OPOST and ONLCR on, tabs not expanded, no OCRNL, ONOCR or
+  ONLRET) before the program runs. `Pty.nlToCrNl` says whether the tty writes
+  the program's NL as CR NL (OPOST and ONLCR both on), what a driver counts
+  the program's bytes by; it answers from `modesAtEnd` once the master is
+  closed.
+- `Pty.foregroundProcessGroup`, the process group in the foreground of the
+  terminal: another than the program's while a shell runs a job, to ask
+  before closing one that is busy.
+- `TerminalView(canRequestFocus: false)`: a terminal to read only, as of a log
+  a program writes, which a press does not focus and no key reaches; the
+  wheel scrolls its scrollback. The parameter is `bool?`, null by default, so
+  a given `focusNode` keeps its own `canRequestFocus`.
 - `TerminalEmulator.debugAssertInvariants`, the emulator's own state checked
   (cursor, margins, screens, tab stops, saved cursors, scrollback); `feed` and
   `resize` end with it as an `assert`. Input bytes are still clamped or
   ignored.
-- `Pty.foregroundProcessGroup`, the process group in the foreground of the
-  terminal: another than the program's while a shell runs a job, to ask
-  before closing one that is busy.
-- `TerminalView(canRequestFocus: false)`: a terminal to read only, as of
-  a log a program writes, which a press does not focus and no key reaches;
-  the wheel scrolls its scrollback.
+
+Fixed:
+
+- Ctrl and a letter of another layout (`с` of a Russian one, with the key it
+  is on a US layout told) sends the control character of that key (`^C`), not
+  the letter.
+- A `Pty`'s hang-up grace and the reapers of its program run in the root zone,
+  not the zone that made it: a driven app (`TWK_DRIVEN`) hosting a shell sees
+  its end on real time.
+- `TerminalSession.resize` gave the program's terminal the size asked for
+  where the emulator kept at least one column and row: `resize(0, 0)` outside
+  a `TerminalView` threw a `RangeError` from `Pty.resize`. Both get the size
+  kept.
 
 ## 0.3.0
 

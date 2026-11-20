@@ -204,7 +204,7 @@ allow pkg Link -- right here
       }
     });
 
-    test('are the repository own seven', () {
+    test('are the repository own eight', () {
       var root = Directory.current;
       while (!File('${root.path}/xtask.yaml').existsSync()) {
         root = root.parent;
@@ -213,6 +213,7 @@ allow pkg Link -- right here
         'twk',
         'twk_core',
         'twk_dev',
+        'twk_driver',
         'twk_lints',
         'twk_rich',
         'twk_term',

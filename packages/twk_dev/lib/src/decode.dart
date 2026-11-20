@@ -245,9 +245,10 @@ final class SequenceReader {
     return tokens;
   }
 
-  /// What waits for the rest of a sequence, as latin1; empty when nothing
-  /// does.
-  String get waiting => _latin1(_pending, 0, _pending.length);
+  /// What waits for the rest of a sequence or of a character, as latin1;
+  /// empty when nothing does.
+  String get waiting =>
+      _latin1(_pending, 0, _pending.length) + _latin1(_carry, 0, _carry.length);
 
   (SeqToken, int)? _escape(Uint8List d, int i, int scanned) {
     if (i + 1 >= d.length) {
@@ -1579,7 +1580,8 @@ final class SequenceLog {
 
   /// The traffic ended at [time]: a synchronized update still open is closed
   /// as a frame saying so, and what the app's last write left unfinished (an
-  /// OSC, a DCS, a CSI without its end) is a note saying it was cut short.
+  /// OSC, a DCS, a CSI without its end, a UTF-8 character cut) is a note
+  /// saying it was cut short.
   void finish(int time) {
     final open = _open;
     if (open != null) {

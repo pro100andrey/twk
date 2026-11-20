@@ -51,7 +51,12 @@ import 'one_child.dart';
 /// ```
 final class ExpansionController extends ChangeNotifier {
   /// A controller that is [expanded] from the start, or not.
-  ExpansionController({this._expanded = false});
+  ExpansionController({this._expanded = false}) {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   bool _expanded;
 

@@ -6,8 +6,6 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
-
 Widget app(
   List<String> seen,
   TextEditingController text, {

@@ -23,6 +23,7 @@ import 'dart:typed_data';
 
 import 'byte_sink.dart';
 import 'canvas.dart';
+import 'clock.dart';
 import 'input/events.dart';
 import 'line_encoder.dart';
 import 'log.dart';
@@ -193,7 +194,7 @@ final class TwkApp {
   /// mode, [viewport] makes the app a fixed rectangle of the screen (see
   /// [TwkApp]). [framesInRow], [timeline] and [serveLogs] are debug aids,
   /// by default on when `TWK_DEBUG` names `frames`, `timeline` or `logs`.
-  /// [clock] spaces the frames, by default a [Stopwatch] started here.
+  /// [clock] spaces the frames, by default a [SystemClock] started here.
   ///
   /// [environment] is where those defaults are read from, `TWK_LOG` and
   /// `TWK_DEBUG` ([debugNames]), here and nowhere else. Null, the default,
@@ -220,7 +221,7 @@ final class TwkApp {
     bool? framesInRow,
     bool? timeline,
     bool? serveLogs,
-    Stopwatch? clock,
+    Clock? clock,
     Map<String, String>? environment,
   }) {
     final on = environment ?? _environmentOn(terminal);
@@ -254,8 +255,8 @@ final class TwkApp {
     required bool? framesInRow,
     required bool? timeline,
     required bool? serveLogs,
-    required Stopwatch? clock,
-  }) : clock = clock ?? (Stopwatch()..start()),
+    required Clock? clock,
+  }) : clock = clock ?? SystemClock(),
        maxInputFps = _inputFps(maxFps, maxInputFps, terminal.info.remote),
        logs = logs ?? LogSink(path: environment['TWK_LOG']),
        _plain = terminal.info.plain,
@@ -292,13 +293,21 @@ final class TwkApp {
     }
     // layout measures text with the segmenter the canvas draws it with,
     // and orders it as the terminal needs
-    owner = PipelineOwner(_needFrame, segmenter: screen.canvas.segmenter)
-      ..onLog = this.logs.add
-      ..textOrder = info.bidi == BidiReordering.app
-          ? TextOrder.visual
-          : TextOrder.logical
-      ..debugRepaintRainbow = debugNames.contains('rainbow')
-      ..debugRelayoutHighlight = debugNames.contains('relayout');
+    // plain output is data, which no overflow marker is drawn into
+    // (`TWK_DEBUG=overflow` may still ask for it)
+    owner =
+        (info.plain
+              ? PipelineOwner.forData(
+                  _needFrame,
+                  segmenter: screen.canvas.segmenter,
+                )
+              : PipelineOwner(_needFrame, segmenter: screen.canvas.segmenter))
+          ..onLog = this.logs.add
+          ..textOrder = info.bidi == BidiReordering.app
+              ? TextOrder.visual
+              : TextOrder.logical
+          ..debugRepaintRainbow = debugNames.contains('rainbow')
+          ..debugRelayoutHighlight = debugNames.contains('relayout');
     if (debugNames.contains('overflow')) {
       owner.debugOverflowIndicator = true;
     }
@@ -354,9 +363,11 @@ final class TwkApp {
     return fps < maxFps ? maxFps : fps;
   }
 
-  /// What frames are spaced by: the gap of [maxFps] passes on it. By
-  /// default a started [Stopwatch]; a test gives one its fake clock moves.
-  final Stopwatch clock;
+  /// What frames are spaced by: the gap of [maxFps] passes on it, and the
+  /// timer of a frame that waits is its. By default a [SystemClock]
+  /// started with the app; a test, or a driver, gives one that moves when
+  /// it says so.
+  final Clock clock;
 
   /// Inline mode: the most rows the region grows to; null for the
   /// terminal's height (which limits it anyway).
@@ -432,6 +443,109 @@ final class TwkApp {
   var _inFrame = false;
   var _again = false;
 
+  /// Whether a frame is asked for: one waits for its time, or one follows
+  /// the running frame, or the render tree or a commit has work for one.
+  /// What a driver of the app (`twk_driver`) reads to tell whether input
+  /// led to a frame.
+  bool get scheduled =>
+      _scheduled ||
+      _again ||
+      owner.hasWork ||
+      _committing != null ||
+      _commits.isNotEmpty;
+
+  /// Whether a frame runs now, awaiting its flush perhaps: what a driver
+  /// that moves the clock waits out before it calls the app quiet.
+  bool get inFrame => _inFrame;
+
+  /// When the frame asked for is due, in microseconds of [clock]; null
+  /// when none is ([scheduled]). For a frame that follows the running one
+  /// it is when [requestFrame] will have it run.
+  int? get frameDue {
+    if (_scheduled) {
+      return _frameDue;
+    }
+    if (!scheduled) {
+      return null;
+    }
+    final gap = 1000000 ~/ (_inputFrame ? maxInputFps : maxFps);
+    final now = clock.elapsedMicroseconds;
+    final next = _lastFrameAt + gap;
+    return next > now ? next : now;
+  }
+
+  var _framesRun = 0;
+
+  /// How many frames have run, drawn or not; the running one included.
+  int get framesRun => _framesRun;
+
+  Completer<void>? _frameEnd;
+
+  /// Completes when the running frame ends, flush included; already
+  /// completed when none runs.
+  Future<void> get frameEnd =>
+      _inFrame ? (_frameEnd ??= Completer<void>()).future : Future.value();
+
+  /// The bytes of the terminal's input the app has taken in so far: a
+  /// sample of [CountingBackend.bytesRead], taken where the event loop is at
+  /// a boundary ([sampleInput]), so that every event of those bytes has
+  /// reached the app. It starts at the bytes the terminal read while it
+  /// opened, and is not taken while the app's input waits for the first
+  /// frame, nor while the terminal is handed over ([suspend]).
+  int get inputRead => _inputRead;
+  var _inputRead = 0;
+
+  /// Takes the sample [inputRead] is: call it only from an event-loop task
+  /// (a frame, a timer, an extension's handler), never from a microtask,
+  /// where events of what was read may still be on their way. Returns it.
+  int sampleInput() {
+    final counting = terminal;
+    if (counting is CountingBackend &&
+        !_suspended &&
+        (_input?.isPaused == false)) {
+      _inputRead = counting.bytesRead;
+    }
+    return _inputRead;
+  }
+
+  /// Whether the terminal's input parser holds bytes it has not resolved (a
+  /// lone ESC waiting for its timeout, an open paste).
+  bool get inputPending {
+    final counting = terminal;
+    return counting is CountingBackend && counting.inputPending;
+  }
+
+  /// Called, from a root-zone timer after the microtasks of what was read
+  /// or dispatched have run, once per turn of the event loop in which the
+  /// terminal was read or an event dispatched, with [inputRead] sampled.
+  /// While null the app arms no timer.
+  void Function()? onInputSettled;
+  Timer? _settleTimer;
+
+  // A real root-zone timer on purpose, not the [clock]'s: it marks a turn
+  // of the event loop (what a read or an event queued has run), not a time
+  // of the app, and a driven clock that stands still must not hold it.
+  //
+  // The closure is made in a method of its own: one in this method would
+  // have it allocate a Context for `this` on every call, an object for each
+  // event dispatched even where no driver listens.
+  void _settleSoon() {
+    if (onInputSettled != null) {
+      _armSettle();
+    }
+  }
+
+  void _armSettle() {
+    // armed again by what is dispatched: after the zero-delay work the
+    // handler queued, which is run by then
+    _settleTimer?.cancel();
+    _settleTimer = Zone.root.createTimer(Duration.zero, () {
+      _settleTimer = null;
+      sampleInput();
+      onInputSettled?.call();
+    });
+  }
+
   /// Input is being dispatched: a frame asked for now is the input's.
   var _inInput = false;
 
@@ -480,6 +594,11 @@ final class TwkApp {
     screen.presenter,
   );
   late final void Function() _runFrame = _frame;
+
+  // [_runFrame] bound to [_zone], made again where that changes: a frame
+  // request allocates nothing, and the frame runs in the app's zone, its
+  // errors going to the zone's handler, whichever zone moves the clock
+  late void Function() _zoneFrame = _zone.bindCallbackGuarded(_runFrame);
 
   /// Inline mode: what was committed and is not written yet, oldest first
   /// ([commit]).
@@ -585,6 +704,7 @@ final class TwkApp {
     runZonedGuarded(
       () {
         _zone = Zone.current;
+        _zoneFrame = _zone.bindCallbackGuarded(_runFrame);
         owner.root = root;
         void dispatch(InputEvent e) {
           var event = e;
@@ -614,6 +734,11 @@ final class TwkApp {
           onEvent(event);
         }
 
+        final counting = terminal;
+        if (counting is CountingBackend) {
+          _inputRead = counting.bytesReadAtOpen;
+          counting.onRead = _settleSoon;
+        }
         _input = terminal.events.listen((e) {
           // the line that makes a frame input's: what asks for one while
           // the event is dispatched is spaced by the input gap
@@ -623,6 +748,7 @@ final class TwkApp {
           } finally {
             _inInput = false;
           }
+          _settleSoon();
         })..pause();
         requestFrame();
       },
@@ -655,6 +781,13 @@ final class TwkApp {
     } on Object catch (error, stack) {
       failure = error;
       failureStack = stack;
+    }
+    // what a driver is to be told of the end (`quitting`) goes before the
+    // terminal is closed, from which the process soon ends
+    if (_settleTimer != null) {
+      final settled = Completer<void>();
+      Zone.root.createTimer(Duration.zero, settled.complete);
+      await settled.future;
     }
     await step('the input was not cancelled', () => _input?.cancel());
     if (!_suspended) {
@@ -726,9 +859,18 @@ final class TwkApp {
   /// terminal is handed back. Calling it again does nothing.
   void quit() {
     if (!_done.isCompleted) {
+      _quitting = true;
       _done.complete();
+      // a driver is told the app is quitting, though nothing was read
+      _settleSoon();
     }
   }
+
+  /// Whether [quit] was called: the app ends once its frame, if one runs,
+  /// is done, and the terminal handed back. What a driver (`twk_driver`)
+  /// reads to tell an app that quits from one that fails.
+  bool get quitting => _quitting;
+  var _quitting = false;
 
   /// A default color or palette entry the terminal reported (OSC 10, 11
   /// or 4, asked again after its color scheme changed) is what colors with
@@ -959,8 +1101,18 @@ final class TwkApp {
       _writeInRow(bytes.length);
     } else if (!_plain) {
       terminal.write(bytes);
+      if (!_colorRestore && screen.presenter.cursorColorWritten) {
+        // the terminal puts the cursor's color back on every way out
+        _colorRestore = true;
+        if (terminal case final TerminalStateBackend backend) {
+          backend.setTerminalState(#cursorColor, '', '\x1b]112\x1b\\');
+        }
+      }
     }
   }
+
+  // whether the terminal was told to put the cursor's color back
+  var _colorRestore = false;
 
   /// Plain output: writes rows [from, to) of [surface] as lines of text
   /// ([_textRows]); for the [last] frame without the blank lines that end
@@ -1085,6 +1237,7 @@ final class TwkApp {
     final kind = e.kind;
     var x = e.x - v.left;
     var y = e.y - v.top;
+    var clamped = false;
     if (x < 0 || y < 0 || x >= w || y >= h) {
       if (!_held ||
           (kind != MouseKind.drag && kind != MouseKind.up) ||
@@ -1094,13 +1247,24 @@ final class TwkApp {
       }
       x = x < 0 ? 0 : (x < w ? x : w - 1);
       y = y < 0 ? 0 : (y < h ? y : h - 1);
+      clamped = true;
     }
     if (kind == MouseKind.down) {
       _held = true;
     } else if (kind == MouseKind.up) {
       _held = false;
     }
-    return MouseEvent(kind, x, y, button: e.button, modifiers: e.modifiers);
+    // the pixel offsets are of the cell the pointer is in: a cell the
+    // pointer was moved to from outside has none
+    return MouseEvent(
+      kind,
+      x,
+      y,
+      button: e.button,
+      modifiers: e.modifiers,
+      offsetX: clamped ? null : e.offsetX,
+      offsetY: clamped ? null : e.offsetY,
+    );
   }
 
   /// Inline mode: the most rows the region may have now.
@@ -1224,9 +1388,9 @@ final class TwkApp {
     final wait = _lastFrameAt + gap - now;
     _frameDue = wait > 0 ? _lastFrameAt + gap : now;
     // frames run in the app's zone even when requested from outside it
-    _frameTimer = _zone.createTimer(
+    _frameTimer = clock.timer(
       wait > 0 ? Duration(microseconds: wait) : Duration.zero,
-      _runFrame,
+      _zoneFrame,
     );
   }
 
@@ -1236,6 +1400,7 @@ final class TwkApp {
       return;
     }
     _inFrame = true;
+    _framesRun++;
     try {
       // Frames keep to a grid of gaps: the next is due a gap after when
       // this one was due, so a timer's lateness does not add up. One late
@@ -1247,6 +1412,7 @@ final class TwkApp {
       final t0 = _statsClock.elapsedMicroseconds;
       _begin('Frame');
       _begin('Build');
+      sampleInput();
       _beforeLayout?.call();
       _end();
       final input = _input;
@@ -1301,6 +1467,8 @@ final class TwkApp {
       }
     } finally {
       _inFrame = false;
+      _frameEnd?.complete();
+      _frameEnd = null;
       // slices an error cut short end here: none may outlive the frame
       while (_slices > 0) {
         Timeline.finishSync();

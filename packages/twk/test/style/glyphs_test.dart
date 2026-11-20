@@ -6,8 +6,6 @@ import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
-
 /// [child] in the dark theme with [glyphs].
 Widget themed(Glyphs glyphs, Widget child) => Theme(
   data: ThemeData.dark.copyWith(glyphs: glyphs),
@@ -357,7 +355,7 @@ void main() {
         hasChildren: (n) => n == 'a',
         nodeKey: (n) => n,
         label: (context, entry) => Text(entry.node),
-        controller: TreeController(expanded: const ['a']),
+        controller: disposing(TreeController(expanded: const ['a'])),
       );
       await t.pumpWidget(themed(Glyphs.unicode, tree()), size: (10, 3));
       expect(t.lines.first, startsWith('▾ a'));

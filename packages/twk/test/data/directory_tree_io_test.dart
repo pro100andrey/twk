@@ -70,7 +70,8 @@ void main() {
       Directory('$root/secret').createSync(recursive: true);
       Process.runSync('chmod', ['000', '$root/secret']);
       File('$root/a.txt').writeAsStringSync('a');
-      final controller = DirectoryTreeController()..expand('$root/secret');
+      final controller = disposing(DirectoryTreeController())
+        ..expand('$root/secret');
       await t.pumpWidget(
         DirectoryTree(root: root, controller: controller),
         size: (30, 5),

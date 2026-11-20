@@ -33,6 +33,7 @@ import {
   counterpartOf,
   flagParams,
   detailSections,
+  isTreeChanged,
   nodeOf,
   parseFlags,
   parseLayout,
@@ -171,7 +172,7 @@ export class Inspector {
           if (target === this.current) {
             void this.refresh();
           }
-        } else if (e.name === 'twk.treeChanged' && target === this.current) {
+        } else if (e.name === 'twk.treeChanged' && isTreeChanged(e.data) && target === this.current) {
           this.refreshSoon();
         } else if (e.name === 'twk.select') {
           const cell = parsePicked(e.data);

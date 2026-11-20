@@ -3,8 +3,8 @@ text
 │  ◆ twk gallery                                      ctrl+p search      ◐ Dark  │
 │                                                                                │
 │   ⌕ Filter       /     Image                                   Preview   Code  │
-│                        A PNG or JPEG fitted to its cells. Where the terminal   │
-│     FrameOverlay       has a graphics protocol (kitty, sixel, iTerm2) its pi…  │
+│                        A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or  │
+│     FrameOverlay       APNG with frames plays on the app’s clock, each frame…  │
 │     Repaint rainb…   ──────────────────────────────────────────────────────────│
 │     RepaintBounda…        ┌                                              ┐     │
 │                         ·                ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                 ·  │
@@ -15,21 +15,21 @@ text
 │     DiffView                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                    │
 │     JsonView              └                                              ┘     │
 │     BigText          ──────────────────────────────────────────────────────────│
-│     QrCode             picture     lake.jpg  logo.png                          │
+│     QrCode             picture     lake.jpg  logo.png  orbit.gif               │
 │                        fit         contain  cover  fill  scaleDown             │
 │   IMAGES         1     alignment   center  topLeft  centerLeft  centerRight    │
 │ ▎   Image                          bottomRight                                 │
-│                        blocks      half  quadrant                              │
-│   TERMINAL       1  ▐  width      ─────────────▌▌─────────────  44 cells       │
-│     TerminalView    ▐  height     ───────── ──────────────────  12 rows        │
-│                                                                                │
+│                        drawn       detected  half  quadrant  sextant  octant   │
+│   TERMINAL       1  ▐              braille  ascii  protocol                    │
+│     TerminalView    ▐  width      ─────────────▌▌─────────────  44 cells       │
+│                        height     ───────── ──────────────────  12 rows        │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme    │
 styles
 │aabacccadddddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaeeeeeea××××××aaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
 │aahÚhÚÚÚÚÚÚhhhhhhhÛhaaggkkkkkggggggggggggggggggggggggggggggggggglllllllgggmmmmgg│
-│aaaaaaaaaaaaaaaaaaaaaaggmgmmmgmmgmmmmgmmmmmmgmmgmmmgmmmmmmgmmmmmgmmmgmmmmmmmmggg│
-│aaaaannnnnnnnnnnnaaaaaggmmmgmgmmmmmmmmgmmmmmmmmgmmmmmmmgmmmmmmgmmmmmmmgmmmgmmmgg│
+│aaaaaaaaaaaaaaaaaaaaaaggmgmmmmgmmmmmgmmmgmmgmmmmgmmmmmmgmmgmmmgmmmmmmgmgmmmgmmgg│
+│aaaaannnnnnnnnnnnaaaaaggmmmmgmmmmgmmmmmmgmmmmmgmmgmmmgmmmmmgmmmmmmgmmmmgmmmmmmgg│
 │aaaaannnnnnnannnnnnaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
 │aaaaannnnnnnnnnnnnnaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaaaaaaaaaaaaaaaaaaagggoggggggggggggggggpqqrstuvwxyzABCDvEgggggggggggggggggogg│
@@ -40,14 +40,14 @@ styles
 │aaaaannnnnnnnaaaaaaaaaggggggggggggggggggggÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙgggggggggggggggggggg│
 │aaaaannnnnnnnaaaaaaaaagggggoggggggggggggggggggggggggggggggggggggggggggggggoggggg│
 │aaaaannnnnnnaaaaaaaaaaoooooooooooooooooooooooooooooooooooooooooooooooooooooooooo│
-│aaaaannnnnnaaaaaaaaaaaggmmmmmmmggggþÿÿÿÿÿÿÿÿþhααααααααhggggggggggggggggggggggggg│
+│aaaaannnnnnaaaaaaaaaaaggmmmmmmmggggþÿÿÿÿÿÿÿÿþhααααααααhhαααααααααhgggggggggggggg│
 │aaaaaaaaaaaaaaaaaaaaaaggmmmggggggggþÿÿÿÿÿÿÿþhαααααhhααααhhαααααααααhgggggggggggg│
 │aaaddddddaaaaaaaaa×aaaggmmmmmmmmmggþÿÿÿÿÿÿþhαααααααhhααααααααααhhαααααααααααhggg│
 │aβþþþÿÿÿÿÿþþþþþþþþþþþaggggggggggggghαααααααααααhgggggggggggggggggggggggggggggggg│
-│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggþÿÿÿÿþhααααααααhggggggggggggggggggggggggggggg│
-│aaaddddddddaaaaaaa×aadggmmmmmggggggγγγγγγγγγγγγγδγmmmmmmmmmmmmmggÜÜgÜÜÜÜÜggggggg│
-│aaaaannnnnnnnnnnnaaaadggmmmmmmgggggγγγγγγγγγδmmmmmmmmmmmmmmmmmmggÜÜgÜÜÜÜgggggggg│
-│aaaaaaaaaaaaaaaaaaaaaagggggggggggggggggggggggggggggggggggggggggggggggggggggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmggggggþÿÿÿÿÿÿÿÿþhααααhhααααααααhhαααααααhhααααααhgg│
+│aaaddddddddaaaaaaa×aadggggggggggggghαααααααhhαααααhhααααααααhggggggggggggggggggg│
+│aaaaannnnnnnnnnnnaaaadggmmmmmggggggγγγγγγγγγγγγγδγmmmmmmmmmmmmmggÜÜgÜÜÜÜÜggggggg│
+│aaaaaaaaaaaaaaaaaaaaaaggmmmmmmgggggγγγγγγγγγδmmmmmmmmmmmmmmmmmmggÜÜgÜÜÜÜgggggggg│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaa│
 legend
 a on #1c1f25

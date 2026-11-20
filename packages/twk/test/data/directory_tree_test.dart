@@ -96,7 +96,7 @@ void main() {
     testTwk('a directory is listed as it is first expanded, a spinner below '
         'it meanwhile, and not again while it stays expanded', (t) async {
       final files = Counting(project());
-      final controller = DirectoryTreeController();
+      final controller = disposing(DirectoryTreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -232,7 +232,8 @@ void main() {
           rooted('/app/lib/gen/.gitignore'): '!*.dart\n',
         },
       );
-      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
+      final controller = disposing(DirectoryTreeController())
+        ..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -357,7 +358,7 @@ void main() {
         [rooted('/app/a.txt')],
         unreadable: [rooted('/app/secret')],
       );
-      final controller = DirectoryTreeController()
+      final controller = disposing(DirectoryTreeController())
         ..expand(rooted('/app/secret'));
       await t.pumpWidget(
         Theme.terminal(
@@ -414,7 +415,8 @@ void main() {
     testTwk('listed again, the selection and what is expanded stay, and no '
         'spinner shows', (t) async {
       final files = project();
-      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
+      final controller = disposing(DirectoryTreeController())
+        ..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -456,7 +458,8 @@ void main() {
     testTwk('a change to a .gitignore shows what it ignores no longer, '
         'below it too', (t) async {
       final files = project();
-      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
+      final controller = disposing(DirectoryTreeController())
+        ..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -487,7 +490,8 @@ void main() {
         'is listed again', (t) async {
       final files = Counting(project());
       final memory = files.files as InMemoryFileSystem;
-      final controller = DirectoryTreeController()..expand(rooted('/app/lib'));
+      final controller = disposing(DirectoryTreeController())
+        ..expand(rooted('/app/lib'));
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -515,7 +519,7 @@ void main() {
       t,
     ) async {
       final files = project();
-      final controller = DirectoryTreeController();
+      final controller = disposing(DirectoryTreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -541,7 +545,7 @@ void main() {
     testTwk('reveal expands the directories down to a path, each listed in '
         'turn, and selects it; onSelected is called', (t) async {
       final selected = <String>[];
-      final controller = DirectoryTreeController();
+      final controller = disposing(DirectoryTreeController());
       final told = <String?>[];
       controller.addListener(() => told.add(controller.selected));
       await t.pumpWidget(
@@ -573,7 +577,8 @@ void main() {
 
     testTwk('a path revealed before a tree has the controller is revealed '
         'as the tree starts; expand works before it too', (t) async {
-      final controller = DirectoryTreeController()..expand(rooted('/app/test'));
+      final controller = disposing(DirectoryTreeController())
+        ..expand(rooted('/app/test'));
       unawaited(controller.reveal(rooted('/app/lib/about.md')));
       await t.pumpWidget(
         Theme.terminal(
@@ -600,7 +605,7 @@ void main() {
     });
 
     testTwk('a path outside the root reveals nothing', (t) async {
-      final controller = DirectoryTreeController();
+      final controller = disposing(DirectoryTreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(
@@ -618,7 +623,7 @@ void main() {
     });
 
     testTwk('collapse hides the entries of a directory', (t) async {
-      final controller = DirectoryTreeController();
+      final controller = disposing(DirectoryTreeController());
       await t.pumpWidget(
         Theme.terminal(
           child: DirectoryTree(

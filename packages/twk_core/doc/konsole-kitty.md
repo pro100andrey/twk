@@ -92,7 +92,7 @@ dart run example/image/konsole_images.dart
 A blue header with a picture at its left, 8 x 4 cells: a gradient in a
 white frame crossed by a white diagonal, and beside it
 `graphics=kitty konsoleImages=true`. Below, a log scrolls up a line every
-0.12 s for 40 lines, then down for 10; then the picture changes colour 12
+0.12 s for 40 lines, then down for 10; then the picture changes color 12
 times. The picture stays in the header, whole and framed, the whole time;
 without the capability it climbed a row with each line scrolled up and was
 gone off the top after five. The app ends by itself ten seconds

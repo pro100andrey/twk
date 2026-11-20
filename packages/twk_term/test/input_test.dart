@@ -34,6 +34,17 @@ void main() {
       expect(key(KeyCode.char, char: '1', mods: Mod.shift), '1');
     });
 
+    test('Ctrl and a letter of another layout is the control character of '
+        'the key on a US layout', () {
+      String? ctrl(String char, String base) => keySequence(
+        KeyEvent(KeyCode.char, char: char, modifiers: Mod.ctrl, baseChar: base),
+      );
+      expect(ctrl('с', 'c'), '\x03');
+      expect(ctrl('я', 'z'), '\x1a');
+      // a Latin layout keeps what it types, wherever the key is
+      expect(ctrl('c', 'j'), '\x03');
+    });
+
     test('Enter, Tab, Backspace and Escape', () {
       expect(key(KeyCode.enter), '\r');
       expect(key(KeyCode.enter, newLine: true), '\r\n');
@@ -90,10 +101,49 @@ void main() {
       String char = '',
       int mods = 0,
       KeyKind kind = KeyKind.press,
+      int kitty = 0,
     }) => kittyKeySequence(
-      KeyEvent(code, char: char, modifiers: mods, kind: kind),
+      KeyEvent(code, char: char, modifiers: mods, kind: kind, kittyCode: kitty),
       flags,
     )?.replaceAll('\x1b', r'\e');
+
+    test('modifier, lock and media keys are CSI u with flag 8 only', () {
+      const shift = KittyKey.leftShift;
+      expect(
+        key(8, KeyCode.modifier, mods: Mod.shift, kitty: shift),
+        r'\e[57441;2u',
+      );
+      expect(key(1, KeyCode.modifier, mods: Mod.shift, kitty: shift), isNull);
+      expect(key(0, KeyCode.modifier, mods: Mod.shift, kitty: shift), isNull);
+      // a release needs flag 2 too, and says so
+      expect(
+        key(8, KeyCode.modifier, kind: KeyKind.release, kitty: shift),
+        isNull,
+      );
+      expect(
+        key(10, KeyCode.modifier, kind: KeyKind.release, kitty: shift),
+        r'\e[57441;1:3u',
+      );
+      expect(
+        key(10, KeyCode.lock, kind: KeyKind.repeat, kitty: 57358),
+        r'\e[57358;1:2u',
+      );
+      expect(
+        key(8, KeyCode.media, kitty: KittyKey.mediaPlayPause),
+        r'\e[57430u',
+      );
+      // no code, no sequence
+      expect(key(8, KeyCode.media), isNull);
+    });
+
+    test('xterm sends nothing for them', () {
+      for (final code in [KeyCode.modifier, KeyCode.lock, KeyCode.media]) {
+        expect(
+          keySequence(KeyEvent(code, kittyCode: KittyKey.leftShift)),
+          isNull,
+        );
+      }
+    });
 
     test('disambiguated: text as typed, modified keys as CSI u', () {
       expect(key(1, KeyCode.char, char: 'a'), 'a');
@@ -274,6 +324,35 @@ void main() {
         ),
         r'\e[<0;1;1M',
         reason: 'no modifiers in X10',
+      );
+    });
+
+    test('SGR-Pixels: the cell origin and the offset, clamped to the cell; '
+        'only in SGR', () {
+      const e = MouseEvent(MouseKind.down, 3, 1, offsetX: 4, offsetY: 5);
+      List<int>? pix(MouseEvent e, MouseEncoding enc) => mouseSequence(
+        e,
+        MouseProtocol.buttons,
+        enc,
+        cellWidth: 8,
+        cellHeight: 16,
+      );
+      expect(
+        String.fromCharCodes(pix(e, MouseEncoding.sgr)!),
+        '\x1b[<0;29;22M',
+      );
+      expect(
+        String.fromCharCodes(
+          pix(
+            const MouseEvent(MouseKind.down, 0, 0, offsetX: 99, offsetY: -3),
+            MouseEncoding.sgr,
+          )!,
+        ),
+        '\x1b[<0;8;1M',
+      );
+      expect(
+        pix(e, MouseEncoding.urxvt),
+        mouseSequence(e, MouseProtocol.buttons, MouseEncoding.urxvt),
       );
     });
 

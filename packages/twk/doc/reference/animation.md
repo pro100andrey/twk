@@ -54,7 +54,7 @@ and `elasticOut`, `Cubic(a, b, c, d)` as CSS's `cubic-bezier` and
 
 `Spinner(frames:, style:)` shows the frames of its `SpinnerFrames` in turn
 (null for the theme's `glyphs.spinner`, `dots`, braille, 80 ms each, in
-`Glyphs.unicode`, `line` in `Glyphs.ascii`; `dots` `line`, ASCII, 130 ms; `arc`, 100
+`Glyphs.unicode`, `line` in `Glyphs.ascii`; `line`, ASCII, 130 ms; `arc`, 100
 ms; or frames and an `interval` of one's own): the frame of the step of the
 app's clock the frame is in, so spinners of the same frames show the same
 one and step in the same frames, on one timer, building nothing; as wide as
@@ -188,10 +188,12 @@ Downloading assets.zip • 3.4/3.4 MB • 2.1 s`; `summary(glyphs: glyphs, byteU
 ByteUnits.binary)` counts the bytes by 1024, `3.2/3.2 MiB`). The tracker's listeners are
 told when a task comes, goes, starts or ends, or its label or total changes,
 not at each `advance`; `onTaskFinished` streams each task as it ends; its
-times are read on the `clock` it is constructed with, else on a stopwatch of
-its own, for its whole life, nothing replacing it: an app hands it the
-app's, `ProgressTracker(clock: AppBinding.of(context).twkApp.clock)`, so a
-test's fake clock moves them.
+times are read on the `clock` it is constructed with, else on a `SystemClock` of
+its own, for its whole life, nothing replacing it: inside an app make it with
+`ProgressTracker.of(context, rateWindow:)`, which takes the app's clock
+(`AppBinding.of(context).twkApp.clock`), so a test's fake clock and a driven
+app's time move them and a driven screen is the same each run; the
+constructor, on the wall clock, is for code outside an app, the `Cli`'s.
 
 ## `ProgressList`
 

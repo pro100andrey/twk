@@ -7,6 +7,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -54,6 +55,61 @@ Future<(LocalAddress, List<Socket>)> silentShell(Directory dir) async {
       );
   });
   return (address, sockets);
+}
+
+/// What `package:twk_core` logs on `twk.wire` (dart:developer's `log`) while
+/// a test runs: read from the VM service of this process, which the test
+/// asks for, as no package of this one's dependencies reads it.
+final class WireLog {
+  WireLog._(this._socket) {
+    _socket.listen((message) {
+      final decoded = jsonDecode(message as String) as Map;
+      if (decoded['id'] == 1) {
+        // the stream replays what was logged before: left out
+        messages.clear();
+        _listening.complete();
+      }
+      final event = decoded['params'];
+      final record = event is Map ? (event['event'] as Map?) : null;
+      if (record != null && record['kind'] == 'Logging') {
+        final log = record['logRecord'] as Map;
+        if ((log['loggerName'] as Map)['valueAsString'] == 'twk.wire') {
+          messages.add((log['message'] as Map)['valueAsString'] as String);
+        }
+      }
+    });
+  }
+
+  /// Listening from here; closed when the test ends.
+  static Future<WireLog> start() async {
+    final info = await developer.Service.controlWebServer(enable: true);
+    final uri = info.serverUri!;
+    final socket = await WebSocket.connect(
+      uri.replace(scheme: 'ws', path: '${uri.path}ws').toString(),
+    );
+    final log = WireLog._(socket);
+    addTearDown(socket.close);
+    socket.add(
+      jsonEncode({
+        'jsonrpc': '2.0',
+        'id': 1,
+        'method': 'streamListen',
+        'params': {'streamId': 'Logging'},
+      }),
+    );
+    await log._listening.future;
+    return log;
+  }
+
+  final WebSocket _socket;
+  final _listening = Completer<void>();
+
+  /// The lines logged, in order.
+  final messages = <String>[];
+
+  /// Completes once a line says [text]: those logged before it are in.
+  Future<void> until(String text) =>
+      waitUntil(() => messages.any((m) => m.contains(text)), 'a log of $text');
 }
 
 void main() {
@@ -279,6 +335,40 @@ void main() {
       expect(await SocketLink.toShell(dir.path), isNull);
     });
 
+    test('logs a frame of a type it does not know once per type and '
+        'connection', () async {
+      final log = await WireLog.start();
+      final address = await listen(dir, (socket) {
+        socket
+          ..listen((_) {}, onError: (Object _) {})
+          ..add(
+            jsonFrame(ShellFrame.welcome.byte, {
+              'columns': 10,
+              'lines': 2,
+              'environment': <String, String>{},
+            }),
+          )
+          // one type twice, another once, a last to know the rest are read
+          ..add(frame(99))
+          ..add(frame(99, const [1]))
+          ..add(frame(98))
+          ..add(frame(97));
+      });
+      final first = await SocketLink.connect(address);
+      await log.until('type 97');
+      expect(log.messages, [
+        'ignored a frame of type 99 from the shell',
+        'ignored a frame of type 98 from the shell',
+        'ignored a frame of type 97 from the shell',
+      ]);
+      // another connection is another count
+      final second = await SocketLink.connect(address);
+      await waitUntil(() => log.messages.length == 6, 'the second one logged');
+      expect(log.messages.skip(3), log.messages.take(3));
+      await first.close();
+      await second.close();
+    });
+
     test('a flush left waiting completes when the shell goes away; what '
         'is written then is dropped', () async {
       final (address, sockets) = await silentShell(dir);
@@ -387,6 +477,36 @@ void main() {
       expect(link.text, '<restore>');
       expect(link.raw, isFalse);
       expect(events, [ShellEvent.connected, ShellEvent.disconnected]);
+    });
+
+    test('logs a frame of a type it does not know once per type and '
+        'connection', () async {
+      final log = await WireLog.start();
+      final first = await WireClient.connect(shell.address);
+      first
+        ..hello(shell.address.token)
+        ..sendByte(99)
+        ..sendByte(99, const [1])
+        ..sendByte(98)
+        ..sendByte(97);
+      await first.sync();
+      await log.until('type 97');
+      expect(log.messages, [
+        'ignored a frame of type 99 from an app',
+        'ignored a frame of type 98 from an app',
+        'ignored a frame of type 97 from an app',
+      ]);
+      // another connection is another count
+      final second = await WireClient.connect(shell.address);
+      second
+        ..hello(shell.address.token)
+        ..sendByte(99)
+        ..sendByte(99);
+      await second.sync();
+      await waitUntil(() => log.messages.length == 4, 'the second one logged');
+      expect(log.messages.last, 'ignored a frame of type 99 from an app');
+      first.socket.destroy();
+      second.socket.destroy();
     });
 
     test('an app that sends a frame too long is cut off', () async {

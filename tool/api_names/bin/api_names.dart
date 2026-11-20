@@ -8,7 +8,11 @@
 //
 // The files are written whatever the rules say; the xtask task fails where
 // that changed a file, so that a name added, renamed or removed shows in
-// the diff of a pull request.
+// the diff of a pull request. A list that was stale is named on stderr as
+// it is rewritten; the tool itself still exits 0 for it (failing is the
+// xtask task's), and the rewritten file is committed with the change that
+// exported or removed the names: a rerun passes only because the first run
+// wrote it.
 import 'dart:io';
 
 import 'package:twk_api_names/api_names.dart';
@@ -36,8 +40,20 @@ Future<void> main() async {
   for (final package in published) {
     final list = found['$root/packages/$package']!;
     names[package] = list;
-    File('${out.path}/$package.txt').writeAsStringSync(renderNames(list));
+    final file = File('${out.path}/$package.txt');
+    final text = renderNames(list);
+    final stale = !file.existsSync() || file.readAsStringSync() != text;
+    file.writeAsStringSync(text);
     stdout.writeln('$package: ${list.length}');
+    if (stale) {
+      // A rerun finds the file written and passes, which is no sign the list
+      // was right: the file is changed and belongs in the commit.
+      stderr.writeln(
+        'api_names: STALE doc/internals/api/$package.txt, rewritten now. '
+        'Commit it with the change that exported or removed the names; '
+        'a rerun passing does not make it so.',
+      );
+    }
   }
   final problems = checkRules(rules, names);
   for (final p in problems) {

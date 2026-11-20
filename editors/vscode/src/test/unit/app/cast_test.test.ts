@@ -2,6 +2,7 @@
 // directory, which files it says it wrote, why it wrote none; over a fake
 // process, which says what `twk test-from-cast` says.
 import * as assert from 'node:assert/strict';
+import * as path from 'node:path';
 
 import { CastTests } from '../../../app/cast_test';
 import { AppProcess, Exit } from '../../../core/process';
@@ -39,7 +40,10 @@ class FakeProcess implements AppProcess {
 }
 
 describe('CastTests', () => {
-  const file = '/p/app/rec/counter.cast';
+  // absolute where the tests run: '/p/app' on POSIX, under the drive on Windows
+  const project = path.resolve('/p/app');
+  const inProject = (...parts: string[]) => path.join(project, ...parts);
+  const file = inProject('rec', 'counter.cast');
   let proc: FakeProcess;
   let started: { command: string; args: readonly string[]; cwd: string; group?: boolean }[];
   let log: FakeLog;
@@ -55,7 +59,7 @@ describe('CastTests', () => {
         return proc;
       },
       command: () => ['dart', 'run', 'twk_dev:twk'],
-      projectOf: () => '/p/app',
+      projectOf: () => project,
       env: {},
       log,
     });
@@ -66,9 +70,9 @@ describe('CastTests', () => {
     proc.say('twk test-from-cast: no markers; the last screen is checked\nwrote test/counter_test.dart and test/counter.cast\n');
     proc.end({ code: 0, signal: null });
     const result = await done;
-    assert.deepEqual(started, [{ command: 'dart', args: ['run', 'twk_dev:twk', 'test-from-cast', file], cwd: '/p/app', group: true }]);
-    assert.equal(result.test, '/p/app/test/counter_test.dart');
-    assert.equal(result.cast, '/p/app/test/counter.cast');
+    assert.deepEqual(started, [{ command: 'dart', args: ['run', 'twk_dev:twk', 'test-from-cast', file], cwd: project, group: true }]);
+    assert.equal(result.test, inProject('test', 'counter_test.dart'));
+    assert.equal(result.cast, inProject('test', 'counter.cast'));
     assert.equal(result.said, 'twk test-from-cast: no markers; the last screen is checked');
     assert.equal(result.error, undefined);
     assert.match(log.text, /twk test-from-cast: exit 0/);
@@ -109,17 +113,17 @@ describe('CastTests', () => {
     assert.equal(started.length, before + 1);
     proc.say('wrote test/counter_test.dart and test/counter.cast\n');
     proc.end({ code: 0, signal: null });
-    assert.equal((await first).test, '/p/app/test/counter_test.dart');
+    assert.equal((await first).test, inProject('test', 'counter_test.dart'));
     assert.ok(!tests.isRunning(file));
   });
 
   it('splits the files it wrote at the test and the recording, not at an " and " in a name', async () => {
-    const done = tests.create('/p/app/rec/rock and roll.cast');
+    const done = tests.create(inProject('rec', 'rock and roll.cast'));
     proc.say('wrote test/rock and roll_test.dart and rec/rock and roll.cast\n');
     proc.end({ code: 0, signal: null });
     const result = await done;
-    assert.equal(result.test, '/p/app/test/rock and roll_test.dart');
-    assert.equal(result.cast, '/p/app/rec/rock and roll.cast');
+    assert.equal(result.test, inProject('test', 'rock and roll_test.dart'));
+    assert.equal(result.cast, inProject('rec', 'rock and roll.cast'));
     assert.equal(result.said, '');
   });
 });

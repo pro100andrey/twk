@@ -8,7 +8,10 @@ A tape is a script, VHS's language: a statement a line, `#` to the end of a
 line a comment (not in a quoted word or a Wait's pattern). It runs a program
 in a pseudo-terminal (twk_term's `Pty`, as `twk record` does) whose screen
 twk_term's emulator keeps, types into it, waits, and writes what the program
-showed. `example/tally.tape` records the walkthrough's app: hidden while it
+showed. It is a client of twk_driver's `Session`: the keys and the typing go
+through the session, a Wait on the screen is the session's wait on the
+program's output, and for a twk app the session is connected to the app, so
+that a tape can wait for its widgets and click them (below). `example/tally.tape` records the walkthrough's app: hidden while it
 compiles and draws its first frame, then counted.
 
 ```text
@@ -41,8 +44,8 @@ the terminal's size: 80 by 24
 
 ### `Set Theme <name>`
 
-the terminal's colours: `dark` (the default), `light`, `xterm`, or a JSON
-object of `#rrggbb` colours, VHS's and iTerm2's keys (`background`,
+the terminal's colors: `dark` (the default), `light`, `xterm`, or a JSON
+object of `#rrggbb` colors, VHS's and iTerm2's keys (`background`,
 `foreground`, `cursor`, `black` to `white`, `brightBlack` to `brightWhite`,
 `purple` for `magenta`), dark's for those left out
 
@@ -93,6 +96,37 @@ waits
 waits until the screen's text (rows a line each; `+Line`, the cursor's row)
 matches, or `"<text>"` shows; past the timeout the tape fails
 
+### `Wait[@<time>] Widget <Type>`, `Wait[@<time>] Text "<text>"`
+
+for a twk app: waits until the app's widget tree has a widget of that type
+(`runtimeType.toString()`, exactly: `Tabs`, `"DropDown<String>"`), or a `Text`
+whose whole text is `<text>`; past the timeout the tape fails, with the
+screen. The tree is looked at when the step starts and after each frame the
+app draws, as twk_test's `waitForFinder` does: the wait ends on the frame that
+shows the widget, and the timeout runs on the tape's clock.
+
+### `Click[@<time>] "<text>"`, `Click[@<time>] Key "<id>"`
+
+for a twk app: clicks the one `Text` whose whole text is `<text>` (a button's
+label, say), the typing speed (or `@<time>`) after. Before the click the tape
+checks that it reaches the widget, as twk_driver's `tap` does: the widget must
+be shown, nothing else on top of it (`covered by Text (node 5)`), something
+there that takes a click, the app asking for the mouse. A click that would not
+reach it fails the tape, saying why; so does one on text that is on none or on
+more than one widget.
+
+`Click Key "<id>"` clicks the one widget whose key is `ValueKey('<id>')`; an id
+that is a bare whole number (`Click Key 3`) is the `ValueKey<int>`, a quoted
+one always a `String`. No widget with that key, or two, fails the tape the same
+way, with the screen.
+
+A tape of a twk app is one whose `Run` is `dart <file.dart>` (or a kernel,
+`.dill`) and that has a `Wait Widget`, `Wait Text` or `Click`: its program is
+then started with the VM service the driver connects to. In any other tape
+(`sh`, `cat`, or a Dart program run without such a statement) these statements
+fail with "not a twk app (no app service)", and nothing else changes: a Wait on
+a regexp is a wait on the screen after each piece of output in both.
+
 ### `Hide`, `Show`
 
 the time between them is cut from the recording; at the Show the screen is
@@ -112,9 +146,9 @@ something. Paths are the current directory's, a file's directory made when
 missing; the program runs in it too.
 
 The program's terminal is `xterm-256color` with `COLORTERM=truecolor`, of the
-theme's colours, and `CI=false`, so that a twk app draws in it in CI too
+theme's colors, and `CI=false`, so that a twk app draws in it in CI too
 (where it would write plain text, as for a log): the emulator answers the
-program's queries (the cursor's position, the colours by OSC 10, 11 and 4, the
+program's queries (the cursor's position, the colors by OSC 10, 11 and 4, the
 modes) as a terminal does, and what the tape types goes through it too,
 encoded as the program's modes want it (an arrow as `ESC O A` once the program
 asked for application cursor keys; the kitty keyboard protocol). A Wait looks
@@ -137,11 +171,11 @@ long as its cells (`textLength`), a wide character one of its own, and a
 `<rect>` a run of cells of a background; box-drawing lines (light and heavy,
 rounded corners) are paths and block elements rectangles, so that they meet
 the next cell's and the next row's as a terminal draws them; double and dashed
-lines are text. Colours 0 to 15 are the theme's, the rest xterm's.
+lines are text. Colors 0 to 15 are the theme's, the rest xterm's.
 
-When the tape has run, the recording ends, the program is hung up
-(`Pty.close`: SIGHUP as its terminal goes) and, still running 2 s later,
-killed through its terminal (`Pty.kill`), then the outputs are written; a
+When the tape has run, the recording ends, the program is ended through its
+terminal (the session's `close`: killed, and its terminal hung up, which hangs
+up what it left running), then the outputs are written; a
 Screenshot is written when the tape gets to it. A Wait that timed out ends the
 tape with 1 and the screen, writing no output; so does an output that can't be
 written; SIGINT, SIGTERM and SIGHUP end it with 128 and the signal's number,
@@ -162,5 +196,5 @@ tape, the timeout and the screen at that time (as without `--check`), and the
 exit code is 1. Exit codes are those of a run: 0 passed; 1 failed, or the
 tape cannot be read or is wrong (stderr only); 127 the program cannot be
 started; 128 and a signal's number when stopped. The Wait's timeout is
-measured by the runner's clock (`TapeClock.alarm`; a test gives it a clock it
+measured by the runner's clock (`TapeClock.timer`; a test gives it a clock it
 moves), the wall's in the command.

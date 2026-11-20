@@ -27,7 +27,7 @@ void main() {
         auth: acceptKeys([alice]),
         onSession: (session) => session.done,
         rekeyLimit: const SshRekeyLimit(time: Duration(minutes: 10)),
-        clock: clock.stopwatch,
+        clock: clock.clock,
       );
       final client = await RawClient.connect(server);
       await client.exchangeKeys();
@@ -72,7 +72,7 @@ void main() {
           return s.done;
         },
         rekeyLimit: const SshRekeyLimit(time: Duration(minutes: 10)),
-        clock: clock.stopwatch,
+        clock: clock.clock,
       );
       final client = await RawClient.connect(server);
       await client.exchangeKeys();
@@ -328,7 +328,7 @@ void main() {
       final server = await serve(
         auth: acceptKeys([alice]),
         onSession: (session) => session.done,
-        clock: clock.stopwatch,
+        clock: clock.clock,
       );
       const penalty = SshPenalty();
       await fail(server);
@@ -388,7 +388,7 @@ void main() {
           return s.done;
         },
         rekeyLimit: const SshRekeyLimit(time: Duration(minutes: 10)),
-        clock: clock.stopwatch,
+        clock: clock.clock,
         timers: (duration, callback) =>
             clock.run(() => Timer(duration, callback)),
       );

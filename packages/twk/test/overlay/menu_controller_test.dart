@@ -110,7 +110,7 @@ void main() {
       'highlighted and the keys in it; close() closes it, the focus back', (
     t,
   ) async {
-    final controller = MenuController();
+    final controller = disposing(MenuController());
     final seen = follow(controller);
     await t.pumpWidget(
       Theme.terminal(child: bar(controller, [])),
@@ -137,7 +137,7 @@ void main() {
       'path, the first entry of the innermost highlighted, in place of '
       'the menus open; Enter chooses there', (t) async {
     final log = <String>[];
-    final controller = MenuController();
+    final controller = disposing(MenuController());
     final seen = follow(controller);
     await t.pumpWidget(
       Theme.terminal(child: bar(controller, log)),
@@ -157,7 +157,7 @@ void main() {
 
   testTwk("a path opens as far as its menus can: a bar's menu that cannot "
       'open opens nothing, a submenu that cannot stops there', (t) async {
-    final controller = MenuController();
+    final controller = disposing(MenuController());
     final seen = follow(controller);
     await t.pumpWidget(
       Theme.terminal(child: bar(controller, [])),
@@ -178,7 +178,7 @@ void main() {
 
   testTwk('the path follows the keys and the mouse, the listeners told once '
       'per change and not as the highlight moves within a menu', (t) async {
-    final controller = MenuController();
+    final controller = disposing(MenuController());
     final seen = follow(controller);
     await t.pumpWidget(
       Theme.terminal(child: bar(controller, [])),
@@ -218,7 +218,7 @@ void main() {
       'given to no widget throws a StateError on open and closes nothing', (
     t,
   ) async {
-    final controller = MenuController();
+    final controller = disposing(MenuController());
     expect(
       controller.open,
       throwsA(
@@ -251,7 +251,7 @@ void main() {
     t,
   ) async {
     final log = <String>[];
-    final controller = MenuController();
+    final controller = disposing(MenuController());
     final seen = follow(controller);
     await t.pumpWidget(
       Theme.terminal(
@@ -328,8 +328,8 @@ void main() {
       'what is open; the widget gone, its controller reads closed', (
     t,
   ) async {
-    final first = MenuController();
-    final second = MenuController();
+    final first = disposing(MenuController());
+    final second = disposing(MenuController());
     await t.pumpWidget(Theme.terminal(child: bar(first, [])), size: (40, 10));
     first.open([2]);
     await t.pump();
@@ -346,8 +346,6 @@ void main() {
     );
     expect(second.isOpen, isFalse);
     expect(second.path, isEmpty);
-    first.dispose();
-    second.dispose();
   });
 
   group('a controller handed to a second bar while the first is mounted', () {
@@ -370,8 +368,7 @@ void main() {
 
     testTwk('the first leaves within the grace: nothing is thrown or '
         'logged', (t) async {
-      final controller = MenuController();
-      addTearDown(controller.dispose);
+      final controller = disposing(MenuController());
       await t.pumpWidget(bars(controller, ['a']), size: (40, 20));
       await t.pumpWidget(bars(controller, ['a', 'b']), size: (40, 20));
       await t.pump(const Duration(milliseconds: 500));
@@ -382,8 +379,7 @@ void main() {
 
     testTwk('both stay mounted: logged after the grace, the app goes '
         'on', (t) async {
-      final controller = MenuController();
-      addTearDown(controller.dispose);
+      final controller = disposing(MenuController());
       await t.pumpWidget(bars(controller, ['a']), size: (40, 20));
       await t.pumpWidget(bars(controller, ['a', 'b']), size: (40, 20));
       await t.pump(const Duration(seconds: 5));

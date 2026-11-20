@@ -51,6 +51,7 @@ export 'package:twk_core/twk_core.dart'
         KeyCode,
         KeyEvent,
         KeyKind,
+        KittyKey,
         Mod,
         MouseEvent,
         MouseKind,
@@ -58,7 +59,13 @@ export 'package:twk_core/twk_core.dart'
         ResizeEvent;
 // what an app runs on
 export 'package:twk_core/twk_core.dart'
-    show BidiReordering, TerminalBackend, Viewport;
+    show
+        BidiReordering,
+        Clock,
+        ClockElapsed,
+        SystemClock,
+        TerminalBackend,
+        Viewport;
 // render objects of an app's own, and how they describe themselves
 export 'package:twk_core/twk_core.dart'
     show
@@ -113,6 +120,7 @@ export 'src/controls/controls.dart';
 export 'src/data/data.dart';
 export 'src/debug/debug.dart';
 export 'src/editing/editing.dart';
+export 'src/finders/finders.dart';
 export 'src/focus/focus.dart';
 export 'src/foundation/foundation.dart';
 export 'src/framework/framework.dart';

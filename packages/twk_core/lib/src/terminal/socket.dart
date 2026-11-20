@@ -308,6 +308,10 @@ final class SocketLink implements DeclaringLink {
   }
 
   final Socket _socket;
+
+  // the zone the link was made in, where its close guard runs: real time,
+  // whichever zone closes it (a driven app's, `TWK_DRIVEN`)
+  final Zone _zone = Zone.current;
   late final FrameReader _reader;
   final _welcome = Completer<void>();
   final _input = StreamController<List<int>>();
@@ -490,7 +494,9 @@ final class SocketLink implements DeclaringLink {
       _acks.removeFirst().complete();
     }
     try {
-      await _socket.close().timeout(const Duration(seconds: 1));
+      await _zone.run(
+        () => _socket.close().timeout(const Duration(seconds: 1)),
+      );
     } on Object {
       // the shell is gone or stuck: nothing more to tell it
     }

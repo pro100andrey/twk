@@ -23,3 +23,4 @@ dependencies:
     path: ../../packages/twk_rich
 dev_dependencies:
   pro_lints: ^6.2.0
+  test: ^1.33.0

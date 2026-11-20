@@ -83,8 +83,8 @@ final class TerminalCaps {
   /// Capabilities as given; left out, those nearly every terminal has:
   /// synchronized output, background color erase, hardware scrolling,
   /// full frames cleared, ICH/DCH and styled underlines, without REP,
-  /// Konsole's lines and images, left and right margins or a graphics
-  /// protocol.
+  /// Konsole's lines and images, left and right margins, a graphics
+  /// protocol or kitty's animation.
   const TerminalCaps({
     this.synchronizedOutput = true,
     this.backgroundColorErase = true,
@@ -98,6 +98,7 @@ final class TerminalCaps {
     this.leftRightMargins = false,
     this.graphics = GraphicsProtocol.none,
     this.graphicsMultiplexer = Multiplexer.none,
+    this.kittyAnimation = false,
     this.cellPixelWidth = 0,
     this.cellPixelHeight = 0,
   });
@@ -169,6 +170,14 @@ final class TerminalCaps {
   /// outside ([passthroughSequence]); none where it shows the images
   /// itself, as tmux 3.4 shows sixel.
   final Multiplexer graphicsMultiplexer;
+
+  /// The terminal plays a kitty image's frames itself (kitty's animation,
+  /// `a=f` and `a=a`): an image with an [ImageAnimation] is sent once,
+  /// all its frames with it, and the terminal steps them on its own clock.
+  /// Without it such an image shows its first frame. Off by default: of the
+  /// terminals with kitty's protocol only kitty is known to ([Terminal.open]
+  /// sets it there).
+  final bool kittyAnimation;
 
   /// A cell's width in pixels, which an image is scaled to cells by; 0
   /// when not known.
@@ -521,6 +530,51 @@ final class Presenter {
   CursorShape? _shapeSent = CursorShape.terminalDefault; // null: unknown
   var _cursorShown = true; // assume the terminal shows it until we hide it
 
+  // The cell under a visible block cursor, as an index of the surface,
+  // that the cursor stage wrote as a space in the cell's own style: the
+  // terminal's foreground there is the cell's own (-1: no such cell, or
+  // not known any more) and _ownStyle is the style it was written in.
+  // Konsole paints a block cursor in the foreground of the cell under it,
+  // and the diff writes a blank in a style that only *looks* the same.
+  var _ownIdx = -1;
+  var _ownStyle = 0;
+
+  /// The color of the visible cursor (`OSC 12`); null leaves it to the
+  /// terminal (`OSC 112` puts that back after a color was set).
+  ///
+  /// An RGB color is written as it is. A palette entry ([Color.isIndexed])
+  /// is written as the RGB the core knows for it ([StyleTable.rgbOf]): the
+  /// terminal's own where it told it (OSC 4), xterm's default palette
+  /// where it did not, so only an RGB color is exact on every terminal.
+  /// [Color.defaultColor] is the terminal's own. Nothing is written
+  /// where the styles show no colors ([ColorMode.none]).
+  ///
+  /// Written like [cursorShape]: with the cursor, when it changes.
+  Color? cursorColor;
+
+  // the RGB (0xRRGGBB) written last: _noColor for the terminal's own,
+  // _unknownColor where that is not known (after [invalidate], when one
+  // was written before)
+  int _colorSent = _noColor;
+  var _colorEverSent = false;
+  static const _noColor = -1;
+  static const _unknownColor = -2;
+
+  /// Whether a cursor color was ever written (`OSC 12`): what a terminal
+  /// must put back (`OSC 112`) when the program ends or hands it over.
+  bool get cursorColorWritten => _colorEverSent;
+
+  int _wantedColor() {
+    final c = cursorColor;
+    if (c == null || styles.colorMode == ColorMode.none) {
+      return _noColor;
+    }
+    if (c.isRgb) {
+      return c.value & 0xFFFFFF;
+    }
+    return c.isIndexed ? (styles.rgbOf(c) ?? _noColor) : _noColor;
+  }
+
   // declared scroll for the next frame
   var _scrollTop = 0;
   var _scrollBottom = 0;
@@ -562,6 +616,24 @@ final class Presenter {
   /// it has (sent since the screen was last forgotten).
   final _kittyIds = Map<TerminalImage, int>.identity();
   final _kittySent = Set<TerminalImage>.identity();
+
+  /// What each animated image of [_kittySent] was sent of its animation.
+  final _kittyAnimated = Map<TerminalImage, KittyAnimationSent>.identity();
+
+  /// kitty: the images the terminal keeps that no placement shows, while
+  /// their [TerminalImage.keep] is kept: shown again, placed, not sent. A
+  /// list, which a frame walks by index without an iterator.
+  final _kittyKept = <TerminalImage>[];
+
+  /// What [_presentImages] fills each frame, kept so that a frame with
+  /// images allocates none of them: the placements shown next (it and
+  /// [_shown] in turn), those to draw, whether each can be, and each's
+  /// kitty placement id.
+  var _shownNext = <_Shown>[];
+  final _draw = <ImagePlacement>[];
+  final _can = <bool>[];
+  final _placements = <int>[];
+
   var _lastImageId = 0;
   var _lastPlacementId = 0;
 
@@ -619,6 +691,7 @@ final class Presenter {
     _forgetScreen();
     _cursorShown = true;
     _shapeSent = null;
+    _colorSent = _colorEverSent ? _unknownColor : _noColor;
   }
 
   /// The cells on screen are unknown (first frame, resize); the cursor
@@ -843,7 +916,7 @@ final class Presenter {
 
     // ---- images ------------------------------------------------------------
     var imagesWritten = false;
-    if (back.images.isNotEmpty || _shown.isNotEmpty) {
+    if (back.images.isNotEmpty || _shown.isNotEmpty || _kittyKept.isNotEmpty) {
       final before = out.length;
       _presentImages(back, lost: lost);
       imagesWritten = out.length > before;
@@ -861,6 +934,27 @@ final class Presenter {
     final rowSame = _rowSame;
     final dirtyLo = back.dirtyLo;
     final dirtyHi = back.dirtyHi;
+    // A block cursor is painted in the foreground of the cell under it
+    // (Konsole): where the cell is a blank, the cursor stage writes it in
+    // its own style, unless that was done already and the frame left it be.
+    final blockCursor =
+        cursorVisible &&
+        w > 0 &&
+        h > 0 &&
+        (cursorShape == CursorShape.block ||
+            cursorShape == CursorShape.blinkingBlock ||
+            cursorShape == CursorShape.terminalDefault);
+    final curX = blockCursor ? cursorX.clamp(0, w - 1) : 0;
+    final curY = blockCursor ? cursorY.clamp(0, h - 1) : -1;
+    if (cleared ||
+        lost ||
+        imagesWritten ||
+        stats.scrolledRows > 0 ||
+        moves.isNotEmpty) {
+      _ownIdx = -1;
+    }
+    final ownRow = _ownIdx < 0 ? -1 : _ownIdx ~/ w;
+    var curRowEmitted = false;
     for (var y = 0; y < h; y++) {
       int lo;
       int hi;
@@ -901,6 +995,12 @@ final class Presenter {
       _diffRow(bc, bs, back.cells64, back.styles64, y, lo, hi);
       if (out.length > before) {
         rowsEmitted++;
+        if (y == ownRow) {
+          _ownIdx = -1;
+        }
+        if (y == curY) {
+          curRowEmitted = true;
+        }
       }
       fc.setRange(row + lo, row + hi, bc, row + lo);
       fs.setRange(row + lo, row + hi, bs, row + lo);
@@ -929,6 +1029,27 @@ final class Presenter {
       'cached front row hashes must match the front buffer',
     );
 
+    // ---- cell under a block cursor -----------------------------------------
+    if (curY >= 0) {
+      final i = curY * w + curX;
+      if (bc[i] != kBlank) {
+        _ownIdx = -1;
+      } else if (_ownIdx != i || _ownStyle != bs[i]) {
+        _moveTo(curX, curY);
+        _setStyle(bs[i]);
+        out.byte(0x20);
+        stats.cellsWritten++;
+        _cx = curX + 1 >= w ? -1 : curX + 1;
+        _ownIdx = i;
+        _ownStyle = bs[i];
+        if (!curRowEmitted) {
+          rowsEmitted++;
+        }
+      }
+    } else {
+      _ownIdx = -1;
+    }
+
     // ---- cursor ------------------------------------------------------------
     final bodyChanged = out.length > bodyStart;
     var cursorChanged = false;
@@ -936,11 +1057,15 @@ final class Presenter {
     if (cursorVisible && w > 0 && h > 0) {
       final cx = cursorX.clamp(0, w - 1);
       final cy = cursorY.clamp(0, h - 1);
+      final color = cursorColor == null && _colorSent == _noColor
+          ? _noColor
+          : _wantedColor();
       if (bodyChanged ||
           !_cursorShown ||
           _cx != cx ||
           _cy != cy ||
-          cursorShape != _shapeSent) {
+          cursorShape != _shapeSent ||
+          color != _colorSent) {
         // nothing drawn: the shown cursor jumps once, so hiding it around
         // the move prevents no flicker
         final keepShown = hidden && !bodyChanged;
@@ -954,6 +1079,18 @@ final class Presenter {
             ..csi(cursorShape.code, 0x20) // CSI n SP q
             ..byte(0x71);
           _shapeSent = cursorShape;
+        }
+        if (color != _colorSent) {
+          if (color == _noColor) {
+            out.ascii('\x1b]112\x1b\\');
+          } else {
+            out
+              ..ascii('\x1b]12;#')
+              ..ascii(color.toRadixString(16).padLeft(6, '0'))
+              ..ascii('\x1b\\');
+            _colorEverSent = true;
+          }
+          _colorSent = color;
         }
         if (!keepShown) {
           out.ascii('\x1b[?25h');
@@ -1429,18 +1566,27 @@ final class Presenter {
     }
     if (lost) {
       _kittySent.clear();
+      _kittyAnimated.clear();
     }
     for (final s in shown) {
       s
         ..kept = false
         ..moved = s.moved || lost;
     }
-    final next = <_Shown>[];
-    final draw = <ImagePlacement>[];
-    for (final p in want) {
-      final same = _restyled(back, p)
-          ? -1
-          : shown.indexWhere((s) => !s.kept && !s.moved && s.at.sameAs(p));
+    final next = _shownNext..clear();
+    final draw = _draw..clear();
+    for (var w = 0; w < want.length; w++) {
+      final p = want[w];
+      var same = -1;
+      if (!_restyled(back, p)) {
+        for (var i = 0; i < shown.length; i++) {
+          final s = shown[i];
+          if (!s.kept && !s.moved && s.at.sameAs(p)) {
+            same = i;
+            break;
+          }
+        }
+      }
       if (same >= 0) {
         next.add(shown[same]..kept = true);
       } else {
@@ -1450,8 +1596,11 @@ final class Presenter {
     final graphics = caps.graphics;
     final multiplexer = caps.graphicsMultiplexer;
     final kitty = graphics == GraphicsProtocol.kitty;
-    final can = [
-      for (final p in draw)
+    final can = _can..clear();
+    final placements = _placements..clear();
+    for (var k = 0; k < draw.length; k++) {
+      final p = draw[k];
+      can.add(
         p.image.protocol == graphics &&
             switch (graphics) {
               GraphicsProtocol.none => false,
@@ -1461,55 +1610,23 @@ final class Presenter {
                         p.image.pixelHeight >= p.rows),
               GraphicsProtocol.sixel || GraphicsProtocol.iterm2 => p.whole,
             },
-    ];
+      );
+      placements.add(0);
+    }
     // kitty: a placement of an image that moved is placed again
-    final placements = List<int>.filled(draw.length, 0);
     if (kitty) {
       for (var k = 0; k < draw.length; k++) {
+        if (!can[k]) {
+          continue;
+        }
         final image = draw[k].image;
-        final i = can[k]
-            ? shown.indexWhere(
-                (s) => !s.kept && s.drawn && identical(s.at.image, image),
-              )
-            : -1;
-        if (i >= 0) {
-          shown[i].kept = true;
-          placements[k] = shown[i].placement;
-        }
-      }
-      // those that go, and the images no placement shows any more
-      bool used(TerminalImage image) {
-        for (final n in next) {
-          if (n.drawn && identical(n.at.image, image)) {
-            return true;
+        for (var i = 0; i < shown.length; i++) {
+          final s = shown[i];
+          if (!s.kept && s.drawn && identical(s.at.image, image)) {
+            s.kept = true;
+            placements[k] = s.placement;
+            break;
           }
-        }
-        for (var k = 0; k < draw.length; k++) {
-          if (can[k] && identical(draw[k].image, image)) {
-            return true;
-          }
-        }
-        return false;
-      }
-
-      for (final s in shown) {
-        final image = s.at.image;
-        final id = _kittyIds[image];
-        if (s.kept || !s.drawn || id == null) {
-          continue; // an id gone with another placement of the image
-        }
-        if (used(image)) {
-          kittyDelete(
-            out,
-            id: id,
-            placement: s.placement,
-            multiplexer: multiplexer,
-          );
-        } else {
-          kittyDelete(out, id: id, multiplexer: multiplexer);
-          _kittyIds.remove(image);
-          _kittySent.remove(image);
-          _imageIdFreed(id);
         }
       }
     }
@@ -1524,14 +1641,31 @@ final class Presenter {
         switch (graphics) {
           case GraphicsProtocol.kitty:
             placement = placements[k] == 0 ? ++_lastPlacementId : placements[k];
+            final id = _kittyIds[image] ??= _newImageId();
+            final transmit = _kittySent.add(image);
+            if (image.keep != null && _kittyKept.isNotEmpty) {
+              _kittyKept.remove(image); // shown: no longer kept unshown
+            }
             kittyPlace(
               out,
               p,
-              id: _kittyIds[image] ??= _newImageId(),
+              id: id,
               placement: placement,
-              transmit: _kittySent.add(image),
+              transmit: transmit,
               multiplexer: multiplexer,
             );
+            if (transmit && caps.kittyAnimation) {
+              if (image.animation case final animation?) {
+                kittyAnimate(
+                  out,
+                  animation,
+                  _kittyAnimated[image] = KittyAnimationSent(),
+                  id: id,
+                  playing: image.playing,
+                  multiplexer: multiplexer,
+                );
+              }
+            }
           case GraphicsProtocol.sixel:
             sixelDraw(
               out,
@@ -1574,7 +1708,114 @@ final class Presenter {
         ),
       );
     }
+    if (kitty) {
+      _deleteGone(shown, next);
+      if (_kittyKept.isNotEmpty) {
+        _deleteLetGo(next);
+      }
+    }
+    _shownNext = shown;
     _shown = next;
+    if (kitty && caps.kittyAnimation) {
+      _playAnimations(next);
+    }
+  }
+
+  /// kitty: deletes the placements of [shown] that [next] has not kept,
+  /// and the images no placement of [next] shows any more. After the new
+  /// ones are placed, so that a terminal that draws in between (Konsole,
+  /// whose images are not held by a synchronized update) shows the old
+  /// image or the new over its cells, never neither: a GIF drawn frame by
+  /// frame would flicker.
+  void _deleteGone(List<_Shown> shown, List<_Shown> next) {
+    final multiplexer = caps.graphicsMultiplexer;
+    for (var k = 0; k < shown.length; k++) {
+      final s = shown[k];
+      final image = s.at.image;
+      if (s.kept || !s.drawn) {
+        continue;
+      }
+      final id = _kittyIds[image];
+      if (id == null) {
+        continue; // an id gone with another placement of the image
+      }
+      if (_shows(next, image)) {
+        kittyDelete(
+          out,
+          id: id,
+          placement: s.placement,
+          multiplexer: multiplexer,
+        );
+      } else if (image.keep?.kept ?? false) {
+        // the placement alone: the image stays for when it is shown again
+        kittyDelete(
+          out,
+          id: id,
+          placement: s.placement,
+          multiplexer: multiplexer,
+        );
+        if (!_kittyKept.contains(image)) {
+          _kittyKept.add(image);
+        }
+      } else {
+        kittyDelete(out, id: id, multiplexer: multiplexer);
+        _kittyIds.remove(image);
+        _kittySent.remove(image);
+        _kittyAnimated.remove(image);
+        _imageIdFreed(id);
+      }
+    }
+  }
+
+  /// Whether a placement of [shown] that is drawn shows [image].
+  static bool _shows(List<_Shown> shown, TerminalImage image) {
+    for (var i = 0; i < shown.length; i++) {
+      final s = shown[i];
+      if (s.drawn && identical(s.at.image, image)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// kitty: deletes the images kept unshown whose [ImageKeep] was let go
+  /// of, unless [next] shows them.
+  @pragma('vm:never-inline')
+  void _deleteLetGo(List<_Shown> next) {
+    for (var i = _kittyKept.length - 1; i >= 0; i--) {
+      final image = _kittyKept[i];
+      if ((image.keep?.kept ?? false) || _shows(next, image)) {
+        continue;
+      }
+      _kittyKept.removeAt(i);
+      if (_kittyIds.remove(image) case final id?) {
+        kittyDelete(out, id: id, multiplexer: caps.graphicsMultiplexer);
+        _kittySent.remove(image);
+        _kittyAnimated.remove(image);
+        _imageIdFreed(id);
+      }
+    }
+  }
+
+  /// kitty: brings the animations of [shown] the terminal plays up to
+  /// date ([kittyAnimationUpdate]): the frames added since, and whether
+  /// each plays.
+  @pragma('vm:never-inline')
+  void _playAnimations(List<_Shown> shown) {
+    for (final s in shown) {
+      final image = s.at.image;
+      if (image.animation case final animation?
+          when s.drawn && _kittyAnimated.containsKey(image)) {
+        kittyAnimationUpdate(
+          out,
+          animation,
+          _kittyAnimated[image]!,
+          id: _kittyIds[image]!,
+          playing: image.playing,
+          multiplexer: caps.graphicsMultiplexer,
+        );
+      }
+    }
   }
 
   /// Whether every cell [p] shows is still reserved: those of the rows
@@ -1612,6 +1853,17 @@ final class Presenter {
     return false;
   }
 
+  /// Whether cell [i] has a blank of the look of [bs]'s already, in the
+  /// front buffer ([fc], [fs]): under an image, or erased by a full frame.
+  bool _blankThere(
+    Uint32List fc,
+    Uint32List fs,
+    Uint32List bs,
+    int i,
+  ) =>
+      (fc[i] == _kUnder || fc[i] == kBlank) &&
+      _blankOf(fs[i]) == _blankOf(bs[i]);
+
   /// Erases the cells [p] shows, in their styles in [back]: all of them
   /// with [all], otherwise those the front buffer doesn't have as blanks of
   /// the same look already; the front buffer then has them as blanks under
@@ -1621,17 +1873,11 @@ final class Presenter {
     final bs = back.styles;
     final fc = _fc;
     final fs = _fs;
-    // a blank of the same look is there already (under an image, or
-    // erased by a full frame)
-    bool under(int i) =>
-        !all &&
-        (fc[i] == _kUnder || fc[i] == kBlank) &&
-        _blankOf(fs[i]) == _blankOf(bs[i]);
     for (var y = p.top; y < p.bottom; y++) {
       final row = y * w;
       var x = p.left;
       while (x < p.right) {
-        if (under(row + x)) {
+        if (!all && _blankThere(fc, fs, bs, row + x)) {
           fc[row + x] = _kUnder; // a row shift must not move it
           fs[row + x] = bs[row + x];
           x++;
@@ -1641,7 +1887,7 @@ final class Presenter {
         final blank = _blankOf(s);
         var end = x + 1;
         while (end < p.right &&
-            !under(row + end) &&
+            !(!all && _blankThere(fc, fs, bs, row + end)) &&
             _blankOf(bs[row + end]) == blank) {
           end++;
         }
@@ -1759,6 +2005,8 @@ final class Presenter {
     }
     _kittyIds.clear();
     _kittySent.clear();
+    _kittyAnimated.clear();
+    _kittyKept.clear();
     _shown = [];
   }
 

@@ -259,8 +259,9 @@ final class InputSplitter {
 ///
 /// `reacts` is whether the recorded program wrote something after the keys
 /// and before the next ones in the order of the recording's events (not by
-/// their times alone, which can be equal).
-typedef ReplayStep = ({double time, String keys, bool reacts});
+/// their times alone, which can be equal). `written` is how many characters
+/// the program had written before the keys.
+typedef ReplayStep = ({double time, String keys, bool reacts, int written});
 
 /// The keys of [cast], the input events with the terminal's answers taken
 /// out ([InputSplitter]), each at its time; the events that were answers
@@ -269,12 +270,14 @@ List<ReplayStep> replaySteps(Cast cast) {
   final splitter = InputSplitter();
   final steps = <ReplayStep>[];
   var reacts = false;
+  var written = 0;
   void close() {
     if (steps.isNotEmpty && reacts) {
       steps[steps.length - 1] = (
         time: steps.last.time,
         keys: steps.last.keys,
         reacts: true,
+        written: steps.last.written,
       );
     }
     reacts = false;
@@ -284,6 +287,7 @@ List<ReplayStep> replaySteps(Cast cast) {
     switch (event.code) {
       case CastEvent.output:
         splitter.sawOutput(event.data);
+        written += event.data.length;
         // by the order of the events, not their times (they are rounded: a
         // reaction can carry its key's time): output after a key and before
         // the next is the first one's
@@ -297,7 +301,12 @@ List<ReplayStep> replaySteps(Cast cast) {
         ].join();
         if (keys.isNotEmpty) {
           close();
-          steps.add((time: event.time, keys: keys, reacts: false));
+          steps.add((
+            time: event.time,
+            keys: keys,
+            reacts: false,
+            written: written,
+          ));
         }
     }
   }
@@ -307,7 +316,12 @@ List<ReplayStep> replaySteps(Cast cast) {
   ].join();
   close();
   if (rest.isNotEmpty) {
-    steps.add((time: cast.duration, keys: rest, reacts: false));
+    steps.add((
+      time: cast.duration,
+      keys: rest,
+      reacts: false,
+      written: written,
+    ));
   }
   return steps;
 }

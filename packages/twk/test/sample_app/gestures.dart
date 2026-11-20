@@ -35,7 +35,12 @@ extension on _SampleAppState {
             child: SelectionArea(
               copyKey: 'ctrl+y',
               onCopy: (text) => _count.value += text.length,
-              child: const Text('select'),
+              child: const Column(
+                children: [
+                  Text('select'),
+                  ExcludeSelection(child: Text('skipped')),
+                ],
+              ),
             ),
           ),
         ],

@@ -12,6 +12,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show min;
 import 'dart:typed_data';
 
 import '../graphics.dart';
@@ -71,10 +72,13 @@ final class TerminalInfo {
     this.notifications = NotificationProtocol.none,
     this.multiplexer = Multiplexer.none,
     this.plain = false,
+    this.pixelMouse = false,
     this.pointerNames,
     this.progressReports = false,
+    this.sextants = false,
     this.bidi = BidiReordering.app,
     this.declaredBrightness,
+    this.cursorRgb,
     this.terminalVersion = '',
     Map<int, int> palette = const {},
     Map<String, String> settings = const {},
@@ -108,6 +112,10 @@ final class TerminalInfo {
   /// The terminal's default background (OSC 11), for alpha blending.
   final int? backgroundRgb;
 
+  /// The terminal's cursor color (OSC 12), `0xRRGGBB`; null where it did
+  /// not answer the query (Konsole answers OSC 10 and 11 but not 12).
+  final int? cursorRgb;
+
   /// The first 16 palette entries the terminal told (OSC 4), RGB by index
   /// (0..15), for alpha blending ([StyleTable.setPaletteRgb]): a palette
   /// color is blended as the terminal shows it, an entry it didn't tell as
@@ -136,6 +144,14 @@ final class TerminalInfo {
   /// Whether the terminal reports its size as input (DEC mode 2048),
   /// which is then turned on: no signal is watched for it.
   final bool inBandResize;
+
+  /// Whether the mouse is reported in pixels (SGR-Pixels, DEC mode 1016),
+  /// which is then turned on with the mouse reports: the terminal says it
+  /// has the mode and a cell's size is known ([TerminalCaps.cellPixelWidth]),
+  /// and [TerminalOptions.pixelMouse] allows it. The input parser divides
+  /// the pixels into cells and sets [MouseEvent.offsetX] and
+  /// [MouseEvent.offsetY].
+  final bool pixelMouse;
 
   /// Whether the terminal has grapheme cluster widths (DEC mode 2027),
   /// which are then turned on.
@@ -222,6 +238,13 @@ final class TerminalInfo {
   /// its version ([progressReportsFor]).
   final bool progressReports;
 
+  /// Whether the terminal is known to draw the block sextants (U+1FB00 to
+  /// U+1FB3B) itself, whatever the font ([sextantsFor], by its environment
+  /// and its version); false where it is not known to. An image in block
+  /// characters takes them for its default ([TerminalInfo] is what
+  /// `twk_rich`'s `Image` asks).
+  final bool sextants;
+
   /// The app's own settings the terminal sets ([settingNames]), as its
   /// environment has them: `TWK_SCREEN_READER` and `TWK_DEBUG` where the
   /// link's environment ([TerminalLink.environment]) sets them, set empty
@@ -269,15 +292,17 @@ final class TerminalInfo {
       'version=$terminalVersion '
       'declared=${declaredBrightness?.name} palette=${palette.length} '
       'inBandResize=$inBandResize mode2027=$graphemeMode '
+      'pixelMouse=$pixelMouse '
       'kittyKeyboard=$kittyKeyboard flags=$kittyKeyboardFlags '
       'answered=$answeredQueries '
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
       'colorSchemeReports=$colorSchemeReports '
       'notifications=${notifications.name} multiplexer=${multiplexer.name} '
       'pointerNames=${pointerNames?.name} '
-      'progressReports=$progressReports '
+      'progressReports=$progressReports sextants=$sextants '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
+      'kittyAnimation=${caps.kittyAnimation} '
       'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
 }
 
@@ -313,6 +338,7 @@ final class TerminalOptions {
     this.alternateScreen = true,
     this.mouse = true,
     this.mouseMotion = false,
+    this.pixelMouse = true,
     this.normalScreenMouse = false,
     this.bracketedPaste = true,
     this.focusEvents = true,
@@ -349,6 +375,12 @@ final class TerminalOptions {
   /// too, as [MouseTracking.motion] (mode 1003; chatty). False by default.
   final bool mouseMotion;
 
+  /// Whether the mouse is reported in pixels (SGR-Pixels, mode 1016) where
+  /// the terminal has it and a cell's size is known: the events then carry
+  /// the pointer's offset in its cell ([MouseEvent.offsetX]). True by
+  /// default; the cells they name are the same.
+  final bool pixelMouse;
+
   /// Whether the mouse is reported on the normal screen too
   /// ([alternateScreen] false), as [mouse] says and
   /// [Terminal.mouseTracking] switches them: for an app in a fixed viewport
@@ -376,10 +408,12 @@ final class TerminalOptions {
   final bool kittyKeyboard;
 
   /// The kitty keyboard protocol's flags pushed with [kittyKeyboard]
-  /// ([KittyKeyboardFlags] bits), [KittyKeyboardFlags.disambiguate]
-  /// among them whether or not they name it: the Escape key a sequence of
+  /// ([KittyKeyboardFlags] bits), [KittyKeyboardFlags.disambiguate] and
+  /// [KittyKeyboardFlags.alternateKeys] among them whether or not they
+  /// name them ([KeyEvent.baseChar]: shortcuts work on a Russian or Greek
+  /// layout). Disambiguate makes the Escape key a sequence of
   /// its own, which a terminal may send as a lone ESC all the same (see
-  /// [escapeTimeout]). By default that
+  /// [escapeTimeout]). By default those
   /// alone, and keys come as presses only. With
   /// [KittyKeyboardFlags.eventTypes] they come repeated and released too
   /// ([KeyEvent.kind]): what acts on keys then acts on presses and repeats
@@ -467,7 +501,10 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
       windows) {
     return ColorMode.trueColor;
   }
-  if (term.contains('256color') || program == 'Apple_Terminal') {
+  if (term.contains('256color') ||
+      term == 'terminology' ||
+      term == 'fbterm' ||
+      program == 'Apple_Terminal') {
     return ColorMode.ansi256; // Terminal.app has no 24-bit color
   }
   return ColorMode.ansi16;
@@ -763,6 +800,34 @@ abstract interface class SuspendableBackend implements TerminalBackend {
   Future<void> resume();
 }
 
+/// A [TerminalBackend] that counts the bytes it reads and the bytes it is
+/// given to write ([Terminal], `HeadlessTerminal`), so that a program
+/// driving the app can tell which frame came after which input
+/// (`TwkApp.inputRead`, the `twk.frame` event).
+abstract interface class CountingBackend implements TerminalBackend {
+  /// Every byte taken from the terminal's input so far, counted when the
+  /// read is parsed and its events are queued for [events]: what the
+  /// terminal keeps to itself (the answers to its own queries) counts too.
+  int get bytesRead;
+
+  /// What [bytesRead] was when the terminal was open: the bytes of its
+  /// probe.
+  int get bytesReadAtOpen;
+
+  /// Whether the input parser holds bytes it has not resolved: a lone ESC
+  /// waiting for its timeout, an open paste.
+  bool get inputPending;
+
+  /// Called at the end of each read of input, after its events are queued.
+  /// Set by the one app that uses the terminal.
+  void Function()? onRead;
+
+  /// Every byte accepted for the terminal so far: counted when written,
+  /// not when it reaches the sink, which a write waits for while a flush
+  /// is pending.
+  int get bytesWritten;
+}
+
 /// A [TerminalBackend] that keeps state an app set on the terminal beyond
 /// its screen (the pointer's shape, the progress in its tab) and puts it
 /// back as it was on every way out, as it does the modes it opened with:
@@ -775,8 +840,10 @@ abstract interface class TerminalStateBackend implements TerminalBackend {
   /// waits for that. With [refresh], [sequence] is written again each time
   /// that long has passed since, for a terminal that takes a state away
   /// when it isn't told again (Ghostty drops a progress after 15 s). Both
-  /// are ASCII. Ignored once closed, and for plain output
-  /// ([TerminalInfo.plain]).
+  /// are ASCII. An empty [sequence] writes nothing: a state something
+  /// else already set (the cursor's color, which the presenter writes
+  /// with its frames) that is only put back. Ignored once closed, and for
+  /// plain output ([TerminalInfo.plain]).
   void setTerminalState(
     Object key,
     String sequence,
@@ -803,6 +870,12 @@ abstract interface class MouseTrackingBackend implements TerminalBackend {
   /// [TerminalOptions.normalScreenMouse] (see [TerminalOptions.mouse]),
   /// and once closed.
   set mouseTracking(MouseTracking tracking);
+
+  /// A cell's size in pixels, (width, height), as the mouse's pixel reports
+  /// ([TerminalInfo.pixelMouse]) are divided by it, or null where it is not
+  /// known. Follows what the terminal tells after a font change, which
+  /// [TerminalCaps.cellPixelWidth] of [TerminalInfo.caps] does not.
+  (int, int)? get cellPixels;
 }
 
 /// A [TerminalBackend] that sets the title of the terminal's window or tab
@@ -860,7 +933,8 @@ final class Terminal
         SuspendableBackend,
         MouseTrackingBackend,
         TerminalStateBackend,
-        WindowBackend {
+        WindowBackend,
+        CountingBackend {
   Terminal._(
     this.options,
     this.info,
@@ -868,10 +942,17 @@ final class Terminal
     this._link,
     this._input,
     this._signals,
-    this._ofProcess, [
+    this._ofProcess,
+    this._probed, [
     this._inputTrace,
     this._outputTrace,
-  ]) : _out = _outbox(_link, _outputTrace);
+  ]) : _out = _outbox(_link, _outputTrace),
+       _bytesRead = _probed.read {
+    _parser
+      ..pixelMouse = info.pixelMouse
+      ..cellPixelWidth = info.caps.cellPixelWidth
+      ..cellPixelHeight = info.caps.cellPixelHeight;
+  }
 
   /// How long a sequence that has surely started (with the kitty protocol,
   /// ESC and any byte after it) may wait for the rest of its bytes.
@@ -884,6 +965,12 @@ final class Terminal
   final TerminalInfo info;
   final InputParser _parser;
   final TerminalLink _link;
+
+  /// The zone the terminal was made in, where the timers of its I/O run
+  /// (a resume's wait for the cursor, a close's flush guards): real time
+  /// even when the zone that calls it is an app's whose timers are
+  /// driven (`TWK_DRIVEN`).
+  final Zone _realZone = Zone.current;
   final StreamSubscription<List<int>> _input;
   final List<StreamSubscription<void>> _signals;
 
@@ -905,6 +992,27 @@ final class Terminal
   final TraceWriter? _outputTrace;
 
   final _events = StreamController<InputEvent>();
+
+  /// What the probe read and wrote, before the session began.
+  final _ProbeCounts _probed;
+
+  int _bytesRead;
+
+  @override
+  int get bytesRead => _bytesRead;
+
+  @override
+  int get bytesReadAtOpen => _probed.read;
+
+  @override
+  bool get inputPending => _parser.hasPending || _parser.inPaste;
+
+  @override
+  void Function()? onRead;
+
+  @override
+  int get bytesWritten => _probed.written + _out.accepted;
+
   Timer? _escTimer;
   Timer? _pasteTimer;
   StreamSubscription<void>? _resizes;
@@ -952,7 +1060,9 @@ final class Terminal
   /// The process has one terminal: with another open on it (not suspended,
   /// [suspend]) this throws a [TerminalException], also in a release build,
   /// before anything is done to the tty; [resume] does the same where
-  /// another has it by then. Terminals over a link ([overLink],
+  /// another has it by then. Another still being opened (not returned yet,
+  /// so there is nothing to suspend or close) is refused with a message of
+  /// its own: await that open first. Terminals over a link ([overLink],
   /// [connect]) are independent of it and of each other.
   ///
   /// On the web, which has neither, throws [UnsupportedError]: a terminal
@@ -1108,6 +1218,7 @@ final class Terminal
       // one subscription for the probe and the session: input that arrives
       // while switching from one to the other can't be lost
       sub = link.input.listen(null);
+      final probed = _ProbeCounts();
       final parser = InputParser()
         ..backspaceSendsCtrlH = link.eraseChar == 0x08;
       // a link of the program's own sets none of the app's settings
@@ -1125,6 +1236,7 @@ final class Terminal
               inputTrace,
               outputTrace,
               settings,
+              probed,
             );
       final term = t = Terminal._(
         options,
@@ -1134,6 +1246,7 @@ final class Terminal
         sub,
         signals,
         ofProcess,
+        probed,
         inputTrace,
         outputTrace,
       );
@@ -1208,11 +1321,19 @@ final class Terminal
   /// Throws a [TerminalException] where another terminal holds the
   /// process's stdio (open, and not suspended), as [what] would be a second
   /// reader of it: raw mode would be entered twice (and left on), and keys
-  /// go to either one.
+  /// go to either one. One still being opened is told apart: it cannot be
+  /// suspended or closed before its open returns, so the message says to
+  /// await it.
   static void _refuseIfTaken(String what) {
+    if (_stdioOpening) {
+      throw TerminalException(
+        "the process's terminal cannot be $what while another terminal is "
+        'being opened on it: await that open first (it cannot be suspended '
+        'or closed before it returns)',
+      );
+    }
     final other = _ofStdio;
-    if (_stdioOpening ||
-        (other != null && !other._closed && !other._suspended)) {
+    if (other != null && !other._closed && !other._suspended) {
       throw TerminalException(
         "the process's terminal cannot be $what while another terminal "
         'has it: suspend() that one first (and resume() it after), or '
@@ -1282,10 +1403,12 @@ final class Terminal
     TraceWriter? inputTrace,
     TraceWriter? outputTrace,
     Map<String, String> settings,
+    _ProbeCounts counts,
   ) async {
     final modes = <int, ModeReport>{};
     int? fg;
     int? bg;
+    int? cursor;
     final palette = <int, int>{};
     var kitty = false;
     var ambiguous = 1;
@@ -1296,8 +1419,11 @@ final class Terminal
     var version = '';
     var cellWidth = 0;
     var cellHeight = 0;
+    var areaWidth = 0;
+    var areaHeight = 0;
     int? bidiMode;
     var secondary = const <int>[];
+    var unitId = '';
     // the queries, all in one write, which the device attributes end
     final round = Completer<bool>()..future.ignore();
     void fail(Object e, StackTrace st) {
@@ -1309,6 +1435,7 @@ final class Terminal
     input
       ..onData((bytes) {
         inputTrace?.add(bytes);
+        counts.read += bytes.length;
         final List<InputEvent> events;
         try {
           events = parser.feed(bytes);
@@ -1326,6 +1453,8 @@ final class Terminal
               fg = rgb;
             case ColorReport(:final which, :final rgb) when which == 11:
               bg = rgb;
+            case ColorReport(:final which, :final rgb) when which == 12:
+              cursor = rgb;
             case ColorReport(:final which, :final rgb, :final index)
                 when which == 4:
               if (index < 16) {
@@ -1347,12 +1476,17 @@ final class Terminal
                 kittyGraphics = s.contains(';OK');
               } else if (s.startsWith('\x1bP>|')) {
                 version = s.substring(4).replaceFirst(_stringEnd, '');
+              } else if (_unitIdReply.firstMatch(s) case final m?) {
+                unitId = _unitIdOf(m[1]!);
               } else if (_bidiModeReply.firstMatch(s) case final m?) {
                 bidiMode = int.parse(m[1]!);
               } else if (_secondaryReply.firstMatch(s) case final m?) {
                 secondary = [
                   for (final p in m[1]!.split(';')) int.tryParse(p) ?? 0,
                 ];
+              } else if (_textAreaReply.firstMatch(s) case final m?) {
+                areaHeight = int.parse(m[1]!);
+                areaWidth = int.parse(m[2]!);
               } else {
                 final m = _cellSizeReply.firstMatch(s)!;
                 cellHeight = int.parse(m[1]!);
@@ -1384,7 +1518,9 @@ final class Terminal
     // GNU screen, whose alternate screen may be off, is asked no DECRQM,
     // which it prints. Among the queries
     // are a cell's size in pixels, the secondary device attributes (DA2,
-    // by which Terminal.app is told over ssh too: `1;95;0`) and, unless the
+    // by which Terminal.app is told over ssh too: `1;95;0`), the tertiary
+    // (DA3, `CSI = c`, answered with a unit id: Terminology's `~~TY`,
+    // VTE's `~VTE`, foot's `FOOT`) and, unless the
     // protocol images are shown with is given, the graphics query and the
     // terminal's name and version (XTVERSION), not in a multiplexer, which
     // answers them itself; sixel comes with the device attributes (DA1,
@@ -1406,12 +1542,12 @@ final class Terminal
     // TERM_PROGRAM
     final asked =
         '${screenLike ? '' : _modeQueries}'
-        '\x1b]10;?\x1b\\\x1b]11;?\x1b\\$_paletteQuery'
+        '\x1b]10;?\x1b\\\x1b]11;?\x1b\\\x1b]12;?\x1b\\$_paletteQuery'
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
-        '\x1b[16t${askName ? _kittyGraphicsQuery : ''}'
+        '\x1b[16t\x1b[14t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
         // the Linux console may take it for DA1
-        '${term == 'linux' ? '' : '\x1b[>c'}';
+        '${term == 'linux' ? '' : '\x1b[>c\x1b[=c'}';
     // inline, where the cursor is before the queries and after them
     parser.cursorReportsExpected = o.alternateScreen ? 1 : 2;
     final bytes = utf8.encode(
@@ -1419,6 +1555,7 @@ final class Terminal
       '\x1b[c',
     );
     link.add(bytes);
+    counts.written += bytes.length;
     outputTrace?.add(bytes);
     await link.flush();
     final answered = await round.future.timeout(
@@ -1430,6 +1567,7 @@ final class Terminal
         _putBack(shown: shownTo != null && shownTo != column),
       );
       link.add(back);
+      counts.written += back.length;
       outputTrace?.add(back);
       await link.flush();
     }
@@ -1439,9 +1577,34 @@ final class Terminal
     }
 
     bool supported(int mode) => modes[mode]?.supported ?? false;
+    // a cell's size: its own answer (CSI 16 t), else the tty's pixels, else
+    // the text area's (CSI 14 t) over the size in cells
+    if (cellWidth <= 0 || cellHeight <= 0) {
+      cellWidth = cellHeight = 0;
+      final tty = link is PixelSizedLink ? link.cellPixelSize : null;
+      if (tty != null) {
+        cellWidth = tty.width;
+        cellHeight = tty.height;
+      } else if (areaWidth > 0 && areaHeight > 0) {
+        final w = areaWidth ~/ link.columns;
+        final h = areaHeight ~/ link.lines;
+        if (w > 0 && h > 0) {
+          cellWidth = w;
+          cellHeight = h;
+        }
+      }
+    }
     final program = env['TERM_PROGRAM'] ?? '';
 
-    final color = colorModeFor(env, windows: link.windows);
+    var color = colorModeFor(env, windows: link.windows);
+    // Terminology names itself by DA3 where its TERM does not (over ssh,
+    // under sudo): it shows 256 colors. Not through a multiplexer, which
+    // answers DA3 itself.
+    if (color == ColorMode.ansi16 &&
+        unitId == _terminologyUnit &&
+        multiplexerFor(env) == Multiplexer.none) {
+      color = ColorMode.ansi256;
+    }
 
     // Grapheme clustering: announced via mode 2027, or known terminals that
     // cluster without it.
@@ -1524,6 +1687,17 @@ final class Terminal
                 sixel
             ? Multiplexer.none
             : multiplexer,
+        // kitty itself, by the name it tells, else by its environment where
+        // no terminal told another (none answered, or tmux answered for
+        // itself): a terminal started from kitty inherits KITTY_WINDOW_ID.
+        // Other terminals with its protocol show only an image's first frame
+        kittyAnimation:
+            graphics == GraphicsProtocol.kitty &&
+            (version.startsWith('kitty') ||
+                (env.containsKey('KITTY_WINDOW_ID') &&
+                    (version.isEmpty ||
+                        (multiplexer == Multiplexer.tmux &&
+                            version.startsWith('tmux'))))),
         cellPixelWidth: cellWidth,
         cellPixelHeight: cellHeight,
       ),
@@ -1532,9 +1706,12 @@ final class Terminal
       colorMode: color,
       foregroundRgb: fg,
       backgroundRgb: bg,
+      cursorRgb: cursor,
       palette: palette,
       inBandResize: supported(2048),
       graphemeMode: supported(2027),
+      pixelMouse:
+          o.pixelMouse && supported(1016) && cellWidth > 0 && cellHeight > 0,
       kittyKeyboard: kitty,
       kittyKeyboardFlags: _kittyFlags(o),
       answeredQueries: answered,
@@ -1552,6 +1729,7 @@ final class Terminal
       progressReports:
           declared.progressReports ??
           progressReportsFor(told, version: version),
+      sextants: sextantsFor(told, version: version),
       bidi: o.bidi ?? bidiReorderingFor(told, mode: bidiMode, version: version),
       settings: settings,
     );
@@ -1570,7 +1748,7 @@ final class Terminal
   /// reports, and BDSM.
   static const _modeQueries =
       '\x1b[?2026\$p\x1b[?2027\$p\x1b[?2048\$p\x1b[?69\$p'
-      '\x1b[?2031\$p$bidiModeQuery';
+      '\x1b[?2031\$p\x1b[?1016\$p$bidiModeQuery';
 
   /// kitty's graphics query: a 1x1 image it would show, answered with
   /// `APC G i=31 ; OK ST` where the protocol is there.
@@ -1583,6 +1761,9 @@ final class Terminal
   /// `CSI 6 ; height ; width t`: a cell's size in pixels.
   static final _cellSizeReply = RegExp(r'^\x1b\[6;(\d+);(\d+)t$');
 
+  /// `CSI 4 ; height ; width t`: the text area's size in pixels.
+  static final _textAreaReply = RegExp(r'^\x1b\[4;(\d+);(\d+)t$');
+
   /// `CSI 8 ; Ps $ y`: the answer about BDSM ([bidiModeQuery]).
   static final _bidiModeReply = RegExp(r'^\x1b\[8;(\d+)\$y$');
 
@@ -1590,12 +1771,39 @@ final class Terminal
   /// terminal's kind, version and keyboard.
   static final _secondaryReply = RegExp(r'^\x1b\[>([\d;]*)c$');
 
+  /// `DCS ! | hex ST`: the tertiary device attributes (DA3), the terminal's
+  /// unit id as hexadecimal digits of ASCII.
+  static final _unitIdReply = RegExp(
+    r'^\x1bP!\|([0-9A-Fa-f]*)(?:\x1b\\|\x07)$',
+  );
+
+  /// Terminology's unit id (`~~TY`), tildes dropped ([_unitIdOf]).
+  static const _terminologyUnit = 'TY';
+
+  /// [hex] (the digits of a DA3 reply) as the ASCII text they spell, without
+  /// the leading tildes some terminals put before their name (`~VTE`);
+  /// empty where the digits are odd in number or not text.
+  static String _unitIdOf(String hex) {
+    if (hex.length.isOdd) {
+      return '';
+    }
+    final out = StringBuffer();
+    for (var i = 0; i < hex.length; i += 2) {
+      final c = int.parse(hex.substring(i, i + 2), radix: 16);
+      if (c < 0x20 || c > 0x7e) {
+        return '';
+      }
+      out.writeCharCode(c);
+    }
+    return out.toString().replaceFirst(RegExp('^~+'), '');
+  }
+
   /// What [_states] keeps BDSM under.
   static final _bidiMode = Object();
 
   /// A reply to one of the probe's queries the input parser doesn't know:
   /// kitty's graphics query, XTVERSION (`DCS > | name ST`), the cell size,
-  /// BDSM.
+  /// BDSM, DA2, DA3.
   /// [env] as the terminal's secondary device attributes, [secondary]
   /// (none for no answer), tell it: Terminal.app's `TERM_PROGRAM` where
   /// they are Terminal.app's, without it where they are another's.
@@ -1627,16 +1835,21 @@ final class Terminal
     return s.startsWith('\x1b_G') ||
         s.startsWith('\x1bP>|') ||
         _cellSizeReply.hasMatch(s) ||
+        _textAreaReply.hasMatch(s) ||
         _bidiModeReply.hasMatch(s) ||
-        _secondaryReply.hasMatch(s);
+        _secondaryReply.hasMatch(s) ||
+        _unitIdReply.hasMatch(s);
   }
 
   // --------------------------------------------------------------- modes --
 
   /// The kitty keyboard flags pushed ([TerminalOptions.kittyKeyboardFlags]):
-  /// those asked for, always with disambiguation.
+  /// those asked for, always with disambiguation and alternate keys (the
+  /// base layout key shortcuts match by on a non-Latin layout).
   static int _kittyFlags(TerminalOptions o) =>
-      o.kittyKeyboardFlags | KittyKeyboardFlags.disambiguate;
+      o.kittyKeyboardFlags |
+      KittyKeyboardFlags.disambiguate |
+      KittyKeyboardFlags.alternateKeys;
 
   /// The mouse may be reported on this screen (see
   /// [TerminalOptions.normalScreenMouse]).
@@ -1654,6 +1867,12 @@ final class Terminal
   MouseTracking get mouseTracking => _mouseTracking;
 
   @override
+  (int, int)? get cellPixels =>
+      _parser.cellPixelWidth > 0 && _parser.cellPixelHeight > 0
+      ? (_parser.cellPixelWidth, _parser.cellPixelHeight)
+      : null;
+
+  @override
   set mouseTracking(MouseTracking tracking) {
     final from = _mouseTracking;
     if (_closed || !_mouseScreen || info.plain || tracking == from) {
@@ -1661,7 +1880,13 @@ final class Terminal
     }
     _mouseTracking = tracking;
     if (!_suspended) {
-      _writeString(mouseTrackingSequence(from, tracking));
+      _writeString(
+        mouseTrackingSequence(
+          from,
+          tracking,
+          pixels: info.pixelMouse,
+        ),
+      );
       _tellLost();
     }
   }
@@ -1676,7 +1901,13 @@ final class Terminal
     if (o.alternateScreen) {
       sb.write('\x1b[2J'); // the inline region erases only its own rows
     }
-    sb.write(mouseTrackingSequence(MouseTracking.off, _mouseTracking));
+    sb.write(
+      mouseTrackingSequence(
+        MouseTracking.off,
+        _mouseTracking,
+        pixels: info.pixelMouse,
+      ),
+    );
     if (o.bracketedPaste) {
       sb.write('\x1b[?2004h');
     }
@@ -1727,14 +1958,19 @@ final class Terminal
     _states[key] = (sequence, restore);
     _refreshes.remove(key)?.cancel();
     if (refresh != null) {
-      _refreshes[key] = Timer.periodic(refresh, (_) {
-        if (!_suspended) {
-          _writeString(sequence);
-        }
-      });
+      // real time: a driven app's clock would hold it
+      _refreshes[key] = _realZone.run(
+        () => Timer.periodic(refresh, (_) {
+          if (!_suspended) {
+            _writeString(sequence);
+          }
+        }),
+      );
     }
     if (!_suspended) {
-      _writeString(sequence);
+      if (sequence.isNotEmpty) {
+        _writeString(sequence);
+      }
       _tellLost();
     }
   }
@@ -1790,7 +2026,13 @@ final class Terminal
       sb.write('\x1b[?2004l');
     }
     sb
-      ..write(mouseTrackingSequence(_mouseTracking, MouseTracking.off))
+      ..write(
+        mouseTrackingSequence(
+          _mouseTracking,
+          MouseTracking.off,
+          pixels: info.pixelMouse,
+        ),
+      )
       // autowrap (the presenter turns it off), cursor visible with the
       // user's own cursor shape
       ..write('\x1b[?7h\x1b[0 q\x1b[?25h');
@@ -1871,6 +2113,8 @@ final class Terminal
           : options.escapeTimeout;
       _escTimer = Timer(wait, () => _parse(_parser.flush));
     }
+    _bytesRead += bytes.length;
+    onRead?.call();
   }
 
   /// Delivers what one parser step produced. Input is read outside the
@@ -1907,6 +2151,9 @@ final class Terminal
   Timer? _lateCursorTimer;
 
   void _deliver(InputEvent e) {
+    if (_takeSizeReply(e)) {
+      return;
+    }
     if (e is CursorReport) {
       final asked = _cursorAsked;
       if (asked != null && !asked.isCompleted) {
@@ -1951,9 +2198,10 @@ final class Terminal
   void _askColors() {
     final fg = info.foregroundRgb == null ? '' : '\x1b]10;?\x1b\\';
     final bg = info.backgroundRgb == null ? '' : '\x1b]11;?\x1b\\';
+    final cursor = info.cursorRgb == null ? '' : '\x1b]12;?\x1b\\';
     final entries = [for (final i in info.palette.keys) '$i;?'];
     final palette = entries.isEmpty ? '' : '\x1b]4;${entries.join(';')}\x1b\\';
-    _writeString('$fg$bg$palette');
+    _writeString('$fg$bg$cursor$palette');
   }
 
   // --------------------------------------------------------------- resize --
@@ -1967,8 +2215,88 @@ final class Terminal
     _resizes = _link.resizes.listen((_) => _checkSize());
   }
 
+  /// Takes a cell's size again while the pixel mouse is on: a font change
+  /// resizes the window's pixels. From the tty where the link can tell
+  /// ([PixelSizedLink]); otherwise the terminal is asked again (CSI 16 t,
+  /// and CSI 14 t over the size in cells where it has no cell size), and the
+  /// old size stands until the answer comes ([_takeSizeReply]). An in-band
+  /// resize report carries the pixels itself (the parser takes them).
+  void _refreshCellSize() {
+    if (!info.pixelMouse || _closed || _suspended) {
+      return;
+    }
+    final link = _link;
+    final tty = link is PixelSizedLink ? link.cellPixelSize : null;
+    if (tty != null) {
+      _parser
+        ..cellPixelWidth = tty.width
+        ..cellPixelHeight = tty.height;
+      return;
+    }
+    // a re-ask while an earlier one is unanswered adds its two answers: they
+    // arrive in order, and the earlier round's CSI 14 t reply must not
+    // overwrite what CSI 16 t of any round told
+    if (_cellReplies == 0) {
+      _cellAnswered = false;
+    }
+    _cellReplies++;
+    _areaReplies++;
+    _writeString('\x1b[16t\x1b[14t');
+  }
+
+  /// How many answers to the re-asks ([_refreshCellSize]) may still come,
+  /// of CSI 16 t and of CSI 14 t: they are taken here, not delivered as
+  /// input. The two are counted apart: a terminal may answer one only, and
+  /// an answer that arrives then tells that the earlier ones of the other
+  /// kind will not (they come in order, a round's CSI 16 t first).
+  var _cellReplies = 0;
+  var _areaReplies = 0;
+
+  /// Whether CSI 16 t answered a re-ask not yet fully answered: the text
+  /// area then is not needed.
+  var _cellAnswered = false;
+
+  /// Takes [e] if it is an answer to the re-ask for a cell's size.
+  bool _takeSizeReply(InputEvent e) {
+    if (e is! UnknownSequence || (_cellReplies == 0 && _areaReplies == 0)) {
+      return false;
+    }
+    final s = String.fromCharCodes(e.bytes);
+    if (_cellSizeReply.firstMatch(s) case final m? when _cellReplies > 0) {
+      _cellReplies--;
+      // the 14 t answers of the rounds before this one are not coming
+      _areaReplies = min(_areaReplies, _cellReplies + 1);
+      final h = int.parse(m[1]!);
+      final w = int.parse(m[2]!);
+      if (w > 0 && h > 0) {
+        _cellAnswered = true;
+        _parser
+          ..cellPixelWidth = w
+          ..cellPixelHeight = h;
+      }
+      return true;
+    }
+    if (_textAreaReply.firstMatch(s) case final m? when _areaReplies > 0) {
+      _areaReplies--;
+      // nor the 16 t answers of this round and the ones before
+      _cellReplies = min(_cellReplies, _areaReplies);
+      if (!_cellAnswered) {
+        final w = int.parse(m[2]!) ~/ _link.columns;
+        final h = int.parse(m[1]!) ~/ _link.lines;
+        if (w > 0 && h > 0) {
+          _parser
+            ..cellPixelWidth = w
+            ..cellPixelHeight = h;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
   /// Reports a size other than the last one.
   void _checkSize() {
+    _refreshCellSize();
     final w = _link.columns;
     final h = _link.lines;
     if (w != width || h != height) {
@@ -2064,15 +2392,14 @@ final class Terminal
     _checkSize();
     var column = -1;
     if (asked != null) {
-      column = await asked.future.timeout(
-        options.probeTimeout,
-        onTimeout: () => -1,
+      column = await _realZone.run(
+        () => asked!.future.timeout(options.probeTimeout, onTimeout: () => -1),
       );
       _cursorAsked = null;
       if (column < 0) {
         // the answer may still come, and is no key (CSI 1;2R is Shift+F3)
         _lateCursorTimer?.cancel();
-        _lateCursorTimer = Timer(
+        _lateCursorTimer = _realZone.createTimer(
           const Duration(seconds: 5),
           () => _parser.expectCursorReport = false,
         );
@@ -2199,13 +2526,17 @@ final class Terminal
     final link = _link;
     var taken = link is DrainingLink ? link.taken : null;
     if (link is! DrainingLink || taken == null) {
-      await flush().timeout(_closeBlindLimit, onTimeout: () {});
+      await _realZone.run(
+        () => flush().timeout(_closeBlindLimit, onTimeout: () {}),
+      );
       return;
     }
     var done = false;
     final flushed = flush().whenComplete(() => done = true)..ignore();
     while (!done) {
-      await flushed.timeout(_closeFlushLimit, onTimeout: () {});
+      await _realZone.run(
+        () => flushed.timeout(_closeFlushLimit, onTimeout: () {}),
+      );
       if (link.taken == taken) {
         return;
       }
@@ -2284,4 +2615,10 @@ bool konsoleLinesFor(Map<String, String> env, {String version = ''}) {
     return version.startsWith('Konsole');
   }
   return env.containsKey('KONSOLE_VERSION');
+}
+
+/// What the probe of a [Terminal] read and wrote ([CountingBackend]).
+final class _ProbeCounts {
+  var read = 0;
+  var written = 0;
 }

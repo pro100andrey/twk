@@ -28,7 +28,7 @@ void main() {
   testTwk('a ProgressList label reads as a Text does, cut at its end', (
     t,
   ) async {
-    final tracker = ProgressTracker(clock: t.clock.stopwatch);
+    final tracker = ProgressTracker(clock: t.clock.clock);
     addTearDown(tracker.dispose);
     tracker
       ..add(hebrew)
@@ -212,7 +212,9 @@ void main() {
     await t.pumpWidget(
       top(
         Calendar(
-          controller: CalendarController(cursor: DateTime(2026, 10, 7)),
+          controller: disposing(
+            CalendarController(cursor: DateTime(2026, 10, 7)),
+          ),
           monthNames: names,
           weekdayNames: days,
         ),

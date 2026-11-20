@@ -64,7 +64,7 @@ void main() {
 
   group('ProgressList', () {
     testTwk('writes counts with the separator', (t) async {
-      final tracker = ProgressTracker(clock: t.clock.stopwatch);
+      final tracker = ProgressTracker(clock: t.clock.clock);
       addTearDown(tracker.dispose);
       tracker.add('a', total: 3200000, unit: ProgressUnit.bytes)
         ..start()

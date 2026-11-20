@@ -133,7 +133,12 @@ final class Step {
 final class StepperController extends ChangeNotifier {
   /// A controller at the step [initialStep], from 0.
   StepperController({int initialStep = 0})
-    : _current = initialStep < 0 ? 0 : initialStep;
+    : _current = initialStep < 0 ? 0 : initialStep {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   final _hosts = ControllerHost<_StepperState>();
 
@@ -593,7 +598,7 @@ final class _StepperState extends State<Stepper> {
   /// Every key but Ctrl+C, while a validation is waited for.
   KeyEventResult _swallow(FocusNode node, KeyEvent event) =>
       _controller.validating &&
-          !(event.char == 'c' && event.modifiers == Mod.ctrl)
+          !(KeyCombo.charFor(event, 'c') == 'c' && event.modifiers == Mod.ctrl)
       ? KeyEventResult.handled
       : KeyEventResult.ignored;
 

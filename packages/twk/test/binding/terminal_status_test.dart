@@ -53,7 +53,7 @@ final class _Run {
         progressReports: reports,
         multiplexer: multiplexer,
       );
-      binding = AppBinding(term, maxFps: 1000, clock: clock.stopwatch);
+      binding = AppBinding(term, maxFps: 1000, clock: clock.clock);
       done = binding.run(_Shown(progress, key: key));
     });
   }
@@ -228,7 +228,7 @@ void main() {
       ),
     );
     final binding = clock.run(
-      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(term, maxFps: 1000, clock: clock.clock),
     );
     final done = clock.run(
       () => binding.run(_at(0.5)(const Text('working'))),
@@ -265,7 +265,7 @@ void main() {
       () => HeadlessTerminal(width: 20, height: 2, pointerShapes: true),
     );
     final binding = clock.run(
-      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(term, maxFps: 1000, clock: clock.clock),
     );
     final key = GlobalKey();
     final done = clock.run(() => binding.run(Text('x', key: key)));
@@ -299,7 +299,7 @@ void main() {
       ),
     );
     final binding = clock.run(
-      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(term, maxFps: 1000, clock: clock.clock),
     );
     final key = GlobalKey();
     final done = clock.run(() => binding.run(Text('x', key: key)));
@@ -330,7 +330,7 @@ void main() {
         ),
       );
       final binding = clock.run(
-        () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+        () => AppBinding(term, maxFps: 1000, clock: clock.clock),
       );
       final key = GlobalKey();
       final done = clock.run(() => binding.run(Text('x', key: key)));
@@ -352,7 +352,7 @@ void main() {
     final clock = FakeClock();
     final term = clock.run(() => HeadlessTerminal(width: 20, height: 2));
     final binding = clock.run(
-      () => AppBinding(term, maxFps: 1000, clock: clock.stopwatch),
+      () => AppBinding(term, maxFps: 1000, clock: clock.clock),
     );
     final key = GlobalKey();
     final done = clock.run(() => binding.run(Text('x', key: key)));

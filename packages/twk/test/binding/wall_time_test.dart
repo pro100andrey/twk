@@ -47,7 +47,7 @@ void main() {
     final clock = FakeClock();
     final binding = AppBinding(
       HeadlessTerminal(width: 10, height: 1),
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     await clock.elapse(const Duration(hours: 1));

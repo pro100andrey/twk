@@ -7,6 +7,7 @@ import 'dart:io' show Platform;
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
+import 'package:twk_core/src/terminal/plain.dart';
 import 'package:twk_core/terminal.dart' show LogLevel, log;
 import 'package:twk_core/twk_core.dart';
 import 'package:twk_test/twk_test.dart' show FakeClock;
@@ -15,7 +16,7 @@ import 'package:twk_test/vt_terminal.dart';
 /// A repaint boundary, unless [boundary] is false, that counts its paints
 /// and can fail on demand.
 final class Probe extends RenderObject {
-  Probe(this.pen, {this.boundary = true, Stopwatch? clock})
+  Probe(this.pen, {this.boundary = true, Clock? clock})
     : _clock = clock ?? _wall;
   final int pen;
   final bool boundary;
@@ -25,8 +26,8 @@ final class Probe extends RenderObject {
   /// When each paint began, in microseconds on the clock given, by
   /// default the wall clock.
   final paintedAt = <int>[];
-  final Stopwatch _clock;
-  static final _wall = Stopwatch()..start();
+  final Clock _clock;
+  static final _wall = SystemClock();
 
   @override
   bool get isRepaintBoundary => boundary;
@@ -131,9 +132,10 @@ final class Pair extends RenderObject {
   }
 }
 
-/// A stopwatch that reads the fake clock's time and [extra]: the time the
-/// timers lost, which makes them fire late by it.
-final class _Late implements Stopwatch {
+/// A clock that reads the fake clock's time and [extra]: the time the
+/// timers lost, which makes them fire late by it. Its timers are the fake
+/// clock's.
+final class _Late implements Clock {
   _Late(this.clock);
   final FakeClock clock;
   var extra = 0;
@@ -142,20 +144,31 @@ final class _Late implements Stopwatch {
   int get elapsedMicroseconds => clock.elapsed.inMicroseconds + extra;
 
   @override
-  Never noSuchMethod(Invocation invocation) =>
-      throw UnsupportedError('Stopwatch.${invocation.memberName}');
+  Timer timer(Duration after, void Function() callback) =>
+      clock.clock.timer(after, callback);
+
+  @override
+  Timer periodic(Duration every, void Function(Timer) callback) =>
+      clock.clock.periodic(every, callback);
 }
 
-/// A stopwatch that reads [micros], which only the test moves.
-final class _Clock implements Stopwatch {
+/// A clock that reads [micros], which only the test moves; its timers are
+/// the fake clock's.
+final class _Clock implements Clock {
+  _Clock(this.clock);
+  final FakeClock clock;
   var micros = 0;
 
   @override
   int get elapsedMicroseconds => micros;
 
   @override
-  Never noSuchMethod(Invocation invocation) =>
-      throw UnsupportedError('Stopwatch.${invocation.memberName}');
+  Timer timer(Duration after, void Function() callback) =>
+      clock.clock.timer(after, callback);
+
+  @override
+  Timer periodic(Duration every, void Function(Timer) callback) =>
+      clock.clock.periodic(every, callback);
 }
 
 void main() {
@@ -200,12 +213,12 @@ void main() {
       wrap?.call(term) ?? term,
       maxFps: maxFps,
       maxInputFps: maxInputFps,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     probe = Probe(
       app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0))),
-      clock: clock.stopwatch,
+      clock: clock.clock,
     );
   }
 
@@ -267,7 +280,7 @@ void main() {
     final app = TwkApp(
       term,
       maxFps: 1000,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     final root = Rows(app.screen.styles.pen(const Pen()));
@@ -347,7 +360,7 @@ void main() {
     app = TwkApp(
       term,
       maxFps: 1000,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     final done = runOnClock(
@@ -655,7 +668,7 @@ void main() {
       'it, not on the wall clock', () async {
     // the timers wait on the test's clock, which stands for the wall clock
     // here; the frames are spaced by the other
-    final given = _Clock();
+    final given = _Clock(clock);
     term = HeadlessTerminal(width: 20, height: 4);
     app = TwkApp(term, maxFps: 20, clock: given, environment: const {});
     probe = Probe(app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0))));
@@ -825,7 +838,7 @@ void main() {
         term,
         maxFps: 1000,
         framesInRow: true,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       probe = Probe(app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0))));
@@ -855,7 +868,7 @@ void main() {
         term,
         maxFps: 1000,
         framesInRow: true,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       probe = Probe(app.screen.styles.pen(const Pen()));
@@ -876,7 +889,7 @@ void main() {
         term,
         maxFps: 1000,
         framesInRow: true,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       final pen = app.screen.styles.pen(const Pen());
@@ -979,7 +992,7 @@ void main() {
       final app = TwkApp(
         term,
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       final pen = app.screen.styles.pen(
@@ -1021,7 +1034,7 @@ void main() {
         term,
         maxFps: 1000,
         timeline: true,
-        clock: clock.stopwatch,
+        clock: clock.clock,
         environment: const {},
       );
       final probe = Probe(app.screen.styles.pen(const Pen()))
@@ -1056,7 +1069,7 @@ void main() {
       term,
       maxFps: 1000,
       framesInRow: true,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     final done = runOnClock(
@@ -1080,7 +1093,7 @@ void main() {
     final app = TwkApp(
       term,
       maxFps: 1000,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     final done = runOnClock(
@@ -1143,6 +1156,36 @@ void main() {
       everyElement(isFalse),
     );
     expect(none.logs.path, isNull);
+  });
+
+  test('on plain output the owner draws no overflow marker, whatever the '
+      'asserts; TWK_DEBUG=overflow still asks for it', () async {
+    Future<TwkApp> on(Map<String, String> env, {required bool plain}) async {
+      final t = await Terminal.overLink(
+        PlainLink(
+          const {'COLUMNS': '20', 'LINES': '6'},
+          add: (_) {},
+          flush: () async {},
+        ),
+        TerminalOptions(plain: plain, alternateScreen: false),
+      );
+      return TwkApp(t, environment: env);
+    }
+
+    expect(
+      (await on(const {}, plain: true)).owner.debugOverflowIndicator,
+      isFalse,
+    );
+    expect(
+      (await on(const {
+        'TWK_DEBUG': 'overflow',
+      }, plain: true)).owner.debugOverflowIndicator,
+      isTrue,
+    );
+    expect(
+      (await on(const {}, plain: false)).owner.debugOverflowIndicator,
+      PipelineOwner.debugOverflowIndicatorByDefault,
+    );
   });
 
   test("with no environment given, the process's, over which the "

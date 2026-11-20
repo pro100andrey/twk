@@ -13,7 +13,7 @@ import 'package:twk_test/twk_test.dart' show FakeClock, FakeStderr;
 import 'package:twk_test/vt.dart';
 
 /// The frame loop of an app run on a [FakeClock] by hand: its binding
-/// made in the clock's zone and reading [FakeClock.stopwatch].
+/// made in the clock's zone and reading [FakeClock.clock].
 extension FrameLoop on FakeClock {
   /// Lets the frame loop run: builds, frames and the timers they start,
   /// over [ms] ms of the app's clock, however long the machine takes to
@@ -51,7 +51,7 @@ final class Run {
             maxFps: maxFps,
             logs: logs,
             exitOnCtrlC: exitOnCtrlC,
-            clock: clock.stopwatch,
+            clock: clock.clock,
             // none of the shell's TWK_* variables
             environment: const {},
             onError: onError,

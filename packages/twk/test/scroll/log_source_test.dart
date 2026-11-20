@@ -29,7 +29,7 @@ void main() {
   testTwk('the lines of a stream once each ends, in their colors; a '
       'piece may end in a sequence or a line; a carriage return writes the '
       'line over; the last line once the stream is done', (t) async {
-    final c = LogController();
+    final c = disposing(LogController());
     final output = StreamController<String>();
     addTearDown(output.close);
     final subscription = c.addOutput(output.stream);
@@ -53,7 +53,7 @@ void main() {
 
   testTwk('a line of spans keeps their colors over its level; the query '
       'found across two of them marks both', (t) async {
-    final c = LogController()
+    final c = disposing(LogController())
       ..addSpans(const [
         Span('ab', Style(fg: Color.red)),
         Span('cd', Style(fg: Color.green)),
@@ -76,8 +76,7 @@ void main() {
 
   test('done completes when the stream ends, with its last unended line '
       'added', () async {
-    final c = LogController();
-    addTearDown(c.dispose);
+    final c = disposing(LogController());
     final output = StreamController<String>();
     addTearDown(output.close);
     final source = c.addOutput(output.stream);
@@ -95,8 +94,7 @@ void main() {
 
   test('cancel stops the lines, frees the stream and completes done; the '
       'unended line is not added', () async {
-    final c = LogController();
-    addTearDown(c.dispose);
+    final c = disposing(LogController());
     final output = StreamController<String>();
     addTearDown(output.close);
     final source = c.addOutput(output.stream);
@@ -114,8 +112,7 @@ void main() {
   test(
     'an error of the stream ends the source: done completes with it',
     () async {
-      final c = LogController();
-      addTearDown(c.dispose);
+      final c = disposing(LogController());
       final output = StreamController<String>();
       addTearDown(output.close);
       addTearDown(output.close);
@@ -128,8 +125,7 @@ void main() {
 
   test('what map throws ends the source: the lines before it added and '
       'told, done completes with it, the stream let go of', () async {
-    final c = LogController();
-    addTearDown(c.dispose);
+    final c = disposing(LogController());
     var told = 0;
     c.addListener(() => told++);
     final output = StreamController<String>();
@@ -148,8 +144,7 @@ void main() {
 
   test('what map throws on the last line, at the end, ends the source with '
       'it', () async {
-    final c = LogController();
-    addTearDown(c.dispose);
+    final c = disposing(LogController());
     final source = c.addOutput(
       Stream.value('a\nb'),
       map: (spans) =>
@@ -160,8 +155,7 @@ void main() {
   });
 
   test('a tab goes to the multiple of the tabWidth', () async {
-    final c = LogController();
-    addTearDown(c.dispose);
+    final c = disposing(LogController());
     await c.addOutput(Stream.value('a\tb\n'), tabWidth: 4).done;
     expect(c[0].text, 'a   b');
   });

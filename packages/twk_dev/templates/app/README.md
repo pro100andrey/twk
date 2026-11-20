@@ -35,11 +35,16 @@ dart analyze
 dart format --output=none --set-exit-if-changed .
 ```
 
-`testTwk` (twk_test) runs the app on a terminal in memory under a fake
-clock: keys go in as a terminal sends them, the screen is read back.
+`testTwk` (twk_test) runs the app on a terminal in memory: keys go in as a
+terminal sends them, the screen is read back, and timers move only when the
+test says, so a test has no sleeps and no flakes.
+`driverTest` (`package:twk_test/driver.dart`, tagged `process`) runs the app
+as a real process in a pseudo-terminal, as a user's terminal does, and reads
+its screen back through an emulator.
 
 ## Files
 
 - `bin/main.dart` runs the app.
 - `lib/app_template.dart` is the app.
 - `test/app_template_test.dart` tests it.
+- `test/app_template_driver_test.dart` runs it as a process.

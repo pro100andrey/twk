@@ -17,8 +17,6 @@ import 'package:twk_core/twk_core.dart'
     show PipelineTextOrder, TextOrder, TextSegmenter;
 import 'package:twk_test/twk_test.dart';
 
-import '../disposing.dart';
-
 /// A focused area of [c], 20 columns wide and 8 rows high, at the top
 /// left.
 Widget area(

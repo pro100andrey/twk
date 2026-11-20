@@ -8,8 +8,8 @@ which builds the subcommands with `package:args`; `lib/src/shell.dart` and
 `lib/src/logs.dart` are two commands over twk_core, and `lib/src/run.dart` is
 `twk run`, a client of the app's VM service (`package:vm_service`). `twk
 inspect` is `lib/src/inspect.dart`, the command and `RunningApps`, the apps
-found by the service file; `lib/src/app_client.dart`, `AppClient`, what the
-inspector asks an app, and `VmAppClient`, over the VM service; and
+found by the service file; `AppClient`, what the inspector asks an app,
+and `VmAppClient`, over the VM service, from twk_driver; and
 `lib/src/inspector_view.dart`, `InspectorView`, the screen, on twk. `twk
 create` is `lib/src/create.dart`, over mold's `Unbundler`; its templates are
 packages in `templates/`, packed by `tool/pack_templates.dart` into
@@ -17,10 +17,14 @@ packages in `templates/`, packed by `tool/pack_templates.dart` into
 `lib/src/record.dart`, over twk_term's `Pty`; `twk play` `lib/src/play.dart`;
 both write and read asciicast v2 with `lib/src/cast.dart` (`Cast`,
 `CastWriter`, exported by `package:twk_dev/twk_dev.dart`), put the terminal in
-raw mode with `lib/src/raw_tty.dart` and turn off what the output left on with
+raw mode with twk_term's `RawTty` and turn off what the output left on with
 `lib/src/modes.dart`. `twk tape` is `lib/src/tape.dart`, the command,
-`TapeRunner` (its pauses those of a `TapeClock`, the real time by default) and
-`redraw`, over twk_term's `Pty` and `TerminalEmulator`; its language is
+`TapeRunner` (its pauses and the session's timeouts those of a `TapeClock`, the
+real time by default) and `redraw`; the runner is a client of twk_driver's
+`Session`, composed of the tape's own ports: twk_term's `Pty` through
+`PtyCommandPort` (or `PtyProcessPort`, for an app the tape looks into), wrapped
+by `tape/recording.dart`'s recorder of what it outputs and when, and
+`EmulatorScreen` over themed `TerminalEmulator`s; its language is
 `lib/src/tape/script.dart`, its themes `theme.dart`, the SVG `svg.dart`
 (`screenSvg`, `SvgFilm`) and the characters it draws as shapes `glyphs.dart`.
 `example/tally.tape` is the walkthrough's app recorded. `example/tally.dart`
@@ -28,7 +32,7 @@ is the walkthrough's app.
 
 `test/command_test.dart` runs `dart run twk_dev:twk` the way a developer does,
 and `runTwk` in the test's process where a command does not get as far as the
-terminal: `--help` must list exactly the eight subcommands, `twk inspect` with
+terminal: `--help` must list exactly the subcommands the test names, `twk inspect` with
 two addresses must exit with 64, with one nothing answers at and without a
 terminal with 1, `twk run` without a file must exit with 64 and with a file
 that is not there with 1, `twk shell` without a terminal must say so and exit
@@ -38,7 +42,7 @@ on what it can't do (a statement there is not with its line), and an unknown
 subcommand must exit with 64. `test/tape_test.dart` parses a tape of every
 statement, the errors with their lines, the times and the themes; draws a
 known screen as a still SVG, to the byte (runs of a style, a background, box
-lines, a wide character, escaping), the theme's colours, a reversed cell, dim
+lines, a wide character, escaping), the theme's colors, a reversed cell, dim
 text, blocks and the cursor; plays frames at their times, a row drawn once, a
 frame within the gap taking the last one's place and one that shows the same
 none; and draws a screen with `redraw` into a second emulator, which must then
@@ -124,7 +128,7 @@ walkthrough's app with `testTwk`: a line for each name, the keys counting the
 line chosen and choosing, `-` stopping at 0, each count in the log, `q`
 quitting, and the counts and the line chosen kept by `AppBinding.reassemble`,
 which a hot reload calls. `test/logs_test.dart` checks how a record is printed
-(padding, colours, the stack), and a line of the log that is one, and runs
+(padding, colors, the stack), and a line of the log that is one, and runs
 `twk logs` against sinks served in the test: waiting for an app, the records
 kept and live, the next app after one ended. `test/project_test.dart` checks
 the project a directory is in. The shell's ends are tested in twk_core

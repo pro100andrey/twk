@@ -1,6 +1,5 @@
 cli.dart class Cli
 cli.dart class CliCapabilities
-cli.dart class CliClock
 cli.dart class CliLive
 cli.dart class CliProgress
 cli.dart class CliSession
@@ -148,6 +147,7 @@ twk.dart class ChildListElement
 twk.dart class Chip
 twk.dart class ChipList
 twk.dart class Choice
+twk.dart class Clock
 twk.dart class ClusterScan
 twk.dart class ColorSchemeReport
 twk.dart class ColorTween
@@ -202,13 +202,16 @@ twk.dart class DragTarget
 twk.dart class DragTargetDetails
 twk.dart class DragUpdateDetails
 twk.dart class Draggable
+twk.dart class DrivenClock
 twk.dart class EdgeInsets
 twk.dart class EdgeInsetsTween
 twk.dart class Effect
 twk.dart class EffectCell
 twk.dart class Element
+twk.dart class ElementFinder
 twk.dart class ErrorWidget
 twk.dart class ExcludeFocus
+twk.dart class ExcludeSelection
 twk.dart class ExcludeSemantics
 twk.dart class Expanded
 twk.dart class ExpansionController
@@ -270,11 +273,14 @@ twk.dart class Intent
 twk.dart class Interval
 twk.dart class IntrinsicHeight
 twk.dart class IntrinsicWidth
+twk.dart class ItemSelection
+twk.dart class ItemText
 twk.dart class Key
 twk.dart class KeyBindings
 twk.dart class KeyCombo
 twk.dart class KeyEvent
 twk.dart class KeyHintsBar
+twk.dart class KittyKey
 twk.dart class LayoutBuilder
 twk.dart class LeaderKey
 twk.dart class LeafRenderObjectElement
@@ -441,6 +447,7 @@ twk.dart class StyleTween
 twk.dart class Suggestion
 twk.dart class Switch
 twk.dart class SwitcherTransition
+twk.dart class SystemClock
 twk.dart class TabBar
 twk.dart class TabBarView
 twk.dart class TabController
@@ -566,6 +573,7 @@ twk.dart enum UnmatchedKeys
 twk.dart enum WindowFrame
 twk.dart enum WrapAlignment
 twk.dart enum WrapCrossAlignment
+twk.dart extension ClockElapsed
 twk.dart extension FocusManagerKeys
 twk.dart extension StringStyles
 twk.dart extension TextBoundaries
@@ -602,6 +610,7 @@ twk.dart function showDialog
 twk.dart function showFilePicker
 twk.dart function showKeyHelp
 twk.dart function showToast
+twk.dart function shown
 twk.dart function stringWidth
 twk.dart function stripAnsi
 twk.dart function thumbSteps
@@ -633,12 +642,15 @@ twk.dart typedef GestureDragUpdateCallback
 twk.dart typedef GestureTapDownCallback
 twk.dart typedef GestureTapUpCallback
 twk.dart typedef IndexedWidgetBuilder
+twk.dart typedef ItemTextBuilder
 twk.dart typedef LayoutWidgetBuilder
 twk.dart typedef NotificationListenerCallback
 twk.dart typedef PointerEventListener
 twk.dart typedef PopInvokedWithResultCallback
 twk.dart typedef RouteFactory
 twk.dart typedef RoutePredicate
+twk.dart typedef SelectionPoint
+twk.dart typedef ShownRect
 twk.dart typedef SlotLayout
 twk.dart typedef SourceLines
 twk.dart typedef StartTimer

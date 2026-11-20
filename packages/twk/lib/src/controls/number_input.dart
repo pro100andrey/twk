@@ -5,6 +5,7 @@ library;
 import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 
 import '../binding/app_binding.dart' show AppBinding;
+import '../editing/editing_keys.dart' show editingLetters;
 import '../editing/text_editing.dart';
 import '../editing/text_field.dart';
 import '../focus/focus.dart';
@@ -340,12 +341,21 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       // takes is given up with Escape or the focus leaving
       _value = given;
       _show();
-    } else if (!_typed || (_untyped != null && given == _value)) {
-      // as the widget shows it now; where it is the value handed over
-      // ([_handOver]) the parent has taken it, and Escape reverts it no
-      // more. A parent that rebuilt without taking it leaves the hand-over
-      // as it is
+    } else if (!_typed) {
       _show();
+    } else if (_untyped != null && given == _value) {
+      // the value handed over ([_handOver]) the parent has taken: Escape
+      // reverts it no more, but under the caret the text stays as typed
+      // (`3.` is not rewritten to `3.00`), shown as the value when the
+      // focus leaves. A parent that rebuilt without taking it leaves the
+      // hand-over as it is
+      if (node.hasFocus) {
+        _untyped = null;
+        _typed = false;
+        node.markKeysChanged();
+      } else {
+        _show();
+      }
     }
   }
 
@@ -380,6 +390,8 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
         binding.addPostFrameCallback((_) => _settleHandedOver());
       } else {
         commit();
+        // text left as typed after the parent took it
+        _show();
       }
     }
     setState(() {});
@@ -497,6 +509,10 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
     if (event.kind == KeyKind.release || !_typed) {
       return KeyEventResult.ignored;
     }
+    if (event.code case KeyCode.modifier || KeyCode.lock || KeyCode.media) {
+      // a Shift, Caps Lock or volume key presses nothing for a binding
+      return KeyEventResult.ignored;
+    }
     if (!identical(_keys, _combosOf)) {
       _combosOf = _keys;
       _combos = [for (final name in _keys.keys) KeyCombo.parse(name)];
@@ -520,6 +536,7 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
   static bool _editsText(KeyEvent event) {
     final mods = event.modifiers;
     final rest = mods & ~Mod.shift;
+    final key = KeyCombo.charFor(event, editingLetters);
     return switch (event.code) {
       KeyCode.left ||
       KeyCode.right ||
@@ -529,8 +546,8 @@ mixin TypedInputState<W extends StatefulWidget, T> on State<W> {
       KeyCode.delete => rest == 0 || rest == Mod.ctrl || rest == Mod.alt,
       KeyCode.char =>
         rest == 0 ||
-            (rest == Mod.alt && 'bfd'.contains(event.char)) ||
-            (rest == Mod.ctrl && 'aedwukzy'.contains(event.char)),
+            (rest == Mod.alt && 'bfd'.contains(key)) ||
+            (rest == Mod.ctrl && 'aedwukzy'.contains(key)),
       _ => false,
     };
   }

@@ -13,6 +13,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:twk_dev/src/record.dart' show Recorder;
 import 'package:twk_dev/src/replay.dart';
 import 'package:twk_dev/twk_dev.dart';
 import 'package:twk_test/twk_test.dart' show screenFrames;
@@ -90,16 +91,15 @@ void main() {
     for (final mark in ['coffee     1 ■ ', 'coffee     2 ■■']) {
       expect(want.any((s) => s.any((l) => l.contains(mark))), isTrue);
     }
-    // The replay reaches the last of them. The one between is not held to:
-    // as soon as possible, a key goes once the command has been quiet for
-    // Recorder.settle, which a command slow to start is before its first
-    // frame, and it then draws the two keys in one frame (the runner of the
-    // CI did; one CPU shared with six busy loops does every time).
-    expect(
-      got.any((s) => s.any((l) => l.contains('coffee     2 ■■'))),
-      isTrue,
-      reason: '${got.lastOrNull}',
-    );
+    // each screen of the recording is reached: the first key goes in once
+    // the command has written its first frame, however slow it is to start
+    for (final mark in ['coffee     1 ■ ', 'coffee     2 ■■']) {
+      expect(
+        got.any((s) => s.any((l) => l.contains(mark))),
+        isTrue,
+        reason: '$mark in ${got.lastOrNull}',
+      );
+    }
     // the keys typed, once each; the answers in it are the live terminal's
     final splitter = InputSplitter();
     final keys = StringBuffer();
@@ -115,6 +115,82 @@ void main() {
       }
     }
     expect('$keys', '++q');
+  });
+
+  /// The seconds of the first input and of the output that holds [mark] in
+  /// the recording at [path].
+  (double, double, double) times(String path, String mark) {
+    final c = Cast.read(path);
+    final out = c.events.firstWhere(
+      (e) => e.code == CastEvent.output && e.data.contains(mark),
+    );
+    final inputs = c.events.where((e) => e.code == CastEvent.input).toList();
+    return (out.time, inputs.first.time, inputs.last.time);
+  }
+
+  test('a command quiet longer than settle before its first frame gets its '
+      'first key after the frame', () async {
+    final input = cast([
+      const CastEvent(0.1, 'o', 'probe\r\n'),
+      const CastEvent(0.2, 'o', 'frame\r\n'),
+      const CastEvent(0.3, 'i', 'one\r'),
+    ]);
+    final out = p.join(temp, 'out.cast');
+    final t = await Terminal.twk([
+      'record', '--keys', '--out=$out', '--replay=$input', //
+      '--replay-speed=asap', '--', 'sh', '-c',
+      // quiet for four times Recorder.settle between the two
+      r'echo probe; sleep 0.4; echo frame; read a; echo "got $a"',
+    ]);
+    expect(await t.ended(), exits(0));
+    final (frame, key, _) = times(out, 'frame');
+    expect(key, greaterThanOrEqualTo(frame));
+  });
+
+  test('an app that animates is not held at every key', () async {
+    // 20000 characters between the keys in the recording: replayed, the
+    // command writes far fewer, and only the first key waits for output
+    final input = cast([
+      const CastEvent(0.1, 'o', 'ready\r\n'),
+      const CastEvent(0.2, 'i', 'one\r'),
+      const CastEvent(0.3, 'o', 'got one\r\n'),
+      for (var i = 0; i < 20; i++) CastEvent(0.4, 'o', '${'x' * 1000}\r\n'),
+      const CastEvent(0.5, 'i', 'two\r'),
+    ]);
+    final out = p.join(temp, 'out.cast');
+    final t = await Terminal.twk([
+      'record', '--keys', '--out=$out', '--replay=$input', //
+      '--replay-speed=asap', '--', 'sh', '-c',
+      r'echo ready; read a; echo "got $a"; read b; echo "got $b"',
+    ]);
+    expect(await t.ended(), exits(0));
+    expect(t.text, contains('got two'));
+    final (_, first, last) = times(out, 'ready');
+    expect(
+      last - first,
+      lessThan(Recorder.reactionLimit.inMilliseconds / 1000),
+    );
+  });
+
+  test('the wait for the first frame ends at reactionLimit', () async {
+    final input = cast([
+      const CastEvent(0.1, 'o', 'ready\r\n'),
+      CastEvent(0.2, 'o', 'y' * 5000),
+      const CastEvent(0.3, 'i', 'one\r'),
+    ]);
+    final out = p.join(temp, 'out.cast');
+    final t = await Terminal.twk([
+      'record', '--keys', '--out=$out', '--replay=$input', //
+      '--replay-speed=asap', '--', 'sh', '-c',
+      r'echo ready; read a; echo "got $a"',
+    ]);
+    expect(await t.ended(), exits(0));
+    expect(t.text, contains('got one'));
+    final (_, key, _) = times(out, 'ready');
+    expect(
+      key,
+      greaterThanOrEqualTo(Recorder.reactionLimit.inMilliseconds / 1000 - 0.1),
+    );
   });
 
   test("the person's keys wait for the end of the replay, and are the "

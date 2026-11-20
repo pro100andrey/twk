@@ -111,17 +111,23 @@ void main() {
     int width = 30,
     int height = 10,
     TerminalOptions options = const TerminalOptions(alternateScreen: false),
+    TerminalCaps caps = const TerminalCaps(),
   }) async {
     vt = Vt(width, height);
     paintPattern(vt, cursor);
     fed = 0;
     events.clear();
-    term = HeadlessTerminal(width: width, height: height, options: options);
+    term = HeadlessTerminal(
+      width: width,
+      height: height,
+      options: options,
+      caps: caps,
+    );
     app = TwkApp(
       term,
       maxFps: 1000,
       viewport: view,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     root = Panel(app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 90))), [
@@ -248,6 +254,31 @@ void main() {
     await stop();
   });
 
+  test('a pixel mouse keeps its offsets inside the viewport and loses them '
+      'where the cell was clamped to the nearest', () async {
+    await start(
+      const Viewport.fixed(6, 3, 12, 4),
+      caps: const TerminalCaps(cellPixelWidth: 10, cellPixelHeight: 20),
+    );
+    term.pixelMouse = true;
+    events.clear();
+    // pixel (85, 87): screen cell (8, 4), 5 and 7 into it; then a drag
+    // far outside, to the viewport's last cell, with no offset in it
+    term.type('\x1b[<0;86;88M\x1b[<32;1;1M\x1b[<0;300;300m');
+    await pass();
+    expect(events.whereType<MouseEvent>(), const [
+      MouseEvent(MouseKind.down, 2, 1, offsetX: 5, offsetY: 7),
+      MouseEvent(MouseKind.drag, 0, 0),
+      MouseEvent(MouseKind.up, 11, 3),
+    ]);
+    final first = events.whereType<MouseEvent>().first;
+    expect((first.offsetX, first.offsetY), (5, 7));
+    for (final e in events.whereType<MouseEvent>().skip(1)) {
+      expect((e.offsetX, e.offsetY), (null, null));
+    }
+    await stop();
+  });
+
   test('the terminal reports the mouse on the normal screen with '
       'normalScreenMouse, and the reports reach the viewport', () async {
     await start(
@@ -334,7 +365,7 @@ void main() {
       t,
       maxFps: 1000,
       viewport: const Viewport.fixed(15, 4, 10, 3),
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     final panel = Panel(a.screen.styles.pen(const Pen(attrs: Attr.bold)), [

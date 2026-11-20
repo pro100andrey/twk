@@ -66,6 +66,13 @@ enum DiffLayout {
 /// )
 /// ```
 ///
+/// Below a [SelectionArea] its lines are selected with the mouse and
+/// copied, as [ListView.itemText] says, [selectable]:
+///
+/// ```dart
+/// SelectionArea(child: DiffView(Diff.parse(stripAnsi(output))))
+/// ```
+///
 /// See also:
 ///
 ///  * [Diff.between], the diff of two texts the app holds.
@@ -84,6 +91,7 @@ final class DiffView extends StatefulWidget {
     this.controller,
     this.focusNode,
     this.autofocus = false,
+    this.selectable = true,
   }) : assert(tabWidth > 0, 'tabWidth < 1');
 
   /// The files, hunks and lines shown; another diff makes the rows again.
@@ -110,6 +118,17 @@ final class DiffView extends StatefulWidget {
 
   /// See [Focus.autofocus].
   final bool autofocus;
+
+  /// Whether a [SelectionArea] above it selects in it, true by default:
+  /// the rows are one text for it ([ListView.itemText]), those out of view
+  /// too, and copied as the lines read, the code of each line as shown (a
+  /// tab as the blanks it is drawn as) and its numbers and sign left out.
+  /// The file's name and a count of lines left out are selected as shown.
+  /// Side by side, the old and the new line of a row are two texts of
+  /// one line, joined by a tab. False leaves the rows to the area as
+  /// plain `Text`s, one for each part of a line, for an app that selects in
+  /// them itself.
+  final bool selectable;
 
   @override
   State<DiffView> createState() => _DiffViewState();
@@ -262,24 +281,43 @@ final class _DiffViewState extends State<DiffView> {
 
   @override
   Widget build(BuildContext context) {
-    final paint = _Paint(
-      theme: widget.theme ?? DiffTheme.from(Theme.of(context)),
-      syntax: SyntaxTheme.of(context),
-      digits: _digits,
-      tabWidth: widget.tabWidth,
-      sideBySide: widget.layout == DiffLayout.sideBySide,
-      glyphs: Theme.of(context).glyphs,
-      marks: ThemeMarks.of(context),
-    );
+    final theme = widget.theme ?? DiffTheme.from(Theme.of(context));
+    final syntax = SyntaxTheme.of(context);
+    final glyphs = Theme.of(context).glyphs;
+    final marks = ThemeMarks.of(context);
+    final sideBySide = widget.layout == DiffLayout.sideBySide;
+    final selectable = widget.selectable;
     final rows = _rows;
-    return ListView.builder(
-      itemCount: rows.length,
-      itemExtent: 1,
-      controller: widget.controller,
-      focusNode: widget.focusNode,
-      autofocus: widget.autofocus,
-      itemBuilder: (context, index) => rows[index].build(paint),
-    );
+    // the width tells where the new side starts
+    Widget list(int width) {
+      final paint = _Paint(
+        theme: theme,
+        syntax: syntax,
+        digits: _digits,
+        tabWidth: widget.tabWidth,
+        sideBySide: sideBySide,
+        glyphs: glyphs,
+        marks: marks,
+        width: width,
+      );
+      return ListView.builder(
+        itemCount: rows.length,
+        itemExtent: 1,
+        controller: widget.controller,
+        focusNode: widget.focusNode,
+        autofocus: widget.autofocus,
+        itemText: selectable ? (index) => rows[index].text(paint) : null,
+        itemBuilder: (context, index) => rows[index].build(
+          paint,
+          selectable ? ListView.selectionOf(context, index) : null,
+        ),
+      );
+    }
+
+    // one tree whatever the layout: the list keeps its focus as it changes
+    return selectable
+        ? LayoutBuilder(builder: (context, c) => list(c.maxWidth))
+        : list(0);
   }
 }
 
@@ -354,6 +392,7 @@ final class _Paint {
     required this.sideBySide,
     required this.glyphs,
     required this.marks,
+    required this.width,
   });
 
   final DiffTheme theme;
@@ -366,13 +405,34 @@ final class _Paint {
   /// The theme's marks as the terminal draws them.
   final ThemeMarks marks;
 
+  /// The columns of the list, side by side; 0 where it is not known.
+  final int width;
+
+  /// The column the code of a line starts at, after its gutter and sign:
+  /// that of the old side, side by side; [newColumn] is the new side's.
+  int get codeColumn => sideBySide ? digits + 3 : 2 * digits + 4;
+
+  /// The column the code of the new side starts at, side by side: the old
+  /// side is half the room the separator leaves, the odd cell its.
+  int get newColumn {
+    final separator = stringWidth(marks.text(Marks.separator));
+    final free = math.max(0, width - separator);
+    return (free + 1) ~/ 2 + separator + digits + 3;
+  }
+
   /// The blanks before the mark of a row of lines left out, so that it
   /// stands where the signs do.
   int get _indent => sideBySide ? digits + 1 : 2 * digits + 2;
 
   /// [half] after [gutter], on the background of its kind, the words
   /// [pair] says it changed marked.
-  Widget line(_Half half, List<Span> gutter, _Pair? pair) {
+  Widget line(
+    _Half half,
+    List<Span> gutter,
+    _Pair? pair,
+    ItemSelection? selected,
+    int run,
+  ) {
     final removed = half.line.kind == DiffLineKind.removed;
     final words = switch (pair?.words) {
       null => null,
@@ -393,12 +453,29 @@ final class _Paint {
         theme.addedWords,
       ),
     };
+    final code = _code(half, words ?? const [], wordStyle);
     return _row(style, [
       ...gutter,
       Span(sign, signStyle),
       const Span(' '),
-      ..._code(half, words ?? const [], wordStyle),
+      ...(selected == null ? code : selected.mark(code, run: run)),
     ]);
+  }
+
+  /// The code of [half] as it is selected and copied: each tab as the
+  /// blanks it is drawn as.
+  String codeText(_Half half) {
+    final text = half.line.text;
+    if (!text.contains('\t')) {
+      return text;
+    }
+    var column = 0;
+    return text.split('\t').indexed.map((piece) {
+      final (k, part) = piece;
+      final blanks = k == 0 ? 0 : tabWidth - column % tabWidth;
+      column += blanks + stringWidth(part);
+      return '${' ' * blanks}$part';
+    }).join();
   }
 
   /// The number [number] right-aligned in the gutter, a blank after it.
@@ -478,7 +555,10 @@ Widget _row(Style? style, List<Span> spans) {
 
 /// A row of a [DiffView].
 sealed class _Row {
-  Widget build(_Paint paint);
+  Widget build(_Paint paint, ItemSelection? selected);
+
+  /// What the row selects and copies as.
+  ItemText text(_Paint paint);
 }
 
 /// The row that names [file].
@@ -487,16 +567,20 @@ final class _FileRow extends _Row {
 
   final FileDiff file;
 
-  @override
-  Widget build(_Paint paint) {
+  String _text(_Paint paint) {
     final FileDiff(:oldPath, :newPath) = file;
-    return _row(paint.theme.file, [
-      Span(
-        oldPath != null && newPath != null && oldPath != newPath
-            ? '$oldPath ${paint.marks.text(Marks.arrowRight)} $newPath'
-            : file.path!,
-      ),
-    ]);
+    return oldPath != null && newPath != null && oldPath != newPath
+        ? '$oldPath ${paint.marks.text(Marks.arrowRight)} $newPath'
+        : file.path!;
+  }
+
+  @override
+  ItemText text(_Paint paint) => ItemText(_text(paint));
+
+  @override
+  Widget build(_Paint paint, ItemSelection? selected) {
+    final text = Span(_text(paint));
+    return _row(paint.theme.file, selected?.mark([text]) ?? [text]);
   }
 }
 
@@ -508,14 +592,23 @@ final class _GapRow extends _Row {
   final int count;
   final String section;
 
-  @override
-  Widget build(_Paint paint) => _row(paint.theme.collapsed, [
-    Span(
-      '${' ' * paint._indent}${paint.glyphs.omitted} $count unchanged '
+  String _text(_Paint paint) =>
+      '${paint.glyphs.omitted} $count unchanged '
       '${count == 1 ? 'line' : 'lines'}'
-      '${section.isEmpty ? '' : '  $section'}',
-    ),
-  ]);
+      '${section.isEmpty ? '' : '  $section'}';
+
+  @override
+  ItemText text(_Paint paint) => ItemText(_text(paint), column: paint._indent);
+
+  @override
+  Widget build(_Paint paint, ItemSelection? selected) {
+    final text = Span(_text(paint));
+    return _row(paint.theme.collapsed, [
+      Span(' ' * paint._indent),
+      ...?selected?.mark([text]),
+      if (selected == null) text,
+    ]);
+  }
 }
 
 /// A line of the unified layout: both its numbers, its sign and its code.
@@ -526,10 +619,17 @@ final class _LineRow extends _Row {
   final _Pair? pair;
 
   @override
-  Widget build(_Paint paint) => paint.line(half, [
-    paint.number(half.line.oldNumber),
-    paint.number(half.line.newNumber),
-  ], pair);
+  ItemText text(_Paint paint) =>
+      ItemText(paint.codeText(half), column: paint.codeColumn);
+
+  @override
+  Widget build(_Paint paint, ItemSelection? selected) => paint.line(
+    half,
+    [paint.number(half.line.oldNumber), paint.number(half.line.newNumber)],
+    pair,
+    selected,
+    0,
+  );
 }
 
 /// A row of the side-by-side layout: [left] on the old side, [right] on
@@ -542,18 +642,45 @@ final class _PairRow extends _Row {
   final _Pair? pair;
 
   @override
-  Widget build(_Paint paint) => Row(
+  ItemText text(_Paint paint) => ItemText.runs([
+    if (left case final half?) (paint.codeColumn, paint.codeText(half)),
+    if (right case final half?) (paint.newColumn, paint.codeText(half)),
+  ]);
+
+  @override
+  Widget build(_Paint paint, ItemSelection? selected) => Row(
     children: [
-      Expanded(child: _half(paint, left, (line) => line.oldNumber)),
+      Expanded(
+        child: _half(paint, left, (line) => line.oldNumber, selected, 0),
+      ),
       Text(paint.marks.text(Marks.separator), style: paint.theme.divider),
-      Expanded(child: _half(paint, right, (line) => line.newNumber)),
+      Expanded(
+        child: _half(
+          paint,
+          right,
+          (line) => line.newNumber,
+          selected,
+          left == null ? 0 : 1,
+        ),
+      ),
     ],
   );
 
-  Widget _half(_Paint paint, _Half? half, int? Function(DiffLine) number) =>
-      half == null
+  Widget _half(
+    _Paint paint,
+    _Half? half,
+    int? Function(DiffLine) number,
+    ItemSelection? selected,
+    int run,
+  ) => half == null
       ? const SizedBox()
-      : paint.line(half, [paint.number(number(half.line))], pair);
+      : paint.line(
+          half,
+          [paint.number(number(half.line))],
+          pair,
+          selected,
+          run,
+        );
 }
 
 // the old and new lines a hunk's lines make: the old side has the context

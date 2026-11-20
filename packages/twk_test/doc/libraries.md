@@ -5,6 +5,8 @@ a test.
 
 ## Other libraries
 
+- `package:twk_test/driver.dart` (`driverTest`, `DriverApp`) runs the real
+  program in a pseudo-terminal: [Driving the real app](driver.md).
 - `package:twk_test/vt.dart` (`Vt`, `VtCell`, `VtImage`) is the emulator;
   twk_core's own tests are held to it. A `VtCell` prints as a snapshot with
   styles shows it (`[bold]a[/]`). A DCS or APC string ends at ST alone: a
@@ -58,7 +60,9 @@ a test.
   `elapse(duration)` fires the zone's timers as the clock reaches them.
   `flushMicrotasks()` runs the zone's microtasks. It also lets the real event
   loop run its own, since code awaiting a future completed outside the zone
-  resumes there. `stopwatch` is a `Stopwatch` that reads the clock.
+  resumes there. `clock` is a `DrivenClock` on the clock's time, which an app's `clock:`
+  takes (a `TwkApp`'s, a server's); `Stopwatch()` and `DateTime.now()` in the
+  zone still read real time.
   `pendingTimers` counts the timers that wait, `nextTimerDue` is the time the
   next of them fires at, and `describeTimers()` lists them, each with when it
   is due and where it was started.

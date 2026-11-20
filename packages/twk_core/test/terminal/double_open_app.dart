@@ -52,6 +52,7 @@ Future<void> main(List<String> args) async {
   for (final t in results.whereType<Terminal>()) {
     await t.close();
   }
-  File(args.single).writeAsStringSync(said.join(' '));
+  final refusal = results.whereType<TerminalException>().firstOrNull;
+  File(args.single).writeAsStringSync('${said.join(' ')}\n${refusal?.message}');
   exit(0);
 }

@@ -14,6 +14,10 @@ String keyName(KeyEvent e) {
     base = switch (e.code) {
       KeyCode.pageUp => 'pageup',
       KeyCode.pageDown => 'pagedown',
+      // a modifier, lock or media key by kitty's name: `left_shift`
+      KeyCode.modifier ||
+      KeyCode.lock ||
+      KeyCode.media => e.kittyName ?? e.code.name,
       final c => c.name,
     };
   }
@@ -58,7 +62,16 @@ KeyEvent? keyEvent(String name) {
     'esc' => KeyCode.escape,
     'pageup' => KeyCode.pageUp,
     'pagedown' => KeyCode.pageDown,
-    _ => KeyCode.values.where((c) => c.name == rest).firstOrNull,
+    _ =>
+      KeyCode.values
+          .where(
+            (c) =>
+                c.name == rest &&
+                c != KeyCode.modifier &&
+                c != KeyCode.lock &&
+                c != KeyCode.media,
+          )
+          .firstOrNull,
   };
   return code == null ? null : KeyEvent(code, modifiers: mods);
 }

@@ -12,6 +12,7 @@ import 'package:twk_rich/image.dart';
 import 'package:twk_test/twk_test.dart';
 
 import 'fixtures.dart';
+import 'gif_builder.dart';
 
 const red = 0xFFFF0000;
 const blue = 0xFF0000FF;
@@ -128,6 +129,36 @@ void main() {
       expect(sizeOf(t), (20, 3));
     });
 
+    for (final (name, offset) in [('width', 6), ('height', 8)]) {
+      testTwk('a file whose header says a $name of 0 is a FormatException in '
+          'layout, not an UnsupportedError', (t) async {
+        final gif = Uint8List.fromList(
+          gifBytes(
+            2,
+            2,
+            const [255, 0, 0, 0, 0, 255],
+            [
+              GifImage(2, 2, [0, 1, 1, 0]),
+            ],
+          ),
+        );
+        gif[offset] = 0;
+        gif[offset + 1] = 0;
+        // a minimum in both axes makes the layout scale by the aspect
+        await t.pumpWidget(
+          topLeft(
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 10, minHeight: 3),
+              child: Image.memory(gif),
+            ),
+          ),
+        );
+        final errors = t.takeErrors();
+        expect(errors, hasLength(1));
+        expect(errors.single.error, isA<FormatException>());
+      });
+    }
+
     test('its intrinsic sizes follow from the other axis by its aspect', () {
       final r = RenderImage(ImageSource.bitmap(picture(40, 40)));
       expect(r.getMaxIntrinsicWidth(4), 8);
@@ -207,29 +238,53 @@ void main() {
       expect(t.cell(4, 0).text, ' ', reason: 'past the image');
     });
 
-    testTwk('none: quadrants with BlockMode.quadrant, cell for cell as '
-        'BlockImage draws them', (t) async {
-      final b = picture(40, 40, left: red, splitX: 15, bottom: blue);
-      await t.pumpWidget(
-        topLeft(Image.bitmap(b, blockMode: BlockMode.quadrant)),
-      );
-      final blocks = BlockImage(b, columns: 4, rows: 2, mode: .quadrant);
-      expect(blocks.cellAt(1, 0).glyph, isNot(anyOf(' ', '█')));
-      for (var row = 0; row < 2; row++) {
-        for (var column = 0; column < 4; column++) {
-          final want = blocks.cellAt(column, row);
-          final got = t.cell(column, row);
-          expect(
-            (got.text, got.fg, got.bg),
-            (
-              want.glyph,
-              want.fg == null ? 0 : cellColor(want.fg! | 0xFF000000),
-              want.bg == null ? 0 : cellColor(want.bg! | 0xFF000000),
-            ),
-            reason: 'cell ($column, $row)',
-          );
+    for (final mode in [
+      BlockMode.quadrant,
+      BlockMode.sextant,
+      BlockMode.octant,
+      BlockMode.braille,
+      BlockMode.ascii,
+    ]) {
+      testTwk('none: ${mode.name}, cell for cell as '
+          'BlockImage draws them', (t) async {
+        final b = picture(40, 40, left: red, splitX: 15, bottom: blue);
+        await t.pumpWidget(
+          topLeft(Image.bitmap(b, blockMode: mode)),
+        );
+        final blocks = BlockImage(b, columns: 4, rows: 2, mode: mode);
+        for (var row = 0; row < blocks.rows; row++) {
+          for (var column = 0; column < blocks.columns; column++) {
+            final want = blocks.cellAt(column, row);
+            final got = t.cell(column, row);
+            expect(
+              (got.text, got.fg, got.bg),
+              (
+                want.glyph,
+                want.fg == null ? 0 : cellColor(want.fg! | 0xFF000000),
+                want.bg == null ? 0 : cellColor(want.bg! | 0xFF000000),
+              ),
+              reason: 'cell ($column, $row)',
+            );
+          }
+        }
+      });
+    }
+
+    testTwk('none: an octant past the Basic Multilingual Plane is one cell', (
+      t,
+    ) async {
+      // 2 × 4 pixels, one red among blue: an octant of U+1CD00
+      final b = Bitmap(2, 4);
+      for (var y = 0; y < 4; y++) {
+        for (var x = 0; x < 2; x++) {
+          b.setPixel(x, y, x == 0 && y == 2 ? 0xFFFF0000 : 0xFF0000FF);
         }
       }
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b, blockMode: BlockMode.octant)),
+      );
+      expect(t.cell(0, 0).text.runes.single, greaterThan(0xFFFF));
+      expect(t.cell(1, 0).text, ' ');
     });
 
     testTwk('none: a transparent pixel leaves the cell under it as it is', (
@@ -316,6 +371,44 @@ void main() {
     expect(shown(t), [startsWith('kitty 2/2 6x3 at (0, 1), ')]);
     await t.pumpWidget(app('second', Image.bitmap(b, width: 6, fit: .fill)));
     expect(kittyFiles(t), hasLength(3), reason: 'another fit');
+  });
+
+  group('the default block mode', () {
+    // a cell's 2 × 3 sextant pixels: blue on the left, red on the right; in
+    // half blocks one pixel across, a half block in their mean
+    final b = picture(10, 30, left: blue, splitX: 5);
+
+    testTwk('half blocks where the terminal is not known to draw sextants', (
+      t,
+    ) async {
+      await t.pumpWidget(topLeft(Image.bitmap(b)));
+      expect(t.cell(0, 0).text, '▀');
+    });
+
+    testTwk('TWK_IMAGE_BLOCKS names the mode: sextant', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b)),
+        environment: {'TWK_IMAGE_BLOCKS': 'sextant'},
+      );
+      expect(t.cell(0, 0).text, isIn(['🬏', '🬷', '▌', '▐']));
+      expect(t.cell(0, 0).text, isNot('▀'));
+    });
+
+    testTwk('TWK_IMAGE_BLOCKS: a name that is no mode is none', (t) async {
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b)),
+        environment: {'TWK_IMAGE_BLOCKS': 'auto'},
+      );
+      expect(t.cell(0, 0).text, '▀');
+    });
+
+    testTwk("the Image's own blockMode is over TWK_IMAGE_BLOCKS", (t) async {
+      await t.pumpWidget(
+        topLeft(Image.bitmap(b, blockMode: BlockMode.half)),
+        environment: {'TWK_IMAGE_BLOCKS': 'sextant'},
+      );
+      expect(t.cell(0, 0).text, '▀');
+    });
   });
 
   group('properties', () {
@@ -479,7 +572,7 @@ void main() {
       await t.pumpWidget(
         topLeft(Image.memory(Uint8List.fromList(utf8.encode('not an image')))),
       );
-      expect(t.lines.first, contains('Neither a PNG nor a JPEG file'));
+      expect(t.lines.first, contains('Not a PNG, JPEG or GIF file'));
       await t.pumpWidget(topLeft(Image.file('/no/such/file.png')));
       expect(t.lines.first, contains('/no/such/file.png'));
       expect(t.takeErrors(), hasLength(2));

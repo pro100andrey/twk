@@ -239,17 +239,19 @@ void main() {
     expect(view.attrs(5, 0) & Attr.italic, Attr.italic);
   });
 
-  test("takes the app's theme's colors without a syntax theme: twk's dark "
-      'one without a Theme, on a terminal that says it is dark', () {
+  test("takes the app's theme's colors without a syntax theme: the "
+      "terminal's own without a Theme, on a terminal that says its "
+      'background', () {
     final view = Painted(
       const TerminalBrightness(
         brightness: Brightness.dark,
+        background: 0x16181d,
         child: CodeView('if x // y', language: dartLanguage),
       ),
       20,
       1,
     );
-    expect(view.fg(0, 0), ThemeData.dark.accent.fg);
+    expect(view.fg(0, 0), ThemeData.terminalOn(0x16181d).accent.fg);
   });
 
   test('takes the syntax theme set above it', () {

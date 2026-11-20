@@ -117,8 +117,7 @@ of the widget it came from.
 
 Hot reload, an inspector of the widget tree and a recorder of sessions
 are the `twk` command of
-[twk_dev](https://github.com/pro100andrey/twk/tree/main/packages/twk_dev),
-not on pub.dev yet.
+[twk_dev](https://pub.dev/packages/twk_dev).
 
 ## Next
 

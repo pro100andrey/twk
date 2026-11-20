@@ -14,7 +14,7 @@ How it is tested: typing in the middle of a 160-column line costs 5 bytes
 instead of 132; the emulator models ICH/DCH strictly (splitting a wide glyph
 is an error); Konsole's lines are as long as what was written on them: its
 ICH inserts blanks in the default background, not the current one, and its
-DCH appends its blanks, in the current colours, at the line's length —
+DCH appends its blanks, in the current colors, at the line's length —
 mid-row on a short line — so there (`TerminalCaps.konsoleLines`, from
 XTVERSION or `KONSOLE_VERSION`, never inside a multiplexer) the presenter
 shifts a row only with the default SGR, which comes out right on a terminal

@@ -7,6 +7,7 @@
 // group's id can be a new group's), and it is sent when the grace is over to
 // a group the last poll found alive. What a signal may do after the leader's
 // exit on Windows is decided in core/process.ts, not here.
+import { Clock, Disposable, realClock } from '../core/events';
 import { Exit, ProcessStarter } from '../core/process';
 import { Log } from './ports';
 
@@ -16,6 +17,8 @@ export interface TwkCommandDeps {
   command(): readonly string[];
   readonly env: Readonly<Record<string, string | undefined>>;
   readonly log: Log;
+  /** What the deadline, the grace and the polling of the group wait on; node's timers by default. */
+  readonly clock?: Clock;
 }
 
 export interface TwkRunOptions {
@@ -67,26 +70,27 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
 
   let timedOut = false;
   let cancelled = false;
-  let escalation: NodeJS.Timeout | undefined;
+  const clock = deps.clock ?? realClock;
+  let escalation: Disposable | undefined;
   const end = () => {
     if (process.hasExited || escalation !== undefined) {
       return;
     }
     process.signal('SIGTERM');
-    escalation = setTimeout(() => {
+    escalation = clock.setTimeout(() => {
       stopWatching();
       if (!process.hasExited || groupLives) {
         process.signal('SIGKILL');
       }
     }, options.graceMs ?? 3000);
-    // the timers outlive the run (they end the group after the leader), and hold nothing up
-    escalation.unref();
   };
   // after the leader's exit: whether the last look found its group alive
   let groupLives = false;
-  let watch: NodeJS.Timeout | undefined;
+  let watching = false;
+  let watch: Disposable | undefined;
   const stopWatching = () => {
-    clearInterval(watch);
+    watching = false;
+    watch?.dispose();
     watch = undefined;
   };
   const look = () => {
@@ -94,7 +98,7 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
     if (!groupLives) {
       // nothing left to end, and its id may be someone else's from now on
       stopWatching();
-      clearTimeout(escalation);
+      escalation?.dispose();
     }
   };
   void process.exited.then(() => {
@@ -103,11 +107,21 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
     }
     look();
     if (groupLives) {
-      watch = setInterval(look, options.pollMs ?? 50);
-      watch.unref();
+      watching = true;
+      const poll = () => {
+        watch = clock.setTimeout(() => {
+          if (watching) {
+            look();
+            if (watching) {
+              poll();
+            }
+          }
+        }, options.pollMs ?? 50);
+      };
+      poll();
     }
   });
-  const timer = options.timeoutMs === undefined ? undefined : setTimeout(() => ((timedOut = true), end()), options.timeoutMs);
+  const timer = options.timeoutMs === undefined ? undefined : clock.setTimeout(() => ((timedOut = true), end()), options.timeoutMs);
   const onAbort = () => ((cancelled = true), end());
   if (options.cancel?.aborted) {
     onAbort();
@@ -118,7 +132,7 @@ export async function runTwk(deps: TwkCommandDeps, args: readonly string[], opti
   try {
     exit = await process.exited;
   } finally {
-    clearTimeout(timer);
+    timer?.dispose();
     options.cancel?.removeEventListener('abort', onAbort);
   }
   if (options.echo && output !== '' && !output.endsWith('\n')) {

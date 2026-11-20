@@ -1,11 +1,11 @@
 # twk
 
-Flutter's widget model for terminal UIs in Dart. Widgets, elements and
-`State` behave as in Flutter: `StatelessWidget`, `StatefulWidget`,
-`setState`, `InheritedWidget`, keys, `LayoutBuilder`. Everything is
-measured in cells. Under the widgets is
-[twk_core](https://pub.dev/packages/twk_core), a rendering core that
-writes only the cells that changed.
+Build terminal apps the way you build Flutter apps. Flutter's widget model
+for terminal UIs in Dart: `StatelessWidget`, `StatefulWidget`, `setState`,
+`InheritedWidget`, keys and `LayoutBuilder` behave as in Flutter, and
+everything is measured in cells. Under the widgets is
+[twk_core](https://pub.dev/packages/twk_core), a rendering core that writes
+only the cells that changed.
 
 ![The Table page of the twk gallery, dark theme](https://raw.githubusercontent.com/pro100andrey/twk/main/packages/gallery/doc/shots/screens/table-dark.svg)
 
@@ -96,16 +96,17 @@ when it quits.
 The [examples](https://github.com/pro100andrey/twk/tree/main/packages/twk/example)
 include larger apps: a chat with a list, a text field and focus; settings
 with menus, tabs, a form, a dialog and toasts; a process monitor with a
-sorted table and a tree; an operations dashboard of live figures, a chart, a heatmap and a log; and a file
-manager with two panes.
+sorted table and a tree; an operations dashboard of live figures, a chart,
+a heatmap and a log; and a file manager with two panes.
 
 ## Testing
 
 Apps are tested with `testTwk` from
 [twk_test](https://pub.dev/packages/twk_test)
-(`dart pub add dev:twk_test`): the app runs on a terminal in memory under
-a fake clock, keys and the mouse go in as the bytes a terminal sends, and
-the screen is read back through a strict emulator.
+(`dart pub add dev:twk_test`): the real app runs on a terminal in memory,
+keys and the mouse go in as the bytes a terminal sends, and the screen is
+read back through a strict emulator. Timers and animations move only when
+the test says, so a test has no sleeps and no flakes.
 
 ```dart
 testTwk('Up counts', (t) async {

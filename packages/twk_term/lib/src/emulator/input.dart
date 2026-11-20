@@ -33,7 +33,7 @@ String? keySequence(
   String ss3(String finalChar) =>
       m == 1 ? '\x1bO$finalChar' : '\x1b[1;$m$finalChar';
   return switch (key.code) {
-    KeyCode.char => '$alt${key.ctrl ? _ctrl(key.char) : _shifted(key)}',
+    KeyCode.char => '$alt${key.ctrl ? _ctrl(_ctrlChar(key)) : _shifted(key)}',
     KeyCode.enter => '$alt${newLine ? '\r\n' : '\r'}',
     KeyCode.tab => key.shift ? '\x1b[Z' : '$alt\t',
     KeyCode.backspace => '$alt${key.ctrl ? '\x08' : '\x7f'}',
@@ -60,6 +60,8 @@ String? keySequence(
     KeyCode.f10 => tilde(21),
     KeyCode.f11 => tilde(23),
     KeyCode.f12 => tilde(24),
+    // xterm sends nothing for these
+    KeyCode.modifier || KeyCode.lock || KeyCode.media => null,
   };
 }
 
@@ -89,6 +91,8 @@ String _shifted(KeyEvent key) {
 /// * the arrows, Home, End, F1, F2 and F4 are `CSI 1 ; m X` (`CSI X`
 ///   without modifiers), the others `CSI n ; m ~`, F3 `CSI 13 ~`; never in
 ///   DECCKM's `SS3` form;
+/// * the modifier, lock and media keys are `CSI code ; m u` with 8, their
+///   [KeyEvent.kittyCode], and nothing without it;
 /// * with 2 a repeat has `:2` after the modifiers, a release `:3`, and a
 ///   release is sent at all (of Enter, Tab and Backspace only with 8);
 ///   without 2 a release sends nothing (null).
@@ -234,8 +238,25 @@ String? kittyKeySequence(KeyEvent key, int flags) {
         _ => (24, '~'), // f12
       };
       return csi(number, trailer);
+    case KeyCode.modifier || KeyCode.lock || KeyCode.media:
+      // reported only with 8, as `CSI code ; m u`
+      if (!allKeys || key.kittyCode == 0) {
+        return null;
+      }
+      return csi(key.kittyCode, 'u');
   }
 }
+
+/// The character Ctrl makes a control character of: the one [key] types, or,
+/// when that is not ASCII (a Russian layout's `с`), the
+/// one the key is on a US layout (`c`), as the terminal tells it
+/// ([KeyEvent.baseChar]).
+String _ctrlChar(KeyEvent key) =>
+    key.baseChar.isNotEmpty &&
+        key.char.isNotEmpty &&
+        key.char.codeUnitAt(0) > 0x7f
+    ? key.baseChar
+    : key.char;
 
 /// Ctrl with [char]: the control character xterm sends, or [char] as is.
 String _ctrl(String char) {
@@ -259,12 +280,18 @@ String _ctrl(String char) {
 }
 
 /// The report of [event] under [protocol] in [encoding]; null when the
-/// protocol doesn't report it or its coordinates can't be encoded.
+/// protocol doesn't report it or its coordinates can't be encoded. With a
+/// [cellWidth] and [cellHeight] (pixels; both above 0) and [encoding]
+/// [MouseEncoding.sgr] the position is in pixels (SGR-Pixels, mode 1016):
+/// the cell's origin plus the event's offset in it
+/// ([MouseEvent.offsetX], the cell's middle where it has none).
 List<int>? mouseSequence(
   MouseEvent event,
   MouseProtocol protocol,
-  MouseEncoding encoding,
-) {
+  MouseEncoding encoding, {
+  int cellWidth = 0,
+  int cellHeight = 0,
+}) {
   if (protocol == MouseProtocol.off) {
     return null;
   }
@@ -317,8 +344,14 @@ List<int>? mouseSequence(
       code |= 16;
     }
   }
-  final x = event.x + 1;
-  final y = event.y + 1;
+  var x = event.x + 1;
+  var y = event.y + 1;
+  if (encoding == MouseEncoding.sgr && cellWidth > 0 && cellHeight > 0) {
+    final ox = (event.offsetX ?? cellWidth ~/ 2).clamp(0, cellWidth - 1);
+    final oy = (event.offsetY ?? cellHeight ~/ 2).clamp(0, cellHeight - 1);
+    x = event.x * cellWidth + ox + 1;
+    y = event.y * cellHeight + oy + 1;
+  }
   switch (encoding) {
     case MouseEncoding.sgr:
       return '\x1b[<$code;$x;$y${release ? 'm' : 'M'}'.codeUnits;

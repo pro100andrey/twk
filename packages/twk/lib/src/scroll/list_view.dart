@@ -1,6 +1,8 @@
 /// [ListView]: a list that builds its items as they come into view, each
 /// as tall as it likes, scrolled by rows in hardware; [ListController]
 /// moves it to an item.
+///
+/// @docImport '../gestures/selection.dart';
 library;
 
 import 'dart:async';
@@ -26,6 +28,7 @@ import '../layout/basic.dart';
 import '../layout/one_child.dart';
 import '../semantics/semantics.dart';
 import '../style/style.dart';
+import 'list_selection.dart';
 import 'scrollable.dart';
 
 // Examples can assume:
@@ -227,6 +230,7 @@ final class ListView extends StatelessWidget {
   }) : itemCount = children.length,
        itemBuilder = ((_, index) => children[index]),
        separatorBuilder = null,
+       itemText = null,
        findItemIndexCallback = null;
 
   /// A list of [itemCount] items that [itemBuilder] builds as they come
@@ -265,6 +269,7 @@ final class ListView extends StatelessWidget {
     this.keyHints = true,
     this.reverse = false,
     this.padding,
+    this.itemText,
     ChildIndexGetter? findChildIndexCallback,
   }) : separatorBuilder = null,
        findItemIndexCallback = findChildIndexCallback,
@@ -302,6 +307,7 @@ final class ListView extends StatelessWidget {
     this.keyHints = true,
     this.reverse = false,
     this.padding,
+    this.itemText,
     this.findItemIndexCallback,
   }) : itemExtent = null,
        assert(itemCount >= 0, 'a count of 0 items or more'),
@@ -338,6 +344,53 @@ final class ListView extends StatelessWidget {
   /// in a [reverse] list the top ones are still at the top, where the
   /// list ends. Null or [EdgeInsets.zero] for none.
   final EdgeInsets? padding;
+
+  /// The text of item `index`, as a `SelectionArea` above the list selects
+  /// and copies it; null for items that are not selected.
+  ///
+  /// Given, the list is one [Selectable] for all its items, those not
+  /// built too, so that a drag from one item to another selects the text
+  /// between, however far the list scrolls under it: the area scrolls the
+  /// list while the mouse is past its top or bottom, and copies the text of
+  /// the items between, one line each. The text is the app's, not read from
+  /// the widgets of the items, which are left out of the area
+  /// ([ExcludeSelection]): an item that is selected in its own right is not
+  /// one of a selectable list. The builder asks it for every item whenever
+  /// the list is built anew by its parent and a selection looks for what
+  /// is under the mouse, which for a long list costs a pass over it, not a
+  /// build of its widgets.
+  ///
+  /// An item draws what is selected of its text: its builder, built again
+  /// whenever the selection changes, asks [ListView.selectionOf] for the
+  /// part of the text that is selected and shows it in the selection's style
+  /// ([ItemSelection.spans]); the selection is not drawn otherwise. What an
+  /// item shows that is not in its [ItemText] (numbers, signs) is not
+  /// selected or copied.
+  ///
+  /// ```dart
+  /// ListView.builder(
+  ///   itemCount: names.length,
+  ///   itemText: (index) => ItemText(names[index]),
+  ///   itemBuilder: (context, index) {
+  ///     final selected = ListView.selectionOf(context, index);
+  ///     return Text.rich(
+  ///       selected?.spans(names[index]) ?? [Span(names[index])],
+  ///       wrap: TextWrap.none,
+  ///     );
+  ///   },
+  /// )
+  /// ```
+  ///
+  /// An item is one row of text for the selection: of one taller, its
+  /// first row selects. [ListView.new] has none.
+  final ItemTextBuilder? itemText;
+
+  /// The part of the text of item [index] that is selected in the list
+  /// above [context], what an item's builder draws ([itemText]); null
+  /// where none of it is, or the list has no `itemText`. [context] is the
+  /// one the builder gets: it is built again when the selection changes.
+  static ItemSelection? selectionOf(BuildContext context, int index) =>
+      ListSelectionHost.of(context, index);
 
   /// The index the item whose widget has a key has now, null for none:
   /// where the item a scrolled list keeps in place went when it is not
@@ -418,7 +471,20 @@ final class ListView extends StatelessWidget {
           position: position,
           background: background,
         );
-        return reverse ? _Bottom(background: background, child: list) : list;
+        final view = reverse
+            ? _Bottom(background: background, child: list)
+            : list;
+        final text = itemText;
+        return text == null
+            ? view
+            : ListSelectionHost(
+                itemCount: itemCount,
+                itemText: text,
+                reverse: reverse,
+                separated: separatorBuilder != null,
+                position: position,
+                child: view,
+              );
       },
     );
     return Semantics(

@@ -3,9 +3,9 @@ text
 │  ◆ twk gallery   Images  ›  Image                                                           ctrl+p search      ◐ Dark  │
 │                                                                                                                        │
 │   ⌕ Filter             /      Image                                                                            1 of 1  │
-│                               A PNG or JPEG fitted to its cells. Where the terminal has a graphics protocol            │
-│     Static                    (kitty, sixel, iTerm2) its pixels are placed over the cells; where it has none, or       │
-│     TerminalProgress          with forceBlocks, as here, it is drawn in half blocks or quadrants.                      │
+│                               A PNG, JPEG, GIF or APNG fitted to its cells; a GIF or APNG with frames plays on the     │
+│     Static                    app’s clock, each frame drawn as it comes, and kitty, which plays an animation           │
+│     TerminalProgress          itself, is sent all the frames once. A TickerMode that is off stands it on the fram…     │
 │     Viewport                                                                                                           │
 │     Window title              Preview   Code                                                                           │
 │     Notifications          ───━━━━━━━────────────────────────────────────────────────────┬─────────────────────────────│
@@ -14,35 +14,35 @@ text
 │   SCREEN READERS       1                                                                 │                             │
 │     Semantics                  ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  picture                    │
 │                                                                                          │   lake.jpg  logo.png        │
-│   DEBUGGING            4       ·  ┌                                              ┐ ·     │                             │
-│     Console                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │  fit                        │
-│     FrameOverlay               ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   contain  cover  fill      │
-│     Repaint rainbow                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   scaleDown                 │
-│     RepaintBoundary            ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │                             │
-│                                         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │  alignment                  │
-│   RICH                 7       ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   center  topLeft           │
-│     MarkdownView                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   centerLeft  centerRight   │
-│     CodeView                   ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   bottomRight               │
-│     SyntaxThemeScope                    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │                             │
-│     DiffView                   ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │  blocks                     │
-│     JsonView                            ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   half  quadrant            │
-│     BigText                    ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │                             │
-│     QrCode                        └                                              ┘       │  width            44 cells  │
-│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 12  ·     │  ──────────── ────────────  │
-│   IMAGES               1  ▐                                                              │                             │
-│ ▎   Image                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  height            12 rows  │
-│                           ▐                                                              │  ──────── ────────────────  │
-│   TERMINAL             1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│   DEBUGGING            4       ·  ┌                                              ┐ ·     │   orbit.gif                 │
+│     Console                             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │                             │
+│     FrameOverlay               ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │  fit                        │
+│     Repaint rainbow                     ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   contain  cover  fill      │
+│     RepaintBoundary            ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   scaleDown                 │
+│                                         ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │                             │
+│   RICH                 7       ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │  alignment                  │
+│     MarkdownView                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   center  topLeft           │
+│     CodeView                   ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   centerLeft  centerRight   │
+│     SyntaxThemeScope                    ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │   bottomRight               │
+│     DiffView                   ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │                             │
+│     JsonView                            ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀             │  drawn                      │
+│     BigText                    ·        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀       ·     │   detected  half            │
+│     QrCode                        └                                              ┘       │   quadrant  sextant         │
+│                                ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·  44 × 12  ·     │   octant  braille  ascii    │
+│   IMAGES               1  ▐                                                              │   protocol                  │
+│ ▎   Image                 ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │                             │
+│                           ▐                                                              │  width            44 cells  │
+│   TERMINAL             1  ▐    ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·     │  ──────────── ────────────  │
 │     TerminalView          ▐                                                              │                             │
-│                                                                                          │                             │
+│                                                                                          │  height            12 rows  │
 │  ↑↓ pages   tab into the page   / filter   ctrl+p search   c code   t theme                                            │
 styles
 │aabacccadddddddaaaǠǠǠǠǠǠaafaadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaggggggaǠǠǠǠǠǠaaaaaadaddddaa│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaiǡiǡǡǡǡǡǡiiiiiiiiiiiiiǢiaahhhlllllhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhǣhǣǣhǣhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnhnnhnnnnhnnnnnnhnnhnnnhnnnnnnhnnnnnhnnnhnnnnnnnnhnnnhnhnnnnnnnnhnnnnnnnnhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnnnhnnnnnnhnnnnnnnhnnnhnnnnnnhnnnhnnnnnnhnnnnhnnnhnnnnnnhnnnnnhnnhnnnhnnnnnhnnhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhnnnnhnnnnnnnnnnnnhnnhnnnnnhnnhnnhnnnnnhnnhnnnnhnnnnnnhnnhnnnnnnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhnhnnnnhnnnnnhnnnhnnhnnnnhnnnnnnhnnhnnnhnnnnnnhnhnnnhnnhnnnnhnnnnhnnnnnnhnnnnnhnnhnnnhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhnnnnnhnnnnnnhnnnnhnnnnnhnnnnnhnnhnnhnnnnnnhnnnhnnnnnnhnnnnnhnnnnnhnnhnnnnnnnnnhhhhhhhhhhh│
+│aaaaaooooooooooooooooaaaaaaahhhnnnnnnnhnnhnnnnhnnnhnnnhnnnnnnhnnnnnhnhnnnnnnnnnnhnnnnhnnhnnnhnnnnnnhnnhnnhnnnhnnnnnhhhhh│
 │aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaooooooaoooooaaaaaaaaaaahhhlllllllhhhnnnnhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooooooaaaaaaaaaapppqqqqqqqpppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp│
@@ -51,27 +51,27 @@ styles
 │aaaddddddadddddddaaaaaaaǠaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
 │aaaaaoooooooooaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnnhhhhhhhhhhhhhhhhhhhh│
 │aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhrssssssssrittttttttihhhhhhh│
-│aaadddddddddaaaaaaaaaaaaǠaaahhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhuuuuuuuuuuvwxwyzABCDEFGGHHIIJJBAKLxxhhhhhhhhhhhhhphhnnnhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhMMNNNNNONNNPQRSTUVWXYZ012345W6U78R9!hhhhhhhphhhhhphhrsssssssritttttiittttihhhhh│
-│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhh""""#$%&'"()*+,-./:;<=>?@[\]^_`{|}~Àhhhhhhhhhhhhhphhitttttttttihhhhhhhhhhhhhhhh│
-│aaaaaoooooooooooooooaaaaaaaahhhhphhhhhhhhÁÁÂÃÁÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhãããäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄhhhhhhhhhhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
-│aaaddddaaaaaaaaaaaaaaaaaǠaaahhhhphhhhhhhhąąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦĦhhhhhhhphhhhhphhrssssssritttttttihhhhhhhhhh│
-│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhħĨĩĪīĬĭĭĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņĬĭhhhhhhhhhhhhhphhittttttttttiitttttttttttihh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhŇňŉŊŋŌōŎŏŐőŒœœŔŕŖŗŗŘřŚśŜŝŞşŠšŢţŤťŦŏŏhhhhhhhphhhhhphhitttttttttttihhhhhhhhhhhhhh│
-│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƉhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯhhhhhhhphhhhhphhnnnnnnhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓhhhhhhhhhhhhhphhrssssrittttttttihhhhhhhhhhh│
-│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhhhhhhǔǕƲƲƲƲǖǗǘǕƲƲƲƲƲƲƲƲƲƲƲƲƲƲƲƲǕǙǚǛƲƲƲǕǜǝhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhnnnnnhhhhhhhhhhhhǣǣhǣǣǣǣǣhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhǣǣhǣhǣǣhhphhhhhphhƊƊƊƊƊƊƊƊƊƊƊƊƋnnnnnnnnnnnnhh│
-│aaaddddddaaaaaaaaaaaaaaaǠaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aǟrrrsssssrrrrrrrrrrrrrrrrrdhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhnnnnnnhhhhhhhhhhhhǣǣhǣǣǣǣhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhƊƊƊƊƊƊƊƊƋnnnnnnnnnnnnnnnnhh│
-│aaaddddddddaaaaaaaaaaaaaǠaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaadddddddddaaaaaaaaaaaaǠaaahhhhphhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphphhhhhphhitttttttttihhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhhhhhhhhhhuuuuuuuuuuvwxwyzABCDEFGGHHIIJJBAKLxxhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhphhhhhhhhMMNNNNNONNNPQRSTUVWXYZ012345W6U78R9!hhhhhhhphhhhhphhnnnhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaoooooooaaaaaaaahhhhhhhhhhhhh""""#$%&'"()*+,-./:;<=>?@[\]^_`{|}~Àhhhhhhhhhhhhhphhrsssssssritttttiittttihhhhh│
+│aaaaaoooooooooooooooaaaaaaaahhhhphhhhhhhhÁÁÂÃÁÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâhhhhhhhphhhhhphhitttttttttihhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhãããäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaddddaaaaaaaaaaaaaaaaaǠaaahhhhphhhhhhhhąąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦĦhhhhhhhphhhhhphhnnnnnnnnnhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooooooaaaaaaaaaaahhhhhhhhhhhhhħĨĩĪīĬĭĭĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņĬĭhhhhhhhhhhhhhphhrssssssritttttttihhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhŇňŉŊŋŌōŎŏŐőŒœœŔŕŖŗŗŘřŚśŜŝŞşŠšŢţŤťŦŏŏhhhhhhhphhhhhphhittttttttttiitttttttttttihh│
+│aaaaaooooooooooooooooaaaaaaahhhhhhhhhhhhhŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſƀƁƂƃƄƅƆƇƈƉƉhhhhhhhhhhhhhphhitttttttttttihhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhphhhhhhhhƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƠơƢƣƤƥƦƧƨƩƪƫƬƭƮƯhhhhhhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaooooooooaaaaaaaaaaaaaaahhhhhhhhhhhhhưƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǄǅǆǇǈǉǊǋǌǍǎǏǐǑǒǓhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaoooooooaaaaaaaaaaaaaaaahhhhphhhhhhhhǔǕƲƲƲƲǖǗǘǕƲƲƲƲƲƲƲƲƲƲƲƲƲƲƲƲǕǙǚǛƲƲƲǕǜǝhhhhhhhphhhhhphhrssssssssrittttihhhhhhhhhhh│
+│aaaaaooooooaaaaaaaaaaaaaaaaahhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhphhittttttttiitttttttihhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhǣǣhǣhǣǣhhphhhhhphhittttttiitttttttiitttttihhh│
+│aaaddddddaaaaaaaaaaaaaaaǠaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhittttttttihhhhhhhhhhhhhhhhh│
+│aǟrrrsssssrrrrrrrrrrrrrrrrrdhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnhhhhhhhhhhhhǣǣhǣǣǣǣǣhh│
+│aaaddddddddaaaaaaaaaaaaaǠaadhhhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhphhhhhphhƊƊƊƊƊƊƊƊƊƊƊƊƋnnnnnnnnnnnnhh│
 │aaaaaooooooooooooaaaaaaaaaadhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
-│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhhhhhhhhhhhhhhhhhhhhhhhhhhhh│
+│aaaaaaaaaaaaaaaaaaaaaaaaaaaahhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhphhnnnnnnhhhhhhhhhhhhǣǣhǣǣǣǣhh│
 │aaccadddddaaacccaddddadddaddddaaacaddddddaaaccccccaddddddaaacaddddaaacadddddaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa│
 legend
 a on #1c1f25
@@ -452,6 +452,6 @@ _ #41407e on #5a477f
 Ǜ #120f23 on #120f22
 ǜ #141127 on #120f22
 ǝ #18142d on #120f23
+ǟ #5fa8ff on #2b4566
 Ɗ #e6e8eb on #16181d
 Ƌ reverse #e6e8eb on #16181d
-ǟ #5fa8ff on #2b4566

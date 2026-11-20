@@ -1,10 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:twk/twk.dart';
-import 'package:twk_core/twk_core.dart' show TerminalImage;
+import 'package:twk_core/twk_core.dart'
+    show ImageAnimation, ImageKeep, PipelineOwner, TerminalImage;
 
+import 'animated.dart';
 import 'bitmap.dart';
 import 'blocks.dart';
+import 'byte_cache.dart';
 import 'files_io.dart' if (dart.library.js_interop) 'files_web.dart';
 import 'image_file.dart';
 import 'protocols.dart';
@@ -20,10 +23,11 @@ import 'sixel.dart';
 sealed class ImageSource {
   const ImageSource();
 
-  /// A PNG or JPEG file's [bytes].
+  /// A PNG, JPEG or GIF file's [bytes].
   const factory ImageSource.memory(Uint8List bytes) = _Memory;
 
-  /// The PNG or JPEG file at [path], read when the image is first laid out.
+  /// The PNG, JPEG or GIF file at [path], read when the image is first laid
+  /// out.
   const factory ImageSource.file(String path) = _File;
 
   /// Pixels made in memory.
@@ -80,8 +84,20 @@ final class _Pixels extends ImageSource {
 /// An image in a box of cells, shown with the terminal's graphics protocol
 /// (`TerminalCaps.graphics`: kitty, sixel or iTerm2) and drawn in block
 /// characters ([blockMode]) where it has none, or always with
-/// [forceBlocks]. Still images only: an animated GIF is not read, and an
-/// APNG shows its default image.
+/// [forceBlocks].
+///
+/// An animated GIF or APNG plays, from its first paint, on the clock of the
+/// app ([AppBinding.frameTime], so a test's fake clock moves it): each
+/// frame shows for its delay, the plays its file asks for are made and the
+/// last frame stays. A frame is drawn as a still image is, in blocks or
+/// sent to the terminal again as the protocol takes it, each time the frame
+/// changes. Where the terminal plays kitty's animations itself
+/// (`TerminalCaps.kittyAnimation`) the frames are sent to it once, the
+/// first at once and the others as they are made, a few in each of the
+/// app's frames, and it steps them on its own clock, which a fake clock
+/// does not move. Under a [TickerMode] that is off the animation stands
+/// on the frame it shows, and goes on from it when the mode is on again.
+/// Outside an app, an animation shows its first frame.
 ///
 /// The box is [width] × [height] cells where given, within the
 /// constraints; along an axis left out it follows from the other by the
@@ -123,11 +139,11 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   });
 
-  /// The PNG or JPEG file [bytes].
+  /// The PNG, JPEG or GIF file [bytes].
   Image.memory(
     Uint8List bytes, {
     super.key,
@@ -135,11 +151,11 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   }) : source = ImageSource.memory(bytes);
 
-  /// The PNG or JPEG file at [path], read when first laid out.
+  /// The PNG, JPEG or GIF file at [path], read when first laid out.
   Image.file(
     String path, {
     super.key,
@@ -147,7 +163,7 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   }) : source = ImageSource.file(path);
 
@@ -159,7 +175,7 @@ final class Image extends LeafRenderObjectWidget {
     this.height,
     this.fit = ImageFit.contain,
     this.alignment = Alignment.center,
-    this.blockMode = BlockMode.half,
+    this.blockMode,
     this.forceBlocks = false,
   }) : source = ImageSource.bitmap(bitmap);
 
@@ -182,8 +198,11 @@ final class Image extends LeafRenderObjectWidget {
   /// Where the image goes in the cells of the box it does not take.
   final Alignment alignment;
 
-  /// How block characters draw the image where the terminal shows none.
-  final BlockMode blockMode;
+  /// How block characters draw the image where the terminal shows none;
+  /// null, the default, for [defaultBlockMode]: `TWK_IMAGE_BLOCKS` where
+  /// the environment names a mode, else [BlockMode.sextant] where the
+  /// terminal is known to draw sextants itself, else [BlockMode.half].
+  final BlockMode? blockMode;
 
   /// Draws the image in block characters even where the terminal shows
   /// images.
@@ -196,9 +215,11 @@ final class Image extends LeafRenderObjectWidget {
     boxHeight: height,
     fit: fit,
     alignment: alignment,
-    blockMode: blockMode,
+    blockMode: _blockModeOf(context),
     forceBlocks: forceBlocks,
     cell: _cellOf(context),
+    binding: AppBinding.maybeOf(context),
+    muted: !TickerMode.of(context),
   );
 
   @override
@@ -209,9 +230,24 @@ final class Image extends LeafRenderObjectWidget {
       ..boxHeight = height
       ..fit = fit
       ..alignment = alignment
-      ..blockMode = blockMode
+      ..blockMode = _blockModeOf(context)
       ..forceBlocks = forceBlocks
-      ..cell = _cellOf(context);
+      ..cell = _cellOf(context)
+      ..muted = !TickerMode.of(context);
+  }
+
+  /// [blockMode], else the default of the terminal and the environment the
+  /// app runs on ([defaultBlockMode]).
+  BlockMode _blockModeOf(BuildContext context) {
+    final mode = blockMode;
+    if (mode != null) {
+      return mode;
+    }
+    final app = AppBinding.maybeOf(context)?.twkApp;
+    return defaultBlockMode(
+      sextants: app?.terminal.info.sextants ?? false,
+      environment: app?.environment ?? const {},
+    );
   }
 
   /// The size of a cell of the terminal the app runs on.
@@ -228,8 +264,13 @@ final class Image extends LeafRenderObjectWidget {
 /// in block characters where that is none or with [forceBlocks]. The file
 /// is read and its size taken from its header when first laid out, its
 /// pixels decoded when first painted; what is drawn, scaled to the box and
-/// encoded, is kept until the box, the protocol or a property changes, so
-/// that the presenter places the same image again without sending it.
+/// encoded, is kept (of each frame of an animation) until the box, the
+/// protocol or a property changes, so that the presenter places the same
+/// image again without sending it. An animation steps on [binding]'s clock
+/// from its first paint, a frame callback asked for at the next frame's
+/// start while it is attached and not [muted]; where the terminal plays
+/// kitty's animations, it is one image of all the frames, which the
+/// terminal plays.
 final class RenderImage extends RenderObject {
   /// Lays out and paints the image of [_source]; the others are as
   /// [Image]'s properties of the same names, [_cell] the size of the
@@ -243,7 +284,13 @@ final class RenderImage extends RenderObject {
     this._blockMode = BlockMode.half,
     this._forceBlocks = false,
     this._cell = CellSize.fallback,
+    this.binding,
+    this._muted = false,
   });
+
+  /// The app whose clock steps an animation; without one, it shows its
+  /// first frame.
+  final AppBinding? binding;
 
   ImageSource _source;
 
@@ -255,8 +302,13 @@ final class RenderImage extends RenderObject {
       _source = s;
       _bytes = null;
       _size = null;
-      _bitmap = null;
+      _animation = null;
       _drawn = null;
+      _letGo();
+      _played = null;
+      _startedAt = null;
+      _mutedAt = null;
+      _cancelStep();
       markNeedsLayout();
     }
   }
@@ -291,6 +343,8 @@ final class RenderImage extends RenderObject {
     if (f != _fit) {
       _fit = f;
       _drawn = null;
+      _letGo();
+      _played = null;
       markNeedsPaint();
     }
   }
@@ -315,6 +369,7 @@ final class RenderImage extends RenderObject {
     if (m != _blockMode) {
       _blockMode = m;
       _drawn = null;
+      _letGo();
       markNeedsPaint();
     }
   }
@@ -327,6 +382,8 @@ final class RenderImage extends RenderObject {
   set forceBlocks(bool b) {
     if (b != _forceBlocks) {
       _forceBlocks = b;
+      _letGo();
+      _played = null;
       markNeedsPaint();
     }
   }
@@ -339,14 +396,55 @@ final class RenderImage extends RenderObject {
     if (c != _cell) {
       _cell = c;
       _drawn = null;
+      _letGo();
+      _played = null;
       markNeedsLayout();
     }
   }
 
+  bool _muted;
+
+  /// Whether an animation stands on the frame it shows, for a [TickerMode]
+  /// that is off: no frame asked for, a kitty animation stopped; from that
+  /// frame on when unmuted.
+  bool get muted => _muted;
+  set muted(bool m) {
+    if (m == _muted) {
+      return;
+    }
+    _muted = m;
+    final now = binding?.frameTime;
+    if (m) {
+      _mutedAt = now;
+      _cancelStep();
+    } else {
+      if ((_startedAt, _mutedAt, now) case (final s?, final at?, final n?)) {
+        _startedAt = s + (n - at);
+      }
+      _mutedAt = null;
+    }
+    markNeedsPaint();
+  }
+
   Uint8List? _bytes;
   ({int width, int height})? _size;
-  Bitmap? _bitmap;
-  _Drawn? _drawn;
+  AnimatedImage? _animation;
+
+  /// What each frame drew last, by its index, as much as [_drawnBytes]
+  /// allows; null where none yet.
+  ByteCache<_Drawn>? _drawn;
+
+  /// The animation as one kitty image of all its frames, for a terminal
+  /// that plays them; null where not drawn so.
+  _Drawn? _played;
+
+  /// The app's time at the first paint of an animation, moved on by the
+  /// time it stood muted.
+  Duration? _startedAt;
+
+  /// The app's time it was muted at; null while not muted.
+  Duration? _mutedAt;
+  int? _stepCallback;
 
   /// The file's bytes, read once.
   Uint8List get _file => _bytes ??= switch (_source) {
@@ -356,16 +454,82 @@ final class RenderImage extends RenderObject {
   };
 
   /// The image's size in pixels.
-  ({int width, int height}) get _pixelSize => _size ??= switch (_source) {
-    _Pixels(:final bitmap) => (width: bitmap.width, height: bitmap.height),
-    _ => imageSize(_file),
+  ///
+  /// Throws a [FormatException] for one of no width or no height, as a
+  /// header may say: its aspect is no number to lay out by.
+  ({int width, int height}) get _pixelSize {
+    final size = _size ??= switch (_source) {
+      _Pixels(:final bitmap) => (width: bitmap.width, height: bitmap.height),
+      _ => imageSize(_file),
+    };
+    if (size.width <= 0 || size.height <= 0) {
+      _size = null;
+      throw FormatException(
+        'The image is ${size.width} × ${size.height} pixels',
+      );
+    }
+    return size;
+  }
+
+  /// The image's frames, decoded once.
+  AnimatedImage get _frames => _animation ??= switch (_source) {
+    _Pixels(:final bitmap) => AnimatedImage([
+      ImageFrame(bitmap, Duration.zero),
+    ]),
+    _ => decodeAnimation(_file),
   };
 
-  /// The image's pixels, decoded once.
-  Bitmap get _pixels => _bitmap ??= switch (_source) {
-    _Pixels(:final bitmap) => bitmap,
-    _ => decodeImage(_file),
-  };
+  /// The frame of the animation showing in the frame being painted, as the
+  /// app's clock says; the first without an app, and 0 for a still image.
+  int _frameIndex() {
+    final animation = _frames;
+    final b = binding;
+    if (!animation.isAnimated || b == null) {
+      return 0;
+    }
+    final started = _startedAt ??= b.frameTime;
+    final now = _muted ? (_mutedAt ??= b.frameTime) : b.frameTime;
+    final elapsed = now - started;
+    _cancelStep();
+    if (_muted) {
+      return animation.indexAt(elapsed);
+    }
+    if (animation.nextChangeAfter(elapsed) case final next?) {
+      _stepCallback = b.scheduleFrameCallback(
+        (_) {
+          _stepCallback = null;
+          markNeedsPaint();
+        },
+        at: started + next,
+      );
+    }
+    return animation.indexAt(elapsed);
+  }
+
+  void _cancelStep() {
+    if (_stepCallback case final id?) {
+      _stepCallback = null;
+      binding?.cancelFrameCallback(id);
+    }
+  }
+
+  @override
+  void attach(PipelineOwner o) {
+    super.attach(o);
+    _keep?.kept = true; // those the terminal still has
+  }
+
+  @override
+  void detach() {
+    _keep?.kept = false;
+    _cancelStep();
+    // starts again from its first frame when attached again
+    _startedAt = null;
+    if (_muted) {
+      _mutedAt = null; // taken at the next paint
+    }
+    super.detach();
+  }
 
   @override
   int computeMinIntrinsicWidth(int height) =>
@@ -450,15 +614,48 @@ final class RenderImage extends RenderObject {
     if (width == 0 || height == 0) {
       return;
     }
-    final protocol = _forceBlocks
-        ? GraphicsProtocol.none
-        : ctx.presenter.caps.graphics;
-    var d = _drawn;
+    final caps = ctx.presenter.caps;
+    final protocol = _forceBlocks ? GraphicsProtocol.none : caps.graphics;
+    if (binding case final b?
+        when protocol == GraphicsProtocol.kitty &&
+            caps.kittyAnimation &&
+            _frames.isAnimated &&
+            _fitsKitty()) {
+      // the terminal plays it: frames asked for only while some are to be
+      // made
+      _cancelStep();
+      var d = _played;
+      if (d == null || d.boxWidth != width || d.boxHeight != height) {
+        // the first frame alone now: the rest in the frames after
+        d = _played = _drawPlayed();
+      } else {
+        _makeMore(d.image!);
+      }
+      final image = d.image!..playing = !_muted;
+      if (!image.animation!.complete && !_muted) {
+        _stepCallback = b.scheduleFrameCallback((_) {
+          _stepCallback = null;
+          markNeedsPaint();
+        });
+      }
+      ctx.canvas.image(
+        _alignment.dx(width - d.columns),
+        _alignment.dy(height - d.rows),
+        d.columns,
+        d.rows,
+        image,
+      );
+      return;
+    }
+    final index = _frameIndex();
+    final drawn = _drawn ??= ByteCache(_drawnBytes);
+    var d = drawn[index];
     if (d == null ||
         d.protocol != protocol ||
         d.boxWidth != width ||
         d.boxHeight != height) {
-      d = _drawn = _draw(protocol);
+      d = _draw(protocol, index);
+      drawn[index] = d;
     }
     final canvas = ctx.canvas;
     final x = _alignment.dx(width - d.columns);
@@ -479,26 +676,18 @@ final class RenderImage extends RenderObject {
             1,
             1,
             pens[i],
-            blocks.cells[i].glyph.codeUnitAt(0),
+            blocks.glyphs[i],
           );
         }
       }
     }
   }
 
-  /// The image scaled to the box and encoded for [protocol], or in blocks.
-  _Drawn _draw(GraphicsProtocol protocol) {
-    final pixels = _pixels;
+  /// The frame [index] scaled to the box and encoded for [protocol], or in
+  /// blocks.
+  _Drawn _draw(GraphicsProtocol protocol, int index) {
+    final pixels = _frames.bitmapAt(index);
     final cell = _cell;
-    CellFit fitted({int bandHeight = 1}) => CellFit(
-      pixels.width,
-      pixels.height,
-      columns: width,
-      rows: height,
-      cell: cell,
-      fit: _fit,
-      bandHeight: bandHeight,
-    );
     switch (protocol) {
       case GraphicsProtocol.none:
         final blocks = BlockImage(
@@ -519,7 +708,15 @@ final class RenderImage extends RenderObject {
         );
       case GraphicsProtocol.sixel:
         // whole bands of six pixels, so that the last does not scroll
-        final f = fitted(bandHeight: 6);
+        final f = CellFit(
+          pixels.width,
+          pixels.height,
+          columns: width,
+          rows: height,
+          cell: cell,
+          fit: _fit,
+          bandHeight: 6,
+        );
         final image = TerminalImage(
           protocol,
           encodeSixel(f.scale(pixels)),
@@ -528,23 +725,169 @@ final class RenderImage extends RenderObject {
         );
         return _Drawn(protocol, width, height, f.columns, f.rows, image: image);
       case GraphicsProtocol.kitty || GraphicsProtocol.iterm2:
-        // the terminal stretches the image to its cells: the pixels short
-        // of them are transparent, so that it keeps its aspect
-        final f = fitted();
-        final padded = _padded(
-          f.scale(pixels),
-          f.columns * cell.width,
-          f.rows * cell.height,
-        );
-        final encoded = pngImage(padded);
+        final (encoded, columns, rows) = _png(index);
         final image = TerminalImage(
           protocol,
           encoded.data,
           pixelWidth: encoded.pixelWidth,
           pixelHeight: encoded.pixelHeight,
+          // kitty keeps an animation's frames, each sent once, where they
+          // are within what it keeps
+          keep:
+              protocol == GraphicsProtocol.kitty &&
+                  _frames.isAnimated &&
+                  _fitsKitty()
+              ? _keepFor()
+              : null,
         );
-        return _Drawn(protocol, width, height, f.columns, f.rows, image: image);
+        return _Drawn(protocol, width, height, columns, rows, image: image);
     }
+  }
+
+  /// The frame [index] scaled to the box as a PNG file, for kitty or
+  /// iTerm2, and the columns and rows it takes. The terminal stretches the
+  /// image to its cells: the pixels short of them are transparent, so that
+  /// it keeps its aspect.
+  (EncodedImage, int, int) _png(int index) {
+    final pixels = _frames.bitmapAt(index);
+    final cell = _cell;
+    final f = CellFit(
+      pixels.width,
+      pixels.height,
+      columns: width,
+      rows: height,
+      cell: cell,
+      fit: _fit,
+    );
+    final padded = _padded(
+      f.scale(pixels),
+      f.columns * cell.width,
+      f.rows * cell.height,
+    );
+    return (pngImage(padded), f.columns, f.rows);
+  }
+
+  /// The animation as one kitty image: its first frame, made now, and
+  /// the others for the terminal to play, made in the frames after
+  /// ([_makeMore]) while it plays those it has.
+  _Drawn _drawPlayed() {
+    final animation = _frames;
+    final (first, columns, rows) = _png(0);
+    final image = TerminalImage(
+      GraphicsProtocol.kitty,
+      first.data,
+      pixelWidth: first.pixelWidth,
+      pixelHeight: first.pixelHeight,
+      animation: ImageAnimation.loading(
+        animation.delays.first,
+        loops: animation.loops,
+      ),
+    );
+    return _Drawn(
+      GraphicsProtocol.kitty,
+      width,
+      height,
+      columns,
+      rows,
+      image: image,
+    );
+  }
+
+  /// What the frames drawn one by one are kept for at most, encoded: the
+  /// least recently shown go first, and are made again where shown again.
+  /// The frames kept on a kitty terminal ([ImageKeep]) are not in it: they
+  /// are within [_kittyBytes] decoded, and made again they would be sent
+  /// again.
+  static const int _drawnBytes = 16 << 20;
+
+  /// The most frames of a kitty animation a paint makes ([_makeMore]): a
+  /// count, so that how many a paint makes does not depend on the machine
+  /// or, in a test, on the clock.
+  static const _defaultFramesPerPaint = 4;
+
+  /// How long a paint makes frames of a kitty animation for at most, a
+  /// frame at least, so that the app goes on drawing while large ones are
+  /// made: a ceiling over [framesPerPaint], measured in real time.
+  static const _defaultMakeFor = Duration(milliseconds: 4);
+
+  /// The most frames of a kitty animation a paint makes, one at least.
+  int framesPerPaint = _defaultFramesPerPaint;
+
+  /// The real time after which a paint makes no more frames of a kitty
+  /// animation, whatever [framesPerPaint] says; a frame is made always.
+  /// A test that counts the frames a paint makes sets it high.
+  Duration makeFor = _defaultMakeFor;
+
+  /// The most a kitty animation may take in the terminal, its frames
+  /// decoded: kitty keeps 320 MB of images at most and drops the oldest
+  /// past it. A larger one is drawn frame by frame as on other terminals.
+  static const int _kittyBytes = 64 << 20;
+
+  /// Whether the animation, its frames fitted to the box, is within
+  /// [_kittyBytes] decoded.
+  bool _fitsKitty() {
+    final animation = _frames;
+    final f = CellFit(
+      animation.width,
+      animation.height,
+      columns: width,
+      rows: height,
+      cell: _cell,
+      fit: _fit,
+    );
+    return animation.frameCount *
+            f.columns *
+            _cell.width *
+            f.rows *
+            _cell.height *
+            4 <=
+        _kittyBytes;
+  }
+
+  /// What keeps the kitty images of an animation's frames drawn one by one
+  /// on the terminal while not shown, so that each is sent once
+  /// ([ImageKeep]); the box it is for.
+  ImageKeep? _keep;
+  (int, int)? _keepBox;
+
+  /// The [ImageKeep] of the frames of this box: another box lets the old
+  /// one go.
+  ImageKeep _keepFor() {
+    if (_keep case final keep? when _keepBox == (width, height)) {
+      return keep;
+    }
+    _letGo();
+    _keepBox = (width, height);
+    return _keep = ImageKeep();
+  }
+
+  /// Lets the terminal delete the kept frames: their images are drawn no
+  /// more (another source, size, fit or cell).
+  void _letGo() {
+    _keep?.kept = false;
+    _keep = null;
+    _keepBox = null;
+  }
+
+  /// Makes the next frames of [image]'s animation, [framesPerPaint] at most
+  /// and within [makeFor] but for one, and finishes it after the last.
+  void _makeMore(TerminalImage image) {
+    final animation = image.animation!;
+    if (animation.complete || _muted) {
+      return;
+    }
+    final frames = _frames;
+    final clock = Stopwatch()..start();
+    var made = 0;
+    do {
+      final i = animation.frames.length + 1;
+      animation.add(_png(i).$1.data, frames.delays[i]);
+      made++;
+      if (i == frames.frameCount - 1) {
+        animation.finish();
+        return;
+      }
+    } while (made < framesPerPaint && clock.elapsed < makeFor);
   }
 
   /// [image] at the top left of [width] × [height] pixels, transparent
@@ -587,7 +930,7 @@ final class RenderImage extends RenderObject {
 /// What a [RenderImage] painted last: for [protocol] in a box of
 /// [boxWidth] × [boxHeight] cells, the [columns] × [rows] it takes, an
 /// [image] for the presenter or [blocks].
-final class _Drawn {
+final class _Drawn implements Costed {
   _Drawn(
     this.protocol,
     this.boxWidth,
@@ -608,6 +951,19 @@ final class _Drawn {
 
   StyleTable? _styles;
   Int32List? _pens;
+
+  /// What it holds, estimated in bytes: its encoded data, which the
+  /// terminal's base64 of is as much again, or its cells and their pens.
+  @override
+  int get cost => switch (image) {
+    final i? => i.data.length * 2,
+    _ => blocks!.cells.length * 40,
+  };
+
+  /// Kept on the terminal, within what it keeps: made again it would be
+  /// sent again.
+  @override
+  bool get pinned => image?.keep != null;
 
   /// The pen of each of [blocks]' cells in [styles], -1 where no pixel is
   /// drawn.

@@ -603,14 +603,14 @@ default (on from the start where `TWK_DEBUG` names `rainbow` or `relayout`,
 `debugRepaintRainbow` each repaint of a repaint boundary, or of the root on
 its own, blends the next of 12 hues over the background of the cells it
 covered (its bounds, cut where its ancestors cut it), keeping their glyphs,
-text colours and attributes, so an area that changes colour repainted and
+text colors and attributes, so an area that changes color repainted and
 one that keeps it did not. With `debugRelayoutHighlight` each repaint
 outlines the objects in it laid out since the last one: the backgrounds of
 the cells along their edges, in one tint per frame that lays anything out,
 the next of a cycle; an outline stays until its cells repaint. Turning
 either on or off repaints everything; while one is on, a boundary repaints
 all of its cells (a `RenderLog` doesn't scroll in hardware), so frames cost
-many more bytes. In 16 colours a tint may round away.
+many more bytes. In 16 colors a tint may round away.
 
 ## Errors
 

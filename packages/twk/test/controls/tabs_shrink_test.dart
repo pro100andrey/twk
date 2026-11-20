@@ -90,7 +90,7 @@ void main() {
       'the last, its listeners notified once; set to none, it is a '
       'RangeError', () {
     var told = 0;
-    final c = TabController(length: 3, initialIndex: 2)
+    final c = disposing(TabController(length: 3, initialIndex: 2))
       ..addListener(() => told++)
       ..length = 2;
     expect((c.length, c.index, told), (2, 1, 1));
@@ -105,7 +105,7 @@ void main() {
   test('a TabController asserts that it has a tab and that the tab it '
       'starts with is one of them', () {
     expect(
-      () => TabController(length: 2, initialIndex: 2),
+      () => disposing(TabController(length: 2, initialIndex: 2)),
       throwsA(
         isA<AssertionError>().having(
           (e) => e.message,
@@ -114,14 +114,17 @@ void main() {
         ),
       ),
     );
-    expect(() => TabController(length: 0), throwsA(isA<AssertionError>()));
+    expect(
+      () => disposing(TabController(length: 0)),
+      throwsA(isA<AssertionError>()),
+    );
   });
 
   group('TabBarView', () {
     testTwk('a new controller of fewer tabs with fewer children, as a '
         'DockArea makes one, shows the tab it selects', (t) async {
-      final three = TabController(length: 3, initialIndex: 2);
-      final two = TabController(length: 2, initialIndex: 1);
+      final three = disposing(TabController(length: 3, initialIndex: 2));
+      final two = disposing(TabController(length: 2, initialIndex: 1));
       await t.pumpWidget(
         Host(
           key: host,
@@ -142,7 +145,7 @@ void main() {
         'the last shown in each frame, the controller notified once', (
       t,
     ) async {
-      final c = TabController(length: 3, initialIndex: 2);
+      final c = disposing(TabController(length: 3, initialIndex: 2));
       var told = 0;
       c.addListener(() => told++);
       await t.pumpWidget(
@@ -162,7 +165,7 @@ void main() {
 
     testTwk('fewer children than the index of a controller told after: the '
         'last shown, then selected, the controller notified once', (t) async {
-      final c = TabController(length: 3, initialIndex: 2);
+      final c = disposing(TabController(length: 3, initialIndex: 2));
       var told = 0;
       c.addListener(() => told++);
       await t.pumpWidget(
@@ -183,7 +186,7 @@ void main() {
 
     testTwk('more children again: the tab of the controller shown, told or '
         'not', (t) async {
-      final c = TabController(length: 3, initialIndex: 2);
+      final c = disposing(TabController(length: 3, initialIndex: 2));
       await t.pumpWidget(
         Host(key: host, (step) => view(c, 'abc'.split('').take(3 - step))),
         size: (6, 1),
@@ -208,7 +211,7 @@ void main() {
 
     testTwk('no children: nothing shown, the room filled; then the child of '
         "the controller's tab", (t) async {
-      final c = TabController(length: 2, initialIndex: 1);
+      final c = disposing(TabController(length: 2, initialIndex: 1));
       await t.pumpWidget(
         Host(
           key: host,
@@ -234,7 +237,7 @@ void main() {
     testTwk('a child with a key keeps its state and the focus as one before '
         'it goes; the focus in the child shown as it goes moves to the one '
         'shown after it', (t) async {
-      final c = TabController(length: 3, initialIndex: 2);
+      final c = disposing(TabController(length: 3, initialIndex: 2));
       final counter = GlobalKey<CounterState>();
       await t.pumpWidget(
         Host(
@@ -336,7 +339,7 @@ void main() {
     testTwk('with fewer labels than its controller has tabs, it marks the '
         'last for a tab past them; with more, those past the tabs are not '
         'selected; the keys select the tabs both have', (t) async {
-      final c = TabController(length: 3, initialIndex: 2);
+      final c = disposing(TabController(length: 3, initialIndex: 2));
       final node = FocusNode();
       addTearDown(node.dispose);
       await t.pumpWidget(

@@ -59,6 +59,37 @@ full screen: readings taken every second, the CPU in a `Chart` of the last
 minute, the memory in a `LineGauge` and the requests to each service in a
 `BarChart`; `p` pauses
 
+### `ssh`
+
+served over SSH (`twk_ssh`): `serveCounter` serves a
+counter to each client that logs in, greeted by name, on its own terminal
+(`ssh -t -p 2222 localhost`). Who may log in is a key listed in
+`~/.ssh/authorized_keys` and no password, the server listens on the loopback
+interface only, and its host key is made in `host_ed25519` (in `.gitignore`)
+the first time. Its tests run the counter in `testTwk` and bind the server on
+a port of the system's
+
+### `web`
+
+in a browser, on xterm.js (`twk_web`): `web/main.dart`
+mounts a counter into the page `web/index.html`, built with `dart compile wasm
+web/main.dart -o web/main.wasm` and served as any static page; there is no
+`bin/`. The counter is tested in `testTwk`, as the others; the page's build is
+what a browser run would add, which `twk create`'s own tests do by compiling it
+(no browser in the gates)
+
+### `riverpod`
+
+full screen: a counter whose state is a `Notifier` in a provider
+(`twk_riverpod`), kept by a `ProviderScope`, watched
+by a `ConsumerWidget`; Up and Down count, `r` resets
+
+### `bloc`
+
+full screen: a counter whose state is a `Cubit`
+(`twk_bloc`), provided by a `BlocProvider` and built by
+a `BlocBuilder`; Up and Down count, `r` resets
+
 ## The package it writes
 
 The package is named after `<dir>`, in lower case, other characters than
@@ -88,7 +119,7 @@ is not empty, which mold's library leaves to its caller.
 
 Each template is a package of this repository, `templates/<name>/`, named
 `<name>_template`, which runs, analyzes and passes its tests where it is,
-taking twk, twk_test, twk_dev and twk_lints by path in the repository. Its
+taking twk, twk_test, twk_dev and twk_lints by path in the repository, and the package its kind of app is for (`twk_ssh`, `twk_web`, `twk_riverpod`, `twk_bloc`: `optionalTwkPackages`, each at its own version from pub, `^0.1.0`). Its
 `mold.yaml` makes it a template of [mold](https://pub.dev/packages/mold): the
 variable `package_name` replaces `<name>_template` in each casing mold derives
 (`app_template`, `app-template`, `APP_TEMPLATE`, `AppTemplate`), in the paths

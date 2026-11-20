@@ -13,7 +13,7 @@ dart run twk_dev:twk logs -C ../..    # here, in another terminal
 `twk logs` connects to the app the project's address file `logs` names (the
 last one that started serving), sends the token, prints the records the sink
 kept and then each one as it comes, `09:05:07.042 warning message: error` and
-the stack below, on stdout; with colours (the time and the stack dim, the
+the stack below, on stdout; with colors (the time and the stack dim, the
 level and the error dim, cyan, yellow or bold red by level) when stdout is a
 terminal that takes escape sequences and `NO_COLOR` is not set, or as
 `--[no-]color` says. While no app serves, and after one ends, it says so on

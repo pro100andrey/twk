@@ -20,8 +20,9 @@ it.
   with a filter and the path of a value to copy.
 - **Big text:** `BigText` for splash screens, clocks and dashboards.
 - **QR codes:** `QrCode`, drawn in cells, for a phone to read.
-- **Images:** `Image` shows PNG and JPEG files over kitty, iTerm2 or sixel,
-  and in block characters where the terminal has no graphics. It is a library
+- **Images:** `Image` shows PNG, JPEG and GIF files, animated GIFs and APNGs
+  playing, over kitty, iTerm2 or sixel, and in block characters where the
+  terminal has no graphics. It is a library
   of its own, `package:twk_rich/image.dart`.
 
 ## Getting started
@@ -89,7 +90,7 @@ tables and its refinement of progressive AC coefficients are translated
 from libjpeg and keep the IJG's licence, whose README is
 [README.ijg](README.ijg). Its walk through a scan, its decoding of the
 blocks of baseline scans and of progressive scans' first passes, and its
-colour transform of three components follow jpgjs, as pdf.js keeps it
+color transform of three components follow jpgjs, as pdf.js keeps it
 (Apache License 2.0) and as package:image ports it to Dart (MIT License),
 and keep those licences. [NOTICE](NOTICE) names the files and lines each
 part follows and what was changed, and carries the licences. They apply

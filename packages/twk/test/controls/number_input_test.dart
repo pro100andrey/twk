@@ -4,6 +4,8 @@
 // shown in the error style meanwhile and put back by Escape; the mouse on
 // the field, on the arrows and the wheel; a disabled input; an input in a
 // FormField.
+import 'dart:convert' show utf8;
+
 import 'package:test/test.dart';
 import 'package:twk/twk.dart';
 import 'package:twk_core/twk_core.dart' show MouseTracking;
@@ -254,6 +256,55 @@ void main() {
     expect(t.lines.first, startsWith('-4'));
     expect(changes, [-4]);
     expect(value.value, -4);
+  });
+
+  for (final key in ['f1', 'shift']) {
+    testTwk('a key it leaves, or a bare modifier, mid-typing leaves the '
+        'text as typed when the parent takes the value back ($key)', (
+      t,
+    ) async {
+      final value = ValueNotifier<double>(0);
+      addTearDown(value.dispose);
+      final changes = <double>[];
+      await t.pumpWidget(
+        KeyBindings(
+          {'f1': () {}},
+          child: input(value, changes: changes, decimals: 2, autofocus: true),
+        ),
+        size: (20, 3),
+      );
+      await press(t, 'backspace backspace backspace backspace');
+      await type(t, '3.');
+      if (key == 'shift') {
+        await t.input(utf8.encode('\x1b[57441;2u'));
+        await t.pump();
+      } else {
+        await press(t, key);
+      }
+      expect(t.lines.first, startsWith('3. '));
+      await type(t, '5');
+      expect(t.lines.first, startsWith('3.5 '));
+      await press(t, 'enter');
+      expect(value.value, 3.5);
+    });
+  }
+
+  testTwk('F1 mid-typing hands the value over, the text as typed, the '
+      'parent having taken it', (t) async {
+    final value = ValueNotifier<double>(0);
+    addTearDown(value.dispose);
+    await t.pumpWidget(
+      KeyBindings(
+        {'f1': () {}},
+        child: input(value, decimals: 2, autofocus: true),
+      ),
+      size: (20, 3),
+    );
+    await press(t, 'backspace backspace backspace backspace');
+    await type(t, '3.');
+    await press(t, 'f1');
+    expect(value.value, 3);
+    expect(t.lines.first, startsWith('3. '));
   });
 
   testTwk('Escape after the parent took the value handed over is not '

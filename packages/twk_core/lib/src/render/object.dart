@@ -1014,6 +1014,13 @@ abstract class RenderObject {
   /// what is under it.
   bool get isRepaintBoundary => false;
 
+  /// Whether the children of this object may paint over each other's
+  /// cells (a stack): a place repainted on its own inside one then takes
+  /// all of this object across, as a wide glyph of a child under or over
+  /// it may lie across its sides. True unless known otherwise: an object
+  /// of one child, a flex.
+  bool get _childrenMayOverlap => this is! RenderObjectWithChildMixin;
+
   /// Whether this repaint boundary paints over what is under it, with no
   /// background of its own: a field, a gauge over a dialog, a selected
   /// row, a gradient; false by default.
@@ -2201,21 +2208,34 @@ void _forgetPaint(RenderObject o) {
   }
 }
 
-// what _forgetCut walks: the rows of the boundary it is under, and the row
-// of the boundary the object whose children it visits is at
+// what _forgetCut walks: the place of the boundary it is under, and the
+// column and row of the boundary the object whose children it visits is at
 var _cutTop = 0;
 var _cutBottom = 0;
+var _cutLeft = 0;
+var _cutRight = 0;
 var _cutAt = 0;
+var _cutAtX = 0;
 
 /// Has the objects inside [b], a boundary that has just repainted rows
-/// [top] to [bottom] of its own, forget what they painted where those rows
-/// cut through them ([RenderObject.invalidatePaintCache]): what they kept
-/// of a paint that covered all of them holds only those rows now. What the
-/// rows hold whole, or miss, keeps it.
-void _forgetCut(RenderObject b, int top, int bottom) {
+/// [top] to [bottom] of its own, between columns [left] and [right] (all
+/// of them by default), forget what they painted where that place cuts
+/// through them ([RenderObject.invalidatePaintCache]): what they kept of a
+/// paint that covered all of them holds only that place now. What the
+/// place holds whole, or misses, keeps it.
+void _forgetCut(
+  RenderObject b,
+  int top,
+  int bottom, {
+  int left = 0,
+  int right = 1 << 30,
+}) {
   _cutTop = top;
   _cutBottom = bottom;
+  _cutLeft = left;
+  _cutRight = right;
   _cutAt = 0;
+  _cutAtX = 0;
   _forgetCutKeepers(b);
 }
 
@@ -2239,16 +2259,26 @@ void _forgetCutChild(RenderObject c) {
   }
   final y = _cutAt + c.parentData.dy;
   final end = y + c.height;
+  final x = _cutAtX + c.parentData.dx;
+  final xEnd = x + c.width;
   if (end <= _cutTop ||
       y >= _cutBottom ||
-      (y >= _cutTop && end <= _cutBottom)) {
+      xEnd <= _cutLeft ||
+      x >= _cutRight ||
+      (y >= _cutTop &&
+          end <= _cutBottom &&
+          x >= _cutLeft &&
+          xEnd <= _cutRight)) {
     return;
   }
   c.invalidatePaintCache();
   final at = _cutAt;
+  final atX = _cutAtX;
   _cutAt = y;
+  _cutAtX = x;
   _forgetCutKeepers(c);
   _cutAt = at;
+  _cutAtX = atX;
 }
 
 /// The debug-only state of a render object, see `RenderObject._debugStates`.

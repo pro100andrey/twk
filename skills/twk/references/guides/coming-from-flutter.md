@@ -263,8 +263,8 @@ A few names are not Flutter's, and are meant not to be:
 - `TweenAnimationBuilder(tween:, builder:, duration:)` takes a `Tween` as
   Flutter's does. A `Tween` here is immutable, so one of your own overrides
   `withEnds` to make another of its kind.
-- `Localizations` is Flutter's, for a `Locale`; the words twk writes itself are
-  in `TwkLocalizations`.
+- Flutter's `Localizations`, for a `Locale`, is not here; the words twk writes
+  itself are in `TwkLocalizations`.
 
 ## Lists and navigation
 

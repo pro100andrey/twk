@@ -115,7 +115,7 @@ void main() {
     // no shell of this process has it: Ctrl+Z stops nothing
     expect(term.stopsForShell, isFalse);
     expect(link.text, contains('\x1b[?1049h'));
-    expect(link.text, contains('\x1b[>1u'));
+    expect(link.text, contains('\x1b[>5u'));
     expect(link.raw, isTrue);
 
     final events = <InputEvent>[];
@@ -167,7 +167,9 @@ void main() {
       );
       expect(
         link.text,
-        contains('\x1b[>c\x1b[?1049l\x1b[?2026l\x1b[6n\x1b[c\x1b8\x1b[?25l'),
+        contains(
+          '\x1b[>c\x1b[=c\x1b[?1049l\x1b[?2026l\x1b[6n\x1b[c\x1b8\x1b[?25l',
+        ),
       );
       expect('\x1b[c'.allMatches(link.text), hasLength(1), reason: 'one round');
       expect(link.text, isNot(contains('\x1b[J')));
@@ -530,6 +532,18 @@ void main() {
       );
       expect(declared.pointerShapes, isTrue);
       expect(declared.pointerNames, PointerNames.css);
+    });
+
+    test('draws the block sextants by its name and its environment', () async {
+      Future<bool> sextants(Map<String, String> env) async {
+        final link = FakeLink(environment: env)..type(_answers);
+        return (await clock.open(link, _options)).info.sextants;
+      }
+
+      expect(await sextants(kitty), isTrue);
+      expect(await sextants({'VTE_VERSION': '7800'}), isTrue);
+      expect(await sextants({'TERM': 'xterm-256color'}), isFalse);
+      expect(await sextants({'TERM': 'alacritty'}), isFalse);
     });
 
     test('declaring some, the rest is guessed', () async {

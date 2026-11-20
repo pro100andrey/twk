@@ -18,6 +18,7 @@ workspace:
   - packages/twk_bloc
   - packages/twk_core
   - packages/twk_dev
+  - packages/twk_driver
   - packages/twk_lints
   - packages/twk_rich
   - packages/twk_riverpod

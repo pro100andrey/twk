@@ -8,7 +8,8 @@ The testing package for widgets of [twk](https://pub.dev/packages/twk): a test
 runs the real app — `runApp`'s binding on a terminal in memory — under a fake
 clock. Keys, the mouse and pasted text go in as the bytes a terminal sends,
 decoded by the core's parser, and the screen is rebuilt from the frames' bytes
-by a strict terminal emulator, which matchers and finders read.
+by a strict terminal emulator, which matchers and finders read. Timers and
+animations move only when the test says, so a test has no sleeps and no flakes.
 
 ```sh
 dart pub add dev:twk_test
@@ -98,7 +99,7 @@ The app's timers, frames and the pause after a lone ESC wait for the clock, a
 
 Only timers and microtasks of the app are fake: `Stopwatch()` and
 `DateTime.now()` read real time in the app too. The binding spaces frames by
-`AppBinding(clock:)`, which the tester sets to `t.clock.stopwatch`, and its
+`AppBinding(clock:)`, which the tester sets to `t.clock.clock`, and its
 wall time, `AppBinding.now()`, is `pumpWidget(startTime:)`
 (`TwkTester.defaultStartTime` by default) moved on by that clock: what an app
 draws of the time from it is the same on every run. Code of the test itself

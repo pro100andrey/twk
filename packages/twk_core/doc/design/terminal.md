@@ -127,7 +127,7 @@ looked for: one where nobody listens, or a value of no such form, is a
 `TerminalException` (plain output where stdout is no terminal, as with
 no shell), the address file not read; empty is unset. Over the
 socket the app does what it does on its own terminal — the probe (with
-the shell's size, environment and erase character, so colours,
+the shell's size, environment and erase character, so colors,
 notifications and the multiplexer are those of the shell's terminal),
 the modes, the frames, the restore — and `flush()` completes once the
 shell has written the bytes. The shell keeps what the app's process
@@ -284,9 +284,9 @@ cursor below it, and taken back the screen is repainted in full, the inline
 region from a fresh start below whatever the other program printed.
 `suspendToShell()` is that around `Terminal.stopForShell()`, for Ctrl+Z
 (POSIX only). On a backend that isn't a `SuspendableBackend` only the frames
-wait. Frames are spaced by `TwkApp.clock` (`clock:`), a `Stopwatch` on which
-the gap of `maxFps` passes: by default a started one, in a test one its fake
-clock moves. `TwkApp.stats` (`FrameStats`) holds the time and bytes of
+wait. Frames are spaced by `TwkApp.clock` (`clock:`), a `Clock` on which
+the gap of `maxFps` passes: by default a `SystemClock`, in a test a fake
+clock's `DrivenClock`, which the test moves. `TwkApp.stats` (`FrameStats`) holds the time and bytes of
 recent frames (`medianMicros`, the median of the last 128) and, of the last
 one, the time of each stage, which add up to its `lastMicros`:
 `lastBuildMicros` (what runs before layout, a widget tree's build),

@@ -37,18 +37,21 @@ TerminalOptions _options({
 int _count(String text, Pattern of) => of.allMatches(text).length;
 
 void main() {
-  test('by default disambiguation alone is pushed, on the alternate screen, '
-      'and popped there as the terminal closes', () async {
+  test('by default disambiguation and alternate keys are pushed, on the '
+      'alternate screen, and popped there as the terminal closes', () async {
     final link = FakeLink()..type(_answers);
     final term = await Terminal.overLink(link, _options());
     expect(term.info.kittyKeyboard, isTrue);
-    expect(term.info.kittyKeyboardFlags, KittyKeyboardFlags.disambiguate);
+    expect(
+      term.info.kittyKeyboardFlags,
+      KittyKeyboardFlags.disambiguate | KittyKeyboardFlags.alternateKeys,
+    );
     expect(const TerminalOptions().kittyKeyboardFlags, 1);
     final opened = link.text;
     expect(opened, contains('\x1b[?u'));
     expect(_count(opened, _push), 1);
     expect(
-      opened.indexOf('\x1b[>1u'),
+      opened.indexOf('\x1b[>5u'),
       greaterThan(opened.indexOf('\x1b[?1049h')),
     );
     expect(link.restoring, contains(_pop));
@@ -62,9 +65,9 @@ void main() {
   test('the flags asked for are pushed with disambiguation; repeats and '
       'releases come as the key kind', () async {
     for (final (flags, pushed) in [
-      (KittyKeyboardFlags.eventTypes, 3),
-      (KittyKeyboardFlags.disambiguate | KittyKeyboardFlags.eventTypes, 3),
-      (KittyKeyboardFlags.allKeysAsEscapes, 9),
+      (KittyKeyboardFlags.eventTypes, 7),
+      (KittyKeyboardFlags.disambiguate | KittyKeyboardFlags.eventTypes, 7),
+      (KittyKeyboardFlags.allKeysAsEscapes, 13),
       (
         KittyKeyboardFlags.eventTypes |
             KittyKeyboardFlags.alternateKeys |
@@ -110,15 +113,15 @@ void main() {
       link,
       _options(flags: KittyKeyboardFlags.eventTypes, alternateScreen: false),
     );
-    expect(term.info.kittyKeyboardFlags, 3);
+    expect(term.info.kittyKeyboardFlags, 7);
     await term.close();
     // the probe's queries on the alternate screen, the flags after it
     final probed = link.text.indexOf('\x1b[?1049l');
     expect(link.text.substring(probed), isNot(contains('\x1b[?1049h')));
-    expect(link.text.indexOf('>3u'), greaterThan(probed));
-    expect(_count(link.text, '\x1b[>3u'), 1);
+    expect(link.text.indexOf('>7u'), greaterThan(probed));
+    expect(_count(link.text, '\x1b[>7u'), 1);
     expect(_count(link.text, _pop), 1);
-    expect(link.text.indexOf(_pop), greaterThan(link.text.indexOf('>3u')));
+    expect(link.text.indexOf(_pop), greaterThan(link.text.indexOf('>7u')));
   });
 
   test('without kittyKeyboard nothing is asked, pushed or popped, and no '
@@ -146,7 +149,7 @@ void main() {
     expect(term.info.kittyKeyboard, isFalse);
     expect(term.info.kittyKeyboardFlags, 0);
     await term.close();
-    expect(_count(link.text, '\x1b[>3u'), 1);
+    expect(_count(link.text, '\x1b[>7u'), 1);
     expect(_count(link.text, _pop), 1);
   });
 
@@ -199,7 +202,7 @@ void main() {
         return s;
       }
 
-      expect(_count(since(), '\x1b[>3u'), 1);
+      expect(_count(since(), '\x1b[>7u'), 1);
       expect(link.restoring, contains(_pop));
 
       await clock.runUntil(term.suspend);
@@ -212,12 +215,12 @@ void main() {
       link.type('\x1b[1;1R');
       await clock.runUntil(term.resume);
       final resumed = since();
-      expect(_count(resumed, '\x1b[>3u'), 1);
+      expect(_count(resumed, '\x1b[>7u'), 1);
       expect(resumed, isNot(contains(_pop)));
       expect(link.restoring, contains(_pop));
       if (alternateScreen) {
         expect(
-          resumed.indexOf('\x1b[>3u'),
+          resumed.indexOf('\x1b[>7u'),
           greaterThan(resumed.indexOf('\x1b[?1049h')),
         );
       }

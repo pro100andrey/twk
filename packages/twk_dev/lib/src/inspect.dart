@@ -9,9 +9,9 @@ import 'package:args/command_runner.dart';
 import 'package:twk/twk.dart' show ScreenMode, runApp;
 import 'package:twk_core/twk_core.dart'
     show Terminal, TerminalException, TerminalOptions;
+import 'package:twk_driver/twk_driver.dart';
 import 'package:vm_service/vm_service.dart' show VmService;
 
-import 'app_client.dart';
 import 'completion.dart';
 import 'inspector_view.dart';
 import 'project.dart';

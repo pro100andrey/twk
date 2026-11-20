@@ -68,7 +68,7 @@ const groupAbout = {
       'Markdown, code, diffs, JSON, big text, QR codes and program '
       'output with its colors.',
   'Images':
-      'PNG and JPEG pictures, in the terminal’s graphics or in '
+      'PNG, JPEG, GIF and APNG pictures, in the terminal’s graphics or in '
       'block characters.',
   'Terminal': 'A program running in a widget, on a pseudo-terminal.',
 };

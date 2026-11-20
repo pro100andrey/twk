@@ -7,14 +7,17 @@ code while it runs, look inside it, read its log and record a session.
 ## Features
 
 - **Create:** `twk create` writes a new app from a template (`app`, `inline`,
-  `form` or `dashboard`). It runs, analyzes and passes its tests as it is.
+  `form`, `dashboard`, `ssh`, `web`, `riverpod` or `bloc`). It runs, analyzes
+  and passes its tests as it is.
 - **Hot reload:** `twk run` runs your app and reloads the code you save. The
   state of every widget is kept.
 - **Inspect:** `twk inspect` shows a running app's widget tree or render
   tree, with the properties and layout of the node you select. Click in the
   app to pick a node.
 - **Logs:** `twk logs` tails the log of a running app, with levels and
-  colours, while the app owns the screen.
+  colors, while the app owns the screen.
+- **Drive:** `twk mcp` is an MCP server that lets a coding agent run your
+  app, read its screen, press keys, tap and reload it.
 - **Agents:** `twk agents` writes the twk skill and a block of `AGENTS.md`
   into a project, for coding agents.
 - **Debugger:** `twk shell` lends its terminal to an app started from the
@@ -34,13 +37,15 @@ dart pub get
 dart run twk_dev:twk run bin/main.dart
 ```
 
-`twk create` asks which app and which files for coding agents to write (give
+`twk create` asks which app and which files for coding agents to write. Give
 `--template` and `--agents=agents-md,skill`, or `--agents=none`, to ask
-nothing; without a terminal it never asks: the notes app, no files for
-agents). `my_app` here is the notes app: a list beside the note
-chosen, full screen. `twk run` runs it in your terminal. Edit a file in
-`my_app/lib/` and save: the app shows the change, and keeps its state.
-Ctrl+G H starts it again, Ctrl+Q quits.
+nothing; without a terminal it never asks, and writes the notes app with no
+files for agents.
+
+The notes app, the default, is a list beside the note chosen, full screen.
+`twk run` runs it in your terminal. Edit a file in `my_app/lib/` and save:
+the app shows the change, and keeps its state. Ctrl+G H starts it again,
+Ctrl+Q quits.
 
 The app takes `twk_dev` as a dev dependency, so `dart run twk_dev:twk` runs
 the version its lock file names. In a second terminal in the same directory,
@@ -109,6 +114,8 @@ cp -r /tmp/twk/skills/twk .agents/skills/twk
 - [twk logs](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/logs.md)
   and [twk shell](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/shell.md):
   the log, and the terminal for an app under a debugger.
+- [twk mcp](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/mcp.md):
+  the server for coding agents, its tools and how to register it.
 - [twk record and twk play](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/record-play.md):
   recordings, and a recording as a test.
 - [twk decode](https://github.com/pro100andrey/twk/blob/main/packages/twk_dev/doc/decode.md):

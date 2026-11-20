@@ -14,6 +14,7 @@ import {
   parseFlags,
   parseLayout,
   parseProperties,
+  isTreeChanged,
   parsePicked,
   parseSelect,
   parseTree,
@@ -80,6 +81,10 @@ describe("twk's inspector answers", () => {
     assert.equal(parsePicked({ version: 2, x: 3, y: 2 }), undefined);
     assert.equal(parsePicked({ version: 1, x: -1, y: 2 }), undefined);
     assert.equal(parsePicked('twk'), undefined);
+    assert.equal(isTreeChanged({ version: 1, rebuilds: 2 }), true);
+    assert.equal(isTreeChanged({ version: 2, rebuilds: 2 }), false);
+    assert.equal(isTreeChanged({ rebuilds: 2 }), false);
+    assert.equal(isTreeChanged(undefined), false);
   });
 
   it("says of a node its key, first property and size beside its name, and all of it in the tooltip", () => {
@@ -103,6 +108,15 @@ describe("twk's inspector answers", () => {
     assert.deepEqual(togglesPicked(['Frame overlay'], flags), { overlay: true, rainbow: false, relayout: false, console: false });
     // a malformed overflow is still no answer of this twk
     assert.throws(() => parseFlags({ ...old, overflow: 'yes' }), /no overflow/);
+  });
+
+  it('reads the frameEvents flag where the app reports it, and leaves it out where it does not', () => {
+    const base = { version: 1, overlay: true, console: false, rainbow: true, relayout: false, keys: true, select: true, selectMany: true, treeEvents: true };
+    assert.equal(parseFlags({ ...base, frameEvents: true }).frameEvents, true);
+    assert.equal(parseFlags({ ...base, frameEvents: false }).frameEvents, false);
+    assert.equal('frameEvents' in parseFlags(base), false);
+    assert.throws(() => parseFlags({ ...base, frameEvents: 'yes' }), /no frameEvents/);
+    assert.deepEqual(flagParams({ frameEvents: true }), { frameEvents: 'true' });
   });
 
   it('the toggles: picked as the app has them, and back as each on or off', () => {
@@ -189,5 +203,24 @@ describe("a node's properties and layout", () => {
     // none laid out yet: no layout section
     assert.equal(detailSections({ properties: parseProperties(properties), layout: {} }).length, 1);
     assert.equal(detailSections({ properties: parseProperties(properties) }).length, 1);
+  });
+
+  it('reads the negative offsets of scrolled content', () => {
+    const l = parseLayout({ ...layout, offset: { x: 0, y: -3 }, global: { x: 2, y: -1 } });
+    assert.deepEqual(l.offset, { x: 0, y: -3 });
+    assert.deepEqual(l.global, { x: 2, y: -1 });
+    const rows = detailSections({ properties: parseProperties(properties), layout: l })[1].rows;
+    assert.deepEqual(rows.slice(2), [
+      { label: 'offset', value: '0, -3' },
+      { label: 'on screen', value: '2, -1' },
+    ]);
+    assert.equal(parseLayout({ ...layout, offset: { x: 0.5, y: 0 } }).offset, undefined);
+  });
+
+  it('gives each section an id of its own, a node named Layout among them', () => {
+    const named = parseProperties({ ...properties, name: 'Layout' });
+    const sections = detailSections({ properties: named, layout: parseLayout(layout) });
+    assert.deepEqual(sections.map((s) => s.title), ['Layout', 'Layout']);
+    assert.equal(new Set(sections.map((s) => s.id)).size, 2);
   });
 });

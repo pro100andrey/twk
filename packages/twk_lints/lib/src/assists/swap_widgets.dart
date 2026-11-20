@@ -157,7 +157,7 @@ final class SwapWithParent extends ResolvedCorrectionProducer {
     if (widget?.parent
         case NamedArgument(
           name: Token(lexeme: 'child'),
-          parent: ArgumentList(parent: final InstanceCreationExpression parent),
+          parent: ArgumentList(:final InstanceCreationExpression parent),
         )
         when isWidgetType(parent.staticType)) {
       await _swap(this, builder, parent);

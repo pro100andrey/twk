@@ -25,7 +25,34 @@ app        full screen: a list beside a detail pane, the keys below
 inline     inline below the prompt: what is said goes to the scrollback
 form       full screen: a form whose fields are validated
 dashboard  full screen: panels of live readings in a chart, a gauge and bars
+ssh        served over SSH: each client that logs in gets its own app
+web        in a browser, on xterm.js, built with dart2wasm
+riverpod   full screen: a counter with its state in riverpod providers
+bloc       full screen: a counter with its state in a bloc cubit
 ''');
+  });
+
+  test("the commands it ends with are the template's: the web one builds a "
+      'page, the others run bin/main.dart', () async {
+    for (final (template, has, hasNot) in [
+      ('web', 'dart compile wasm web/main.dart', 'bin/main.dart'),
+      ('ssh', 'ssh -t -p 2222 localhost', 'twk run'),
+      ('bloc', 'dart run twk_dev:twk run bin/main.dart', 'compile wasm'),
+    ]) {
+      final dir = p.join(await temporary(), 'out');
+      final result = await twkHere([
+        'create',
+        dir,
+        '--template=$template',
+        '--agents=none',
+        '--path-to-twk=${await repository()}',
+      ]);
+      expect(result.exitCode, 0, reason: '${result.stderr}');
+      final steps = '${result.stdout}'.split('  dart pub get').last;
+      expect(steps, contains(has), reason: template);
+      expect(steps, isNot(contains(hasNot)), reason: template);
+      expect(steps, endsWith('  dart test\n'), reason: template);
+    }
   });
 
   test('each template has a file of its cycle, which run at once', () async {
@@ -71,6 +98,36 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
     );
   });
 
+  test('outside a checkout a template that takes a package not on pub is '
+      'refused, with the reason, and writes nothing', () async {
+    final dir = p.join(await temporary(), 'out');
+
+    for (final name in ['ssh', 'web', 'bloc', 'riverpod']) {
+      final template = templates.firstWhere((t) => t.name == name);
+      await expectLater(
+        createApp(template, 'my_app', dir: dir),
+        throwsA(
+          isA<UnpublishedPackages>().having(
+            (e) => e.message,
+            'message',
+            allOf(contains('not published'), contains('--path-to-twk')),
+          ),
+        ),
+        reason: name,
+      );
+    }
+    expect(Directory(dir).existsSync(), isFalse);
+    // from a checkout it is made
+    final made = await createApp(
+      templates.firstWhere((t) => t.name == 'ssh'),
+      'my_app',
+      dir: dir,
+      checkout: await repository(),
+      dryRun: true,
+    );
+    expect(made.plan.templateFiles, isNotEmpty);
+  });
+
   test('without a checkout the packages come from pub at the version of '
       'twk, which is that of every package of the release; a path YAML '
       'would read otherwise is quoted', () async {
@@ -81,6 +138,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
       'twk_lints',
       'twk_term',
       'twk_dev',
+      'twk_driver',
     ]) {
       expect(
         File(
@@ -112,6 +170,7 @@ dashboard  full screen: panels of live readings in a chart, a gauge and bars
         '\ndependency_overrides:\n'
         "  twk:\n    path: '/home/ann/it''s: here/packages/twk'\n"
         "  twk_core:\n    path: '/home/ann/it''s: here/packages/twk_core'\n"
+        "  twk_driver:\n    path: '/home/ann/it''s: here/packages/twk_driver'\n"
         "  twk_term:\n    path: '/home/ann/it''s: here/packages/twk_term'\n",
       ),
     );

@@ -40,7 +40,7 @@ void main() {
       'MultiBlocProvider: a list of SingleChildWidgets of either package', (
     t,
   ) async {
-    final count = ValueNotifier(1);
+    final count = disposing(ValueNotifier(1));
     final providers = <SingleChildWidget>[
       ChangeNotifierProvider.value(value: count),
       BlocProvider(

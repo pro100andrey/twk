@@ -34,12 +34,12 @@ void main() {
       term,
       maxFps: 1000,
       logs: logs,
-      clock: clock.stopwatch,
+      clock: clock.clock,
       environment: const {},
     );
     probe = Probe(
       app.screen.styles.pen(const Pen(bg: Color.rgb(0, 0, 0))),
-      clock: clock.stopwatch,
+      clock: clock.clock,
     );
   }
 

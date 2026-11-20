@@ -8,6 +8,7 @@
 /// @docImport 'surface.dart';
 library;
 
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -17,6 +18,8 @@ import 'terminal/sequences.dart';
 // Examples can assume:
 // import 'dart:typed_data';
 // late Uint8List png;
+// late Uint8List red;
+// late Uint8List blue;
 // late Canvas canvas;
 
 /// How a terminal shows images.
@@ -60,13 +63,18 @@ enum GraphicsProtocol {
 /// ```
 final class TerminalImage {
   /// An image of [pixelWidth] x [pixelHeight] pixels, [data] encoded for
-  /// [protocol].
+  /// [protocol]; for kitty with [animation], [data] is its first frame.
   TerminalImage(
     this.protocol,
     this.data, {
     required this.pixelWidth,
     required this.pixelHeight,
-  });
+    this.animation,
+    this.keep,
+  }) : assert(
+         animation == null || protocol == GraphicsProtocol.kitty,
+         'only kitty plays an animation itself',
+       );
 
   /// The protocol [data] is encoded for.
   final GraphicsProtocol protocol;
@@ -85,8 +93,127 @@ final class TerminalImage {
   /// The image's height in pixels (see [pixelWidth]).
   final int pixelHeight;
 
+  /// kitty: the frames after the first, which a terminal that plays them
+  /// ([TerminalCaps.kittyAnimation]) is sent once with the image and plays
+  /// on its own clock; another shows [data], the first. Null for a still
+  /// image.
+  final ImageAnimation? animation;
+
+  /// kitty: while it is [ImageKeep.kept], the terminal keeps this image
+  /// when no placement shows it, so that, shown again, it is placed and not
+  /// sent: the frames of an animation drawn one by one on a terminal that
+  /// does not play them, each sent once. Null: deleted once not shown.
+  final ImageKeep? keep;
+
+  /// Whether the terminal plays [animation]: false stops it at the frame
+  /// it shows, true goes on from there. The presenter writes a change with
+  /// its next frame, so whoever sets it asks for one.
+  var playing = true;
+
   /// [data] in base64, encoded once.
   late final Uint8List _base64 = ascii.encode(base64.encode(data));
+}
+
+/// The frames of an animated kitty image after its first
+/// ([TerminalImage.data]), each a PNG file of the whole image as it looks
+/// while the frame shows, the time each frame shows, the first's too, and
+/// how many times they play. They are there from the start, or come as
+/// they are made ([ImageAnimation.loading]).
+///
+/// Two frames, red then blue (`red` and `blue`, PNG files of 64 x 32
+/// pixels), half a second each, for ever:
+///
+/// ```dart
+/// final image = TerminalImage(
+///   GraphicsProtocol.kitty,
+///   red,
+///   pixelWidth: 64,
+///   pixelHeight: 32,
+///   animation: ImageAnimation(
+///     [blue],
+///     const [Duration(milliseconds: 500), Duration(milliseconds: 500)],
+///   ),
+/// );
+/// ```
+final class ImageAnimation {
+  /// [frames] after the first, shown for [delays] (one more than [frames],
+  /// the first frame's first), played [loops] times; 0, the default, for
+  /// ever.
+  ImageAnimation(
+    List<Uint8List> frames,
+    List<Duration> delays, {
+    this.loops = 0,
+  }) : assert(frames.isNotEmpty, 'an animation has a second frame'),
+       assert(
+         delays.length == frames.length + 1,
+         'a delay for each frame, the first too',
+       ),
+       assert(loops >= 0, 'loops is 0 (for ever) or more'),
+       _frames = [...frames],
+       _delays = [...delays],
+       _complete = true;
+
+  /// One whose frames after the first come as they are made ([add]), until
+  /// [finish]: a terminal plays those it has been sent, and waits at the
+  /// last for more (kitty's loading mode), so that a long animation shows
+  /// before all of it is made. The first frame shows for [firstDelay].
+  ImageAnimation.loading(Duration firstDelay, {this.loops = 0})
+    : assert(loops >= 0, 'loops is 0 (for ever) or more'),
+      _frames = [],
+      _delays = [firstDelay],
+      _complete = false;
+
+  final List<Uint8List> _frames;
+  final List<Duration> _delays;
+  bool _complete;
+
+  /// The PNG files of the frames after the first, so far.
+  List<Uint8List> get frames => UnmodifiableListView(_frames);
+
+  /// How long each frame shows, the first frame's first.
+  List<Duration> get delays => UnmodifiableListView(_delays);
+
+  /// How many times the frames play; 0 for ever. The last frame stays.
+  final int loops;
+
+  /// Whether all the frames are there: from the start, or since [finish].
+  bool get complete => _complete;
+
+  /// Adds the next [frame], a PNG file, shown for [delay]; the presenter
+  /// sends it with its next frame, so whoever adds it asks for one.
+  void add(Uint8List frame, Duration delay) {
+    assert(!_complete, 'an animation that is complete takes no frame');
+    _frames.add(frame);
+    _delays.add(delay);
+  }
+
+  /// All the frames are there: the terminal plays them through, as many
+  /// times as [loops] says.
+  void finish() => _complete = true;
+}
+
+/// What the terminal was last sent of an [ImageAnimation] as one kitty image
+/// ([kittyAnimate]): how many of its frames, and whether it plays: 0 nothing
+/// said, 1 stopped, 2 playing what it has and waiting for more, 3 playing
+/// them all. One per image sent, not per animation: images that share an
+/// animation each hold the frames they were sent.
+final class KittyAnimationSent {
+  var _frames = 0;
+  var _state = 0;
+}
+
+/// What keeps kitty images on the terminal while no placement shows them
+/// ([TerminalImage.keep]), for as long as [kept] is true: the images of an
+/// animation's frames share one, which its owner lets go of when the
+/// animation goes (another source, another size, out of the tree). The
+/// presenter deletes the images of one let go of with its next frame.
+final class ImageKeep {
+  /// Kept from the start.
+  ImageKeep();
+
+  /// Whether the images are kept; false lets them go, true again keeps
+  /// those the terminal still has.
+  var kept = true;
 }
 
 /// An image on a surface: [image] fills the [cols] x [rows] cells from
@@ -179,6 +306,10 @@ void kittyPlace(
   required bool transmit,
   Multiplexer multiplexer = Multiplexer.none,
 }) {
+  if (!transmit && multiplexer == Multiplexer.none) {
+    _kittyPlaceDirect(out, p, id: id, placement: placement);
+    return;
+  }
   final sb = StringBuffer(transmit ? 'a=T,f=100,t=d,' : 'a=p,')
     ..write('i=$id,p=$placement,c=${p.right - p.left},r=${p.bottom - p.top}');
   if (!p.whole) {
@@ -195,16 +326,137 @@ void kittyPlace(
     _put(out, '\x1b_G$sb\x1b\\', multiplexer);
     return;
   }
-  // chunks of at most 4096 bytes of base64, all but the last with m=1
+  _kittyData(out, '$sb', p.image._base64, multiplexer);
+}
+
+/// [kittyPlace] of an image the terminal has, outside a multiplexer: the
+/// command written as it goes, no string made for it (a placement each
+/// frame of an animation drawn one frame at a time).
+void _kittyPlaceDirect(
+  ByteSink out,
+  ImagePlacement p, {
+  required int id,
+  required int placement,
+}) {
+  out
+    ..ascii('\x1b_Ga=p,i=')
+    ..decimal(id)
+    ..ascii(',p=')
+    ..decimal(placement)
+    ..ascii(',c=')
+    ..decimal(p.right - p.left)
+    ..ascii(',r=')
+    ..decimal(p.bottom - p.top);
+  if (!p.whole) {
+    final image = p.image;
+    final x0 = image.pixelWidth * (p.left - p.x) ~/ p.cols;
+    final x1 = image.pixelWidth * (p.right - p.x) ~/ p.cols;
+    final y0 = image.pixelHeight * (p.top - p.y) ~/ p.rows;
+    final y1 = image.pixelHeight * (p.bottom - p.y) ~/ p.rows;
+    out
+      ..ascii(',x=')
+      ..decimal(x0)
+      ..ascii(',y=')
+      ..decimal(y0)
+      ..ascii(',w=')
+      ..decimal(x1 - x0)
+      ..ascii(',h=')
+      ..decimal(y1 - y0);
+  }
+  out.ascii(',C=1,q=2\x1b\\');
+}
+
+/// kitty command [keys] with [data] (base64) in chunks of at most 4096
+/// bytes, all but the last with `m=1`, the keys on the first alone.
+void _kittyData(
+  ByteSink out,
+  String keys,
+  Uint8List data,
+  Multiplexer multiplexer,
+) {
   const chunk = 4096;
-  final data = p.image._base64;
   for (var i = 0; i < data.length || i == 0; i += chunk) {
     final end = i + chunk < data.length ? i + chunk : data.length;
     final more = end < data.length ? 'm=1' : (i == 0 ? '' : 'm=0');
-    final keys = i == 0 ? (more.isEmpty ? '$sb' : '$sb,$more') : more;
-    putImageData(out, '\x1b_G$keys;', data, i, end, '\x1b\\', multiplexer);
+    final head = i == 0 ? (more.isEmpty ? keys : '$keys,$more') : more;
+    putImageData(out, '\x1b_G$head;', data, i, end, '\x1b\\', multiplexer);
   }
 }
+
+/// The bytes that give kitty image [id], just sent with its first frame,
+/// the first frame's time (`a=a,r=1`) and then what [kittyAnimationUpdate]
+/// writes of [animation]: the terminal has none of the rest yet.
+void kittyAnimate(
+  ByteSink out,
+  ImageAnimation animation,
+  KittyAnimationSent sent, {
+  required int id,
+  required bool playing,
+  Multiplexer multiplexer = Multiplexer.none,
+}) {
+  sent
+    .._frames = 0
+    .._state = 0;
+  _put(
+    out,
+    '\x1b_Ga=a,i=$id,r=1,z=${_gap(animation._delays.first)},q=2\x1b\\',
+    multiplexer,
+  );
+  kittyAnimationUpdate(
+    out,
+    animation,
+    sent,
+    id: id,
+    playing: playing,
+    multiplexer: multiplexer,
+  );
+}
+
+/// The bytes that bring kitty image [id]'s [animation] up to date on the
+/// terminal: the frames added since it was last sent (`a=f`, each with the
+/// time it shows), then, where it changed, whether it plays: stopped where
+/// it is (`s=1`) without [playing], else run, waiting at the last frame for
+/// more (`s=2`) until the animation is complete, then through them all as
+/// many times as it plays (`s=3`). Nothing where nothing changed.
+void kittyAnimationUpdate(
+  ByteSink out,
+  ImageAnimation animation,
+  KittyAnimationSent sent, {
+  required int id,
+  required bool playing,
+  Multiplexer multiplexer = Multiplexer.none,
+}) {
+  final frames = animation._frames;
+  while (sent._frames < frames.length) {
+    final k = sent._frames++;
+    _kittyData(
+      out,
+      'a=f,i=$id,f=100,t=d,z=${_gap(animation._delays[k + 1])},q=2',
+      ascii.encode(base64.encode(frames[k])),
+      multiplexer,
+    );
+  }
+  final state = !playing ? 1 : (animation._complete ? 3 : 2);
+  if (state == sent._state) {
+    return;
+  }
+  sent._state = state;
+  _put(
+    out,
+    switch (state) {
+      1 => '\x1b_Ga=a,i=$id,s=1,q=2\x1b\\',
+      2 => '\x1b_Ga=a,i=$id,s=2,q=2\x1b\\',
+      // v: 1 for ever, else one more than the plays
+      _ =>
+        '\x1b_Ga=a,i=$id,s=3,'
+            'v=${animation.loops == 0 ? 1 : animation.loops + 1},q=2\x1b\\',
+    },
+    multiplexer,
+  );
+}
+
+/// [delay] in whole milliseconds as kitty takes a frame's gap, at least 1.
+int _gap(Duration delay) => delay.inMilliseconds < 1 ? 1 : delay.inMilliseconds;
 
 /// The bytes that delete placement [placement] of kitty image [id]; with
 /// [placement] 0 every placement of it, and the image itself.
@@ -213,13 +465,31 @@ void kittyDelete(
   required int id,
   int placement = 0,
   Multiplexer multiplexer = Multiplexer.none,
-}) => _put(
-  out,
-  placement == 0
-      ? '\x1b_Ga=d,d=I,i=$id,q=2\x1b\\'
-      : '\x1b_Ga=d,d=i,i=$id,p=$placement,q=2\x1b\\',
-  multiplexer,
-);
+}) {
+  if (multiplexer == Multiplexer.none) {
+    // written as it goes, no string made for it
+    if (placement == 0) {
+      out
+        ..ascii('\x1b_Ga=d,d=I,i=')
+        ..decimal(id);
+    } else {
+      out
+        ..ascii('\x1b_Ga=d,d=i,i=')
+        ..decimal(id)
+        ..ascii(',p=')
+        ..decimal(placement);
+    }
+    out.ascii(',q=2\x1b\\');
+    return;
+  }
+  _put(
+    out,
+    placement == 0
+        ? '\x1b_Ga=d,d=I,i=$id,q=2\x1b\\'
+        : '\x1b_Ga=d,d=i,i=$id,p=$placement,q=2\x1b\\',
+    multiplexer,
+  );
+}
 
 /// The bytes that draw the sixel image of [p] at the cursor and put the
 /// cursor back (DECSC, DECRC), with the cursor left to the right of the

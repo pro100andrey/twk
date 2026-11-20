@@ -863,4 +863,24 @@ void main() {
     await t.pump();
     expect(t.lines.first, 'yyyy-mm-dd     ▾');
   });
+
+  testTwk('a key it leaves mid-typing hands the date over, the text left '
+      'as typed when the app took it', (t) async {
+    final value = ValueNotifier<DateTime?>(DateTime(2026));
+    addTearDown(value.dispose);
+    final changes = <DateTime?>[];
+    await t.pumpWidget(
+      KeyBindings(
+        {'f1': () {}},
+        child: picker(value, changes: changes, showTime: true, autofocus: true),
+      ),
+      size: (30, 6),
+    );
+    await clear(t);
+    await type(t, '2026-11-05');
+    await press(t, 'f1');
+    expect(changes, [DateTime(2026, 11, 5)]);
+    expect(t.lines.first, startsWith('2026-11-05 '));
+    expect(t.lines.first, isNot(contains('00:00')));
+  });
 }

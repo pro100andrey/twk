@@ -1,0 +1,6 @@
+.dart_tool/
+build/
+# dart compile wasm's output
+web/main.wasm
+web/main.mjs
+web/main.wasm.map

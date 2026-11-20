@@ -116,7 +116,7 @@ final class _Run {
       () => AppBinding(
         Typing(terminal, const []),
         maxFps: 1000,
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ),
     );
     final done = clock.run(() => binding.run(app));

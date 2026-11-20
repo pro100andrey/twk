@@ -160,8 +160,19 @@ List<int> _csiBytes(String params, String fin) => [
 /// The SGR report (mode 1006) of the mouse event: [kind] at the cell
 /// ([x], [y]), 0-based, with [button] (0 left, 1 middle, 2 right, 8 to 11
 /// the side buttons) for a press, release or drag, and [mods] ([Mod]'s
-/// Shift, Alt and Ctrl).
-List<int> mouseBytes(MouseKind kind, int x, int y, int button, int mods) {
+/// Shift, Alt and Ctrl). With [cellPixels] (width, height) the position is
+/// in pixels, SGR-Pixels (mode 1016): the cell's origin plus [offsetX] and
+/// [offsetY], the cell's middle by default.
+List<int> mouseBytes(
+  MouseKind kind,
+  int x,
+  int y,
+  int button,
+  int mods, {
+  (int, int)? cellPixels,
+  int? offsetX,
+  int? offsetY,
+}) {
   int buttonBits() => switch (button) {
     0 || 1 || 2 => button,
     >= 8 && <= 11 => 128 | (button - 8),
@@ -184,5 +195,11 @@ List<int> mouseBytes(MouseKind kind, int x, int y, int button, int mods) {
     MouseKind.wheelRight => 64 | 3,
   };
   final fin = kind == MouseKind.up ? 'm' : 'M';
+  if (cellPixels != null) {
+    final (w, h) = cellPixels;
+    final px = x * w + (offsetX ?? w ~/ 2);
+    final py = y * h + (offsetY ?? h ~/ 2);
+    return ascii.encode('\x1b[<$cb;${px + 1};${py + 1}$fin');
+  }
   return ascii.encode('\x1b[<$cb;${x + 1};${y + 1}$fin');
 }

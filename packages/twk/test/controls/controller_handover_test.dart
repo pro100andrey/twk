@@ -407,7 +407,7 @@ void main() {
       testTwk('a LogController searches from the window of the new view', (
         t,
       ) async {
-        final c = LogController();
+        final c = disposing(LogController());
         for (var i = 0; i < 30; i++) {
           c.add(i % 10 == 3 ? 'line $i hit' : 'line $i');
         }
@@ -443,8 +443,8 @@ void main() {
   testTwk('a LogController taken from its view to another searches its own '
       'lines from the start, not from the window of the view now showing '
       'another', (t) async {
-    final a = LogController();
-    final b = LogController();
+    final a = disposing(LogController());
+    final b = disposing(LogController());
     for (var i = 0; i < 100; i++) {
       a.add(i == 5 || i == 95 ? 'a $i hit' : 'a $i');
       b.add('b $i');

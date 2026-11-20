@@ -60,7 +60,7 @@ export function terminalReportOf(choice: Choice, switches: Switches): TerminalRe
       ? { query: 'terminal name and version', sequence: 'CSI > q', outcome: 'no answer', detail: 'the extension adds none; xterm.js has no answer of its own to it' }
       : { query: 'terminal name and version', sequence: 'CSI > q', outcome: 'answered', detail: answers.version },
     answers.kittyKeyboard
-      ? { query: 'kitty keyboard flags', sequence: 'CSI ? u', outcome: 'answered', detail: 'the flags the app pushed (disambiguation); keys are encoded as CSI u' }
+      ? { query: 'kitty keyboard flags', sequence: 'CSI ? u', outcome: 'answered', detail: 'the flags the app pushed (all five: disambiguation, event types, alternate keys, all keys as escape codes, associated text); keys are encoded as CSI u' }
       : { query: 'kitty keyboard flags', sequence: 'CSI ? u', outcome: 'no answer', detail: 'keys are those of xterm.js' },
     answers.cellSize
       ? { query: 'cell size in pixels', sequence: 'CSI 16 t', outcome: 'answered', detail: 'once the terminal has measured a cell' }

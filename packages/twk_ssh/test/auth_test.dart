@@ -24,7 +24,7 @@ void main() {
     auth: auth,
     onSession: (s) => s.done,
     hostKeys: hostKeys,
-    clock: clock?.stopwatch,
+    clock: clock?.clock,
   );
 
   /// Waits for [server] to see the refused connections end, then past the

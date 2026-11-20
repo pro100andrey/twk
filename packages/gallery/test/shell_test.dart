@@ -1,7 +1,7 @@
 import 'package:gallery/testing.dart';
 import 'package:test/test.dart';
 import 'package:twk/log.dart';
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 import 'package:twk_test/twk_test.dart';
 
 import 'support/gallery.dart';

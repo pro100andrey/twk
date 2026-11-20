@@ -363,7 +363,7 @@ void main() {
   testTwk('in the inline mode the app is a region below the history, which '
       'scrolls into the scrollback as it grows and stays when it '
       'ends', (t) async {
-    final rows = ValueNotifier(2);
+    final rows = disposing(ValueNotifier(2));
     await t.pumpWidget(
       ValueListenableBuilder<int>(
         valueListenable: rows,
@@ -554,7 +554,7 @@ void main() {
 
   testTwk('quit runs the clock on, frame gap by frame gap, while the app '
       'still writes what it committed to a slow terminal', (t) async {
-    final items = ValueNotifier<List<int>>([]);
+    final items = disposing(ValueNotifier<List<int>>([]));
     await t.pumpWidget(
       ListenableBuilder(
         listenable: items,
@@ -591,7 +591,7 @@ void main() {
 
   testTwk('quit fails when the app has not ended 100 frames after it was '
       'asked to', (t) async {
-    final items = ValueNotifier<List<int>>([]);
+    final items = disposing(ValueNotifier<List<int>>([]));
     await t.pumpWidget(
       ListenableBuilder(
         listenable: items,
@@ -704,7 +704,7 @@ void main() {
   testTwk('act runs its function in the zone of the app, whose timers '
       'then wait for the clock, and pumps a frame that shows what it '
       'changed', (t) async {
-    final count = ValueNotifier(0);
+    final count = disposing(ValueNotifier(0));
     await t.pumpWidget(
       ValueListenableBuilder(
         valueListenable: count,
@@ -724,7 +724,7 @@ void main() {
 
   testTwk('act awaits an async function before the frame, the clock moved '
       'on as far as it waits, and throws what it completes with', (t) async {
-    final count = ValueNotifier(0);
+    final count = disposing(ValueNotifier(0));
     await t.pumpWidget(
       ValueListenableBuilder(
         valueListenable: count,

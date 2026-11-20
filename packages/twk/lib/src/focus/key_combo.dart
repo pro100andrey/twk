@@ -42,6 +42,17 @@ import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, KeyKind, Mod;
 /// A binding of `ctrl+i` fires there only on the protocol's terminals;
 /// `tab` fires on all.
 ///
+/// A shortcut works on any keyboard layout where the terminal tells the key
+/// by its place on a US layout (the kitty keyboard protocol's alternate
+/// keys, which twk pushes): `ctrl+c` is Ctrl and the key that types `с` on
+/// a Russian layout, and `ctrl+с` (the Cyrillic letter) is that key too,
+/// each by what it is typed as first; where the layout types a Latin letter
+/// or digit, that is the key whatever its place (Dvorak's Ctrl+C is never
+/// `ctrl+j`). Plain typing keeps the layout's
+/// character; key hints show the name written in the binding. A terminal
+/// without the protocol sends Ctrl and a letter as a control character
+/// whatever the layout, so `ctrl+c` works there already.
+///
 /// A key read from a name, and asked whether an event is it:
 ///
 /// ```dart
@@ -176,6 +187,37 @@ final class KeyCombo {
     return KeyCombo._ofChar(name, modifiers);
   }
 
+  /// The combo of the key [event] is on a US layout, where the terminal
+  /// tells ([KeyEvent.baseChar]) and a shortcut is typed (Ctrl, Alt or
+  /// Super held: Shift alone types text, which the layout's own character
+  /// stands for), and the layout cannot type the key itself: the character
+  /// it types is not an ASCII letter or digit. Null otherwise: on Dvorak,
+  /// Ctrl and the key typing `c` is `ctrl+c` whatever place it is in. Ctrl
+  /// and the key that types `с` on a Russian layout is `ctrl+c` here.
+  static KeyCombo? layoutOf(KeyEvent event) =>
+      event.baseChar.isEmpty ||
+          event.code != KeyCode.char ||
+          event.modifiers & (Mod.ctrl | Mod.alt | Mod.superKey) == 0 ||
+          _latin.hasMatch(event.char)
+      ? null
+      : KeyCombo._ofChar(event.baseChar, event.modifiers);
+
+  static final _latin = RegExp(r'^[A-Za-z0-9]$');
+
+  /// The character [event] is, for a built-in key bound to one of [keys]
+  /// (single characters): the one it types if that is among them, else the
+  /// one it is on a US layout ([layoutOf], for Ctrl, Alt or Super), else
+  /// the one it types. Ctrl and the key that types `с` on a Russian layout
+  /// is `'c'` among `'cz'`; a plain `с` stays `'с'`.
+  static String charFor(KeyEvent event, String keys) {
+    final typed = event.char;
+    if (typed.length == 1 && keys.contains(typed)) {
+      return typed;
+    }
+    final layout = layoutOf(event)?.char ?? '';
+    return layout.length == 1 && keys.contains(layout) ? layout : typed;
+  }
+
   /// The combos of the keys [spec] names one after another, apart by
   /// spaces (`ctrl+x ctrl+s`), `leader` standing for [leader]; a
   /// [FormatException] if it is not one.
@@ -203,9 +245,12 @@ final class KeyCombo {
   /// capital letter.
   final int modifiers;
 
-  /// Whether [event] is a press of this key, or its repeat.
+  /// Whether [event] is a press of this key, or its repeat: by the
+  /// character it types, or, for a shortcut, by the key it is on a US
+  /// layout ([layoutOf]).
   bool accepts(KeyEvent event) =>
-      event.kind != KeyKind.release && KeyCombo.fromEvent(event) == this;
+      event.kind != KeyKind.release &&
+      (KeyCombo.fromEvent(event) == this || KeyCombo.layoutOf(event) == this);
 
   @override
   bool operator ==(Object other) =>
@@ -246,9 +291,15 @@ final class KeyCombo {
     'super': Mod.superKey,
   };
 
+  // the keys a shortcut names: not a character, nor the modifier, lock and
+  // media keys of the kitty protocol, which are no shortcut
   static final _keys = <String, KeyCode>{
     for (final code in KeyCode.values)
-      if (code != KeyCode.char) code.name.toLowerCase(): code,
+      if (code != KeyCode.char &&
+          code != KeyCode.modifier &&
+          code != KeyCode.lock &&
+          code != KeyCode.media)
+        code.name.toLowerCase(): code,
   };
 
   // Names a key is read by besides its own (twk_lints' key_names.dart holds

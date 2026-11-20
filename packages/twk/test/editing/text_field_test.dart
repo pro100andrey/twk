@@ -11,7 +11,6 @@ import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
 import '../data/shot.dart' show Counted, PaintCount;
-import '../disposing.dart';
 
 /// A focused field of [c], [width] columns wide.
 Widget field(
@@ -194,7 +193,7 @@ void main() {
       t,
     ) async {
       const theme = ThemeData.dark;
-      final c = TableController(selectedKey: 1);
+      final c = disposing(TableController(selectedKey: 1));
       await t.pumpWidget(
         Theme(
           data: theme,
@@ -787,6 +786,21 @@ void main() {
     );
     await t.type('ab');
     await t.press('ctrl+z ctrl+shift+z');
+    expect(c.text, 'ab');
+  });
+
+  testTwk('Ctrl+Shift+Z redoes as the capital Z a terminal may send', (
+    t,
+  ) async {
+    final c = TextEditingController();
+    addTearDown(c.dispose);
+    await t.pumpWidget(Theme.terminal(child: field(c)), size: (20, 1));
+    await t.type('ab');
+    await t.press('ctrl+z');
+    expect(c.text, '');
+    await t.act(
+      () => t.binding.pressKey(KeyCombo.parse('ctrl+shift+z')),
+    );
     expect(c.text, 'ab');
   });
 

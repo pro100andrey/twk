@@ -43,6 +43,22 @@ final class InputParser {
   /// A parser with no bytes fed yet.
   InputParser();
 
+  /// A cell's width in pixels, 0 where not known: what [pixelMouse]'s
+  /// reports are divided by. Set by `Terminal` from what the terminal and
+  /// the tty tell, and by an in-band resize report that carries the
+  /// window's pixels.
+  var cellPixelWidth = 0;
+
+  /// A cell's height in pixels (see [cellPixelWidth]).
+  var cellPixelHeight = 0;
+
+  /// Whether the terminal reports the mouse in pixels (SGR-Pixels, mode
+  /// 1016): then a report's coordinates are divided by the cell's size
+  /// ([cellPixelWidth], [cellPixelHeight]) into the cell and the offset in
+  /// it ([MouseEvent.offsetX]); while that size is not known the
+  /// coordinates are taken for cells. False by default.
+  var pixelMouse = false;
+
   // the bytes the reads before left undecoded: [_len] of [_store], which
   // a read's bytes are copied into (a Uint8List's as one block)
   var _store = Uint8List(256);
@@ -589,11 +605,25 @@ final class InputParser {
     }
     if (inner
         case [
-          KeyEvent(:final code, :final char, :final modifiers, :final kind),
+          KeyEvent(
+            :final code,
+            :final char,
+            :final modifiers,
+            :final kind,
+            :final baseChar,
+            :final kittyCode,
+          ),
         ]
         when modifiers & Mod.alt == 0) {
       out.add(
-        KeyEvent(code, char: char, modifiers: modifiers | Mod.alt, kind: kind),
+        KeyEvent(
+          code,
+          char: char,
+          modifiers: modifiers | Mod.alt,
+          kind: kind,
+          baseChar: baseChar,
+          kittyCode: kittyCode,
+        ),
       );
     } else {
       out
@@ -722,9 +752,10 @@ final class InputParser {
     return 0;
   }
 
-  // "11;rgb:RRRR/GGGG/BBBB" or "4;N;rgb:…", 1 to 4 hex digits per channel
+  // "11;rgb:RRRR/GGGG/BBBB" (10, 11 or 12) or "4;N;rgb:…", 1 to 4 hex
+  // digits per channel
   static final _colorReply = RegExp(
-    r'^(1[01]|4;(\d{1,3}));'
+    r'^(1[0-2]|4;(\d{1,3}));'
     r'rgb:([0-9a-fA-F]{1,4})/([0-9a-fA-F]{1,4})/([0-9a-fA-F]{1,4})$',
   );
 
@@ -898,6 +929,9 @@ final class InputParser {
     final count = _paramCount;
     if (prefix == 0x3C && (fin == 0x4D || fin == 0x6D)) {
       // M, m
+      if (pixelMouse && cellPixelWidth > 0 && cellPixelHeight > 0) {
+        return _pixelReport(_p(0), _p(1), _p(2), fin == 0x6D);
+      }
       return _sgrMouse(_p(0), _p(1), _p(2), fin == 0x6D);
     }
     if (prefix == 0x3F) {
@@ -966,7 +1000,18 @@ final class InputParser {
         return const FocusEvent(false);
       case 0x74: // t
         if (_p(0) == 48 && count >= 3) {
-          return ResizeEvent(_p(2), _p(1));
+          final rows = _p(1);
+          final cols = _p(2);
+          if (count >= 5 && rows > 0 && cols > 0) {
+            // the window's pixels: the cell's size, as of now
+            final w = _p(4) ~/ cols;
+            final h = _p(3) ~/ rows;
+            if (w > 0 && h > 0) {
+              cellPixelWidth = w;
+              cellPixelHeight = h;
+            }
+          }
+          return ResizeEvent(cols, rows);
         }
         return null;
       case 0x7E: // ~
@@ -1025,11 +1070,17 @@ final class InputParser {
         // types, Shift taken into it, as without the flags 4, 8 and 16; a
         // shortcut (Ctrl, Alt, Super) is its unshifted key, modifiers kept
         final typed = mods & ~Mod.shift == 0 ? _typedText(mods) : null;
+        // flag 4: the key in the same place on a US layout (third
+        // subparameter), which differs from the code on another layout
+        final base = _sub(0, 2);
         return KeyEvent(
           KeyCode.char,
           char: typed ?? String.fromCharCode(code),
           modifiers: typed == null ? mods : 0,
           kind: kind,
+          baseChar: base != 0 && _isTextCodePoint(base)
+              ? String.fromCharCode(base)
+              : '',
         );
     }
     return null;
@@ -1159,6 +1210,16 @@ final class InputParser {
   /// A keypad key as the key or character it stands for; null for the
   /// keys there is no [KeyCode] for.
   static KeyEvent? _kittyFunctionalKey(int code, int mods, KeyKind kind) {
+    final family = code <= KittyKey.numLock && code >= KittyKey.capsLock
+        ? KeyCode.lock
+        : code <= KittyKey.muteVolume && code >= KittyKey.mediaPlay
+        ? KeyCode.media
+        : code <= KittyKey.isoLevel5Shift && code >= KittyKey.leftShift
+        ? KeyCode.modifier
+        : null;
+    if (family != null) {
+      return KeyEvent(family, modifiers: mods, kind: kind, kittyCode: code);
+    }
     final i = code - _kittyKeypadFirst;
     final text = switch (code) {
       57415 => '=',
@@ -1174,6 +1235,25 @@ final class InputParser {
         ? _kittyKeypadKeys[k]
         : null;
     return key == null ? null : KeyEvent(key, modifiers: mods, kind: kind);
+  }
+
+  /// An SGR-Pixels report (`CSI < b ; x ; y M`, 1-based pixels): the cell
+  /// it is in and the pixels into that cell.
+  MouseEvent _pixelReport(int cb, int x, int y, bool release) {
+    final px = x < 1 ? 0 : x - 1;
+    final py = y < 1 ? 0 : y - 1;
+    final cx = px ~/ cellPixelWidth;
+    final cy = py ~/ cellPixelHeight;
+    final cell = _sgrMouse(cb, cx + 1, cy + 1, release) as MouseEvent;
+    return MouseEvent(
+      cell.kind,
+      cell.x,
+      cell.y,
+      button: cell.button,
+      modifiers: cell.modifiers,
+      offsetX: px - cx * cellPixelWidth,
+      offsetY: py - cy * cellPixelHeight,
+    );
   }
 
   // called from two places since X10's reports came, where AOT inlined

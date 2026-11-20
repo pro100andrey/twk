@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:twk_dev/src/decode.dart' show printable;
+import 'package:twk_dev/src/decode.dart' show SequenceLog, printable;
 import 'package:twk_dev/twk_dev.dart';
 
 import 'twk.dart';
@@ -232,5 +232,30 @@ void main() {
       ],
       ['2.000', '--', 'output cut short: ESC ]0;hi'],
     ]);
+  });
+
+  test('a UTF-8 character cut at the very end of the output is said to be '
+      'cut short, as a string left open is', () {
+    final log = SequenceLog()
+      ..output(1, [
+        ...'ab'.codeUnits,
+        0xe2,
+        0x82,
+      ]) // the euro sign, minus a byte
+      ..finish(2);
+
+    expect(
+      log.all().where((e) => e.kind == 'note').map((e) => e.name),
+      [r'output cut short: \xe2\x82'],
+    );
+  });
+
+  test('a character whose rest comes in the next read is not cut short', () {
+    final log = SequenceLog()
+      ..output(1, [0xe2, 0x82])
+      ..output(2, [0xac])
+      ..finish(3);
+
+    expect(log.all().where((e) => e.kind == 'note'), isEmpty);
   });
 }

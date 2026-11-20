@@ -261,7 +261,7 @@ final class TraceWriter {
     b.byte(0x0A);
     if (!_busy) {
       _busy = true;
-      Timer.run(_drainLater);
+      Zone.root.createTimer(Duration.zero, _drainLater);
     }
   }
 

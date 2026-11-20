@@ -99,6 +99,7 @@ InputListener listener(List<String> seen, Widget child) => InputListener(
 String? focused(TwkTester t) => t.binding.focusManager.primaryFocus?.debugLabel;
 
 void main() {
+  layoutTests();
   testTwk('the counter of the plan: a KeyBindings above an app with no node '
       'to focus gets its keys', (t) async {
     await t.pumpWidget(const Counter(), size: (14, 5));
@@ -603,4 +604,51 @@ final class _Always extends Action<Save> {
 
   @override
   void invoke(Save intent) => seen.add('saved');
+}
+
+void layoutTests() {
+  testTwk('a shortcut fires on the key of its place on a US layout: Ctrl and '
+      "с is ctrl+c, a sequence too, and a binding of the layout's own "
+      'key wins', (t) async {
+    final seen = <String>[];
+    await t.pumpWidget(
+      KeyBindings(
+        {
+          'ctrl+c': () => seen.add('ctrl+c'),
+          'ctrl+x ctrl+s': () => seen.add('ctrl+x ctrl+s'),
+          'ctrl+я': () => seen.add('ctrl+я'),
+          'alt+c': () => seen.add('alt+c'),
+        },
+        child: const Field('a', autofocus: true),
+      ),
+      kittyKeyboard: true,
+    );
+    // Ctrl and the keys that type с, ч, ы, я on a Russian layout
+    await t.type('\x1b[1089::99;5u');
+    await t.type('\x1b[1095::120;5u\x1b[1099::115;5u');
+    await t.type('\x1b[1103::122;5u');
+    await t.type('\x1b[1089::99;3u');
+    expect(seen, ['ctrl+c', 'ctrl+x ctrl+s', 'ctrl+я', 'alt+c']);
+  });
+
+  testTwk("a TextField gets the layout's character for plain typing", (
+    t,
+  ) async {
+    final c = TextEditingController();
+    final seen = <String>[];
+    addTearDown(c.dispose);
+    await t.pumpWidget(
+      KeyBindings(
+        {'c': () => seen.add('c'), 'ctrl+c': () => seen.add('ctrl+c')},
+        child: TextField(controller: c, autofocus: true),
+      ),
+      kittyKeyboard: true,
+    );
+    // with flag 8 text comes as codes with the base key, Shift as well
+    await t.type('\x1b[1089::99u\x1b[1089:1057:99;2u');
+    expect(c.text, 'сС');
+    expect(seen, isEmpty);
+    await t.type('\x1b[1089::99;5u');
+    expect(seen, ['ctrl+c']);
+  });
 }

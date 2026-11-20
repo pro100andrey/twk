@@ -95,6 +95,10 @@ abstract base class RenderEffect extends RenderObject
   var _childStyles = Uint32List(0);
   var _childSpans = Int32List(0);
 
+  // _childSpans are to be emptied before they are read: a mark below this
+  // boundary forgets them in O(1), as many marks as a frame makes
+  var _childForgotten = false;
+
   @override
   bool get isRepaintBoundary => true;
 
@@ -145,8 +149,15 @@ abstract base class RenderEffect extends RenderObject
 
   /// What the child painted is to be painted again.
   @override
-  void invalidatePaintCache() {
-    _childSpans.fillRange(0, _childSpans.length, 0);
+  void invalidatePaintCache() => _childForgotten = true;
+
+  /// [_childSpans], emptied first where [invalidatePaintCache] forgot them.
+  Int32List get _childKept {
+    if (_childForgotten) {
+      _childForgotten = false;
+      _childSpans.fillRange(0, _childSpans.length, 0);
+    }
+    return _childSpans;
   }
 
   @override
@@ -167,7 +178,7 @@ abstract base class RenderEffect extends RenderObject
     final by = y1 - gy;
     if (identical(owner?._alone, this) && _holds(_underSpans, ax, ay, bx, by)) {
       // repainted on its own: the surface holds what it showed last
-      if (hasEffect && _holds(_childSpans, ax, ay, bx, by)) {
+      if (hasEffect && _holds(_childKept, ax, ay, bx, by)) {
         // a new frame of the effect
         _show(surface, canvas.styles, gx, gy, x0, y0, x1, y1);
         // the child kept showing what it showed: the boundaries in it
@@ -257,6 +268,7 @@ abstract base class RenderEffect extends RenderObject
       _underSpans.fillRange(0, _underSpans.length, 0);
       _childSpans.fillRange(0, _childSpans.length, 0);
     }
+    _childForgotten = false;
   }
 
   /// Whether [spans] hold the cells [ax]..[bx], [ay]..[by] of this object.
@@ -340,7 +352,7 @@ abstract base class RenderEffect extends RenderObject
     surface,
     _childCells,
     _childStyles,
-    _childSpans,
+    _childKept,
     gx,
     gy,
     x0,

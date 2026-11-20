@@ -132,6 +132,16 @@ void main() {
     }
   });
 
+  test('the modifier, lock and media keys of the kitty protocol name no '
+      'shortcut', () {
+    for (final name in ['modifier', 'lock', 'media']) {
+      expect(() => KeyCombo.parseSequence(name), throwsFormatException);
+    }
+    // a key event of one is a combo no shortcut accepts
+    const shift = KeyEvent(KeyCode.modifier, kittyCode: KittyKey.leftShift);
+    expect(KeyCombo.parseSequence('enter').single.accepts(shift), isFalse);
+  });
+
   test('leader in a sequence stands for the leader given, alone; without '
       'one it is a FormatException', () {
     final space = KeyCombo.char(' ');
@@ -261,5 +271,73 @@ void main() {
     await t.pumpWidget(bound(seen, specs));
     await t.press(specs.join(' '));
     expect(seen, ['tab', 'tab', 'enter', 'enter', 'escape', 'escape']);
+  });
+
+  group('on another layout, a shortcut is the key by its place on a US '
+      'layout', () {
+    const ruCtrlC = KeyEvent(
+      KeyCode.char,
+      char: 'с',
+      modifiers: ctrl,
+      baseChar: 'c',
+    );
+
+    test('ctrl+c accepts Ctrl and the key that types с, and ctrl+с too', () {
+      expect(KeyCombo.parse('ctrl+c').accepts(ruCtrlC), isTrue);
+      expect(KeyCombo.parse('ctrl+с').accepts(ruCtrlC), isTrue);
+      expect(KeyCombo.parse('ctrl+x').accepts(ruCtrlC), isFalse);
+      expect(KeyCombo.parse('c').accepts(ruCtrlC), isFalse);
+      expect(KeyCombo.parse('alt+c').accepts(ruCtrlC), isFalse);
+    });
+
+    test('Shift is kept: ctrl+shift+c', () {
+      const e = KeyEvent(
+        KeyCode.char,
+        char: 'с',
+        modifiers: ctrl | shift,
+        baseChar: 'c',
+      );
+      expect(KeyCombo.parse('ctrl+C').accepts(e), isTrue);
+      expect(KeyCombo.parse('ctrl+c').accepts(e), isFalse);
+    });
+
+    test('text typed is its own character, not its place: Я is not Q', () {
+      const typed = KeyEvent(KeyCode.char, char: 'Я', baseChar: 'q');
+      const shifted = KeyEvent(
+        KeyCode.char,
+        char: 'я',
+        modifiers: shift,
+        baseChar: 'q',
+      );
+      expect(KeyCombo.parse('Q').accepts(typed), isFalse);
+      expect(KeyCombo.parse('Q').accepts(shifted), isFalse);
+      expect(KeyCombo.parse('shift+я').accepts(shifted), isTrue);
+    });
+
+    test('a Latin layout keeps what it types: Dvorak Ctrl+C is not ctrl+j', () {
+      const dvorakC = KeyEvent(
+        KeyCode.char,
+        char: 'c',
+        modifiers: ctrl,
+        baseChar: 'j',
+      );
+      expect(KeyCombo.parse('ctrl+c').accepts(dvorakC), isTrue);
+      expect(KeyCombo.parse('ctrl+j').accepts(dvorakC), isFalse);
+      expect(KeyCombo.layoutOf(dvorakC), isNull);
+      expect(KeyCombo.charFor(dvorakC, 'cj'), 'c');
+      expect(KeyCombo.charFor(ruCtrlC, 'cz'), 'c');
+      expect(KeyCombo.charFor(ruCtrlC, 'z'), 'с');
+    });
+
+    test('a release is no press', () {
+      const up = KeyEvent(
+        KeyCode.char,
+        char: 'с',
+        modifiers: ctrl,
+        kind: KeyKind.release,
+        baseChar: 'c',
+      );
+      expect(KeyCombo.parse('ctrl+c').accepts(up), isFalse);
+    });
   });
 }

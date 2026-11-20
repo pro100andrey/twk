@@ -11,6 +11,7 @@ environment:
 resolution: workspace
 dependencies:
   analyzer: ^14.7.0
+  path: ^1.9.1
   twk_doc_snippets:
     path: ../doc_snippets
 dev_dependencies:

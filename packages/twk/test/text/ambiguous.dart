@@ -33,7 +33,7 @@ final class WideApp {
         terminal,
         maxFps: 1000,
         logs: LogSink(),
-        clock: clock.stopwatch,
+        clock: clock.clock,
       ),
     );
     final running = clock.run(() => binding.run(app));

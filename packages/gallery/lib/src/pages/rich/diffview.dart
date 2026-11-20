@@ -61,15 +61,18 @@ final _diffView = GalleryPage(
       height: h,
       child: Scrollbar(
         style: Theme.of(context).border,
-        child: DiffView(
-          Diff.between(
-            _before,
-            after,
-            context: o(_diffViewContext),
-            path: _path,
+        // drag across the lines to select their code
+        child: SelectionArea(
+          child: DiffView(
+            Diff.between(
+              _before,
+              after,
+              context: o(_diffViewContext),
+              path: _path,
+            ),
+            layout: side ? DiffLayout.sideBySide : DiffLayout.unified,
+            language: plain ? Language.plain : null,
           ),
-          layout: side ? DiffLayout.sideBySide : DiffLayout.unified,
-          language: plain ? Language.plain : null,
         ),
       ),
     );
@@ -102,7 +105,8 @@ final _diffView = GalleryPage(
       '    height: $h,',
       '    child: Scrollbar(',
       '      style: Theme.of(context).border,',
-      '      child: DiffView($diff$args),',
+      '      // drag across the lines to select their code',
+      '      child: SelectionArea(child: DiffView($diff$args)),',
       '    ),',
       '  );',
     ];

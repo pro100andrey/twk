@@ -73,7 +73,7 @@ void addLines(LogController c, int from, int to) => c.addAll(lines(from, to));
 
 void main() {
   test('a where that throws leaves the controller as it was', () {
-    final c = LogController(where: (line) => line.text != 'b')
+    final c = disposing(LogController(where: (line) => line.text != 'b'))
       ..addAll(['a', 'b', 'c']);
     expect(c.shownLength, 2);
     final before = c.where;
@@ -102,9 +102,12 @@ void main() {
 
   test('a level that makes where throw leaves the controller as it was', () {
     final c =
-        LogController(
-            level: LogLevel.info,
-            where: (line) => line.text == 'boom' ? throw StateError('x') : true,
+        disposing(
+            LogController(
+              level: LogLevel.info,
+              where: (line) =>
+                  line.text == 'boom' ? throw StateError('x') : true,
+            ),
           )
           ..addAll(['a', 'b'])
           ..add('boom', level: LogLevel.debug);
@@ -122,9 +125,11 @@ void main() {
   });
 
   test('a filter that makes where throw leaves the controller as it was', () {
-    final c = LogController(
-      filter: 'a',
-      where: (line) => line.text == 'boom' ? throw StateError('x') : true,
+    final c = disposing(
+      LogController(
+        filter: 'a',
+        where: (line) => line.text == 'boom' ? throw StateError('x') : true,
+      ),
     )..addAll(['a1', 'a2', 'boom']);
     expect(c.shownLength, 2);
     var told = 0;
@@ -141,7 +146,7 @@ void main() {
 
   testTwk('follows the end as lines are added; scrolled up it stays, '
       'counting the lines that came; End goes back and follows', (t) async {
-    final c = LogController();
+    final c = disposing(LogController());
     addLines(c, 0, 10);
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (30, 5));
     expect(t.lines, lines(5, 10));
@@ -179,7 +184,7 @@ void main() {
   testTwk('a click on the indicator, or follow(), goes back to the end', (
     t,
   ) async {
-    final c = LogController();
+    final c = disposing(LogController());
     addLines(c, 0, 10);
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (30, 5));
     await t.press('pageup');
@@ -207,7 +212,7 @@ void main() {
 
   testTwk('keeps at most maxLines lines, the oldest dropped; scrolled up, '
       'it stays on the lines it shows', (t) async {
-    final c = LogController(maxLines: 20);
+    final c = disposing(LogController(maxLines: 20));
     addLines(c, 0, 25);
     expect(c.length, 20);
     expect(c[0].text, 'line 5');
@@ -246,7 +251,7 @@ void main() {
 
   testTwk('filters by level and by text as it is typed, lines added while '
       'filtered too', (t) async {
-    final c = LogController()
+    final c = disposing(LogController())
       ..add('starting', level: LogLevel.debug)
       ..add('listening on 8080')
       ..add('slow request', level: LogLevel.warning)
@@ -302,7 +307,7 @@ void main() {
 
   testTwk('where shows the lines it keeps, lines added too; set, the view '
       'stays on the lines it shows, scrolled up', (t) async {
-    final c = LogController();
+    final c = disposing(LogController());
     for (var i = 0; i < 80; i++) {
       c.add(i.isEven ? 'req $i' : 'poll $i');
     }
@@ -335,7 +340,7 @@ void main() {
   test('where set again to the same function tests the lines again', () {
     final kinds = {'req', 'poll'};
     bool shown(LogLine line) => kinds.any(line.text.startsWith);
-    final c = LogController(where: shown)
+    final c = disposing(LogController(where: shown))
       ..add('req 1')
       ..add('poll 2');
     expect(c.shownLength, 2);
@@ -351,9 +356,11 @@ void main() {
   test('a where that throws adds no line of its own, the lines before it '
       'added and the listeners told', () {
     var told = 0;
-    final c = LogController(
-      maxLines: 2,
-      where: (line) => line.text == 'bad' ? throw StateError('bad') : true,
+    final c = disposing(
+      LogController(
+        maxLines: 2,
+        where: (line) => line.text == 'bad' ? throw StateError('bad') : true,
+      ),
     )..addListener(() => told++);
     expect(() => c.addAll(['a', 'b', 'c', 'bad', 'd']), throwsStateError);
     expect([for (var i = 0; i < c.length; i++) c[i].text], ['b', 'c']);
@@ -370,7 +377,7 @@ void main() {
 
   testTwk('w turns the wrapping over, the view on the line at its top, '
       'hinted; the widget built with another wrap sets it again', (t) async {
-    final c = LogController();
+    final c = disposing(LogController());
     for (var i = 0; i < 40; i++) {
       c.add('line $i ${'word ' * (i.isEven ? 6 : 1)}');
     }
@@ -414,7 +421,7 @@ void main() {
 
   testTwk('scrolled up to the middle of a wrapped line, lines dropped past '
       'the cap above the window move nothing', (t) async {
-    final c = LogController(maxLines: 10);
+    final c = disposing(LogController(maxLines: 10));
     for (var i = 0; i < 10; i++) {
       c.add('L$i ${'wordwo ' * 8}');
     }
@@ -437,7 +444,7 @@ void main() {
 
   testTwk('scrolled across, cleared: the lines added next show from their '
       'start', (t) async {
-    final c = LogController()..add('x' * 100);
+    final c = disposing(LogController())..add('x' * 100);
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (20, 3));
     for (var i = 0; i < 10; i++) {
       await t.press('right');
@@ -455,7 +462,7 @@ void main() {
       'ends, scrolling to it; what the query finds is highlighted', (
     t,
   ) async {
-    final c = LogController();
+    final c = disposing(LogController());
     for (var i = 0; i < 30; i++) {
       c.add(i % 10 == 3 ? 'line $i hit' : 'line $i');
     }
@@ -500,7 +507,7 @@ void main() {
 
   testTwk("the hidden cursor rests on the current match's line as n and N "
       "move it, on the view's first cell without one", (t) async {
-    final c = LogController();
+    final c = disposing(LogController());
     for (var i = 0; i < 30; i++) {
       c.add(i % 10 == 3 ? 'line $i hit' : 'line $i');
     }
@@ -524,7 +531,7 @@ void main() {
 
   testTwk('wraps a long line onto the rows below, or cuts it and scrolls '
       'across with Left and Right', (t) async {
-    final c = LogController()
+    final c = disposing(LogController())
       ..add('short')
       ..add('a long line that goes past the window');
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (20, 4));
@@ -552,7 +559,7 @@ void main() {
   testTwk('a line shows its time, muted, and its level in its color', (
     t,
   ) async {
-    final c = LogController()
+    final c = disposing(LogController())
       ..add('up', time: DateTime(2026, 1, 1, 9, 5, 7, 42))
       ..add('bad', level: LogLevel.error);
     const dark = ThemeData.dark;
@@ -577,7 +584,7 @@ void main() {
       'selection stays on its line as lines are added and dropped', (
     t,
   ) async {
-    final c = LogController(maxLines: 3);
+    final c = disposing(LogController(maxLines: 3));
     addLines(c, 0, 3);
     const dark = ThemeData.dark;
     await t.pumpWidget(
@@ -619,7 +626,7 @@ void main() {
 
   testTwk('shows a scrollbar at its right, its thumb the window of the '
       'lines shown, filtered or not, at the end while it follows', (t) async {
-    final c = LogController();
+    final c = disposing(LogController());
     addLines(c, 0, 20);
     await t.pumpWidget(
       Theme.terminal(child: plain(c, scrollbar: ScrollbarVisibility.always)),
@@ -650,7 +657,7 @@ void main() {
   testTwk('a selection copies a line as it reads, its time and level too; '
       'in a line wrapped, from the row and column pressed, the indent under '
       "the level its row's start", (t) async {
-    final c = LogController()
+    final c = disposing(LogController())
       ..add('up', time: DateTime(2026, 1, 1, 9, 5, 7, 42))
       ..add('a long line that goes on', level: LogLevel.warning);
     await t.pumpWidget(
@@ -695,7 +702,7 @@ void main() {
   group('a drag past its edge', () {
     testTwk('at the bottom scrolls on, selecting the lines it scrolls '
         'through; copied all, those out of view too', (t) async {
-      final c = LogController();
+      final c = disposing(LogController());
       addLines(c, 0, 20);
       const dark = ThemeData.dark;
       await t.pumpWidget(
@@ -733,7 +740,7 @@ void main() {
 
     testTwk('at the top scrolls up, the view no longer following; lines '
         'added meanwhile leave the selection where it is', (t) async {
-      final c = LogController();
+      final c = disposing(LogController());
       addLines(c, 0, 20);
       const dark = ThemeData.dark;
       await t.pumpWidget(
@@ -769,7 +776,7 @@ void main() {
 
     testTwk('while it follows: the lines added move the selection up with '
         'them, and the drag goes on from them', (t) async {
-      final c = LogController();
+      final c = disposing(LogController());
       addLines(c, 0, 10);
       await t.pumpWidget(Theme.terminal(child: plain(c)), size: (20, 5));
       expect(t.lines.first, 'line 5');
@@ -789,7 +796,7 @@ void main() {
 
   testTwk('of a million lines, a line added while it follows is a hardware '
       'scroll and a row; one added scrolled up writes nothing', (t) async {
-    final c = LogController(maxLines: 1000000);
+    final c = disposing(LogController(maxLines: 1000000));
     addLines(c, 0, 1000000);
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (40, 10));
     expect(t.lines, lines(999990, 1000000));
@@ -821,7 +828,7 @@ void main() {
 
   testTwk('costs a ListView of a million lines what it costs to add a line, '
       'a row up and a window up, at its cap too', (t) async {
-    final c = LogController(maxLines: 2000000);
+    final c = disposing(LogController(maxLines: 2000000));
     addLines(c, 0, 1000000);
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (80, 24));
     final log = await costs(t, () => c.add('line 1000000'));
@@ -857,7 +864,7 @@ void main() {
 
   testTwk('clear drops every line and the match; the view, scrolled up '
       'before, follows the lines added next', (t) async {
-    final c = LogController(query: 'line 3');
+    final c = disposing(LogController(query: 'line 3'));
     addLines(c, 0, 10);
     await t.pumpWidget(Theme.terminal(child: plain(c)), size: (30, 5));
     await t.press('pageup');
@@ -886,10 +893,12 @@ void main() {
 
   test('a controller reads back the cap, the level and the filter it was '
       'made with and given since', () {
-    final c = LogController(
-      maxLines: 5,
-      level: LogLevel.warning,
-      filter: 'disk',
+    final c = disposing(
+      LogController(
+        maxLines: 5,
+        level: LogLevel.warning,
+        filter: 'disk',
+      ),
     );
     expect((c.maxLines, c.level, c.filter), (5, LogLevel.warning, 'disk'));
     c
@@ -900,7 +909,7 @@ void main() {
   });
 
   test('a line says its number, level and text in its toString', () {
-    final c = LogController()
+    final c = disposing(LogController())
       ..add('booted')
       ..add('disk full', level: LogLevel.error);
     expect('${c[1]}', 'LogLine(1, error, disk full)');

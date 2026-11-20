@@ -55,9 +55,12 @@ final class PointerEvent {
     this.y, {
     required this.screenX,
     required this.screenY,
-    this.button = 0,
-    this.modifiers = 0,
-  });
+    int button = 0,
+    int modifiers = 0,
+    double? subX,
+    double? subY,
+  }) : _bits = (modifiers & 0xFF) | (button & 0xFF) << 8,
+       _sub = subX == null ? null : (subX, subY ?? 0);
 
   /// What the mouse did; for an enter or an exit, what moved it in or out
   /// (a frame that moved the region: a move, or a drag while a button is
@@ -77,12 +80,43 @@ final class PointerEvent {
   /// The row of the cell from the top of the screen.
   final int screenY;
 
+  /// How far right of the cell's left edge the pointer is, as a share of
+  /// the cell's width: 0 up to, not including, 1. Null where the terminal
+  /// reports whole cells only (`MouseEvent.offsetX` is null); a drag that
+  /// follows the pointer within a cell reads it through [exactX].
+  double? get subX => _sub?.$1;
+
+  /// How far below the cell's top edge the pointer is, as a share of the
+  /// cell's height; null as [subX] is.
+  double? get subY => _sub?.$2;
+
+  // The button and the modifiers in one field, and the sub-cell position
+  // (null for whole cells, nearly always) in another: a PointerEvent stays
+  // as small as it was before the position (a mouse move makes two).
+  final int _bits;
+  final (double, double)? _sub;
+
+  /// The pointer's column in cells from the left of the widget, a
+  /// fraction of a cell more than [x] where the terminal reports pixels
+  /// ([subX]), [x] as a double where it does not.
+  double get exactX => x + (subX ?? 0);
+
+  /// The pointer's row in cells from the top of the widget, as [exactX].
+  double get exactY => y + (subY ?? 0);
+
+  /// The pointer's column in cells from the left of the screen, as
+  /// [exactX].
+  double get exactScreenX => screenX + (subX ?? 0);
+
+  /// The pointer's row in cells from the top of the screen, as [exactX].
+  double get exactScreenY => screenY + (subY ?? 0);
+
   /// The button pressed, released or held: 0 left, 1 middle, 2 right, 8 to
   /// 11 the side buttons.
-  final int button;
+  int get button => _bits >> 8 & 0xFF;
 
   /// [Mod]'s Shift, Alt and Ctrl, held.
-  final int modifiers;
+  int get modifiers => _bits & 0xFF;
 
   /// Whether Shift is held.
   bool get shift => modifiers & Mod.shift != 0;
@@ -611,6 +645,21 @@ final class RenderMouseRegion extends _RenderMouseTarget {
   }
 }
 
+/// A [Listener] a press would reach ([MouseTracker.targetsAt]), with the
+/// names of its callbacks and the render object it listens over, null
+/// for a listener in the tree.
+typedef MouseTarget = ({
+  RenderListener listener,
+  RenderObject? over,
+  List<String> callbacks,
+});
+
+/// What a press at a cell would reach ([MouseTracker.targetsAt]).
+typedef MouseTargets = ({
+  List<MouseTarget> listeners,
+  RenderObject? absorbedBy,
+});
+
 /// Routes the mouse events of an app to its [Listener]s and
 /// [MouseRegion]s by a hit test of its render tree, and counts what those
 /// mounted under [scope] need the terminal to report ([tracking]). The
@@ -675,6 +724,28 @@ final class MouseTracker {
     }
   }
 
+  /// The size of a cell in pixels (width, height), or null where it is not
+  /// known: with it a [MouseEvent.offsetX] becomes [PointerEvent.subX].
+  /// The binding sets it from the terminal's.
+  (int, int)? Function()? cellPixels;
+
+  // where in its cell the pointer of the event under dispatch is
+  double? _subX;
+  double? _subY;
+
+  void _sub(MouseEvent event) {
+    final ox = event.offsetX;
+    final oy = event.offsetY;
+    final size = ox == null || oy == null ? null : cellPixels?.call();
+    if (size == null) {
+      _subX = _subY = null;
+      return;
+    }
+    // the middle of the pixel the pointer is in
+    _subX = ((ox! + 0.5) / size.$1).clamp(0.0, 0.999999);
+    _subY = ((oy! + 0.5) / size.$2).clamp(0.0, 0.999999);
+  }
+
   final _result = HitTestResult();
 
   // the listeners the last hit test found, the deepest first, and where
@@ -716,6 +787,7 @@ final class MouseTracker {
     final MouseEvent(:kind, :x, :y, :button) = event;
     _x = x;
     _y = y;
+    _sub(event);
     _hitTest(_result, x, y);
     _moveTo(kind, x, y, button, event.modifiers, hover: true);
     final bit = 1 << button;
@@ -874,6 +946,49 @@ final class MouseTracker {
     return hit;
   }
 
+  /// What a press at [x], [y] of the screen would reach, calling nothing
+  /// and changing nothing the mouse has (no enter, exit or hover; the
+  /// press, the buttons held and the regions it is in are as they were):
+  /// `listeners`, the [Listener]s it hits, those given by [listenOver]
+  /// included, the deepest first, each with the callbacks it has, as
+  /// `down`, `up`, `hover`, `drag` and `scroll`, and with `over` the
+  /// render object it listens over, null for a listener in the tree; and
+  /// `absorbedBy`, the first `AbsorbPointer` that absorbs in the hit, or
+  /// null. A listener with no callback is left out.
+  MouseTargets targetsAt(int x, int y) {
+    _hitTest(_result, x, y);
+    final hit = _listenersHit();
+    const names = [
+      (MouseKind.down, 'down'),
+      (MouseKind.up, 'up'),
+      (MouseKind.move, 'hover'),
+      (MouseKind.drag, 'drag'),
+      (MouseKind.wheelUp, 'scroll'),
+    ];
+    final listeners = <MouseTarget>[];
+    for (var i = 0; i < hit.length; i++) {
+      final listener = hit[i];
+      final callbacks = [
+        for (final (kind, name) in names)
+          if (listener._callbackFor(kind) != null) name,
+      ];
+      if (callbacks.isNotEmpty) {
+        listeners.add((
+          listener: listener,
+          over: listener._over,
+          callbacks: callbacks,
+        ));
+      }
+    }
+    RenderObject? absorber;
+    for (var i = 0; i < _result.length && absorber == null; i++) {
+      if (_result[i] case final RenderAbsorbPointer o when o.absorbing) {
+        absorber = o;
+      }
+    }
+    return (listeners: listeners, absorbedBy: absorber);
+  }
+
   /// The mouse is at [x], [y], where [_result] was hit tested: the regions
   /// it left and those it came into are told, then with [hover] those it
   /// is in, for a move.
@@ -942,7 +1057,7 @@ final class MouseTracker {
     _showCursor();
   }
 
-  static PointerEvent _local(
+  PointerEvent _local(
     MouseKind kind,
     int localX,
     int localY,
@@ -958,6 +1073,8 @@ final class MouseTracker {
     screenY: y,
     button: button,
     modifiers: modifiers,
+    subX: _subX,
+    subY: _subY,
   );
 
   /// Shows the pointer's shape of the deepest region the mouse is in that
@@ -1036,7 +1153,7 @@ final class MouseTracker {
 
   /// The event of [kind] at [x], [y] of the screen as [target] gets it;
   /// null when it is not in the tree.
-  static PointerEvent? _pointerAt(
+  PointerEvent? _pointerAt(
     RenderObject target,
     MouseKind kind,
     int x,
@@ -1061,6 +1178,8 @@ final class MouseTracker {
       screenY: y,
       button: button,
       modifiers: modifiers,
+      subX: _subX,
+      subY: _subY,
     );
   }
 

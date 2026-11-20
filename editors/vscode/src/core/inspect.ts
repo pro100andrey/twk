@@ -57,11 +57,13 @@ export interface Flags {
   /** Whether a pick goes on after a cell picked. */
   readonly selectMany: boolean;
   readonly treeEvents: boolean;
+  /** Whether the app posts `twk.frame` for each frame; absent where it does not report it. */
+  readonly frameEvents?: boolean;
 }
 
 export type FlagName = keyof Flags;
 
-export const flagNames: readonly FlagName[] = ['overlay', 'console', 'rainbow', 'relayout', 'overflow', 'keys', 'select', 'selectMany', 'treeEvents'];
+export const flagNames: readonly FlagName[] = ['overlay', 'console', 'rainbow', 'relayout', 'overflow', 'keys', 'select', 'selectMany', 'treeEvents', 'frameEvents'];
 
 /** What an inspector hears from the app: what it posted, a hot reload done, or its binding there (its service extensions registered), which may be after its VM service connected. */
 export type AppEvent =
@@ -170,6 +172,7 @@ export function parseFlags(answer: unknown): Flags {
     rainbow: on('rainbow'),
     relayout: on('relayout'),
     ...overflow,
+    ...(a.frameEvents === undefined ? {} : { frameEvents: on('frameEvents') }),
     keys: on('keys'),
     select: on('select'),
     selectMany: on('selectMany'),
@@ -186,6 +189,11 @@ export function parsePicked(data: unknown): { readonly x: number; readonly y: nu
     return null;
   }
   return isCount(data.x) && isCount(data.y) ? { x: data.x, y: data.y } : undefined;
+}
+
+/** Whether [data] is what `twk.treeChanged` carries, of a version this reads: an event of another is not taken for one. */
+export function isTreeChanged(data: unknown): boolean {
+  return isRecord(data) && data.version === inspectorVersion;
 }
 
 /** The nodes from [root] down to the one [id] names, root first; undefined where none is. */
@@ -301,7 +309,8 @@ export function parseProperties(answer: unknown): NodeProperties {
 /** `ext.twk.layout`'s answer; throws on one this doesn't read. */
 export function parseLayout(answer: unknown): NodeLayout {
   const a = versioned(answer);
-  const point = (v: unknown) => (isRecord(v) && isCount(v.x) && isCount(v.y) ? { x: v.x, y: v.y } : undefined);
+  // a scrolled child sits at a negative offset in its viewport, and its global position sums them
+  const point = (v: unknown) => (isRecord(v) && Number.isInteger(v.x) && Number.isInteger(v.y) ? { x: v.x as number, y: v.y as number } : undefined);
   const limit = (v: unknown) => (v === null || v === undefined ? null : isCount(v) ? v : undefined);
   const c = a.constraints;
   let constraints: Constraints | undefined;
@@ -338,6 +347,8 @@ export interface DetailRow {
 
 /** A group of lines of the node view. */
 export interface DetailSection {
+  /** Stable and unique among the sections, whatever the titles (a node may be named `Layout`). */
+  readonly id: string;
   readonly title: string;
   readonly rows: readonly DetailRow[];
 }
@@ -366,7 +377,7 @@ export function detailSections(details: NodeDetails): DetailSection[] {
   if (p.flags.length) {
     node.push({ label: 'flags', value: p.flags.join(', ') });
   }
-  const sections: DetailSection[] = [{ title: p.name, rows: node }];
+  const sections: DetailSection[] = [{ id: 'node', title: p.name, rows: node }];
   const l = details.layout;
   if (l) {
     const rows: DetailRow[] = [];
@@ -383,7 +394,7 @@ export function detailSections(details: NodeDetails): DetailSection[] {
       rows.push({ label: 'on screen', value: `${l.global.x}, ${l.global.y}` });
     }
     if (rows.length) {
-      sections.push({ title: 'Layout', rows });
+      sections.push({ id: 'layout', title: 'Layout', rows });
     }
   }
   return sections;

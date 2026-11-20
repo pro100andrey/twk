@@ -2,8 +2,9 @@
 // of core/ and app/ under plain node.
 import * as net from 'node:net';
 import * as os from 'node:os';
+import * as path from 'node:path';
 
-import { ShellAddress, fromVariable } from '../../core/address';
+import { ShellAddress, connectionOf, fromVariable } from '../../core/address';
 import { Answers, Choice, choiceOf } from '../../core/capabilities';
 import { TerminalRequest } from '../../core/emulation';
 import { Clock, Disposable, Emitter } from '../../core/events';
@@ -243,7 +244,35 @@ export class FakePanel<To = ToWebview> implements WebviewPanelPort<To> {
 }
 
 /** Starts core's shell on a real local socket, in the system's temporary directory. */
-export const realShell: ShellStarter = (pane, serves) => TerminalShell.start(pane, { ...serves, temporaryRoot: os.tmpdir(), tcp: false });
+/** Whether a shell listens on TCP, as the extension's does (extension.ts): where there are no Unix domain sockets (Windows). */
+export const shellOnTcp = process.platform === 'win32';
+
+/**
+ * Listens with [server] where this platform's shell would: on a Unix domain
+ * socket named [name] in [directory], or on TCP on 127.0.0.1 where there
+ * are none (Windows). Resolves to the address's `where`.
+ */
+export async function listenLocal(server: net.Server, directory: string, name: string): Promise<string> {
+  if (shellOnTcp) {
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    return `tcp:127.0.0.1:${(server.address() as net.AddressInfo).port}`;
+  }
+  const socketPath = path.join(directory, name);
+  await new Promise<void>((r) => server.listen(socketPath, r));
+  return `unix:${socketPath}`;
+}
+
+/** Connects to [where], `unix:<path>` or `tcp:<host>:<port>`, once it is connected. */
+export async function connectLocal(where: string): Promise<net.Socket> {
+  const socket = net.connect(connectionOf(where));
+  await new Promise<void>((resolve, reject) => {
+    socket.once('connect', resolve);
+    socket.once('error', reject);
+  });
+  return socket;
+}
+
+export const realShell: ShellStarter = (pane, serves) => TerminalShell.start(pane, { ...serves, temporaryRoot: os.tmpdir(), tcp: shellOnTcp });
 
 export class FakeLog implements Log {
   text = '';
@@ -495,11 +524,10 @@ export class App {
   }
   static async connect(variable: string, token?: string): Promise<App> {
     const address = fromVariable(variable);
-    if (!address?.where.startsWith('unix:')) {
+    if (!address) {
       throw new Error(`no shell at ${variable}`);
     }
-    const socket = net.connect(address.where.substring('unix:'.length));
-    await new Promise((r) => socket.once('connect', r));
+    const socket = await connectLocal(address.where);
     const app = new App(socket);
     socket.write(jsonFrame(AppFrame.hello, { protocol: Wire.protocol, token: token ?? address.token }));
     return app;

@@ -224,10 +224,15 @@ void main() {
       const KeyEvent(KeyCode.char, char: '0'),
       const KeyEvent(KeyCode.char, char: '+', modifiers: Mod.ctrl),
     ]);
-    for (final code in [57376, 57358, 57428, 57441, 57454]) {
-      // F13, Caps Lock, media keys, modifier keys: no KeyCode for them
-      expect(parse('\x1b[${code}u').whereType<KeyEvent>(), isEmpty);
-    }
+    // F13 has no KeyCode; Caps Lock, media keys and modifier keys have
+    // their families' (test/input/kitty_keyboard_test.dart)
+    expect(parse('\x1b[57376u').whereType<KeyEvent>(), isEmpty);
+    expect(parse('\x1b[57358u\x1b[57428u\x1b[57441u\x1b[57454u'), [
+      const KeyEvent(KeyCode.lock, kittyCode: KittyKey.capsLock),
+      const KeyEvent(KeyCode.media, kittyCode: KittyKey.mediaPlay),
+      const KeyEvent(KeyCode.modifier, kittyCode: KittyKey.leftShift),
+      const KeyEvent(KeyCode.modifier, kittyCode: KittyKey.isoLevel5Shift),
+    ]);
     // reply to the protocol query CSI ? u
     expect(parse('\x1b[?1u'), [const KeyboardFlagsReport(1)]);
     expect(parse('\x1b[?u'), [const KeyboardFlagsReport(0)]);
@@ -346,6 +351,14 @@ void main() {
           .having((c) => c.rgb, 'rgb', 0x89b4fa),
     );
     expect((c1.which, c1.index), (11, 0));
+    final c12 = parse('\x1b]12;rgb:ffff/8888/0000\x1b\\').single;
+    expect(
+      c12,
+      isA<ColorReport>()
+          .having((c) => c.which, 'which', 12)
+          .having((c) => c.rgb, 'rgb', 0xff8800),
+    );
+    expect(parse('\x1b]13;rgb:ff/ff/ff\x07').single, isA<UnknownSequence>());
     expect(parse('\x1b]4;256;rgb:ff/ff/ff\x07').single, isA<UnknownSequence>());
     expect(parse('\x1b[48;40;120;800;1600t'), [const ResizeEvent(120, 40)]);
     final p = InputParser()..expectCursorReport = true;
@@ -481,8 +494,12 @@ void main() {
     ]);
     expect(parse('\x1b[97:65;2u'), [const KeyEvent(KeyCode.char, char: 'A')]);
     expect(parse('\x1b[97:65:97;2u'), [
-      const KeyEvent(KeyCode.char, char: 'A'),
+      const KeyEvent(KeyCode.char, char: 'A', baseChar: 'a'),
     ]);
+    expect(
+      (parse('\x1b[97:65:97;2u').single as KeyEvent).baseChar,
+      'a',
+    );
     expect(parse('\x1b[97;2u'), [
       const KeyEvent(KeyCode.char, char: 'a', modifiers: Mod.shift),
     ]);

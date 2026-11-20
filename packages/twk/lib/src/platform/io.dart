@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:isolate' show Isolate;
 import 'dart:math' show max, min;
 
+import 'package:twk_core/libc.dart' as libc show getppid;
 import 'package:twk_core/twk_core.dart' as core show stdioIsTerminal;
 
 import 'file_identity.dart';
@@ -25,6 +26,10 @@ String get pathSeparator => Platform.pathSeparator;
 
 /// The process's id.
 int get processId => pid;
+
+/// The id of the process that started this one, -1 where there is none
+/// to ask (Windows).
+int get parentProcessId => Platform.isWindows ? -1 : libc.getppid();
 
 /// The path of the working directory.
 String get currentDirectory => Directory.current.path;
@@ -89,6 +94,39 @@ Stream<void> watchDirectory(String path) {
   }
 }
 
+/// The file the name holds, opened once for a look, with its identity taken
+/// by the name on both sides of the open: where the two differ a file was put
+/// at the name meanwhile and the handle may be of either, so it is opened
+/// again. Null where there is no file.
+///
+/// After four opens that each saw the name change, the identity told is the
+/// one before the open, not the one after it: a handle of the earlier file
+/// under the later one's identity would be read as that file's and the
+/// later file's first bytes never told, while the earlier identity with the
+/// later file's handle is found out by the next look, which sees the name
+/// hold another file and starts over, the later file read again and not lost.
+///
+/// [open] and [identity] are the file's and the name's, parameters for a
+/// test to flap them.
+Future<(RandomAccessFile, Object?)?> openNamed({
+  required Future<RandomAccessFile> Function() open,
+  required Object? Function() identity,
+}) async {
+  for (var tries = 0; ; tries++) {
+    final before = identity();
+    final RandomAccessFile handle;
+    try {
+      handle = await open();
+    } on FileSystemException {
+      return null;
+    }
+    if (before == identity() || tries >= 3) {
+      return (handle, before);
+    }
+    await handle.close();
+  }
+}
+
 /// Streams the bytes written to the file at [path] from when the stream is
 /// listened to, and before them the whole lines among the last [backlog]
 /// bytes there were (none for 0, the whole file for null), as they come: told
@@ -150,28 +188,10 @@ Stream<TailEvent> tailFile(
   var looked = Completer<void>()..complete();
   late final StreamController<TailEvent> out;
 
-  // The file the name holds, opened once for a look, with its identity
-  // taken by the name on both sides of the open: where the two differ a file
-  // was put at the name meanwhile and the handle may be of either, so it is
-  // opened again. Null where there is no file.
-  Future<(RandomAccessFile, Object?)?> openFile() async {
-    for (var tries = 0; ; tries++) {
-      final before = fileIdentity(path);
-      final RandomAccessFile handle;
-      try {
-        handle = await file.open();
-      } on FileSystemException {
-        return null;
-      }
-      // given up on, the later identity, the handle being likelier that
-      // file's, unless the name holds nothing by now
-      final after = fileIdentity(path);
-      if (before == after || tries >= 3) {
-        return (handle, after ?? before);
-      }
-      await handle.close();
-    }
-  }
+  Future<(RandomAccessFile, Object?)?> openFile() => openNamed(
+    open: file.open,
+    identity: () => fileIdentity(path),
+  );
 
   Future<void> look() async {
     if (reading) {

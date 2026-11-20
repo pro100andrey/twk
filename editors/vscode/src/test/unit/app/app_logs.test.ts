@@ -5,6 +5,8 @@
 // the frames of a stack opened as places of code (a package through the
 // package configuration); cleared; the rows kept bounded.
 import * as assert from 'node:assert/strict';
+import * as path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { AppLogs, AppLogsPanel, AppLogsView, AppTerminal } from '../../../app/app_logs';
 import { Emitter } from '../../../core/events';
@@ -19,6 +21,9 @@ class FakeTerminal implements AppTerminal {
     this.closes.fire();
   }
 }
+
+/** The package configuration of [dir], as the log looks it up: in this platform's separators. */
+const packageConfig = (dir: string) => path.join(dir, '.dart_tool', 'package_config.json');
 
 const record = (level: string, message: string, extra: object = {}) => JSON.stringify({ time: '2026-01-01T09:05:07.042', level, message, ...extra });
 
@@ -104,7 +109,7 @@ describe('the apps\' log', () => {
 
   it('opens the frames that are code on the disk: file: ones, and package: ones by the package configuration', async () => {
     files.set(
-      '/p/.dart_tool/package_config.json',
+      packageConfig('/p'),
       JSON.stringify({ configVersion: 2, packages: [{ name: 'app', rootUri: '../', packageUri: 'lib/' }] }),
     );
     const { conn } = await connected();
@@ -118,16 +123,25 @@ describe('the apps\' log', () => {
     assert.deepEqual(
       opener.opened.map((s) => [s.uri, s.line, s.column]),
       [
-        ['file:///p/lib/src/run.dart', 3, 4],
+        [pathToFileURL(path.join('/p', 'lib', 'src', 'run.dart')).href, 3, 4],
         ['file:///home/me/g.dart', 9, 2],
       ],
     );
   });
 
   it('finds the package configuration above the project (a workspace\'s)', async () => {
-    files.set('/.dart_tool/package_config.json', JSON.stringify({ configVersion: 2, packages: [{ name: 'app', rootUri: '../packages/app', packageUri: 'lib/' }] }));
+    files.set(packageConfig('/'), JSON.stringify({ configVersion: 2, packages: [{ name: 'app', rootUri: '../packages/app', packageUri: 'lib/' }] }));
     const { conn } = await connected();
     conn.line(record('error', 'x', { stack: '#0 f (package:app/a.dart:1:1)' }));
+    assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: true }]);
+  });
+
+  it('a missing package configuration is not remembered: one written later is read', async () => {
+    const { conn } = await connected();
+    conn.line(record('error', 'x', { stack: '#0 f (package:app/a.dart:1:1)' }));
+    assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: false }]);
+    files.set(packageConfig('/p'), JSON.stringify({ configVersion: 2, packages: [{ name: 'app', rootUri: '../', packageUri: 'lib/' }] }));
+    conn.line(record('error', 'y', { stack: '#0 f (package:app/a.dart:1:1)' }));
     assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: true }]);
   });
 

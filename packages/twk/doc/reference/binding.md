@@ -15,8 +15,8 @@ it, which the process's terminal then reports on the normal screen too
 `TwkApp` (`AppBinding.of(context)`), which builds the tree at the start of
 each frame (after the frame callbacks due, `scheduleFrameCallback`), in the
 app's zone (any number of `setState` calls between two frames make one
-build, at most `maxFps` a second, spaced by its `clock`, the `Stopwatch` it
-gives `TwkApp`, which a test's fake clock moves), tells the focus nodes
+build, at most `maxFps` a second, spaced by its `clock`, the `Clock` it
+gives `TwkApp`, a `SystemClock` by default, which a test's fake clock moves), tells the focus nodes
 whose focus changed first and settles the focus again after the build when
 that moved it (an autofocus, a focused node removed), in the same frame
 (what the layout changes, a `LayoutBuilder`'s build binding keys or moving
@@ -231,14 +231,42 @@ render object's `element`, and `children`. `ext.twk.properties` (`id`) gives
 a node without its children; `ext.twk.layout` (`id`) its render object's
 `constraints` (null for no limit) and `size` once laid out, its `offset` in
 its parent and `global` on the screen (of the inline region);
-`ext.twk.select` (`x`, `y`) the deepest element whose render object a hit
+`ext.twk.select` (`x`, `y`, and `cursorY`, the row of the terminal's cursor
+in the rows `y` counts, for a tool that sees the screen but not where the
+inline region is on it) the deepest element whose render object a hit
 test of the last frame finds at a cell, the `path` of ids from the root to
 it and the render objects hit (`render`), the deepest first;
+`ext.twk.find` (`finder`, JSON) the elements of the app's widget and below
+it that an `ElementFinder` finds, in the order of the tree, with the `frame`
+run and the `count`, each match with its `id`, `type`, `key`, `text` (the
+whole of a `Text`'s), `rect` (null before layout) and `shown`, the part of
+it the screen shows (`ext.twk.layout` answers `shown` too);
+`ext.twk.hitTest` (`x`, `y`, `cursorY`) what a click at a cell reaches,
+calling no callback: `takenBy` (`pick`, `console` or null: the tree gets
+it), the `path` of elements hit, the `listeners` with their callbacks and
+`absorbedBy`, the `AbsorbPointer` that takes the press;
 `ext.twk.highlight` (`id`, none to clear it) outlines a node's render object
-(`highlight`); `ext.twk.flags` gives `overlay`, `console` (open), `rainbow`,
-`relayout`, `keys`, `select` and `framesInRow`, and sets those of the first
-six passed `true` or `false`, none when a value is wrong (`framesInRow`
-cannot be set); `ext.twk.reassemble` reassembles the app; `ext.twk.log`
+(`highlight`); `ext.twk.flags` answers the debug aids, each true or false,
+and sets those passed as a parameter, `true` or `false`, first (none when a
+value is wrong): `overlay`, `console` (open), `rainbow`, `relayout`,
+`overflow` (the marker of an overflow), `keys` (the debug keys), `select`
+(the pick of a node on the screen, the cell coming as the event
+`twk.select`), `selectMany` (the pick going on after a cell picked),
+`treeEvents` (the event `twk.treeChanged`, with `version` and `rebuilds`,
+after each frame in which elements built, for a tool that follows the
+tree) and `frameEvents` (the events `twk.frame` after every frame, drawn or
+not, `twk.input` after input that led to no frame yet, and `twk.scheduled`
+from a driven app when its clock's timers change, all with the `frame`,
+`size`, `inputRead`, `outputWritten`, `inputPending`, `scheduled`,
+`frameDue`, `time`, `nextDue` and `quitting` of the app, a driver syncs on);
+and `framesInRow` (`TwkApp.framesInRow`), which the app is built with and no
+parameter sets (naming it is invalid params). `ext.twk.status` answers
+where the app is, as `twk.frame` says it without `drawn`, changing nothing
+and whether `frameEvents` is on or not; `ext.twk.reassemble` reassembles
+the app and answers the frame run and the frame due; `ext.twk.clock` (`op`:
+`status` by default, `advance` with `by`, `advanceTo` with `to`, `next`,
+microseconds; `describe`) says where the app's clock stands and, for an app
+a driver runs on its time (`TWK_DRIVEN`), moves it; `ext.twk.log`
 (`message`, `level`: `debug`, `info` by default, `warning` or `error`;
 `error`) adds a record to the app's log, an error opening the console.
 

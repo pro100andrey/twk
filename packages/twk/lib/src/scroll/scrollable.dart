@@ -103,7 +103,12 @@ final class ScrollMetrics {
 /// one End goes to: offset 0, at the bottom (the right).
 final class ScrollPosition with ChangeNotifier {
   ScrollPosition._(this._axis, this._pixels, this._state, this._reverse)
-    : _stuck = _pixels == 0;
+    : _stuck = _pixels == 0 {
+    assert(
+      DisposalTracker.created(this),
+      'tracks the object',
+    );
+  }
 
   Axis _axis;
 

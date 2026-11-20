@@ -7,6 +7,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:twk_core/twk_core.dart' show Clock;
+
 import 'auth.dart';
 import 'keys.dart';
 import 'session.dart';
@@ -40,7 +42,7 @@ final class SshConnection implements SessionTransport {
     String version = 'twk_ssh_0.1',
     Duration loginTimeout = const Duration(minutes: 2),
     SshRekeyLimit rekeyLimit = const SshRekeyLimit(),
-    Stopwatch? clock,
+    Clock? clock,
     SshTimers? timers,
     this.onError,
   }) : remoteAddress = socket.remoteAddress,

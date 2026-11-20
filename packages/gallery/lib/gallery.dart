@@ -4,7 +4,7 @@
 /// would.
 library;
 
-import 'package:twk/twk.dart';
+import 'package:twk/twk.dart' hide Clock;
 
 import 'src/motion.dart';
 import 'src/pages/pages.dart';

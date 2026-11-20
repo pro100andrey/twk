@@ -78,12 +78,13 @@ final class _PromptKeys extends StatelessWidget {
       if (event.kind == KeyKind.release) {
         return KeyEventResult.ignored;
       }
-      if (event.modifiers == Mod.ctrl && event.char == 'c') {
+      final key = KeyCombo.charFor(event, 'cd');
+      if (event.modifiers == Mod.ctrl && key == 'c') {
         answer.cancel(PromptCancelReason.interrupt);
         return KeyEventResult.handled;
       }
       if (event.modifiers == Mod.ctrl &&
-          event.char == 'd' &&
+          key == 'd' &&
           (atEmpty?.call() ?? true)) {
         answer.cancel(PromptCancelReason.endOfInput);
         return KeyEventResult.handled;

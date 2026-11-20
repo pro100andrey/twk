@@ -1,13 +1,11 @@
 # twk_web — a twk app in the browser
 
-Runs an app of [twk](../twk/README.md) in a web page, on
-[xterm.js](https://xtermjs.org): `runWebApp` mounts it into a DOM
-element, where a `Terminal` of the core runs over a link to an xterm.js
-terminal (`XtermLink`, through `Terminal.overLink`) as it runs over the
-process's own terminal elsewhere. It takes twk and the core as path
-dependencies, and [package:web](https://pub.dev/packages/web), whose
-dart:js_interop reaches xterm.js; xterm.js itself is the page's, loaded
-from a CDN at a pinned version.
+Put an app of [twk](../twk/README.md) in a web page: the same widgets, keys
+and mouse, on [xterm.js](https://xtermjs.org), with nothing to install for
+whoever opens it. The [gallery](../gallery/README.md) runs this way.
+
+`runWebApp` mounts the app into a DOM element. The package is in this
+repository, not on pub.dev yet: it takes twk and the core as path dependencies.
 
 ```dart
 import 'package:twk/twk.dart';
@@ -63,6 +61,12 @@ A page with a terminal of its own runs a `Terminal` over it with
 `Terminal` through dart:js_interop, `XtermPort` what the link needs of it.
 
 ## What xterm.js is to the core
+
+A `Terminal` of the core runs over a link to an xterm.js terminal
+(`XtermLink`, through `Terminal.overLink`) as it runs over the process's own
+terminal elsewhere. [package:web](https://pub.dev/packages/web)'s
+dart:js_interop reaches xterm.js, which is the page's, loaded from a CDN at
+a pinned version.
 
 The link tells the core it is `TERM=xterm-256color`, `COLORTERM=truecolor`
 and `TERM_PROGRAM=xterm.js` (`XtermLink.xtermEnvironment`; a link given

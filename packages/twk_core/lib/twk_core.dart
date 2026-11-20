@@ -28,7 +28,14 @@ export 'src/app.dart' show FrameStats, TwkApp;
 export 'src/asserts.dart' show debugAssertsEnabled;
 export 'src/byte_sink.dart' show ByteSink;
 export 'src/canvas.dart' show Canvas, GlyphBuffer, GlyphRun;
-export 'src/graphics.dart' show GraphicsProtocol, ImagePlacement, TerminalImage;
+export 'src/clock.dart' show Clock, ClockElapsed, SystemClock;
+export 'src/graphics.dart'
+    show
+        GraphicsProtocol,
+        ImageAnimation,
+        ImageKeep,
+        ImagePlacement,
+        TerminalImage;
 export 'src/headless.dart' show HeadlessTerminal, renderToString;
 export 'src/input/events.dart';
 export 'src/input/parser.dart' show InputParser;
@@ -52,7 +59,12 @@ export 'src/surface.dart'
         kUncertain,
         kWide;
 export 'src/terminal/link.dart'
-    show DeclaringLink, TerminalDeclaration, TerminalException, TerminalLink;
+    show
+        DeclaringLink,
+        PixelSizedLink,
+        TerminalDeclaration,
+        TerminalException,
+        TerminalLink;
 export 'src/terminal/plain.dart' show plainAsked, runsInCi;
 export 'src/terminal/sequences.dart'
     show
@@ -74,6 +86,7 @@ export 'src/terminal/sequences.dart'
         titleSequence;
 export 'src/terminal/terminal.dart'
     show
+        CountingBackend,
         MouseTrackingBackend,
         SuspendableBackend,
         Terminal,
