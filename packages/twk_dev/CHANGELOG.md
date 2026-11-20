@@ -12,6 +12,9 @@ Changed:
 
 Fixed:
 
+- `twk tape`: a `Shift+Space` or `Shift+1` key step presses its event, as it
+  did before, where it failed through the key bindings' spelling of the key.
+
 - `twk agents`: a link at the manifest's path (`.twk-agents.json`) is the
   project's, as a pack file's is, and what it points at is not written; a file
   where a directory of the skill belongs, or a directory at the manifest's

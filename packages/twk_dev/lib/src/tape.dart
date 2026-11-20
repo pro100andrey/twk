@@ -408,9 +408,8 @@ final class TapeRunner {
           await _pause(delay ?? _typing);
         }
       case KeyStep(:final key, :final count, :final delay):
-        final keys = KeyCombo.fromEvent(key).toString();
         for (var i = 0; i < count; i++) {
-          await _input(step, () => _session.press(keys));
+          await _input(step, () => _session.pressKey(key));
           await _pause(delay ?? _typing);
         }
       case ClickStep(:final finder, :final delay):

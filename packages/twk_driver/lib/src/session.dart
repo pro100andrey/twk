@@ -990,6 +990,10 @@ final class Session {
     }
     Step? step;
     for (final bytes in writes) {
+      if (bytes.isEmpty) {
+        // nothing is sent, so no frame will come to wait for
+        continue;
+      }
       final from = _seq;
       _write(bytes);
       step = await _settled(_written, from: from);
@@ -1018,16 +1022,34 @@ final class Session {
   Future<Step> press(String keys) => _traced('press', {'keys': keys}, () {
     final writes = <List<int>>[];
     for (final combo in KeyCombo.parseSequence(keys)) {
-      final bytes = _screen.encodeKey(
-        KeyEvent(combo.code, char: combo.char, modifiers: combo.modifiers),
+      writes.add(
+        _keyBytes(
+          KeyEvent(combo.code, char: combo.char, modifiers: combo.modifiers),
+          '$combo',
+        ),
       );
-      if (bytes.isEmpty) {
-        throw DriverError('"$combo" has no bytes in the modes the app set');
-      }
-      writes.add(bytes);
     }
     return _act(writes);
   });
+
+  /// Presses [key] as it is, in the bytes the app's modes ask for: the
+  /// keys [press] cannot name (Shift and a space or a character that has
+  /// no capital, `Shift+1`) are pressed by their event. Returns as [press]
+  /// does.
+  Future<Step> pressKey(KeyEvent key) {
+    final name = KeyCombo.fromEvent(key).toString();
+    return _traced('press', {'keys': name}, () {
+      return _act([_keyBytes(key, name)]);
+    });
+  }
+
+  List<int> _keyBytes(KeyEvent key, String name) {
+    final bytes = _screen.encodeKey(key);
+    if (bytes.isEmpty) {
+      throw DriverError('"$name" has no bytes in the modes the app set');
+    }
+    return bytes;
+  }
 
   /// Types [text], as the bytes of its characters in one write.
   Future<Step> type(String text) =>
@@ -1466,7 +1488,11 @@ final class Session {
   /// Ends the session: the app is let go if it still runs, and what it
   /// left behind is checked when it ended by itself: the tty back in
   /// cooked mode, the alternate screen left, the cursor visible.
-  Future<CloseReport> close() async {
+  Future<CloseReport> close() => _closeReport ??= _close();
+
+  Future<CloseReport>? _closeReport;
+
+  Future<CloseReport> _close() async {
     final byItself = _exited;
     if (!_exited) {
       _closing = true;

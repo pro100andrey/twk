@@ -310,6 +310,27 @@ void main() {
     );
   });
 
+  test('a key the tape parser accepts and the key bindings do not name '
+      '(Shift+Space, Shift+1) is pressed by its event: the app gets its '
+      'bytes', () async {
+    final ran = start('Shift+Space\nShift+1\n');
+    final terminal = process.launched.terminal;
+    var done = false;
+    unawaited(ran.whenComplete(() => done = true));
+    for (var i = 0; i < 100 && !done; i++) {
+      await pumpEventQueue();
+      clock.advance(const Duration(milliseconds: 60));
+      final written = terminal.writes.fold(0, (n, w) => n + w.length);
+      if (written > service.inputRead) {
+        service
+          ..inputRead = written
+          ..frame(terminal, '.');
+      }
+    }
+    expect(await ran, 0, reason: '$said');
+    expect(terminal.writes, [' ', '1']);
+  });
+
   test('Click Key of a key the tree lacks fails the tape, saying what it '
       'found', () async {
     service.answers['find'] = (_) => _found([]);

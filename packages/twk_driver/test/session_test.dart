@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:twk/twk.dart' show DrivenClock, ElementFinder;
+import 'package:twk_core/twk_core.dart' show KeyCode, KeyEvent, Mod;
 import 'package:twk_driver/twk_driver.dart';
 
 import 'fakes.dart';
@@ -84,6 +85,41 @@ void main() {
     expect(t.service.calls.any((c) => c.startsWith('reassemble')), isFalse);
     expect(t.session.frame, 3);
     expect(t.session.screenText, 'start');
+    await t.session.close();
+  });
+
+  test('close twice: the second is the first one\'s report, an app the '
+      'driver let go is not one that exited by itself', () async {
+    final t = await started();
+    final first = await t.session.close();
+    expect(first.exitedByItself, isFalse);
+    final second = await t.session.close();
+    expect(identical(second, first), isTrue);
+    expect(second.exitedByItself, isFalse);
+    expect(second.problems, isEmpty);
+  });
+
+  test('type of an empty text is a step that sends nothing and waits for '
+      'no frame', () async {
+    final t = await started();
+    final before = t.process.launched.terminal.writes.length;
+    final step = await t.session.type('');
+    expect(t.process.launched.terminal.writes.length, before);
+    expect(step.frame, t.session.frame);
+    await t.session.close();
+  });
+
+  test('pressKey presses the event itself: Shift and space', () async {
+    final t = await started();
+    final term = t.process.launched.terminal;
+    final press = t.session.pressKey(
+      const KeyEvent(KeyCode.char, char: ' ', modifiers: Mod.shift),
+    );
+    await pumpEventQueue();
+    expect(term.writes.last, '< >'.codeUnits);
+    term.app('A');
+    t.service.frame(frame: 2, inputRead: 3, outputWritten: 6);
+    expect((await press).frame, 2);
     await t.session.close();
   });
 

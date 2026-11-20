@@ -11,6 +11,18 @@ Added:
 
 Fixed:
 
+- `Session.close` twice returns the first call's report: the second one called
+  an app the driver had let go "exited by itself" and its terminal dirty.
+  `type('')` and `paste('')` (without bracketed paste) send nothing and
+  return the current step at once, where they waited the whole timeout for a
+  frame that never came.
+
+Added:
+
+- `Session.pressKey(KeyEvent)` presses an event as it is, for the keys
+  `press` cannot name (Shift with a space or with a character that has no
+  capital).
+
 - On macOS `Session.close` read the tty's modes with Linux's layout and called
   every app that quit raw: `SessionPorts.macos`, `Session.compose` and
   `Session.attach` now follow the platform unless told, and the macOS ISIG
