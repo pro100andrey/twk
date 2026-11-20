@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Fixed:
+
+- `twk mcp`: a `{"node": 42}` finder, alone or inside `first`, `last`, `at`
+  or `descendant`, is taken (the ids `tree` prints), not refused for want of
+  an app; `logs` counts the records the session has seen, so identical lines
+  (a driven app's frozen timestamps) are new records too; `tree` is
+  twk_driver's `treeText`, its output unchanged.
+
 Changed:
 
 - `twk mcp`: the `logs` tool reads the app's log from the driver session

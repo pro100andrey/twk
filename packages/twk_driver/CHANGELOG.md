@@ -4,6 +4,11 @@
 
 Added:
 
+- `Session.logCount`, how many records the app's log has posted, those
+  `Session.log` no longer holds too.
+
+Added:
+
 - The app's log reaches the driver: a session reads `twk.log`, so a step of
   the trace has the records the app logged during it (`log`, with
   `TraceOptions.log` now only an extra source), `ExitResult.log` and

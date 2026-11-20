@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:twk/twk.dart' show ElementFinder;
+import 'package:twk/twk.dart' show Element, ElementFinder;
 import 'package:twk_driver/twk_driver.dart';
 
 import '../project.dart' show projectOf;
@@ -161,9 +161,14 @@ String _text(JsonMap args, String name) {
   throw DriverError('"$name" is a string, and is needed');
 }
 
+/// A `node` of a finder is the app's to resolve: here it only has to
+/// serialise back to the id the `tree` gave.
+Element? _nodeId(int id) =>
+    throw StateError('node $id is resolved by the app, not the server');
+
 ElementFinder _finderOf(JsonMap args) {
   try {
-    return ElementFinder.fromJson(args['finder']);
+    return ElementFinder.fromJson(args['finder'], nodeOf: _nodeId);
   } on FormatException catch (e) {
     throw DriverError('"finder": ${e.message}');
   }
@@ -268,7 +273,7 @@ final class AppHost {
   final AppLauncher _launcher;
   Session? _session;
   VmAppClient? _client;
-  var _given = <String>[];
+  var _given = 0;
 
   Session _open() =>
       _session ??
@@ -306,7 +311,7 @@ final class AppHost {
       rethrow;
     }
     _session = session;
-    _given = [];
+    _given = 0;
     return answer();
   }
 
@@ -315,26 +320,16 @@ final class AppHost {
   /// call that comes after more than that many new records has lost the
   /// oldest.
   McpResult logs() {
-    final tail = _open().log;
-    // the new records are what follows the longest end of the last tail
-    // that the start of this one repeats
-    var seen = 0;
-    for (
-      var k = tail.length < _given.length ? tail.length : _given.length;
-      k > 0;
-      k--
-    ) {
-      var same = true;
-      for (var i = 0; i < k && same; i++) {
-        same = _given[_given.length - k + i] == tail[i];
-      }
-      if (same) {
-        seen = k;
-        break;
-      }
-    }
-    final fresh = tail.sublist(seen);
-    _given = tail;
+    final session = _open();
+    final tail = session.log;
+    final count = session.logCount;
+    // the records are numbered: what is new is what came after the count
+    // of the last call, the newest the tail still holds if more came
+    final newer = count - _given;
+    final fresh = tail.sublist(
+      newer >= tail.length ? 0 : tail.length - (newer < 0 ? 0 : newer),
+    );
+    _given = count;
     return McpResult(fresh.isEmpty ? 'no log records' : fresh.join('\n'));
   }
 
@@ -530,60 +525,8 @@ final class AppHost {
     if (depth != null && (depth is! int || depth < 0)) {
       throw const DriverError('"depth" is a number of levels, not negative');
     }
-    final answer = await _client!.call('tree');
-    final root = answer['root'];
-    if (root is! Map<String, Object?>) {
-      return const McpResult('the app has drawn no frame: no tree yet');
-    }
-    final app = answer['app'];
-    final start = (app is int ? _byId(root, app) : null) ?? root;
-    final out = StringBuffer();
-    _write(out, start, 0, depth as int?);
-    return McpResult(out.toString().trimRight());
-  }
-
-  static Map<String, Object?>? _byId(Map<String, Object?> node, int id) {
-    if (node['id'] == id) {
-      return node;
-    }
-    for (final c in node['children'] as List<Object?>? ?? const []) {
-      if (c is Map<String, Object?>) {
-        final found = _byId(c, id);
-        if (found != null) {
-          return found;
-        }
-      }
-    }
-    return null;
-  }
-
-  static void _write(StringBuffer out, JsonMap node, int level, int? depth) {
-    final key = node['key'];
-    final size = node['size'];
-    final props = [
-      for (final prop in node['properties'] as List<Object?>? ?? const [])
-        if (prop is Map && prop['name'] != null)
-          '${prop['name']}${prop['value'] == null ? '' : '=${prop['value']}'}',
-    ];
-    out
-      ..write('  ' * level)
-      ..write('${node['name']} #${node['id']}')
-      ..write(key == null ? '' : ' [$key]')
-      ..write(size is Map ? ' ${size['width']}x${size['height']}' : '')
-      ..writeln(props.isEmpty ? '' : '  ${props.join(', ')}');
-    final children = node['children'] as List<Object?>? ?? const [];
-    if (depth != null && level >= depth) {
-      if (children.isNotEmpty) {
-        out
-          ..write('  ' * (level + 1))
-          ..writeln('... ${children.length} more below');
-      }
-      return;
-    }
-    for (final c in children) {
-      if (c is Map<String, Object?>) {
-        _write(out, c, level + 1, depth);
-      }
-    }
+    return McpResult(
+      treeText(await _client!.call('tree'), depth: depth as int?),
+    );
   }
 }

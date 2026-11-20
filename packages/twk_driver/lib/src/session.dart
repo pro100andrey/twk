@@ -438,6 +438,7 @@ final class Session {
   ExitResult? _ended;
   static const _logKept = 50;
   final _tail = <String>[];
+  var _logCount = 0;
   final _stepLog = <String>[];
   var _quitting = false;
   final _ending = Completer<int?>();
@@ -478,6 +479,12 @@ final class Session {
   /// The last records of the app's log (`twk.log`), as text lines, oldest
   /// first: at most [_logKept] of them.
   List<String> get log => List.unmodifiable(_tail);
+
+  /// How many records the app's log has posted since the session began,
+  /// those [log] no longer holds too: the record `log.last` is number
+  /// `logCount`, so what came after a count read before is the last
+  /// `logCount - before` of [log] (fewer where more than it holds came).
+  int get logCount => _logCount;
 
   /// What the app wrote, as the terminal gave it.
   Uint8List get output => _log.slice(0, _log.rawLength);
@@ -666,6 +673,7 @@ final class Session {
         line = '$r';
       }
       _tail.add(line);
+      _logCount++;
       if (_tail.length > _logKept) {
         _tail.removeAt(0);
       }

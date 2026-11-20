@@ -38,7 +38,7 @@ One app at a time.
 | `wait_for` | `text` (or `absent`), `budget_ms` (10000), `io_ms`: moves the app's time until the screen has it. |
 | `elapse` | `ms`: moves the app's time on. |
 | `hot_reload` | Reloads the sources and has the app rebuild, each State kept. |
-| `logs` | The log records since the last call (the app is started with `TWK_DEBUG=logs`). |
+| `logs` | The log records since the last call (counted, so identical lines are each new). |
 | `stop_app` | Ends the app; says what a finished app left behind (the tty, the alternate screen, the cursor). |
 
 A finder is JSON: `{"text": "Save"}`, `{"textContaining": "ave"}`,

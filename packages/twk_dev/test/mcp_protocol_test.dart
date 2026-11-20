@@ -390,6 +390,38 @@ void _more() {
     });
   });
 
+  group('a node finder', () {
+    test(
+      'is taken, alone and inside first, as the tree gives its ids',
+      () async {
+        final launcher = _LiveLauncher();
+        final server = twkMcpServer(launcher: launcher);
+        final file = File('test/mcp_protocol_test.dart').absolute.path;
+        Future<JsonMap> call(String tool, JsonMap arguments) async =>
+            (await _ask(server, 'tools/call', {
+                  'name': tool,
+                  'arguments': arguments,
+                }))['result']!
+                as JsonMap;
+        await call('start_app', {'program': file});
+        for (final finder in [
+          {'node': 42},
+          {
+            'first': {'node': 42},
+          },
+        ]) {
+          final r = await call('find', {'finder': finder});
+          expect(r['isError'], isNot(true), reason: '$r');
+          expect(
+            (((r['content']! as List).single as JsonMap)['text']!) as String,
+            'no node matches',
+          );
+        }
+        await call('stop_app', {});
+      },
+    );
+  });
+
   group('logs', () {
     test(
       'gives the records of the twk.log events since the last call',
@@ -435,6 +467,47 @@ void _more() {
         final many = (await call('logs')).split('\n');
         expect(many.last, contains('r79'));
         expect(many.length, 50);
+        await call('stop_app');
+      },
+    );
+
+    test(
+      'counts records, not their text: identical ones are new ones',
+      () async {
+        final launcher = _LiveLauncher();
+        final server = twkMcpServer(launcher: launcher);
+        final file = File('test/mcp_protocol_test.dart').absolute.path;
+        Future<String> call(String tool) async {
+          final r =
+              (await _ask(server, 'tools/call', {
+                    'name': tool,
+                    'arguments': {if (tool == 'start_app') 'program': file},
+                  }))['result']!
+                  as JsonMap;
+          return (((r['content']! as List).single as JsonMap)['text']!)
+              as String;
+        }
+
+        void post(int n) => launcher.events.add(
+          AppEvent('twk.log', {
+            'records': [
+              for (var i = 0; i < n; i++)
+                LogRecord(DateTime(2026), LogLevel.info, 'same').toJson(),
+            ],
+          }),
+        );
+
+        await call('start_app');
+        post(2);
+        await pumpEventQueue();
+        expect((await call('logs')).split('\n'), hasLength(2));
+        post(1);
+        await pumpEventQueue();
+        expect((await call('logs')).split('\n'), hasLength(1));
+        post(60);
+        await pumpEventQueue();
+        expect((await call('logs')).split('\n'), hasLength(50));
+        expect(await call('logs'), 'no log records');
         await call('stop_app');
       },
     );
@@ -582,20 +655,22 @@ final class _Service implements AppServicePort {
   Future<Map<String, Object?>> call(
     String method, [
     Map<String, String> params = const {},
-  ]) async => {
-    'version': 1,
-    'frame': 1,
-    'drawn': true,
-    'size': {'width': 80, 'height': 24},
-    'inputRead': 0,
-    'outputWritten': 0,
-    'inputPending': false,
-    'scheduled': false,
-    'frameDue': null,
-    'time': 0,
-    'nextDue': null,
-    'quitting': false,
-  };
+  ]) async => method == 'find'
+      ? {'matches': <Object?>[]}
+      : {
+          'version': 1,
+          'frame': 1,
+          'drawn': true,
+          'size': {'width': 80, 'height': 24},
+          'inputRead': 0,
+          'outputWritten': 0,
+          'inputPending': false,
+          'scheduled': false,
+          'frameDue': null,
+          'time': 0,
+          'nextDue': null,
+          'quitting': false,
+        };
 
   @override
   Stream<AppEvent> get events => _events;
