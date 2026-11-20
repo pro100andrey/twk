@@ -113,6 +113,48 @@ items on as the count changed by, or else by `findChildIndexCallback`
 further; a list whose items have no keys keeps its offset, and what it shows
 moves.
 
+## `ListView(itemText:)`
+
+`ListView.builder` and `ListView.separated` take `itemText:`, an
+`ItemTextBuilder` (`ItemText Function(int index)`) that gives the text of an
+item for a `SelectionArea` above the list: the items, those out of view and not
+built too, are one text for it, one line each in the order of the screen
+(`reverse` and the separators taken care of), selected with the mouse and
+copied as the lines read. `ListView.new` has none. An `ItemText(text, column:
+0)` is one line, in the item's cells from `column` (inside the list's
+padding), and asserts against a line break in it; `ItemText.runs([(column,
+text), ...])` is an item with more than one text on its line (the two sides of
+a side by side diff), each a column and its text in the order of the columns,
+copied joined by a tab. The text is what is drawn, a tab as the blanks it is
+drawn as; what the item shows that is in no run (a line number, a sign, a
+border) selects nothing and is not copied. The list draws none of the
+selection: the item's builder, built again whenever the selection changes,
+asks `ListView.selectionOf(context, index)` for an `ItemSelection`, null where
+none of the item is selected or the list has no `itemText`, and shows the part
+in its style. `rangeOf([run])` is the part of a run selected as offsets in its
+text (null for none), `spans(text, run:)` the text as the `Span`s to draw it,
+the selected part in `style`, and `mark(spans, run:)` the same for spans that
+already have styles, merged with them (a gradient or a tap of a span is
+dropped where it is cut). An item is one row of text for the selection: of one
+taller, its first row selects. The builder is asked again when the widgets
+change.
+
+```dart
+ListView.builder(
+  itemCount: names.length,
+  itemText: (index) => ItemText(names[index]),
+  itemBuilder: (context, index) {
+    final selected = ListView.selectionOf(context, index);
+    return Text.rich(
+      selected?.spans(names[index]) ?? [Span(names[index])],
+      wrap: TextWrap.none,
+    );
+  },
+)
+```
+
+`DiffView` in twk_rich does this for its rows.
+
 ## `ListView.separated`
 
 `ListView.separated(itemCount:, itemBuilder:, separatorBuilder:,

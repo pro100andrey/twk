@@ -151,12 +151,54 @@ copied (what it makes empty is not copied). While something is selected,
 `copyKey` and `clearKey` are among a `KeyHintsBar`'s (`copy`, `clear`). A
 `SelectionAreaController` given as `controller:` lets what is outside the
 area (a view showing other text, a key bound wherever the focus is) read and
-clear the selection: `hasSelection`, its listeners told when that changes,
-`text`, what is selected as it is copied, and `clear()`. It gets every press
+clear the selection: `hasSelection` (true while something selected is still
+in the tree), its listeners told when that changes, `text`, what is selected
+as it is copied, `clear()`, `selectAll()`, and `start` and `end`, where the
+selection starts and ends, each a `SelectionPoint` (a record of the `object`,
+the paragraph of a `Text` or the `Selectable`, and the `offset` in its text in
+UTF-16 code units; null while nothing is selected), the first and the last of
+what is selected in the order of the tree. `select(start, end)` selects from
+one point to the other, the objects between them whole as a drag does,
+whichever comes first in the order of the tree being the start, offsets past a
+text its end, replacing what was selected and copying nothing; it returns
+whether anything is selected, false where an object is none of the area's, is
+not laid out yet (the frame that shows it comes first) or the two points are
+one place. An app whose content changes carries the selection across it by
+reading `start` and `end` before and calling `select` between the same places
+of the objects it has after, once they are drawn. It gets every press
 over it, as a `Listener` does, and the drags no `GestureDetector` inside it
 takes; mounted, it has the terminal report presses and drags, so the
 terminal's own selection does not work over the app; in the inline mode
 nothing is selected.
+
+```dart
+final selection = SelectionAreaController();
+// Before the content changes:
+final (start, end) = (selection.start, selection.end);
+// ... change it, and after the frame that draws it:
+if (start != null && end != null) {
+  selection.select(start, end);
+}
+```
+
+`ExcludeSelection(child:)` leaves its child out of what the area above
+selects and copies, its `Text`s and `Selectable`s as if they were not there:
+the line numbers of a listing, a gutter, a heading over a section. The mouse
+still goes through it, a drag that starts or passes over it selecting the
+Texts nearest the mouse outside it, by rows first. A `SelectionArea` inside it
+selects in its own text, apart: a drag in it is its own, as in a
+`GestureDetector`, and the area above has nothing selected by the press.
+
+```dart
+SelectionArea(
+  child: Row(
+    children: const [
+      ExcludeSelection(child: Text('1\n2')),
+      Text(' first\n second'),
+    ],
+  ),
+)
+```
 
 ## `Draggable<T>`
 
