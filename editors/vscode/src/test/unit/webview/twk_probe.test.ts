@@ -152,7 +152,18 @@ describe('what twk finds out about the twk terminal, switch by switch', function
       return JSON.parse(line) as Found;
     };
     const done = async () => assert.equal(await ended, 0, `the app's exit; err:\n${err}`);
-    return { t, found, lines, done };
+    /** Resolves once the app's push of kitty's keyboard flags reached the terminal, so that what is typed after is encoded by them. */
+    const kittyPushed = async (): Promise<void> => {
+      const escape: KeyPress = { key: 'Escape', code: 'Escape', ctrl: false, alt: false, shift: false, meta: false };
+      const end = Date.now() + 20000;
+      while (t.emulation.key(escape) === undefined) {
+        if (Date.now() > end) {
+          throw new Error(`no kitty keyboard flags pushed by the app in 20 s; out:\n${out}\nerr:\n${err}`);
+        }
+        await new Promise((r) => setTimeout(r, 20));
+      }
+    };
+    return { t, found, lines, done, kittyPushed };
   }
 
   async function foundWith(preset: string, changes: object = {}): Promise<Found> {
@@ -222,6 +233,7 @@ describe('what twk finds out about the twk terminal, switch by switch', function
   it("kitty keyboard: Escape, Ctrl and Alt keys encoded as the app pushed, read back as those keys", async () => {
     const app = await run(choiceOf('everything', {}).capabilities, ['keys']);
     assert.equal((await app.found()).kittyKeyboard, true);
+    await app.kittyPushed();
     const key = (k: string, code: string, mods: Partial<KeyPress> = {}): KeyPress => ({ key: k, code, ctrl: false, alt: false, shift: false, meta: false, ...mods });
     app.t.press(key('Escape', 'Escape'), '\x1b');
     app.t.press(key('c', 'KeyC', { ctrl: true }), '\x03');
@@ -237,6 +249,7 @@ describe('what twk finds out about the twk terminal, switch by switch', function
   it('kitty keyboard, all flags pushed over twk: the text, its release, Enter, a release of an arrow and a shortcut as escape codes, read back as those keys', async () => {
     const app = await run(choiceOf('everything', {}).capabilities, ['keys']);
     assert.equal((await app.found()).kittyKeyboard, true);
+    await app.kittyPushed();
     // the app pushed disambiguation, and the person's terminal setting pushes the rest on it
     await new Promise<void>((resolve) => app.t.term.write('\x1b[>31u', resolve));
     assert.equal(app.t.emulation.key({ key: 'a', code: 'KeyA', ctrl: false, alt: false, shift: false, meta: false }), '\x1b[97;;97u');
