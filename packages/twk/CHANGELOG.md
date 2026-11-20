@@ -226,6 +226,10 @@ Changed:
 
 Fixed:
 
+- A route whose `reverseTransitionDuration` throws, or whose first step of
+  the slide does, no longer leaks the route's two focus nodes and its
+  animation controller, nor leaves the route pointing at a host that was
+  never disposed.
 - Selection: `ItemText` asserts its text is one line, as `ItemText.runs`
   did; `ItemSelection` equality includes its runs; and
   `SelectionAreaController.hasSelection` counts only what is still in the

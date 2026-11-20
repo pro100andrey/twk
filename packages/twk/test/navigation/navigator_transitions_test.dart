@@ -82,7 +82,39 @@ Future<void> press(TwkTester t, String key) async {
 /// Where `detail` starts on the first row; -1 where it is not there.
 int detailAt(TwkTester t) => t.lines[0].indexOf('detail');
 
+/// A route whose reverse duration getter throws, as an override may (the
+/// navigator reads [transitionDuration] first, outside the host).
+final class _Broken extends Route<void> {
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 100);
+
+  @override
+  Duration get reverseTransitionDuration => throw StateError('pop');
+
+  @override
+  Widget build(BuildContext context) => const Text('broken');
+}
+
 void main() {
+  testTwk('a route whose reverse transition duration throws leaves no '
+      'focus node undisposed', (t) async {
+    late BuildContext context;
+    await t.pumpWidget(
+      Navigator(
+        home: Builder(
+          builder: (c) {
+            context = c;
+            return const Text('home');
+          },
+        ),
+      ),
+      size: (10, 2),
+    );
+    unawaited(Navigator.push(context, _Broken()));
+    await t.pump();
+    expect(t.takeErrors(), isNotEmpty);
+  });
+
   test('a PageRoute comes and goes at once by default; the time to go is '
       'the time to come where none is given', () {
     final plain = PageRoute<void>(builder: (_) => const Text('x'));
