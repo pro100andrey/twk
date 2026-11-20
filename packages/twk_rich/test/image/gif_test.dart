@@ -235,15 +235,85 @@ void main() {
       expect(argb(image.bitmapAt(0)), [red, red], reason: 'the first still');
     });
 
-    test('a size past the screen is refused', () {
+    test('a frame past the screen is clipped to it', () {
+      final bytes = gifBytes(2, 2, palette, [
+        GifImage(2, 2, [0, 1, 2, 3], left: 1, top: 1),
+      ]);
+      expect(canvases(bytes), [
+        [clear, clear, clear, red],
+      ]);
+    });
+
+    test('a frame past the screen restores only what it covered', () {
+      final bytes = gifBytes(2, 1, palette, [
+        GifImage(2, 1, [2, 2]),
+        GifImage(2, 1, [1, 1], left: 1, disposal: 3),
+        GifImage(1, 1, [3]),
+      ]);
+      expect(canvases(bytes), [
+        [blue, blue],
+        [blue, green],
+        [white, blue],
+      ]);
+    });
+
+    test('a frame of more pixels than an animation may have is refused', () {
       expect(
         () => decodeGif(
           gifBytes(2, 2, palette, [
-            GifImage(2, 2, [0, 0, 0, 0], left: 1),
+            GifImage(4000, 4000, [0], left: 1),
           ]),
         ),
         throwsFormatException,
       );
+    });
+
+    test('a screen past what an animation may have is refused', () {
+      expect(
+        () => decodeGif(
+          gifBytes(4096, 4096, palette, [
+            GifImage(1, 1, [0]),
+          ]),
+        ),
+        throwsFormatException,
+      );
+      expect(
+        () => decodeGif(
+          gifBytes(16384, 16384, palette, [
+            GifImage(1, 1, [0], disposal: 3),
+          ]),
+        ),
+        throwsFormatException,
+      );
+    });
+
+    test('an unknown block after frames ends the file, as it does in '
+        'browsers', () {
+      final bytes = gifBytes(2, 1, palette, [
+        GifImage(2, 1, [0, 1]),
+        GifImage(2, 1, [1, 0]),
+      ], trailer: false);
+      final withUnknown = Uint8List.fromList([...bytes, 0x99, 1, 2, 3]);
+      expect(canvases(withUnknown), [
+        [red, green],
+        [green, red],
+      ]);
+      final first = Uint8List.fromList([
+        ...gifBytes(2, 1, palette, [], trailer: false),
+        0x99,
+        1,
+      ]);
+      expect(() => decodeGif(first), throwsFormatException);
+    });
+
+    test('an LZW minimum code size past 8 is refused', () {
+      final bytes = gifBytes(2, 1, palette, [
+        GifImage(2, 1, [0, 0]),
+      ]);
+      for (final size in [9, 11]) {
+        final bad = Uint8List.fromList(bytes)..[bytes.length - 6] = size;
+        expect(() => decodeGif(bad), throwsFormatException, reason: '$size');
+      }
     });
 
     test('what is no GIF, has no frame, or cuts its first, is refused', () {

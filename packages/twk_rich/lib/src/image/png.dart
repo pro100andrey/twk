@@ -301,6 +301,9 @@ AnimatedImage decodeApng(
       'APNG of ${frames.length} frames of $width × $height pixels',
     );
   }
+  if (width * height > maxAnimationPixels) {
+    throw FormatException('APNG canvas of $width × $height pixels');
+  }
   for (final frame in frames) {
     if (frame.x + frame.width > width ||
         frame.y + frame.height > height ||
@@ -362,15 +365,13 @@ final class _ApngComposer {
           _clear(canvas, last);
         case 2:
           if (_before case final before?) {
-            canvas.pixels.setAll(0, before);
+            _put(canvas, last, before);
           } else {
             _clear(canvas, last);
           }
       }
     }
-    _before = frame.dispose == 2 && _at > 0
-        ? Uint8List.fromList(canvas.pixels)
-        : null;
+    _before = frame.dispose == 2 && _at > 0 ? _save(canvas, frame) : null;
     _blend(canvas, pixels, frame);
     _last = frame;
     _at++;
@@ -390,6 +391,34 @@ void _clear(Bitmap canvas, _PngFrame frame) {
   for (var y = frame.y; y < frame.y + frame.height; y++) {
     final from = (y * canvas.width + frame.x) * 4;
     canvas.pixels.fillRange(from, from + frame.width * 4, 0);
+  }
+}
+
+/// The pixels of [frame]'s region of [canvas], row after row.
+Uint8List _save(Bitmap canvas, _PngFrame frame) {
+  final out = Uint8List(frame.width * frame.height * 4);
+  for (var y = 0; y < frame.height; y++) {
+    final from = ((frame.y + y) * canvas.width + frame.x) * 4;
+    out.setRange(
+      y * frame.width * 4,
+      (y + 1) * frame.width * 4,
+      canvas.pixels,
+      from,
+    );
+  }
+  return out;
+}
+
+/// Puts what [_save] gave back in [frame]'s region of [canvas].
+void _put(Bitmap canvas, _PngFrame frame, Uint8List saved) {
+  for (var y = 0; y < frame.height; y++) {
+    final from = ((frame.y + y) * canvas.width + frame.x) * 4;
+    canvas.pixels.setRange(
+      from,
+      from + frame.width * 4,
+      saved,
+      y * frame.width * 4,
+    );
   }
 }
 

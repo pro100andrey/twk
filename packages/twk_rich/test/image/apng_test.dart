@@ -259,6 +259,13 @@ void main() {
   });
 
   group('a damaged APNG', () {
+    test('a canvas past what an animation may have is refused', () {
+      expect(
+        () => decodeApng(apngBytes(4096, 4096, [F(0, 0, 1, 1, 0xFFFF0000)])),
+        throwsFormatException,
+      );
+    });
+
     test('fails the CRC of a chunk like a PNG', () {
       final bytes = Uint8List.fromList(fixture('anim_over.apng'));
       bytes[bytes.length - 20] ^= 0xFF;

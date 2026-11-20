@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Fixed:
+
+- GIF and APNG decoding: an animation's screen is at most 8 Mi pixels
+  (`decodeGif`, `decodeApng` refuse more; a 16384 × 16384 screen took 1.4 GB
+  and with restore-to-previous 5.5 GB), restoring to the previous canvas
+  keeps only the frame's rectangle, not a second screen; an unknown block
+  after frames ends a GIF as in browsers, instead of refusing it; a GIF
+  frame past the screen is clipped to it; an LZW minimum code size above 8
+  is refused, not decoded to wrong colours.
+
 Added:
 
 - `DiffView` is selected with the mouse below a `SelectionArea`

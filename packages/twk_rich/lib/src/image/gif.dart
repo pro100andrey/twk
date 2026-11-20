@@ -36,11 +36,14 @@ const int _maxFrames = 1 << 14;
 /// [windowBytes] is how much of the composed frames are kept
 /// ([AnimatedImage.windowBytes]).
 ///
-/// A file cut short after its first frame has the frames before the cut.
+/// A frame past the screen is clipped to it. A file cut short after its
+/// first frame, or with a block it does not know after one, has the frames
+/// before.
 ///
 /// Throws a [FormatException] when [bytes] are not a GIF file, hold no
-/// frame, have a frame outside the screen, or have a first frame that does
-/// not decode. A later frame whose data is invalid throws it from
+/// frame, have a screen of no size or of more than 8 Mi pixels, a frame of
+/// no size or of more, an LZW code size above 8, or have a first frame that
+/// does not decode. A later frame whose data is invalid throws it from
 /// [AnimatedImage.bitmapAt].
 ///
 /// ```dart
@@ -63,7 +66,9 @@ AnimatedImage decodeGif(
   final height = r.u16();
   final flags = r.u8();
   r.take(2); // the background index and the aspect ratio
-  if (width == 0 || height == 0 || width * height > maxImagePixels) {
+  // a screen of no size is refused: browsers size it from the first frame,
+  // which this does not
+  if (width == 0 || height == 0 || width * height > maxAnimationPixels) {
     throw FormatException('GIF of $width × $height pixels');
   }
   Uint8List? globalColors;
@@ -118,8 +123,9 @@ AnimatedImage decodeGif(
           final w = r.u16();
           final h = r.u16();
           final packed = r.u8();
-          if (w == 0 || h == 0 || left + w > width || top + h > height) {
-            throw const FormatException('GIF frame outside its screen');
+          // a frame past the screen is clipped to it, as in browsers
+          if (w == 0 || h == 0 || w * h > maxAnimationPixels) {
+            throw FormatException('GIF frame of $w × $h pixels');
           }
           if (frames.length >= _maxFrames) {
             throw const FormatException('GIF of too many frames');
@@ -148,7 +154,11 @@ AnimatedImage decodeGif(
           disposal = 0;
           transparent = -1;
         default:
-          throw const FormatException('GIF holds an unknown block');
+          // what follows frames read is not read, as browsers do
+          if (frames.isEmpty) {
+            throw const FormatException('GIF holds an unknown block');
+          }
+          ended = true;
       }
     }
   } on _Cut {
@@ -210,7 +220,7 @@ final class _GifComposer {
   final Bitmap canvas;
   var _at = 0;
   _GifFrame? _last;
-  // the screen before a frame that is to be restored to it
+  // the part of the screen a frame that is to be restored covers
   Uint8List? _restore;
 
   void rewind() {
@@ -234,11 +244,11 @@ final class _GifComposer {
           _clear(canvas, last.rect);
         case 3:
           if (_restore case final restore?) {
-            canvas.pixels.setAll(0, restore);
+            _put(canvas, last.rect, restore);
           }
       }
     }
-    _restore = frame.disposal == 3 ? Uint8List.fromList(canvas.pixels) : null;
+    _restore = frame.disposal == 3 ? _save(canvas, frame.rect) : null;
     _draw(
       canvas,
       indices,
@@ -253,12 +263,51 @@ final class _GifComposer {
   }
 }
 
+/// The width and height of [rect], left, top, width and height, within
+/// [canvas].
+(int, int) _visible(Bitmap canvas, (int, int, int, int) rect) {
+  final (left, top, w, h) = rect;
+  return (
+    left >= canvas.width
+        ? 0
+        : (w < canvas.width - left ? w : canvas.width - left),
+    top >= canvas.height
+        ? 0
+        : (h < canvas.height - top ? h : canvas.height - top),
+  );
+}
+
 /// Makes [rect], left, top, width and height, of [canvas] transparent.
 void _clear(Bitmap canvas, (int, int, int, int) rect) {
-  final (left, top, w, h) = rect;
-  for (var y = top; y < top + h; y++) {
-    final from = (y * canvas.width + left) * 4;
+  final (w, h) = _visible(canvas, rect);
+  for (var y = rect.$2; y < rect.$2 + h; y++) {
+    final from = (y * canvas.width + rect.$1) * 4;
     canvas.pixels.fillRange(from, from + w * 4, 0);
+  }
+}
+
+/// The pixels of [rect] within [canvas], row after row.
+Uint8List _save(Bitmap canvas, (int, int, int, int) rect) {
+  final (w, h) = _visible(canvas, rect);
+  final out = Uint8List(w * h * 4);
+  for (var y = 0; y < h; y++) {
+    final from = ((rect.$2 + y) * canvas.width + rect.$1) * 4;
+    out.setRange(y * w * 4, (y + 1) * w * 4, canvas.pixels, from);
+  }
+  return out;
+}
+
+/// Puts what [_save] gave back in [rect] of [canvas].
+void _put(Bitmap canvas, (int, int, int, int) rect, Uint8List saved) {
+  final (w, h) = _visible(canvas, rect);
+  for (var y = 0; y < h; y++) {
+    final from = ((rect.$2 + y) * canvas.width + rect.$1) * 4;
+    canvas.pixels.setRange(
+      from,
+      from + w * 4,
+      saved,
+      y * w * 4,
+    );
   }
 }
 
@@ -283,10 +332,14 @@ void _draw(
   final out = canvas.pixels;
   final palette = colors ?? Uint8List(0);
   final order = interlaced ? _interlaced(h) : null;
+  final (visibleW, visibleH) = _visible(canvas, rect);
   for (var k = 0; k < h; k++) {
     final y = order == null ? k : order[k];
+    if (y >= visibleH) {
+      continue;
+    }
     var o = ((top + y) * canvas.width + left) * 4;
-    for (var x = 0; x < w; x++, o += 4) {
+    for (var x = 0; x < visibleW; x++, o += 4) {
       final i = indices[k * w + x];
       if (i == transparent) {
         continue;
@@ -309,7 +362,7 @@ void _draw(
 /// [count] colour indices; a stream that ends early leaves the rest zero.
 Uint8List _lzw(_Reader r, int count) {
   final minimum = r.u8();
-  if (minimum < 1 || minimum > 11) {
+  if (minimum < 1 || minimum > 8) {
     throw FormatException('GIF with an LZW code size of $minimum');
   }
   final compressed = BytesBuilder(copy: false);
