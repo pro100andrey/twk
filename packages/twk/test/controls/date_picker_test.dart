@@ -866,7 +866,7 @@ void main() {
 
   testTwk('a key it leaves mid-typing hands the date over, the text left '
       'as typed when the app took it', (t) async {
-    final value = ValueNotifier<DateTime?>(DateTime(2026, 1, 1));
+    final value = ValueNotifier<DateTime?>(DateTime(2026));
     addTearDown(value.dispose);
     final changes = <DateTime?>[];
     await t.pumpWidget(

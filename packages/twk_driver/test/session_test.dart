@@ -88,7 +88,7 @@ void main() {
     await t.session.close();
   });
 
-  test('close twice: the second is the first one\'s report, an app the '
+  test("close twice: the second is the first one's report, an app the "
       'driver let go is not one that exited by itself', () async {
     final t = await started();
     final first = await t.session.close();

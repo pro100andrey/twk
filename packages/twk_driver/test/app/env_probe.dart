@@ -1,6 +1,8 @@
 // Run by env_test.dart with NO_COLOR and FORCE_COLOR in its own environment:
 // starts `sh` in a pseudo-terminal, as the driver does for an app, and
 // prints the two variables as the program saw them.
+import 'dart:io';
+
 import 'package:twk_driver/twk_driver.dart';
 
 Future<void> main(List<String> args) async {
@@ -18,6 +20,8 @@ Future<void> main(List<String> args) async {
     (screen) => screen.contains('colors:'),
     what: 'the variables',
   );
-  print(step.screen.split('\n').firstWhere((l) => l.startsWith('colors:')));
+  stdout.writeln(
+    step.screen.split('\n').firstWhere((l) => l.startsWith('colors:')),
+  );
   await session.close();
 }

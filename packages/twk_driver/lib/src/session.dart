@@ -1046,9 +1046,11 @@ final class Session {
   /// does.
   Future<Step> pressKey(KeyEvent key) {
     final name = KeyCombo.fromEvent(key).toString();
-    return _traced('press', {'keys': name}, () {
-      return _act([_keyBytes(key, name)]);
-    });
+    return _traced(
+      'press',
+      {'keys': name},
+      () => _act([_keyBytes(key, name)]),
+    );
   }
 
   List<int> _keyBytes(KeyEvent key, String name) {

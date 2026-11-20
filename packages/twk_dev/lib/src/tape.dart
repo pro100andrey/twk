@@ -10,7 +10,6 @@ import 'dart:typed_data';
 
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
-import 'package:twk/twk.dart' show KeyCombo;
 import 'package:twk_core/twk_core.dart'
     show Attr, Clock, Color, StyleId, StyleTable, kCont;
 import 'package:twk_driver/twk_driver.dart';

@@ -50,6 +50,8 @@ void main() {
   test('a bar that never built is disposed without a lookup', () {
     // what a first build that threw leaves: a state mounted, never built
     final state = const Scrollbar(child: Text('x')).createState();
+    // the framework's call, made here as it would make it
+    // ignore: invalid_use_of_protected_member
     expect(state.dispose, returnsNormally);
   });
 }
