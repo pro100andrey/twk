@@ -43,6 +43,9 @@ export class TwkMainLenses implements vscode.CodeLensProvider, vscode.Disposable
 
 /** Open Trace over each `driverTest(` of a test file: the traces a failed driver test kept (`twk.openTrace`). */
 export class DriverTestLenses implements vscode.CodeLensProvider {
+  /** [onDidChangeCodeLenses] is [TwkMainLenses]'s: both follow `twk.codeLens`. */
+  constructor(readonly onDidChangeCodeLenses: vscode.Event<void>) {}
+
   provideCodeLenses(document: vscode.TextDocument): vscode.CodeLens[] {
     if (!vscode.workspace.getConfiguration('twk').get<boolean>('codeLens', true)) {
       return [];

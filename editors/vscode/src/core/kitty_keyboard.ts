@@ -87,6 +87,8 @@ export interface KeyPress {
   /** Caps Lock and Num Lock are on. */
   readonly capsLock?: boolean;
   readonly numLock?: boolean;
+  /** AltGr is down (`getModifierState('AltGraph')`): where a layout reports it as Ctrl+Alt, it is neither, but the key types its character. */
+  readonly altGraph?: boolean;
   /** Part of an input method's composition (a dead key, an IME): the text is xterm.js's. */
   readonly composing?: boolean;
 }
@@ -216,6 +218,10 @@ const functionKey = /^F(1[3-9]|2[0-4])$/;
  * composition xterm.js's.
  */
 export function encodeKey(press: KeyPress, flags: number): string | undefined {
+  if (press.altGraph && press.ctrl && press.alt) {
+    // AltGr arrives as Ctrl+Alt (Windows, some Linux layouts): the key types text, with neither
+    press = { ...press, ctrl: false, alt: false };
+  }
   flags &= supportedFlags;
   if (flags === 0 || press.meta || press.composing || press.key === 'Meta') {
     return undefined;

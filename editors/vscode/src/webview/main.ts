@@ -148,6 +148,7 @@ term.attachCustomKeyEventHandler((e) => {
     location: e.location,
     capsLock: e.getModifierState('CapsLock'),
     numLock: e.getModifierState('NumLock'),
+    altGraph: e.getModifierState('AltGraph'),
     composing: e.isComposing,
   });
   if (sent === undefined) {

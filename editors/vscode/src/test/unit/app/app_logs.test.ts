@@ -131,6 +131,15 @@ describe('the apps\' log', () => {
     assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: true }]);
   });
 
+  it('a missing package configuration is not remembered: one written later is read', async () => {
+    const { conn } = await connected();
+    conn.line(record('error', 'x', { stack: '#0 f (package:app/a.dart:1:1)' }));
+    assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: false }]);
+    files.set('/p/.dart_tool/package_config.json', JSON.stringify({ configVersion: 2, packages: [{ name: 'app', rootUri: '../', packageUri: 'lib/' }] }));
+    conn.line(record('error', 'y', { stack: '#0 f (package:app/a.dart:1:1)' }));
+    assert.deepEqual(logs.allRows().at(-1)!.stack, [{ text: '#0 f (package:app/a.dart:1:1)', open: true }]);
+  });
+
   it('follows a project once, for all its terminals: a row is shown once, and the app lives until the last terminal closes', async () => {
     const first = await connected('a.dart');
     const second = new FakeTerminal('b.dart');

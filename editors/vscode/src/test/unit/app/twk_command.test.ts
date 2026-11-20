@@ -5,7 +5,7 @@ import * as assert from 'node:assert/strict';
 
 import { runTwk } from '../../../app/twk_command';
 import { AppProcess, Exit, startNodeProcess } from '../../../core/process';
-import { FakeLog } from '../fakes';
+import { FakeClock, FakeLog } from '../fakes';
 
 /** Whether process [pid] exists. */
 function alive(pid: number): boolean {
@@ -125,34 +125,55 @@ describe('runTwk over real processes', function () {
     };
   }
 
-  async function cancelled(fake: AppProcess, graceMs: number): Promise<void> {
+  async function cancelled(fake: AppProcess, clock: FakeClock, graceMs: number): Promise<void> {
     const abort = new AbortController();
-    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog() }, [], { cwd: '.', label: 'x', cancel: abort.signal, graceMs, pollMs: 5 });
+    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog(), clock }, [], { cwd: '.', label: 'x', cancel: abort.signal, graceMs, pollMs: 5 });
     abort.abort();
     await run;
   }
 
   it('the leader exited on SIGTERM and its group is empty: no SIGKILL, the id may be another group\'s', async () => {
     const sent: string[] = [];
-    await cancelled(leaderExitingOnTerm({ value: false }, sent), 40);
+    const clock = new FakeClock();
+    await cancelled(leaderExitingOnTerm({ value: false }, sent), clock, 40);
     // a negative: the grace has to pass for it to show
-    await sleep(120);
+    clock.elapse(120);
     assert.deepEqual(sent, ['SIGTERM']);
+    assert.equal(clock.pending, 0);
   });
 
   it('the group empties after the leader exited, before the grace is over: no SIGKILL', async () => {
     const sent: string[] = [];
     const alive = { value: true };
-    await cancelled(leaderExitingOnTerm(alive, sent), 150);
+    const clock = new FakeClock();
+    await cancelled(leaderExitingOnTerm(alive, sent), clock, 150);
+    clock.elapse(5);
     alive.value = false;
-    await sleep(300);
+    clock.elapse(5);
+    assert.equal(clock.pending, 0, 'the poll and the grace are both dropped');
+    clock.elapse(300);
     assert.deepEqual(sent, ['SIGTERM']);
   });
 
-  it('the group still has a member when the grace is over: SIGKILL to it', async () => {
+  it('the group still has a member when the grace is over: SIGKILL to it, and the polling ends', async () => {
     const sent: string[] = [];
-    await cancelled(leaderExitingOnTerm({ value: true }, sent), 30);
-    await until(() => sent.length === 2, 'the SIGKILL');
+    const clock = new FakeClock();
+    await cancelled(leaderExitingOnTerm({ value: true }, sent), clock, 30);
+    clock.elapse(30);
     assert.deepEqual(sent, ['SIGTERM', 'SIGKILL']);
+    assert.equal(clock.pending, 0);
+  });
+
+  it('a deadline ends the run by SIGTERM, on the clock', async () => {
+    const sent: string[] = [];
+    const clock = new FakeClock();
+    const fake = leaderExitingOnTerm({ value: false }, sent);
+    const run = runTwk({ start: () => fake, command: () => ['twk'], env: {}, log: new FakeLog(), clock }, [], { cwd: '.', label: 'x', timeoutMs: 1000, graceMs: 50 });
+    clock.elapse(999);
+    assert.deepEqual(sent, []);
+    clock.elapse(1);
+    const r = await run;
+    assert.ok(r.timedOut);
+    assert.deepEqual(sent, ['SIGTERM']);
   });
 });

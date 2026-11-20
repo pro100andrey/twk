@@ -12,6 +12,7 @@ import * as path from 'path';
 import { Answers, answersOf, declarationOf, describeChoice, environmentOf } from '../core/capabilities';
 import { TerminalRequest, fileLinkOf, isSafeLink } from '../core/emulation';
 import { Disposable, Emitter } from '../core/events';
+import { isInside } from '../core/project';
 import { ShellOptions, TerminalPane, TerminalShell, Welcome } from '../core/shell';
 import { describeSwitches, switchEnvironment } from '../core/switches';
 import { Desktop, Log, Output, PickedCell, Screen, Settings, Snapshot, TerminalView } from './ports';
@@ -334,7 +335,6 @@ export function inFolders(file: string, folders: readonly string[], fs: Pick<Des
   const target = norm(real);
   return folders.some((folder) => {
     const resolved = path.resolve(folder);
-    const rel = path.relative(norm(fs.realPath(resolved) ?? resolved), target);
-    return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+    return isInside(norm(fs.realPath(resolved) ?? resolved), target);
   });
 }

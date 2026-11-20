@@ -66,6 +66,14 @@ describe("kitty's keyboard protocol", () => {
     assert.equal(d(press('Backspace', 'Backspace', { alt: true })), '\x1b[127;3u');
   });
 
+  it('AltGr, which arrives as Ctrl+Alt, types its character: neither Ctrl nor Alt, whatever the flags', () => {
+    const altGr = (key: string, code: string): KeyPress => ({ ...press(key, code, { ctrl: true, alt: true }), altGraph: true });
+    assert.equal(encodeKey(altGr('@', 'KeyQ'), 1), undefined, 'text is xterm.js\'s');
+    assert.equal(encodeKey(altGr('@', 'KeyQ'), 8), encodeKey(press('@', 'KeyQ'), 8));
+    assert.equal(encodeKey(altGr('@', 'KeyQ'), 31), encodeKey(press('@', 'KeyQ'), 31));
+    assert.equal(encodeKey(press('q', 'KeyQ', { ctrl: true, alt: true }), 1), '\x1b[113;7u', 'a real Ctrl+Alt is not changed');
+  });
+
   it("leaves to xterm.js what it sends as kitty does: text, Enter, Tab, Backspace alone, arrows and function keys; Meta's to VS Code; all with no flags", () => {
     const d = (p: KeyPress, flags = 1) => encodeKey(p, flags);
     for (const p of [

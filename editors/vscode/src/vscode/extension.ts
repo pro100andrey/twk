@@ -269,7 +269,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   command('twk.debugFile', (uri) => hot.debugFile(dartFile(uri)));
   const lenses = new TwkMainLenses();
   context.subscriptions.push(lenses, vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file' }, lenses));
-  context.subscriptions.push(vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file', pattern: '**/*_test.dart' }, new DriverTestLenses()));
+  context.subscriptions.push(vscode.languages.registerCodeLensProvider({ language: 'dart', scheme: 'file', pattern: '**/*_test.dart' }, new DriverTestLenses(lenses.onDidChangeCodeLenses)));
   // A driver trace opened in a viewer of its own: the file given (the
   // explorer's menu, a link in a terminal's output), else one of those a
   // failed driverTest kept under .dart_tool/twk_test/traces, the newest first
