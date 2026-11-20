@@ -166,7 +166,7 @@ export class VsCodeNodeDetailsView implements NodeDetailsView, vscode.TreeDataPr
   getTreeItem(i: DetailItem): vscode.TreeItem {
     if (isSection(i)) {
       const item = new vscode.TreeItem(i.title, vscode.TreeItemCollapsibleState.Expanded);
-      item.id = `section:${i.title}`;
+      item.id = `section:${i.id}`;
       return item;
     }
     const item = new vscode.TreeItem(i.label ?? i.value, vscode.TreeItemCollapsibleState.None);

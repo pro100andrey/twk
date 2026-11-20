@@ -204,4 +204,23 @@ describe("a node's properties and layout", () => {
     assert.equal(detailSections({ properties: parseProperties(properties), layout: {} }).length, 1);
     assert.equal(detailSections({ properties: parseProperties(properties) }).length, 1);
   });
+
+  it('reads the negative offsets of scrolled content', () => {
+    const l = parseLayout({ ...layout, offset: { x: 0, y: -3 }, global: { x: 2, y: -1 } });
+    assert.deepEqual(l.offset, { x: 0, y: -3 });
+    assert.deepEqual(l.global, { x: 2, y: -1 });
+    const rows = detailSections({ properties: parseProperties(properties), layout: l })[1].rows;
+    assert.deepEqual(rows.slice(2), [
+      { label: 'offset', value: '0, -3' },
+      { label: 'on screen', value: '2, -1' },
+    ]);
+    assert.equal(parseLayout({ ...layout, offset: { x: 0.5, y: 0 } }).offset, undefined);
+  });
+
+  it('gives each section an id of its own, a node named Layout among them', () => {
+    const named = parseProperties({ ...properties, name: 'Layout' });
+    const sections = detailSections({ properties: named, layout: parseLayout(layout) });
+    assert.deepEqual(sections.map((s) => s.title), ['Layout', 'Layout']);
+    assert.equal(new Set(sections.map((s) => s.id)).size, 2);
+  });
 });
