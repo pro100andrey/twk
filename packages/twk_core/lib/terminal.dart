@@ -93,6 +93,7 @@ export 'src/terminal/sequences.dart'
         titleSequence;
 export 'src/terminal/terminal.dart'
     show
+        CapabilitySource,
         CountingBackend,
         MouseTrackingBackend,
         SuspendableBackend,

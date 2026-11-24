@@ -207,8 +207,14 @@ final class Doctor {
         '  name, version   '
         '${t.version.isEmpty ? '(not told)' : t.version}',
       );
+      if (t.terminal != 'unknown') {
+        line('  known as        ${t.terminal}');
+      }
       line('  colors          ${t.colors}');
-      line('  DEC 2026        ${_yes(t.synchronizedOutput)}');
+      line(
+        '  DEC 2026        ${_yes(t.synchronizedOutput)}'
+        '${_from(t.synchronizedOutputFrom, t.terminal)}',
+      );
       line(
         '  kitty keyboard  '
         '${t.kittyKeyboard ? 'yes, flags ${t.kittyKeyboardFlags}' : 'no'}',
@@ -277,6 +283,15 @@ String _skill(AgentsReport a) {
 
 String _yes(bool value) => value ? 'yes' : 'no';
 
+/// Where a capability came from, as the report says it: what the terminal
+/// answered needs no word.
+String _from(String source, String terminal) => switch (source) {
+  'known' => ' (known of $terminal, which answers no query for it)',
+  'declared' => ' (declared by the terminal)',
+  'assumed' => ' (not answered)',
+  _ => '',
+};
+
 /// What a terminal's probe found.
 final class TerminalReport {
   /// A probe's result.
@@ -292,6 +307,8 @@ final class TerminalReport {
     required this.cellHeight,
     required this.answered,
     required this.probeMilliseconds,
+    this.terminal = 'unknown',
+    this.synchronizedOutputFrom = 'assumed',
   });
 
   /// XTVERSION, empty where not told.
@@ -327,6 +344,15 @@ final class TerminalReport {
   /// How long opening the terminal took.
   final int probeMilliseconds;
 
+  /// The terminal as twk knows it by its name and version
+  /// (`TerminalInfo.terminal`): `konsole 26.8.3`, or `unknown`.
+  final String terminal;
+
+  /// Where [synchronizedOutput] came from, a `CapabilitySource`'s name:
+  /// `answered` (DECRQM), `known` (the terminal by its name and version,
+  /// as Konsole, which answers no DECRQM), `declared` or `assumed`.
+  final String synchronizedOutputFrom;
+
   /// As JSON.
   Map<String, Object?> toJson() => {
     'version': version,
@@ -340,6 +366,8 @@ final class TerminalReport {
     'cellHeight': cellHeight,
     'answered': answered,
     'probeMilliseconds': probeMilliseconds,
+    'terminal': terminal,
+    'synchronizedOutputFrom': synchronizedOutputFrom,
   };
 }
 
@@ -362,6 +390,9 @@ Future<TerminalReport> _probe(CliTerminal terminal) async {
       cellHeight: info.caps.cellPixelHeight,
       answered: info.answeredQueries,
       probeMilliseconds: probed ~/ 1000,
+      terminal: info.terminal,
+      synchronizedOutputFrom:
+          info.sources['synchronizedOutput']?.name ?? 'assumed',
     );
   } finally {
     await backend.close();

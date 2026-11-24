@@ -10,6 +10,17 @@ Breaking:
 
 Added:
 
+- `TerminalInfo.terminal` and `TerminalInfo.sources`: the terminal as twk
+  knows it by its name and version (`konsole 26.8.3`, `unknown`), and where
+  each capability that decides how frames are written came from, a
+  `CapabilitySource`: declared, answered (DECRQM), known of the terminal by
+  name, by its environment, or assumed (`synchronizedOutput`,
+  `leftRightMargins`, `graphemes`, `insertDelete`, `repeatChar`,
+  `konsoleLines`). `TerminalInfo.toString` ends with them.
+- `TerminalDeclaration` declares `synchronizedOutput`, `leftRightMargins`,
+  `graphemes` and `insertDelete` too: a terminal that knows them (an
+  editor's, an emulator in a test) says so instead of answering the probe's
+  queries, and what it declares comes before what it answers.
 - `Clock` (an `int` of microseconds, `timer`, `periodic`; `ClockElapsed` reads
   it as a `Duration`) and `SystemClock`, the real one, the default.
 - Keys of the kitty keyboard protocol. `KeyCode.modifier`, `KeyCode.lock` and

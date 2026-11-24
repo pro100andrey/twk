@@ -77,6 +77,7 @@ terminal.dart const pushTitleSequence
 terminal.dart const unicodeVersion
 terminal.dart enum BidiReordering
 terminal.dart enum Brightness
+terminal.dart enum CapabilitySource
 terminal.dart enum ColorMode
 terminal.dart enum GraphicsProtocol
 terminal.dart enum KeyCode
@@ -234,6 +235,7 @@ twk_core.dart enum BidiClass
 twk_core.dart enum BidiReordering
 twk_core.dart enum BorderType
 twk_core.dart enum Brightness
+twk_core.dart enum CapabilitySource
 twk_core.dart enum ColorMode
 twk_core.dart enum CrossAxisAlignment
 twk_core.dart enum CursorShape

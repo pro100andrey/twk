@@ -126,8 +126,9 @@ void main() {
       Map<String, String> env, {
       String? version,
       int? mode,
+      TerminalDeclaration declaration = const TerminalDeclaration(),
     }) async {
-      final link = FakeLink(environment: env)
+      final link = FakeLink(environment: env, declaration: declaration)
         ..type(
           '${version == null ? '' : '\x1bP>|$version\x1b\\'}'
           '${mode == null ? '' : '\x1b[?2026;$mode\$y'}'
@@ -189,6 +190,83 @@ void main() {
       expect(
         (await probe(const {'TERM': 'xterm'}, mode: 0)).caps.synchronizedOutput,
         isFalse,
+      );
+    });
+
+    test('the info says which terminal it is and where its synchronized '
+        'output came from', () async {
+      final konsole = await probe(const {
+        'TERM': 'xterm-256color',
+      }, version: 'Konsole 26.08.3');
+      expect(konsole.terminal, 'konsole 26.8.3');
+      expect(konsole.sources['synchronizedOutput'], CapabilitySource.known);
+      expect(konsole.sources['konsoleLines'], CapabilitySource.known);
+      expect(
+        '$konsole',
+        allOf(
+          contains('terminal=konsole 26.8.3'),
+          contains('synchronizedOutput:known'),
+        ),
+      );
+      final xterm = await probe(const {'TERM': 'xterm'}, mode: 2);
+      expect(xterm.terminal, 'unknown');
+      expect(xterm.sources['synchronizedOutput'], CapabilitySource.answered);
+      final refused = await probe(const {'TERM': 'xterm'}, mode: 0);
+      expect(refused.sources['synchronizedOutput'], CapabilitySource.answered);
+      final silent = await probe(const {'TERM': 'xterm'});
+      expect(silent.sources['synchronizedOutput'], CapabilitySource.assumed);
+      expect(silent.sources['leftRightMargins'], CapabilitySource.assumed);
+      expect(silent.sources['insertDelete'], CapabilitySource.assumed);
+    });
+
+    test('what the terminal declares comes before what it answers and what '
+        'twk knows of it', () async {
+      final declared = await probe(
+        const {'TERM': 'xterm'},
+        declaration: const TerminalDeclaration(
+          synchronizedOutput: true,
+          leftRightMargins: true,
+          graphemes: true,
+          insertDelete: false,
+        ),
+      );
+      expect(declared.caps.synchronizedOutput, isTrue);
+      expect(declared.caps.leftRightMargins, isTrue);
+      expect(declared.textMode, TextMode.graphemes);
+      expect(declared.caps.insertDelete, isFalse);
+      for (final name in [
+        'synchronizedOutput',
+        'leftRightMargins',
+        'graphemes',
+        'insertDelete',
+      ]) {
+        expect(declared.sources[name], CapabilitySource.declared, reason: name);
+      }
+      final denied = await probe(
+        const {'TERM': 'xterm-256color'},
+        version: 'Konsole 26.08.3',
+        declaration: const TerminalDeclaration(synchronizedOutput: false),
+      );
+      expect(denied.caps.synchronizedOutput, isFalse);
+      expect(denied.sources['synchronizedOutput'], CapabilitySource.declared);
+    });
+
+    test('a declaration of them goes over the wire and back', () {
+      const declaration = TerminalDeclaration(
+        synchronizedOutput: true,
+        leftRightMargins: false,
+        graphemes: true,
+        insertDelete: false,
+      );
+      expect(declaration.toJson(), {
+        'synchronizedOutput': true,
+        'leftRightMargins': false,
+        'graphemes': true,
+        'insertDelete': false,
+      });
+      expect(
+        TerminalDeclaration.fromJson(declaration.toJson()),
+        declaration,
       );
     });
   });

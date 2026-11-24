@@ -81,10 +81,13 @@ final class TerminalInfo {
     this.declaredBrightness,
     this.cursorRgb,
     this.terminalVersion = '',
+    this.terminal = 'unknown',
+    Map<String, CapabilitySource> sources = const {},
     Map<int, int> palette = const {},
     Map<String, String> settings = const {},
   }) : palette = Map.unmodifiable(palette),
        settings = Map.unmodifiable(settings),
+       sources = Map.unmodifiable(sources),
        kittyKeyboardFlags = kittyKeyboard
            ? kittyKeyboardFlags ?? KittyKeyboardFlags.disambiguate
            : 0;
@@ -282,6 +285,17 @@ final class TerminalInfo {
   /// logical order for the terminal.
   final BidiReordering bidi;
 
+  /// The terminal as twk tells it by the name and version it told
+  /// ([terminalVersion]), else its environment, among those it knows facts
+  /// of: `konsole 26.8.3`, `vte 0.78.2`; `unknown` for any other.
+  final String terminal;
+
+  /// Where each capability that decides how frames are written came from,
+  /// by its name in [caps] or here: `synchronizedOutput`,
+  /// `leftRightMargins`, `graphemes` ([textMode]), `insertDelete`,
+  /// `repeatChar`, `konsoleLines`. Empty for an info not probed.
+  final Map<String, CapabilitySource> sources;
+
   @override
   String toString() =>
       'sync=${caps.synchronizedOutput} rep=${caps.repeatChar} '
@@ -304,7 +318,35 @@ final class TerminalInfo {
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
       'kittyAnimation=${caps.kittyAnimation} '
-      'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
+      'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain '
+      'terminal=$terminal from=$_sources';
+
+  String get _sources => [
+    for (final MapEntry(:key, :value) in sources.entries) '$key:${value.name}',
+  ].join(',');
+}
+
+/// Where a capability of a [TerminalInfo] came from
+/// ([TerminalInfo.sources]): what the terminal declared or answered comes
+/// before what twk knows of it by name, which comes before a guess by its
+/// environment.
+enum CapabilitySource {
+  /// The terminal declared it (`TerminalDeclaration`).
+  declared,
+
+  /// The terminal answered the probe's query for it (DECRQM), either way.
+  answered,
+
+  /// The table of terminals twk knows has it for this one, by its name and
+  /// version ([TerminalInfo.terminal]), though it answered no query for it.
+  known,
+
+  /// A rule by the terminal's name or environment (`TERM`,
+  /// `TERM_PROGRAM` and the variables terminals set) gives it.
+  environment,
+
+  /// Nothing told: the default.
+  assumed,
 }
 
 /// How [Terminal] opens a terminal: the screen it draws on, the input it
@@ -1605,37 +1647,78 @@ final class Terminal
       color = ColorMode.ansi256;
     }
 
+    // where each capability below came from (TerminalInfo.sources)
+    final sources = <String, CapabilitySource>{};
+    // [value] as [declaredValue] declares it, else as mode [mode] was
+    // answered (where asked), else as [known] holds, else as [guessed] by
+    // the environment, else false; its source kept as [name]
+    bool resolve(
+      String name, {
+      bool? declaredValue,
+      int? mode,
+      bool known = false,
+      bool guessed = false,
+      bool assumed = false,
+    }) {
+      final (value, source) = switch (declaredValue) {
+        final d? => (d, CapabilitySource.declared),
+        _ when mode != null && supported(mode) => (
+          true,
+          CapabilitySource.answered,
+        ),
+        _ when known => (true, CapabilitySource.known),
+        _ when guessed => (true, CapabilitySource.environment),
+        _ when mode != null && modes.containsKey(mode) => (
+          false,
+          CapabilitySource.answered,
+        ),
+        _ => (assumed, CapabilitySource.assumed),
+      };
+      sources[name] = source;
+      return value;
+    }
+
     // Grapheme clustering: announced via mode 2027, or known terminals that
     // cluster without it.
-    final graphemes =
-        supported(2027) ||
-        term == 'xterm-kitty' ||
-        env.containsKey('WT_SESSION') ||
-        program == 'WezTerm';
+    final graphemes = resolve(
+      'graphemes',
+      declaredValue: declared.graphemes,
+      mode: 2027,
+      guessed:
+          term == 'xterm-kitty' ||
+          env.containsKey('WT_SESSION') ||
+          program == 'WezTerm',
+    );
 
     // the terminal as its name and version tell it, for what it is known
     // to do without answering a query (identity.dart)
     final identity = identifyTerminal(env, version: version);
     // REP (CSI n b) has no capability query; enable it only for terminals
     // that declare it, or are known to implement it.
-    final repeatChar =
-        declared.repeatChar ??
-        (!screenLike &&
-            !env.containsKey('TMUX') &&
-            (term == 'xterm-kitty' ||
-                term == 'xterm-ghostty' ||
-                term.startsWith('foot') ||
-                term == 'alacritty' ||
-                program == 'WezTerm' ||
-                program == 'ghostty' ||
-                env.containsKey('WT_SESSION') ||
-                env.containsKey('XTERM_VERSION') ||
-                identity.has(TerminalFeature.repeatChar)));
+    final plainRows = !screenLike && !env.containsKey('TMUX');
+    final repeatChar = resolve(
+      'repeatChar',
+      declaredValue: declared.repeatChar,
+      known: plainRows && identity.has(TerminalFeature.repeatChar),
+      guessed:
+          plainRows &&
+          (term == 'xterm-kitty' ||
+              term == 'xterm-ghostty' ||
+              term.startsWith('foot') ||
+              term == 'alacritty' ||
+              program == 'WezTerm' ||
+              program == 'ghostty' ||
+              env.containsKey('WT_SESSION') ||
+              env.containsKey('XTERM_VERSION')),
+    );
     // the first attribute is the conformance level; 4 is sixel
     final sixel = attributes.skip(1).contains(4);
     final multiplexer = multiplexerFor(env);
     // Konsole's lines and its images come with Konsole itself
-    final konsole = konsoleLinesFor(env, version: version);
+    final konsole = resolve(
+      'konsoleLines',
+      known: konsoleLinesFor(env, version: version),
+    );
     // The environment as the terminal tells it by its secondary device
     // attributes (as vim tells Terminal.app, `1;95;0`): Terminal.app's
     // TERM_PROGRAM where it answers so, also over ssh, which doesn't pass
@@ -1647,6 +1730,34 @@ final class Terminal
       multiplexer == Multiplexer.none ? secondary : const [],
     );
     final apple = _isAppleTerminal(told);
+    // asked with DECRQM, which Konsole answers not; inside a multiplexer
+    // its answer is the only one
+    final synchronizedOutput = resolve(
+      'synchronizedOutput',
+      declaredValue: declared.synchronizedOutput,
+      mode: 2026,
+      known:
+          multiplexer == Multiplexer.none &&
+          identity.has(TerminalFeature.synchronizedOutput),
+    );
+    // not asked of GNU screen, which prints DECRQM
+    final leftRightMargins = resolve(
+      'leftRightMargins',
+      declaredValue: declared.leftRightMargins,
+      mode: screenLike ? null : 69,
+    );
+    // Terminal.app's DCH shifts a line only up to where the cursor last
+    // jumped and drops the background an EL gave the rest of it: its
+    // cells are written again instead, which costs bytes, never cells
+    final insertDelete = switch (declared.insertDelete) {
+      final d? => d,
+      _ => !(apple && multiplexer == Multiplexer.none),
+    };
+    sources['insertDelete'] = declared.insertDelete != null
+        ? CapabilitySource.declared
+        : apple && multiplexer == Multiplexer.none
+        ? CapabilitySource.environment
+        : CapabilitySource.assumed;
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
     final pointerNames = switch (declared.pointerShapes) {
@@ -1665,26 +1776,17 @@ final class Terminal
         );
     final info = TerminalInfo(
       caps: TerminalCaps(
-        // asked with DECRQM, which Konsole answers not; inside a
-        // multiplexer its answer is the only one
-        synchronizedOutput:
-            supported(2026) ||
-            (multiplexer == Multiplexer.none &&
-                identity.has(TerminalFeature.synchronizedOutput)),
+        synchronizedOutput: synchronizedOutput,
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
         // Terminal.app misreads 4:3: a plain underline it shows
         styledUnderlines:
             declared.styledUnderlines ?? styledUnderlinesFor(told),
-        // Terminal.app's DCH shifts a line only up to where the cursor
-        // last jumped and drops the background an EL gave the rest of it:
-        // its cells are written again instead, which costs bytes, never
-        // cells
-        insertDelete: !(apple && multiplexer == Multiplexer.none),
+        insertDelete: insertDelete,
         konsoleLines: konsole,
         konsoleImages: konsole,
-        leftRightMargins: supported(69) && !screenLike,
+        leftRightMargins: leftRightMargins,
         graphics: graphics,
         // tmux 3.4 shows sixel itself
         graphicsMultiplexer:
@@ -1729,6 +1831,8 @@ final class Terminal
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
       terminalVersion: version,
+      terminal: '$identity',
+      sources: sources,
       notifications: declared.notifications ?? notificationProtocolFor(told),
       multiplexer: multiplexer,
       pointerNames: pointerNames,

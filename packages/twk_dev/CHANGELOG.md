@@ -4,6 +4,11 @@
 
 Added:
 
+- `twk doctor` says where DEC 2026 came from: the terminal's answer, or
+  what twk knows of it by its name and version where it answers no query
+  (`known as konsole 26.8.3`, `yes (known of konsole 26.8.3, which answers
+  no query for it)`), or nothing answered. `--json` has `terminal` and
+  `synchronizedOutputFrom`.
 - `twk mcp`: an MCP server on stdio (JSON-RPC of its own, protocol versions
   2025-06-18, 2025-03-26 and 2024-11-05) that lets a coding agent drive a
   twk app through twk_driver: `start_app`, `screen`, `tree`, `find`, `press`,
