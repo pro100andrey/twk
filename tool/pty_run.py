@@ -122,7 +122,8 @@ PROBE_END = b'\x1b[c'
 # What names the terminal this script runs in, which a twk_core app would
 # take for its own (colorModeFor, notificationProtocolFor, styledUnderlinesFor
 # and the like): left out of the command's environment. As _hostTerminal in
-# packages/twk_term/lib/src/pty/pty.dart, which keep in step.
+# packages/twk_term/lib/src/pty/pty.dart, held to the same names by
+# test/tool/host_terminal_test.dart.
 HOST_TERMINAL = {
     'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'TERM_SESSION_ID', 'LC_TERMINAL',
     'LC_TERMINAL_VERSION', 'COLORTERM', 'COLORFGBG', 'ITERM_SESSION_ID',
