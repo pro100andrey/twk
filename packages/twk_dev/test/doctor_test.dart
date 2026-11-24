@@ -124,6 +124,58 @@ void main() {
     expect(json['synchronizedOutputFrom'], 'known');
   });
 
+  test('says how notifications are shown and where that came from: the '
+      "keys OSC 99's query was answered with, or the name", () {
+    TerminalReport terminal(String from, Map<String, List<String>> keys) =>
+        TerminalReport(
+          version: '',
+          colors: 'trueColor',
+          synchronizedOutput: true,
+          kittyKeyboard: false,
+          kittyKeyboardFlags: 0,
+          graphics: 'none',
+          hyperlinks: false,
+          cellWidth: 0,
+          cellHeight: 0,
+          answered: true,
+          probeMilliseconds: 1,
+          notifications: from == 'assumed' ? 'none' : 'osc99',
+          notificationsFrom: from,
+          notificationKeys: keys,
+        );
+    String render(TerminalReport t) => Doctor(
+      project: '/p',
+      dart: '3.10.0',
+      environment: const {'TERM': 'xterm-256color'},
+      versions: const {},
+      state: const {},
+      terminal: t,
+    ).render();
+    final answered = terminal('answered', const {
+      'p': ['title', 'body'],
+      'o': ['always', 'unfocused'],
+    });
+    expect(
+      render(answered),
+      contains(
+        'notifications   osc99 (answered: p=title,body o=always,unfocused)',
+      ),
+    );
+    expect(
+      render(terminal('environment', const {})),
+      contains('notifications   osc99 (by its name and environment)'),
+    );
+    expect(
+      render(terminal('assumed', const {})),
+      contains('notifications   none (none known)'),
+    );
+    expect(answered.toJson()['notificationsFrom'], 'answered');
+    expect(answered.toJson()['notificationKeys'], {
+      'p': ['title', 'body'],
+      'o': ['always', 'unfocused'],
+    });
+  });
+
   test('closes the terminal it opened', () async {
     final terminal = FakeCliTerminal.interactive();
     await doctor([], terminal: terminal);

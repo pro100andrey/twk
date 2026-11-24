@@ -71,6 +71,7 @@ final class TerminalInfo {
     this.remote = false,
     this.colorSchemeReports = false,
     this.notifications = NotificationProtocol.none,
+    this.notificationKeys = const {},
     this.multiplexer = Multiplexer.none,
     this.plain = false,
     this.pixelMouse = false,
@@ -197,11 +198,22 @@ final class TerminalInfo {
   final bool colorSchemeReports;
 
   /// How the terminal shows desktop notifications ([Terminal.notify]): as
-  /// it declares ([TerminalDeclaration.notifications]), else Terminal.app's
-  /// bell where it answers the secondary device attributes as Terminal.app
-  /// (`1;95;0`, over ssh too), else by its environment
-  /// ([notificationProtocolFor]).
+  /// it declares ([TerminalDeclaration.notifications]), else OSC 99 where
+  /// it answers that protocol's query ([notificationKeys]), else
+  /// Terminal.app's bell where it answers the secondary device attributes
+  /// as Terminal.app (`1;95;0`, over ssh too), else by the name it tells
+  /// and its environment ([notificationProtocolFor]).
   final NotificationProtocol notifications;
+
+  /// What the terminal answered to the query of OSC 99, kitty's protocol
+  /// of desktop notifications (`OSC 99 ; i=… : p=? ; ST`): each key it
+  /// takes and the values it takes for it, as `p` (`title`, `body`,
+  /// `buttons`, ...), `a` (`focus`, `report`), `o` (`always`, `unfocused`,
+  /// `invisible`), `u` (`0`, `1`, `2`) and `c` (`1`: it tells when one is
+  /// closed). Konsole's answer, which puts a `;` where a `:` belongs and
+  /// says `unfocus`, is read as the protocol means it. Empty where it did
+  /// not answer: not asked through a multiplexer, which keeps it.
+  final Map<String, Set<String>> notificationKeys;
 
   /// The multiplexer the program runs in, by its environment
   /// ([multiplexerFor]).
@@ -312,7 +324,9 @@ final class TerminalInfo {
       'answered=$answeredQueries '
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
       'colorSchemeReports=$colorSchemeReports '
-      'notifications=${notifications.name} multiplexer=${multiplexer.name} '
+      'notifications=${notifications.name} '
+      'notificationKeys=${notificationKeys.keys.join(',')} '
+      'multiplexer=${multiplexer.name} '
       'pointerNames=${pointerNames?.name} '
       'progressReports=$progressReports sextants=$sextants '
       'bidi=${bidi.name} '
@@ -606,9 +620,29 @@ Brightness? brightnessFor(Map<String, String> env) {
 /// such variables are then those of the terminal it was started from.
 /// Terminal.app (`Apple_Terminal`), which shows none of a program's, has
 /// its bell rung ([NotificationProtocol.bell]); not a terminal of a `TERM`
-/// of its own started from it ([termNamesItsOwnTerminal]).
-NotificationProtocol notificationProtocolFor(Map<String, String> env) {
+/// of its own started from it ([termNamesItsOwnTerminal]). The name and
+/// version the terminal told ([version], XTVERSION) come first: kitty's
+/// and foot's from 1.18 on show OSC 99, foot's before it OSC 777, and
+/// Konsole's are read from the table of known terminals (OSC 777 from
+/// 23.04, OSC 99 from 24.12). A terminal that answers OSC 99's query is
+/// taken at its answer before any of this (`TerminalInfo.notificationKeys`).
+NotificationProtocol notificationProtocolFor(
+  Map<String, String> env, {
+  String version = '',
+}) {
   const osc777 = NotificationProtocol.osc777;
+  if (version.startsWith('kitty(')) {
+    return NotificationProtocol.osc99;
+  }
+  if (version.startsWith('foot(')) {
+    return dottedAtLeast(version.substring(5), const [1, 18])
+        ? NotificationProtocol.osc99
+        : osc777;
+  }
+  final identity = identifyTerminal(env, version: version);
+  if (identity.has(TerminalFeature.notificationsOsc99)) {
+    return NotificationProtocol.osc99;
+  }
   final term = env['TERM'] ?? '';
   if (term == 'xterm-kitty') {
     return NotificationProtocol.osc99;
@@ -644,7 +678,7 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   if (env.containsKey('WEZTERM_PANE') ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
       env.containsKey('WT_SESSION') ||
-      identifyTerminal(env).has(TerminalFeature.notificationsOsc777)) {
+      identity.has(TerminalFeature.notificationsOsc777)) {
     return osc777;
   }
   return NotificationProtocol.none;
@@ -1465,6 +1499,7 @@ final class Terminal
     int? bidiMode;
     var secondary = const <int>[];
     var unitId = '';
+    Map<String, Set<String>>? notificationKeys;
     // the queries, all in one write, which the device attributes end
     final round = Completer<bool>()..future.ignore();
     void fail(Object e, StackTrace st) {
@@ -1519,6 +1554,8 @@ final class Terminal
                 version = s.substring(4).replaceFirst(_stringEnd, '');
               } else if (_unitIdReply.firstMatch(s) case final m?) {
                 unitId = _unitIdOf(m[1]!);
+              } else if (_notificationReply.firstMatch(s) case final m?) {
+                notificationKeys = _notificationKeysOf(m[1]!);
               } else if (_bidiModeReply.firstMatch(s) case final m?) {
                 bidiMode = int.parse(m[1]!);
               } else if (_secondaryReply.firstMatch(s) case final m?) {
@@ -1587,6 +1624,8 @@ final class Terminal
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
         '\x1b[16t\x1b[14t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
+        // not of a multiplexer, which keeps it from the terminal
+        '${multiplexerFor(env) == Multiplexer.none ? _notificationQuery : ''}'
         // the Linux console may take it for DA1
         '${term == 'linux' ? '' : '\x1b[>c\x1b[=c'}';
     // inline, where the cursor is before the queries and after them
@@ -1736,6 +1775,20 @@ final class Terminal
       multiplexer == Multiplexer.none ? secondary : const [],
     );
     final apple = _isAppleTerminal(told);
+    // as declared, else OSC 99 where its query was answered, else by the
+    // name the terminal told and its environment
+    final notifications = switch (declared.notifications) {
+      final d? => d,
+      _ when notificationKeys != null => NotificationProtocol.osc99,
+      _ => notificationProtocolFor(told, version: version),
+    };
+    sources['notifications'] = declared.notifications != null
+        ? CapabilitySource.declared
+        : notificationKeys != null
+        ? CapabilitySource.answered
+        : notifications == NotificationProtocol.none
+        ? CapabilitySource.assumed
+        : CapabilitySource.environment;
     // asked with DECRQM, which Konsole answers not; inside a multiplexer
     // its answer is the only one
     final synchronizedOutput = resolve(
@@ -1839,7 +1892,8 @@ final class Terminal
       terminalVersion: version,
       terminal: '$identity',
       sources: sources,
-      notifications: declared.notifications ?? notificationProtocolFor(told),
+      notifications: notifications,
+      notificationKeys: notificationKeys ?? const {},
       multiplexer: multiplexer,
       pointerNames: pointerNames,
       progressReports:
@@ -1892,6 +1946,27 @@ final class Terminal
   static final _unitIdReply = RegExp(
     r'^\x1bP!\|([0-9A-Fa-f]*)(?:\x1b\\|\x07)$',
   );
+
+  /// The query of OSC 99, kitty's notifications: `p=?` under an id of its
+  /// own, answered with the keys and values the terminal takes.
+  static const _notificationQuery = '\x1b]99;i=twk:p=?;\x1b\\';
+
+  /// `OSC 99 ; i=id : p=? ; keys ST`, the answer to [_notificationQuery];
+  /// Konsole's has a `;` after the id.
+  static final _notificationReply = RegExp(
+    r'^\x1b\]99;i=[^;:]*[:;]p=\?;(.*?)(?:\x1b\\|\x07)$',
+  );
+
+  /// The keys of an answer to [_notificationQuery], `key=v,v:key=v`, each
+  /// with its values; Konsole's `unfocus` as the protocol's `unfocused`.
+  static Map<String, Set<String>> _notificationKeysOf(String keys) => {
+    for (final part in keys.split(RegExp('[:;]')))
+      if (part.indexOf('=') case final eq when eq > 0)
+        part.substring(0, eq): {
+          for (final v in part.substring(eq + 1).split(','))
+            if (v == 'unfocus') 'unfocused' else if (v.isNotEmpty) v,
+        },
+  };
 
   /// Terminology's unit id (`~~TY`), tildes dropped ([_unitIdOf]).
   static const _terminologyUnit = 'TY';
@@ -1954,7 +2029,8 @@ final class Terminal
         _textAreaReply.hasMatch(s) ||
         _bidiModeReply.hasMatch(s) ||
         _secondaryReply.hasMatch(s) ||
-        _unitIdReply.hasMatch(s);
+        _unitIdReply.hasMatch(s) ||
+        _notificationReply.hasMatch(s);
   }
 
   // --------------------------------------------------------------- modes --

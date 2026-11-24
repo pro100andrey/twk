@@ -34,6 +34,11 @@ was entered, the console is restored before the error propagates):
    which answers them itself), kitty's graphics query and the terminal's
    name and version (XTVERSION) where the protocol for images is not given
    and no multiplexer answers in the terminal's place ([§1.14](images.md)),
+   the query of OSC 99, kitty's desktop notifications (`p=?`, not through
+   a multiplexer, which keeps it): kitty, foot 1.18 on and Konsole 24.12 on
+   answer it with the keys they take (`TerminalInfo.notificationKeys`,
+   Konsole's answer read leniently: a `;` after the id, `unfocus`), and a
+   terminal that answers shows OSC 99, whatever its name says;
    the width of East Asian Ambiguous characters (U+2500 drawn at the home
    position, then `CSI 6 n`; in the inline mode `CSI 6 n` asks where the
    cursor is instead, on the normal screen before the queries and again

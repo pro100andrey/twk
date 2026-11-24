@@ -104,8 +104,11 @@ void main() {
       {'TERM': 'foot-extra'}: notify,
       {'TERM': 'rxvt-unicode-256color'}: notify,
       {'TERM': 'xterm-256color', 'WT_SESSION': 'b5c8'}: notify,
-      {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '221200'}: notify,
-      {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '220803'}: none,
+      // Konsole: OSC 777 from 23.04, OSC 99 from 24.12
+      {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '241200'}: kitty,
+      {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '240802'}: notify,
+      {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '230400'}: notify,
+      {'TERM': 'xterm-256color', 'KONSOLE_VERSION': '221200'}: none,
       {'TERM': 'xterm-256color', 'VTE_VERSION': '7800'}: notify,
       {'TERM': 'xterm-256color', 'VTE_VERSION': '5003'}: none,
       {'TERM': 'alacritty'}: none,
@@ -128,6 +131,26 @@ void main() {
     }
   });
 
+  test('notifications by the name and version the terminal tells, over '
+      'its environment', () {
+    const env = {'TERM': 'xterm-256color'};
+    for (final (version, protocol) in const [
+      ('kitty(0.39.1)', NotificationProtocol.osc99),
+      ('foot(1.18.0)', NotificationProtocol.osc99),
+      ('foot(1.17.2)', NotificationProtocol.osc777),
+      ('Konsole 26.08.3', NotificationProtocol.osc99),
+      ('Konsole 24.08.2', NotificationProtocol.osc777),
+      ('Konsole 22.12.3', NotificationProtocol.none),
+      ('XTerm(397)', NotificationProtocol.none),
+    ]) {
+      expect(
+        notificationProtocolFor(env, version: version),
+        protocol,
+        reason: version,
+      );
+    }
+  });
+
   test('notifications inside tmux or screen, by what the terminal outside '
       'set', () {
     const tmux = {
@@ -144,7 +167,8 @@ void main() {
       {...tmux, 'ITERM_SESSION_ID': 'w0t0p0:5E3B'}: NotificationProtocol.osc9,
       // passed on by ssh too
       {...tmux, 'LC_TERMINAL': 'iTerm2'}: NotificationProtocol.osc9,
-      {...tmux, 'KONSOLE_VERSION': '250401'}: NotificationProtocol.osc777,
+      {...tmux, 'KONSOLE_VERSION': '250401'}: NotificationProtocol.osc99,
+      {...tmux, 'KONSOLE_VERSION': '240802'}: NotificationProtocol.osc777,
       {...tmux, 'VTE_VERSION': '8002'}: NotificationProtocol.osc777,
       tmux: NotificationProtocol.none,
       {...screen, 'TERM_PROGRAM': 'iTerm.app'}: NotificationProtocol.osc9,

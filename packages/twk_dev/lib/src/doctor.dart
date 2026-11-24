@@ -220,6 +220,10 @@ final class Doctor {
         '${t.kittyKeyboard ? 'yes, flags ${t.kittyKeyboardFlags}' : 'no'}',
       );
       line('  graphics        ${t.graphics}');
+      line(
+        '  notifications   ${t.notifications}'
+        '${_notificationsFrom(t)}',
+      );
       line('  links (OSC 8)   ${_yes(t.hyperlinks)}');
       line(
         '  cell size       '
@@ -292,6 +296,21 @@ String _from(String source, String terminal) => switch (source) {
   _ => '',
 };
 
+/// Where a report's notifications came from: the keys OSC 99's query was
+/// answered with, else by the name, declared, or nothing known.
+String _notificationsFrom(TerminalReport t) {
+  final keys = [
+    for (final MapEntry(:key, :value) in t.notificationKeys.entries)
+      '$key=${value.join(',')}',
+  ];
+  return switch (t.notificationsFrom) {
+    'answered' => ' (answered: ${keys.join(' ')})',
+    'environment' => ' (by its name and environment)',
+    'declared' => ' (declared by the terminal)',
+    _ => ' (none known)',
+  };
+}
+
 /// What a terminal's probe found.
 final class TerminalReport {
   /// A probe's result.
@@ -309,6 +328,9 @@ final class TerminalReport {
     required this.probeMilliseconds,
     this.terminal = 'unknown',
     this.synchronizedOutputFrom = 'assumed',
+    this.notifications = 'none',
+    this.notificationsFrom = 'assumed',
+    this.notificationKeys = const {},
   });
 
   /// XTVERSION, empty where not told.
@@ -353,6 +375,18 @@ final class TerminalReport {
   /// as Konsole, which answers no DECRQM), `declared` or `assumed`.
   final String synchronizedOutputFrom;
 
+  /// How desktop notifications are shown, a `NotificationProtocol`'s name.
+  final String notifications;
+
+  /// Where [notifications] came from, a `CapabilitySource`'s name:
+  /// `answered` (OSC 99's query), `environment` (the terminal's name and
+  /// environment), `declared` or `assumed`.
+  final String notificationsFrom;
+
+  /// What the terminal answered to OSC 99's query
+  /// (`TerminalInfo.notificationKeys`), each key with its values.
+  final Map<String, List<String>> notificationKeys;
+
   /// As JSON.
   Map<String, Object?> toJson() => {
     'version': version,
@@ -368,6 +402,9 @@ final class TerminalReport {
     'probeMilliseconds': probeMilliseconds,
     'terminal': terminal,
     'synchronizedOutputFrom': synchronizedOutputFrom,
+    'notifications': notifications,
+    'notificationsFrom': notificationsFrom,
+    'notificationKeys': notificationKeys,
   };
 }
 
@@ -393,6 +430,12 @@ Future<TerminalReport> _probe(CliTerminal terminal) async {
       terminal: info.terminal,
       synchronizedOutputFrom:
           info.sources['synchronizedOutput']?.name ?? 'assumed',
+      notifications: info.notifications.name,
+      notificationsFrom: info.sources['notifications']?.name ?? 'assumed',
+      notificationKeys: {
+        for (final MapEntry(:key, :value) in info.notificationKeys.entries)
+          key: value.toList(),
+      },
     );
   } finally {
     await backend.close();

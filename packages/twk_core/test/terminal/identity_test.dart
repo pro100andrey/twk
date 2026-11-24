@@ -155,12 +155,14 @@ void main() {
       Map<String, String> env, {
       String? version,
       int? mode,
+      String reply = '',
       TerminalDeclaration declaration = const TerminalDeclaration(),
     }) async {
       final link = FakeLink(environment: env, declaration: declaration)
         ..type(
           '${version == null ? '' : '\x1bP>|$version\x1b\\'}'
           '${mode == null ? '' : '\x1b[?2026;$mode\$y'}'
+          '$reply'
           '\x1b[?62;22c',
         );
       final term = await Terminal.overLink(
@@ -288,6 +290,62 @@ void main() {
       );
       expect(denied.caps.synchronizedOutput, isFalse);
       expect(denied.sources['synchronizedOutput'], CapabilitySource.declared);
+    });
+
+    test("OSC 99 where its query is answered, kitty's form or Konsole's, "
+        'which comes before the name', () async {
+      final kitty = await probe(
+        const {'TERM': 'xterm-256color'},
+        reply:
+            '\x1b]99;i=twk:p=?;p=title,body,?:a=focus,report:'
+            'o=always,unfocused,invisible:u=0,1,2:c=1:w=1\x1b\\',
+      );
+      expect(kitty.notifications, NotificationProtocol.osc99);
+      expect(kitty.sources['notifications'], CapabilitySource.answered);
+      expect(kitty.notificationKeys['p'], {'title', 'body', '?'});
+      expect(kitty.notificationKeys['o'], {
+        'always',
+        'unfocused',
+        'invisible',
+      });
+      expect(kitty.notificationKeys['w'], {'1'});
+      final konsole = await probe(
+        const {'TERM': 'xterm-256color'},
+        version: 'Konsole 23.08.5',
+        reply:
+            '\x1b]99;i=twk;p=?;p=title,body,buttons:a=report,focus:'
+            'o=always,unfocus,invisible:u=0,1,2:c=1\x1b\\',
+      );
+      expect(konsole.notifications, NotificationProtocol.osc99);
+      expect(konsole.notificationKeys, {
+        'p': {'title', 'body', 'buttons'},
+        'a': {'report', 'focus'},
+        'o': {'always', 'unfocused', 'invisible'},
+        'u': {'0', '1', '2'},
+        'c': {'1'},
+      });
+    });
+
+    test('without an answer by the name and version, else the environment; '
+        'what the terminal declares first', () async {
+      final known = await probe(const {
+        'TERM': 'xterm-256color',
+      }, version: 'Konsole 26.08.3');
+      expect(known.notifications, NotificationProtocol.osc99);
+      expect(known.notificationKeys, isEmpty);
+      expect(known.sources['notifications'], CapabilitySource.environment);
+      final none = await probe(const {'TERM': 'xterm-256color'});
+      expect(none.notifications, NotificationProtocol.none);
+      expect(none.sources['notifications'], CapabilitySource.assumed);
+      final declared = await probe(
+        const {'TERM': 'xterm-256color'},
+        reply: '\x1b]99;i=twk:p=?;p=title,body\x1b\\',
+        declaration: const TerminalDeclaration(
+          notifications: NotificationProtocol.osc777,
+        ),
+      );
+      expect(declared.notifications, NotificationProtocol.osc777);
+      expect(declared.sources['notifications'], CapabilitySource.declared);
     });
 
     test('a declaration of them goes over the wire and back', () {

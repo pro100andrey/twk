@@ -17,6 +17,17 @@ Added:
   name, by its environment, or assumed (`synchronizedOutput`,
   `leftRightMargins`, `graphemes`, `insertDelete`, `repeatChar`,
   `konsoleLines`). `TerminalInfo.toString` ends with them.
+- Desktop notifications by OSC 99 where the terminal answers that
+  protocol's query (`p=?`, asked in the probe, not through a multiplexer):
+  kitty, foot 1.18 on and Konsole 24.12 on, which got OSC 777 before.
+  `TerminalInfo.notificationKeys` has the keys and values the terminal
+  answered (`p`, `a`, `o`, `u`, `c`, ...); `TerminalInfo.sources` says
+  where `notifications` came from. Without an answer, the name the
+  terminal tells comes before its environment: `notificationProtocolFor`
+  takes its XTVERSION (`version:`), kitty's and foot's 1.18 on showing
+  OSC 99, foot's before it OSC 777, Konsole's from the table of known
+  terminals. Konsole gets OSC 777 from 23.04 (it was 22.12, before Konsole
+  had it) and OSC 99 from 24.12.
 - `TerminalDeclaration` declares `synchronizedOutput`, `leftRightMargins`,
   `graphemes` and `insertDelete` too: a terminal that knows them (an
   editor's, an emulator in a test) says so instead of answering the probe's

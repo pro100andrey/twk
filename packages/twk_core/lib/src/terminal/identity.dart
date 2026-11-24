@@ -40,6 +40,10 @@ enum TerminalFeature {
   /// It shows desktop notifications by OSC 777.
   notificationsOsc777,
 
+  /// It shows desktop notifications by OSC 99, kitty's protocol, and
+  /// answers its query (`p=?`).
+  notificationsOsc99,
+
   /// It draws the block sextants itself.
   sextants,
 
@@ -59,7 +63,9 @@ const _known = <KnownTerminal, Map<TerminalFeature, List<int>>>{
     TerminalFeature.konsoleLines: [],
     TerminalFeature.pointerShapesCss: [26, 4],
     TerminalFeature.progressReports: [26, 4],
-    TerminalFeature.notificationsOsc777: [22, 12],
+    // commit 6ba3cbb1d, first in 23.04; OSC 99 cf94769bb, first in 24.12
+    TerminalFeature.notificationsOsc777: [23, 4],
+    TerminalFeature.notificationsOsc99: [24, 12],
     TerminalFeature.sextants: [22, 4],
     TerminalFeature.reordersBidi: [],
   },
