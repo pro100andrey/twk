@@ -2,7 +2,12 @@
 // it, against a bus of the test's own: a Unix socket in a temporary
 // directory that authenticates, answers Hello, AddMatch and the
 // notification service's calls, and emits its signals, as a session bus
-// with KDE's or GNOME's service on it would. No desktop needed.
+// with KDE's or GNOME's service on it would. No desktop needed. Not on
+// Windows, which has no session bus (desktopNotificationsReachable is
+// false there) and no Unix user id to authenticate by.
+@TestOn('linux || mac-os')
+library;
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
