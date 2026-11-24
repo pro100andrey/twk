@@ -5,6 +5,7 @@ build/
 
 # Personal tooling: the agent's instructions and settings, DevTools'.
 .claude/
+.kimi-code/
 CLAUDE.md
 AGENTS.md
 .tm/

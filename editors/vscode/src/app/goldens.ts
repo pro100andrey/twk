@@ -82,6 +82,7 @@ export async function acceptActual(files: GoldenFiles, path: string): Promise<bo
 export class GoldenEditor {
   private readonly listening: Disposable[];
   private disposed = false;
+  private refreshed = 0;
 
   constructor(
     private readonly panel: WebviewPanelPort<ToScreen>,
@@ -105,8 +106,9 @@ export class GoldenEditor {
 
   /** Shows the file as it is now: told when it or its `.actual` changed. */
   async refresh(): Promise<void> {
+    const generation = ++this.refreshed;
     const state = await screenState(this.files, this.path);
-    if (!this.disposed) {
+    if (!this.disposed && generation === this.refreshed) {
       await this.panel.post({ type: 'show', name: this.name, state });
     }
   }

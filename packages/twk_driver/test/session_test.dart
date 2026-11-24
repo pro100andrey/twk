@@ -182,6 +182,99 @@ void main() {
       expect(process.launched.killed, isTrue);
     });
 
+    test('a VM service address that never comes is a timeout, and the app '
+        'is killed', () async {
+      final process = FakeProcess();
+      final clock = DrivenClock();
+      process.launched.pendingServiceUri = Completer<Uri>();
+      final starting = Session.start(
+        const ProcessSpec('app.dart'),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => FakeScreen(),
+          connect: (_) async => FakeService(),
+          clock: clock,
+        ),
+        timeout: const Duration(seconds: 5),
+      );
+      final expectation = expectLater(
+        starting,
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('the VM service address'),
+              contains('within 0:00:05'),
+            ),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+      clock.advance(const Duration(seconds: 5));
+      await expectation;
+      expect(process.launched.killed, isTrue);
+    });
+
+    test('a VM service connection that never answers is a timeout, and the '
+        'app is killed', () async {
+      final process = FakeProcess();
+      final clock = DrivenClock();
+      final connecting = Completer<AppServicePort>();
+      final starting = Session.start(
+        const ProcessSpec('app.dart'),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => FakeScreen(),
+          connect: (_) => connecting.future,
+          clock: clock,
+        ),
+        timeout: const Duration(seconds: 5),
+      );
+      final expectation = expectLater(
+        starting,
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('the VM service'),
+              contains('within 0:00:05'),
+            ),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+      clock.advance(const Duration(seconds: 5));
+      await expectation;
+      expect(process.launched.killed, isTrue);
+    });
+
+    test('a service call that never answers is a timeout of the driver '
+        'clock', () async {
+      final t = await started();
+      t.service.pendingAnswers['find'] = Completer<Json>();
+      final finding = t.session.find(const ElementFinder.text('Save'));
+      final expectation = expectLater(
+        finding,
+        throwsA(
+          isA<DriverError>().having(
+            (e) => e.message,
+            'message',
+            allOf(
+              contains('ext.twk.find'),
+              contains('within 0:00:05'),
+              contains('Screen at frame 1'),
+            ),
+          ),
+        ),
+      );
+      await pumpEventQueue();
+      t.clock.advance(const Duration(seconds: 5));
+      await expectation;
+      await t.session.close();
+    });
+
     test('a session on real time sets no variable and starts from status, '
         'and waitFor needs io there', () async {
       final t = await started(driven: false);

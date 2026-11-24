@@ -146,8 +146,10 @@ void main() {
         'python3',
         [
           '../../tool/pty_run.py',
-          // the colours looked for below are 24-bit
+          // the colours looked for below are 24-bit, whatever the shell's
+          // NO_COLOR the test runs in
           '--env=COLORTERM=truecolor',
+          '--env=NO_COLOR=',
           '--input',
           'none',
           '--scheme',
