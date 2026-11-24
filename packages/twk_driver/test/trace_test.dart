@@ -275,6 +275,40 @@ void main() {
   });
 
   test(
+    'a failure opening the JSON file closes the cast opened before it',
+    () async {
+      Directory('${dir.path}/t/run.trace.jsonl').createSync(recursive: true);
+      final process = FakeProcess();
+      final service = FakeService();
+      // the fake's kill ends its output, which a closing stream completes
+      // only once listened to
+      process.launched.terminal.output.listen((_) {});
+      final starting = Session.start(
+        const ProcessSpec('app.dart'),
+        ports: SessionPorts(
+          process: process,
+          screen: (_, _) => FakeScreen(),
+          connect: (_) async => service,
+        ),
+        trace: TraceOptions('${dir.path}/t/run'),
+      );
+      await expectLater(starting, throwsA(isA<FileSystemException>()));
+      expect(process.launched.killed, isTrue);
+      final cast = File('${dir.path}/t/run.cast').resolveSymbolicLinksSync();
+      // where the process's open files are listed (Linux), none is the cast
+      final fds = Directory('/proc/self/fd');
+      if (fds.existsSync()) {
+        final open = <String>[
+          for (final fd in fds.listSync()) ?_target(fd),
+        ];
+        expect(open, isNot(contains(cast)));
+      }
+      // where an open file cannot be removed (Windows), this fails too
+      File(cast).deleteSync();
+    },
+  );
+
+  test(
     'a trace that cannot be opened ends the app that was launched',
     () async {
       // the trace's directory would be below a file
@@ -297,4 +331,14 @@ void main() {
       expect(process.launched.killed, isTrue);
     },
   );
+}
+
+/// The file [fd], a link of `/proc/self/fd`, is open on: null for one
+/// closed while it was listed.
+String? _target(FileSystemEntity fd) {
+  try {
+    return Link(fd.path).targetSync();
+  } on FileSystemException {
+    return null;
+  }
 }

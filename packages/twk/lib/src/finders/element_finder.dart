@@ -50,7 +50,7 @@ abstract class ElementFinder {
 
   /// The [Text]s whose whole text has a match of [pattern] in it. On the
   /// wire its source and whether it is case sensitive go: [toJson] of a
-  /// [RegExp] that is multiline, dot-all, unicode or sticky throws.
+  /// [RegExp] that is multiline, dot-all or unicode throws.
   const factory ElementFinder.textMatches(RegExp pattern) = _TextFinder.regExp;
 
   /// The widgets of exactly the type [type], not of its subtypes, with its

@@ -223,6 +223,19 @@ final frameScenarios = <FrameScenario>[
     },
   ),
   FrameScenario(
+    'tree-all',
+    'every text in rows × 6 repaint boundaries changed',
+    (hs) {
+      final s = _BoundedGrid(hs)..render();
+      return (i) {
+        for (final cell in s.cells) {
+          cell.text = 'cell $i';
+        }
+        return s.render();
+      };
+    },
+  ),
+  FrameScenario(
     'wrap',
     'a word typed into a mixed-script paragraph, re-wrapped, as a Text is: '
         'keeping its paint by itself',
@@ -1104,6 +1117,34 @@ final class _Grid extends _Scene {
           ),
       ]),
     );
+  }
+
+  final cells = <RenderText>[];
+}
+
+/// Six independently repainted texts per screen row.
+final class _BoundedGrid extends _Scene {
+  _BoundedGrid(super.hs) {
+    final w = hs.surface.width ~/ 6;
+    RenderText cell(int x, int y) {
+      final t = RenderText(
+        'row $y column $x',
+        hs.styles.pen(const Pen()),
+        boundary: true,
+      );
+      cells.add(t);
+      return t;
+    }
+
+    owner.root = RenderColumn(<(RenderObject, int?)>[
+      for (var y = 0; y < hs.surface.height; y++)
+        (
+          RenderRow(<(RenderObject, int?)>[
+            for (var x = 0; x < 6; x++) (cell(x, y), x == 5 ? null : w),
+          ]),
+          1,
+        ),
+    ]);
   }
 
   final cells = <RenderText>[];

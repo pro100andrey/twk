@@ -819,9 +819,19 @@ final class Session {
     }
   }
 
-  /// [future], or the app's end, whichever comes first.
+  /// [future], or the app's end, whichever comes first, within [timeout].
   Future<T> _race<T>(Future<T> future, String what) {
     final done = Completer<T>();
+    final timer = _clock.timer(timeout, () {
+      if (!done.isCompleted) {
+        done.completeError(
+          DriverError(
+            "no $what within $timeout of the driver's clock; the app has "
+            'not answered. Screen at frame $frame:\n${_screen.frame.text}',
+          ),
+        );
+      }
+    });
     final waiter = _Waiter(
       (_) => false,
       0,
@@ -851,7 +861,10 @@ final class Session {
         },
       ),
     );
-    return done.future.whenComplete(() => _waiters.remove(waiter));
+    return done.future.whenComplete(() {
+      timer.cancel();
+      _waiters.remove(waiter);
+    });
   }
 
   Future<Json> _call(
