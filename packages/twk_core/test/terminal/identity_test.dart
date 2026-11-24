@@ -8,10 +8,18 @@ import 'package:twk_core/src/terminal/identity.dart';
 import 'package:twk_core/src/terminal/sequences.dart'
     show bidiReorderingFor, pointerNamesFor, progressReportsFor, sextantsFor;
 import 'package:twk_core/src/terminal/terminal.dart'
-    show konsoleLinesFor, notificationProtocolFor;
+    show
+        colorModeFor,
+        graphicsProtocolFor,
+        konsoleLinesFor,
+        notificationProtocolFor,
+        styledUnderlinesFor;
 import 'package:twk_core/twk_core.dart';
 
 import 'fake_link.dart';
+
+/// The terminal [env] names, as `identifyTerminal` writes it.
+String named(Map<String, String> env) => '${identifyTerminal(env)}';
 
 void main() {
   group('identifyTerminal', () {
@@ -26,20 +34,28 @@ void main() {
       );
       expect(
         '${identifyTerminal(const {}, version: 'kitty(0.39)')}',
+        'kitty 0.39',
+      );
+      expect(
+        '${identifyTerminal(const {}, version: 'WezTerm 20240203-110809-5')}',
+        'wezterm 20240203',
+      );
+      expect(
+        '${identifyTerminal(const {}, version: 'Alacritty 0.15')}',
         'unknown',
       );
     });
 
     test('else by the variables a terminal sets for its programs', () {
       expect(
-        '${identifyTerminal(const {'KONSOLE_VERSION': '260803'})}',
+        named(const {'KONSOLE_VERSION': '260803'}),
         'konsole 26.8.3',
       );
       expect(
-        '${identifyTerminal(const {'VTE_VERSION': '8002'})}',
+        named(const {'VTE_VERSION': '8002'}),
         'vte 0.80.2',
       );
-      expect('${identifyTerminal(const {'TERM': 'xterm'})}', 'unknown');
+      expect(named(const {'TERM': 'xterm'}), 'unknown');
       expect(
         '${identifyTerminal(const {}, version: 'Konsole')}',
         'konsole',
@@ -74,14 +90,25 @@ void main() {
     test('a name told, a TERM or a TERM_PROGRAM of another terminal comes '
         'before the variables of the one it was started from', () {
       const konsole = {'KONSOLE_VERSION': '260803'};
-      for (final (env, version) in [
-        (konsole, 'XTerm(397)'),
-        ({...konsole, 'TERM': 'xterm-kitty'}, ''),
-        ({...konsole, 'TERM_PROGRAM': 'vscode'}, ''),
+      for (final (env, version, terminal) in [
+        (konsole, 'XTerm(397)', 'xterm 397'),
+        ({...konsole, 'TERM': 'xterm-kitty'}, '', 'kitty'),
+        ({...konsole, 'TERM_PROGRAM': 'vscode'}, '', 'unknown'),
+        (
+          {
+            ...konsole,
+            'TERM': 'contour',
+            'TERM_PROGRAM': 'contour',
+            'TERM_PROGRAM_VERSION': '0.6.1.7494',
+          },
+          '',
+          'contour 0.6.1.7494',
+        ),
+        ({...konsole, 'TERM': 'dumb'}, '', 'unknown'),
       ]) {
         expect(
-          identifyTerminal(env, version: version).terminal,
-          isNull,
+          '${identifyTerminal(env, version: version)}',
+          terminal,
           reason: '$env $version',
         );
       }
@@ -146,6 +173,136 @@ void main() {
     expect(konsoleLinesFor(vscode), isFalse);
     expect(pointerNamesFor(vscode), isNull);
     expect(notificationProtocolFor(vscode), NotificationProtocol.none);
+  });
+
+  group('the other terminals on the table', () {
+    test('by the name and version they tell', () {
+      for (final (version, terminal) in const [
+        ('foot(1.18.0)', 'foot 1.18.0'),
+        ('ghostty 1.0.1', 'ghostty 1.0.1'),
+        ('iTerm2 3.5.0', 'iterm2 3.5.0'),
+        ('mintty 3.7.8', 'mintty 3.7.8'),
+        ('Rio 0.4.6', 'rio 0.4.6'),
+        ('contour 0.6.1.7494', 'contour 0.6.1.7494'),
+        ('mlterm(3.9.3)', 'mlterm 3.9.3'),
+      ]) {
+        expect('${identifyTerminal(const {}, version: version)}', terminal);
+      }
+    });
+
+    test('by their TERM_PROGRAM and its version; GNOME Console by its '
+        "VTE's", () {
+      expect(
+        named(const {
+          'TERM_PROGRAM': 'iTerm.app',
+          'TERM_PROGRAM_VERSION': '3.6.6',
+        }),
+        'iterm2 3.6.6',
+      );
+      expect(
+        named(const {
+          'TERM_PROGRAM': 'kgx',
+          'TERM_PROGRAM_VERSION': '48.0',
+          'VTE_VERSION': '7802',
+        }),
+        'vte 0.78.2',
+      );
+    });
+
+    test('by the variables they set, under a TERM they set only; iTerm2 '
+        'over ssh by LC_TERMINAL, at LC_TERMINAL_VERSION', () {
+      expect(
+        named(const {'LC_TERMINAL': 'iTerm2', 'LC_TERMINAL_VERSION': '3.7.1'}),
+        'iterm2 3.7.1',
+      );
+      for (final env in const [
+        {'WT_SESSION': 'x'},
+        {'KITTY_WINDOW_ID': '1'},
+        {'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty'},
+        {'WEZTERM_PANE': '0'},
+        {'ITERM_SESSION_ID': 'w0t0p0'},
+        {'ConEmuPID': '1'},
+      ]) {
+        expect(
+          identifyTerminal({'TERM': 'xterm-256color', ...env}).terminal,
+          isNotNull,
+          reason: '$env',
+        );
+        expect(
+          identifyTerminal({'TERM': 'st-256color', ...env}).terminal,
+          isNull,
+          reason: '$env',
+        );
+      }
+    });
+
+    test('a fact from a version on: one not told has it where the table '
+        'takes it to, as of kitty under its own TERM', () {
+      const kitty = {'TERM': 'xterm-kitty'};
+      expect(pointerNamesFor(kitty), PointerNames.css);
+      expect(pointerNamesFor(kitty, version: 'kitty(0.30.1)'), isNull);
+      expect(
+        pointerNamesFor(kitty, version: 'kitty(0.31.0)'),
+        PointerNames.css,
+      );
+      expect(sextantsFor(kitty), isTrue);
+      expect(progressReportsFor(kitty), isFalse);
+      expect(progressReportsFor(kitty, version: 'kitty(0.38.0)'), isTrue);
+      // foot's OSC 99 only from 1.18, told by its name
+      expect(
+        notificationProtocolFor(const {'TERM': 'foot'}),
+        NotificationProtocol.osc777,
+      );
+      expect(
+        notificationProtocolFor(const {}, version: 'foot(1.18.0)'),
+        NotificationProtocol.osc99,
+      );
+    });
+
+    test('every rule asks the same identity: what a terminal started from '
+        'another inherited counts for none of them', () {
+      // st started from Windows Terminal
+      const st = {'TERM': 'st-256color', 'WT_SESSION': 'x'};
+      expect(colorModeFor(st), ColorMode.ansi256);
+      expect(notificationProtocolFor(st), NotificationProtocol.none);
+      expect(progressReportsFor(st), isFalse);
+      const wt = {'TERM': 'xterm-256color', 'WT_SESSION': 'x'};
+      expect(colorModeFor(wt), ColorMode.trueColor);
+      expect(notificationProtocolFor(wt), NotificationProtocol.osc777);
+      expect(progressReportsFor(wt), isTrue);
+      // xterm started from kitty, which tells its own name
+      const fromKitty = {'TERM': 'xterm-256color', 'KITTY_WINDOW_ID': '1'};
+      expect(
+        notificationProtocolFor(fromKitty, version: 'XTerm(397)'),
+        NotificationProtocol.none,
+      );
+      expect(
+        pointerNamesFor(fromKitty, version: 'XTerm(397)'),
+        PointerNames.x11,
+      );
+      expect(
+        notificationProtocolFor(fromKitty),
+        NotificationProtocol.osc99,
+      );
+      // an editor's dumb TERM, started from Terminal.app
+      const dumb = {'TERM': 'dumb', 'TERM_PROGRAM': 'Apple_Terminal'};
+      expect(notificationProtocolFor(dumb), NotificationProtocol.none);
+      expect(styledUnderlinesFor(dumb), isTrue);
+      expect(
+        styledUnderlinesFor(const {'TERM_PROGRAM': 'Apple_Terminal'}),
+        isFalse,
+      );
+      // iTerm2's images through tmux, by the variables it set
+      expect(
+        graphicsProtocolFor(const {
+          'TERM': 'tmux-256color',
+          'TMUX': '/tmp/tmux-1000/default,1,0',
+          'TERM_PROGRAM': 'tmux',
+          'ITERM_SESSION_ID': 'w0t0p0',
+        }),
+        GraphicsProtocol.iterm2,
+      );
+    });
   });
 
   group('the probe', () {

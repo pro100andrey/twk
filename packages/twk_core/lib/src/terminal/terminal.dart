@@ -557,29 +557,24 @@ final class TerminalOptions {
 /// ```
 ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
   final term = env['TERM'] ?? '';
-  final program = env['TERM_PROGRAM'] ?? '';
   final colorTerm = env['COLORTERM'] ?? '';
   // TERM=dumb before what a terminal it was started from left behind
   // (COLORTERM, TERM_PROGRAM): a shell in an editor
   if ((env['NO_COLOR'] ?? '').isNotEmpty || term == 'dumb') {
     return ColorMode.none;
   }
+  final identity = identifyTerminal(env);
   if (colorTerm == 'truecolor' ||
       colorTerm == '24bit' ||
-      env.containsKey('WT_SESSION') ||
-      program == 'iTerm.app' ||
-      program == 'WezTerm' ||
-      program == 'ghostty' ||
-      term == 'xterm-kitty' ||
-      term == 'xterm-ghostty' ||
+      identity.has(TerminalFeature.trueColor) ||
       windows) {
     return ColorMode.trueColor;
   }
   if (term.contains('256color') ||
       term == 'terminology' ||
       term == 'fbterm' ||
-      program == 'Apple_Terminal') {
-    return ColorMode.ansi256; // Terminal.app has no 24-bit color
+      identity.has(TerminalFeature.colors256)) {
+    return ColorMode.ansi256;
   }
   return ColorMode.ansi16;
 }
@@ -589,23 +584,16 @@ ColorMode colorModeFor(Map<String, String> env, {bool windows = false}) {
 /// Terminal.app, which reads `4:3` as `43`, a yellow background. A `TERM`
 /// of a terminal of its own (kitty, ghostty, Alacritty, foot, WezTerm)
 /// comes before a `TERM_PROGRAM` inherited from the Terminal.app it was
-/// started in. Over ssh Terminal.app's `TERM_PROGRAM` is not passed on:
-/// the probe tells it there by its secondary device attributes.
+/// started in ([identifyTerminal]). Over ssh Terminal.app's `TERM_PROGRAM`
+/// is not passed on: the probe tells it there by its secondary device
+/// attributes.
 ///
 /// ```dart
 /// print(styledUnderlinesFor({'TERM_PROGRAM': 'Apple_Terminal'})); // false
 /// ```
-bool styledUnderlinesFor(Map<String, String> env) => !_isAppleTerminal(env);
-
-/// Whether the environment names Terminal.app: its `TERM_PROGRAM`, not
-/// inherited by a terminal whose `TERM` is its own
-/// ([termNamesItsOwnTerminal]) started from it.
-bool _isAppleTerminal(Map<String, String> env) {
-  if (env['TERM_PROGRAM'] != 'Apple_Terminal') {
-    return false;
-  }
-  return !termNamesItsOwnTerminal(env['TERM'] ?? '');
-}
+bool styledUnderlinesFor(Map<String, String> env) => !identifyTerminal(
+  env,
+).has(TerminalFeature.misreadsStyledUnderlines);
 
 /// Whether the terminal's colors are dark or light as its environment
 /// declares them: `COLORFGBG`, which rxvt, Konsole and others set to the
@@ -630,73 +618,30 @@ Brightness? brightnessFor(Map<String, String> env) {
   };
 }
 
-/// How the terminal shows desktop notifications, from its environment: its
-/// own `TERM`, then its `TERM_PROGRAM`, then the variables terminals set
-/// for their programs (inherited inside tmux or screen too). A
-/// `TERM_PROGRAM` of another terminal gives [NotificationProtocol.none]:
-/// such variables are then those of the terminal it was started from.
-/// Terminal.app (`Apple_Terminal`), which shows none of a program's, has
-/// its bell rung ([NotificationProtocol.bell]); not a terminal of a `TERM`
-/// of its own started from it ([termNamesItsOwnTerminal]). The name and
-/// version the terminal told ([version], XTVERSION) come first: kitty's
-/// and foot's from 1.18 on show OSC 99, foot's before it OSC 777, and
-/// Konsole's are read from the table of known terminals (OSC 777 from
-/// 23.04, OSC 99 from 24.12). A terminal that answers OSC 99's query is
-/// taken at its answer before any of this (`TerminalInfo.notificationKeys`).
+/// How the terminal shows desktop notifications, from the name and version
+/// it told ([version], XTVERSION) and its environment, as
+/// [identifyTerminal] tells the terminal: OSC 99 for kitty, foot from 1.18
+/// and Konsole from 24.12; OSC 777 for Ghostty, WezTerm, Windows Terminal,
+/// rxvt-unicode, earlier foot, Konsole from 23.04 and VTE from 0.52; OSC 9
+/// for iTerm2; Terminal.app (`Apple_Terminal`), which shows none of a
+/// program's, has its bell rung ([NotificationProtocol.bell]). None for
+/// another, and for one started from them that inherited their variables.
+/// A terminal that answers OSC 99's query is taken at its answer before
+/// any of this (`TerminalInfo.notificationKeys`).
 NotificationProtocol notificationProtocolFor(
   Map<String, String> env, {
   String version = '',
 }) {
-  const osc777 = NotificationProtocol.osc777;
-  if (version.startsWith('kitty(')) {
-    return NotificationProtocol.osc99;
-  }
-  if (version.startsWith('foot(')) {
-    return dottedAtLeast(version.substring(5), const [1, 18])
-        ? NotificationProtocol.osc99
-        : osc777;
-  }
   final identity = identifyTerminal(env, version: version);
-  if (identity.has(TerminalFeature.notificationsOsc99)) {
-    return NotificationProtocol.osc99;
-  }
-  final term = env['TERM'] ?? '';
-  if (term == 'xterm-kitty') {
-    return NotificationProtocol.osc99;
-  }
-  if (term == 'xterm-ghostty' ||
-      term.startsWith('foot') ||
-      term.startsWith('rxvt-unicode')) {
-    return osc777;
-  }
-  if (term == 'dumb') {
-    return NotificationProtocol.none;
-  }
-  switch (env['TERM_PROGRAM'] ?? '') {
-    case 'iTerm.app':
-      return NotificationProtocol.osc9;
-    case 'Apple_Terminal':
-      return _isAppleTerminal(env)
-          ? NotificationProtocol.bell
-          : NotificationProtocol.none;
-    case 'WezTerm' || 'ghostty':
-      return osc777;
-    case '' || 'tmux':
-      break;
-    default:
-      return NotificationProtocol.none;
-  }
-  if (env.containsKey('KITTY_WINDOW_ID')) {
-    return NotificationProtocol.osc99;
-  }
-  if (env.containsKey('ITERM_SESSION_ID') || env['LC_TERMINAL'] == 'iTerm2') {
-    return NotificationProtocol.osc9;
-  }
-  if (env.containsKey('WEZTERM_PANE') ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      env.containsKey('WT_SESSION') ||
-      identity.has(TerminalFeature.notificationsOsc777)) {
-    return osc777;
+  for (final (feature, protocol) in const [
+    (TerminalFeature.notificationsOsc99, NotificationProtocol.osc99),
+    (TerminalFeature.notificationsOsc777, NotificationProtocol.osc777),
+    (TerminalFeature.notificationsOsc9, NotificationProtocol.osc9),
+    (TerminalFeature.notificationsBell, NotificationProtocol.bell),
+  ]) {
+    if (identity.has(feature)) {
+      return protocol;
+    }
   }
   return NotificationProtocol.none;
 }
@@ -713,26 +658,6 @@ NotificationProtocol notificationsThroughTmux(
 ) => passthrough == 'off' && protocol != NotificationProtocol.bell
     ? NotificationProtocol.none
     : protocol;
-
-/// The multiplexer a program's output goes through, from its environment:
-/// `TMUX` or `STY` in one, a `TERM` of `tmux…` or `screen…` reached from
-/// one (over ssh).
-Multiplexer multiplexerFor(Map<String, String> env) {
-  final term = env['TERM'] ?? '';
-  if (env.containsKey('TMUX')) {
-    return Multiplexer.tmux;
-  }
-  if (env.containsKey('STY')) {
-    return Multiplexer.screen;
-  }
-  if (term.startsWith('tmux')) {
-    return Multiplexer.tmux;
-  }
-  if (term.startsWith('screen')) {
-    return Multiplexer.screen;
-  }
-  return Multiplexer.none;
-}
 
 /// How the terminal shows images, from what `TWK_GRAPHICS` names, else
 /// from what it answered and its environment: kitty's protocol where it
@@ -758,26 +683,16 @@ GraphicsProtocol graphicsProtocolFor(
   if (multiplexer == Multiplexer.screen) {
     return GraphicsProtocol.none;
   }
-  final program = env['TERM_PROGRAM'] ?? '';
-  final iterm =
-      version.startsWith('iTerm2') ||
-      version.startsWith('WezTerm') ||
-      program == 'iTerm.app' ||
-      program == 'WezTerm' ||
-      env['LC_TERMINAL'] == 'iTerm2';
+  final identity = identifyTerminal(env, version: version);
+  final iterm = identity.has(TerminalFeature.iterm2Graphics);
   if (multiplexer == Multiplexer.tmux) {
     if (sixel) {
       return GraphicsProtocol.sixel;
     }
-    if (env.containsKey('KITTY_WINDOW_ID') ||
-        env.containsKey('GHOSTTY_RESOURCES_DIR')) {
+    if (identity.has(TerminalFeature.kittyGraphics)) {
       return GraphicsProtocol.kitty;
     }
-    return iterm ||
-            env.containsKey('ITERM_SESSION_ID') ||
-            env.containsKey('WEZTERM_PANE')
-        ? GraphicsProtocol.iterm2
-        : GraphicsProtocol.none;
+    return iterm ? GraphicsProtocol.iterm2 : GraphicsProtocol.none;
   }
   if (kittyGraphics) {
     return GraphicsProtocol.kitty;
@@ -1783,8 +1698,6 @@ final class Terminal
         }
       }
     }
-    final program = env['TERM_PROGRAM'] ?? '';
-
     var color = colorModeFor(env, windows: link.windows);
     // Terminology names itself by DA3 where its TERM does not (over ssh,
     // under sudo): it shows 256 colors. Not through a multiplexer, which
@@ -1832,21 +1745,17 @@ final class Terminal
       return value;
     }
 
+    // the terminal as its name and version tell it, for what it is known
+    // to do without answering a query (identity.dart)
+    final identity = identifyTerminal(env, version: version);
     // Grapheme clustering: announced via mode 2027, or known terminals that
-    // cluster without it.
+    // cluster without it: over an answer of no too, as before the table
     final graphemes = resolve(
       'graphemes',
       declaredValue: declared.graphemes,
       mode: 2027,
-      guessed:
-          term == 'xterm-kitty' ||
-          env.containsKey('WT_SESSION') ||
-          program == 'WezTerm',
+      guessed: identity.has(TerminalFeature.graphemes),
     );
-
-    // the terminal as its name and version tell it, for what it is known
-    // to do without answering a query (identity.dart)
-    final identity = identifyTerminal(env, version: version);
     // REP (CSI n b) has no capability query; enable it only for terminals
     // that declare it, or are known to implement it.
     final plainRows = !screenLike && !env.containsKey('TMUX');
@@ -1854,16 +1763,6 @@ final class Terminal
       'repeatChar',
       declaredValue: declared.repeatChar,
       known: plainRows && identity.has(TerminalFeature.repeatChar),
-      guessed:
-          plainRows &&
-          (term == 'xterm-kitty' ||
-              term == 'xterm-ghostty' ||
-              term.startsWith('foot') ||
-              term == 'alacritty' ||
-              program == 'WezTerm' ||
-              program == 'ghostty' ||
-              env.containsKey('WT_SESSION') ||
-              env.containsKey('XTERM_VERSION')),
     );
     // the first attribute is the conformance level; 4 is sixel
     final sixel = attributes.skip(1).contains(4);
@@ -1883,7 +1782,9 @@ final class Terminal
       env,
       multiplexer == Multiplexer.none ? secondary : const [],
     );
-    final apple = _isAppleTerminal(told);
+    final misshifts = identifyTerminal(
+      told,
+    ).has(TerminalFeature.misshiftsLines);
     // as declared, else OSC 99 where its query was answered, else by the
     // name the terminal told and its environment
     // a declared dbus is undeclared: the desktop's service is asked below
@@ -1954,12 +1855,12 @@ final class Terminal
     // cells are written again instead, which costs bytes, never cells
     final insertDelete = switch (declared.insertDelete) {
       final d? => d,
-      _ => !(apple && multiplexer == Multiplexer.none),
+      _ => !(misshifts && multiplexer == Multiplexer.none),
     };
     sources['insertDelete'] = declared.insertDelete != null
         ? CapabilitySource.declared
-        : apple && multiplexer == Multiplexer.none
-        ? CapabilitySource.environment
+        : misshifts && multiplexer == Multiplexer.none
+        ? CapabilitySource.known
         : CapabilitySource.assumed;
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
@@ -1998,17 +1899,12 @@ final class Terminal
                 sixel
             ? Multiplexer.none
             : multiplexer,
-        // kitty itself, by the name it tells, else by its environment where
-        // no terminal told another (none answered, or tmux answered for
-        // itself): a terminal started from kitty inherits KITTY_WINDOW_ID.
-        // Other terminals with its protocol show only an image's first frame
+        // kitty itself, as identifyTerminal tells it: a terminal started
+        // from kitty inherits KITTY_WINDOW_ID. Other terminals with its
+        // protocol show only an image's first frame
         kittyAnimation:
             graphics == GraphicsProtocol.kitty &&
-            (version.startsWith('kitty') ||
-                (env.containsKey('KITTY_WINDOW_ID') &&
-                    (version.isEmpty ||
-                        (multiplexer == Multiplexer.tmux &&
-                            version.startsWith('tmux'))))),
+            identity.has(TerminalFeature.kittyAnimation),
         cellPixelWidth: cellWidth,
         cellPixelHeight: cellHeight,
       ),

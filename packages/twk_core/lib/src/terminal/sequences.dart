@@ -13,8 +13,6 @@ import 'dart:convert';
 import '../unicode/unicode.dart';
 import 'identity.dart';
 
-export 'identity.dart' show termNamesItsOwnTerminal;
-
 // Examples can assume:
 // import 'dart:convert';
 
@@ -155,6 +153,26 @@ enum Multiplexer {
 
   /// GNU screen.
   screen,
+}
+
+/// The multiplexer a program's output goes through, from its environment:
+/// `TMUX` or `STY` in one, a `TERM` of `tmux…` or `screen…` reached from
+/// one (over ssh).
+Multiplexer multiplexerFor(Map<String, String> env) {
+  final term = env['TERM'] ?? '';
+  if (env.containsKey('TMUX')) {
+    return Multiplexer.tmux;
+  }
+  if (env.containsKey('STY')) {
+    return Multiplexer.screen;
+  }
+  if (term.startsWith('tmux')) {
+    return Multiplexer.tmux;
+  }
+  if (term.startsWith('screen')) {
+    return Multiplexer.screen;
+  }
+  return Multiplexer.none;
 }
 
 /// How urgent a desktop notification is: OSC 99's `u`, which the desktop
@@ -510,58 +528,22 @@ String pointerShapeSequence(
 /// or GNU screen: the shape would stay over the other panes as well. A
 /// name the terminal tells, then its own `TERM` and `TERM_PROGRAM`, come
 /// before variables a terminal it was started from left in its
-/// environment; xterm's `XTERM_VERSION` counts only where it told none
-/// (XTVERSION not asked, as with a graphics protocol given).
+/// environment ([identifyTerminal]); xterm's `XTERM_VERSION` counts only
+/// where it told none (XTVERSION not asked, as with a graphics protocol
+/// given).
 PointerNames? pointerNamesFor(
   Map<String, String> env, {
   String version = '',
 }) {
-  const css = PointerNames.css;
-  const x11 = PointerNames.x11;
-  final term = env['TERM'] ?? '';
-  if (env.containsKey('TMUX') ||
-      env.containsKey('STY') ||
-      term.startsWith('tmux') ||
-      term.startsWith('screen')) {
+  if (multiplexerFor(env) != Multiplexer.none) {
     return null;
   }
-  if (version.startsWith('iTerm2 ')) {
-    return dottedAtLeast(version.substring(7), const [3, 7]) ? x11 : null;
+  final identity = identifyTerminal(env, version: version);
+  if (identity.has(TerminalFeature.pointerShapesCss)) {
+    return PointerNames.css;
   }
-  if (version.startsWith('XTerm(')) {
-    return dottedAtLeast(version.substring(6), const [367]) ? x11 : null;
-  }
-  if (term == 'xterm-kitty' ||
-      term == 'xterm-ghostty' ||
-      term.startsWith('foot')) {
-    return css;
-  }
-  switch (env['TERM_PROGRAM'] ?? '') {
-    case 'ghostty' || 'rio':
-      return css;
-    case 'iTerm.app':
-      final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
-      return dottedAtLeast(programVersion, const [3, 7]) ? x11 : null;
-    case '':
-      break;
-    default:
-      return null;
-  }
-  if (env.containsKey('KITTY_WINDOW_ID') ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      identifyTerminal(
-        env,
-        version: version,
-      ).has(TerminalFeature.pointerShapesCss)) {
-    return css;
-  }
-  // xterm's own variable, last: where the terminal told its name (any
-  // but xterm's) it is that of an xterm it was started from
-  final xterm = env['XTERM_VERSION'] ?? '';
-  return version.isEmpty &&
-          xterm.startsWith('XTerm(') &&
-          dottedAtLeast(xterm.substring(6), const [367])
-      ? x11
+  return identity.has(TerminalFeature.pointerShapesX11)
+      ? PointerNames.x11
       : null;
 }
 
@@ -614,53 +596,17 @@ String progressSequence(ProgressState state, {int? percent}) {
 /// notification, so a terminal whose version is not known is not; foot
 /// and WezTerm (but in nightly builds, and only to its Lua) show none.
 bool progressReportsFor(Map<String, String> env, {String version = ''}) {
-  final term = env['TERM'] ?? '';
-  final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
-  if (term == 'xterm-ghostty') {
-    return true;
+  if (env['TERM_PROGRAM'] == 'tmux') {
+    return dottedAtLeast(env['TERM_PROGRAM_VERSION'] ?? '', const [3, 7]);
   }
-  if (term == 'xterm-kitty') {
-    return _kitty38(version);
-  }
-  if (term.startsWith('foot') || term == 'dumb') {
-    return false;
-  }
-  switch (env['TERM_PROGRAM'] ?? '') {
-    case 'ghostty':
-      return true;
-    case 'iTerm.app':
-      return dottedAtLeast(programVersion, const [3, 6, 6]);
-    case 'tmux':
-      return dottedAtLeast(programVersion, const [3, 7]);
-    case 'mintty':
-      return dottedAtLeast(programVersion, const [3, 4, 2]);
-    case 'rio':
-      return dottedAtLeast(programVersion, const [0, 3, 1]);
-    case 'contour':
-      return dottedAtLeast(programVersion, const [0, 7]);
-    case '':
-      break;
-    default:
-      return false;
-  }
-  if (env.containsKey('TMUX') ||
-      env.containsKey('STY') ||
-      term.startsWith('tmux') ||
-      term.startsWith('screen')) {
+  if (multiplexerFor(env) != Multiplexer.none) {
     // a tmux of no known version, or GNU screen, which drops it
     return false;
   }
-  if (env.containsKey('KITTY_WINDOW_ID')) {
-    return _kitty38(version);
-  }
-  return env.containsKey('WT_SESSION') ||
-      env.containsKey('ConEmuPID') ||
-      env['ConEmuANSI'] == 'ON' ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      identifyTerminal(
-        env,
-        version: version,
-      ).has(TerminalFeature.progressReports);
+  return identifyTerminal(
+    env,
+    version: version,
+  ).has(TerminalFeature.progressReports);
 }
 
 /// Whether the terminal is known to draw the block sextants (U+1FB00 to
@@ -678,64 +624,9 @@ bool progressReportsFor(Map<String, String> env, {String version = ''}) {
 /// or not at all as with xterm and Terminal.app, which leave them to the
 /// font. A terminal that is not known is taken to not draw them. Not
 /// inside tmux or GNU screen, which hide the terminal outside them.
-bool sextantsFor(Map<String, String> env, {String version = ''}) {
-  final term = env['TERM'] ?? '';
-  if (env.containsKey('TMUX') ||
-      env.containsKey('STY') ||
-      term.startsWith('tmux') ||
-      term.startsWith('screen')) {
-    return false;
-  }
-  if (version.startsWith('kitty(')) {
-    return dottedAtLeast(version.substring(6), const [0, 19, 3]);
-  }
-  if (version.startsWith('foot(')) {
-    return true;
-  }
-  if (version.startsWith('ghostty ')) {
-    return dottedAtLeast(version.substring(8), const [1]);
-  }
-  if (version.startsWith('WezTerm ')) {
-    return dottedAtLeast(version.substring(8), const [20210814]);
-  }
-  // a terminal told by its name has what the table says; one told by the
-  // variables a terminal it was started from may have left, that or what
-  // the variables below say
-  final identity = identifyTerminal(env, version: version);
-  if (identity.has(TerminalFeature.sextants)) {
-    return true;
-  }
-  if (identity.terminal != null && version.isNotEmpty) {
-    return false;
-  }
-  if (term == 'xterm-kitty' ||
-      term == 'xterm-ghostty' ||
-      term.startsWith('foot')) {
-    return true;
-  }
-  final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
-  switch (env['TERM_PROGRAM'] ?? '') {
-    case 'ghostty':
-      return true;
-    case 'WezTerm':
-      return dottedAtLeast(programVersion, const [20210814]);
-    case 'contour':
-      return dottedAtLeast(programVersion, const [0, 3, 1]);
-    case 'rio':
-      return dottedAtLeast(programVersion, const [0, 4, 6]);
-    case '':
-      break;
-    default:
-      return false;
-  }
-  return env.containsKey('KITTY_WINDOW_ID') ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR');
-}
-
-/// Whether [version], an XTVERSION answer, is kitty's, 0.38 or later.
-bool _kitty38(String version) =>
-    version.startsWith('kitty(') &&
-    dottedAtLeast(version.substring(6), const [0, 38]);
+bool sextantsFor(Map<String, String> env, {String version = ''}) =>
+    multiplexerFor(env) == Multiplexer.none &&
+    identifyTerminal(env, version: version).has(TerminalFeature.sextants);
 
 /// Who puts right-to-left text in the order it reads on a terminal
 /// (`TerminalInfo.bidi`).
@@ -795,35 +686,15 @@ BidiReordering bidiReorderingFor(
     case 3:
       return terminal;
   }
-  final term = env['TERM'] ?? '';
-  if (env.containsKey('TMUX') ||
-      env.containsKey('STY') ||
-      term.startsWith('tmux') ||
-      term.startsWith('screen')) {
+  if (multiplexerFor(env) != Multiplexer.none) {
     return app;
   }
-  final reorders = identifyTerminal(
-    env,
-    version: version,
-  ).has(TerminalFeature.reordersBidi);
-  if (version.isNotEmpty) {
-    return reorders || version.startsWith('mlterm') ? terminal : app;
-  }
-  if (term.startsWith('putty') || term.startsWith('mlterm')) {
-    return terminal;
-  }
-  if (termNamesItsOwnTerminal(term)) {
-    return app;
-  }
-  switch (env['TERM_PROGRAM'] ?? '') {
-    case 'Apple_Terminal':
-      return terminal;
-    case '':
-      break;
-    default:
-      return app;
-  }
-  return reorders || env.containsKey('MLTERM') ? terminal : app;
+  return identifyTerminal(
+        env,
+        version: version,
+      ).has(TerminalFeature.reordersBidi)
+      ? terminal
+      : app;
 }
 
 /// What puts a terminal that honours BDSM, [mode] being its answer to

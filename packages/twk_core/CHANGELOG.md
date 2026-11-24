@@ -231,6 +231,25 @@ Fixed:
   Nor does one whose `TERM` is neither Konsole's nor VTE's (`st-256color`),
   and a terminal that answers DECRQM 2026 no has none, whatever the table
   says of the terminal its variables name.
+- Every other terminal twk tells by its name is now told by the same
+  identification and table: kitty, Ghostty, foot, WezTerm, iTerm2, xterm,
+  Terminal.app, mintty, Rio, Contour, Windows Terminal, ConEmu, Alacritty,
+  rxvt-unicode, mlterm and PuTTY, for the colors, styled underlines,
+  notifications, pointer shapes, progress, sextants, bidi, images, REP and
+  graphemes, each of which told them its own way before. So: the name a
+  terminal tells (XTVERSION, mintty's, Rio's and Contour's now read too)
+  comes first for all of them, as it did for Konsole's: xterm started from
+  kitty no longer gets kitty's notifications by `KITTY_WINDOW_ID`.
+  `KITTY_WINDOW_ID`, `GHOSTTY_RESOURCES_DIR`, `WEZTERM_PANE`,
+  `ITERM_SESSION_ID`, `WT_SESSION` and ConEmu's variables count only under a
+  `TERM` those terminals set, as Konsole's do: st started from Windows
+  Terminal gets 256 colors, not 24-bit, and no OSC 777. kitty before 0.31,
+  told by its name, gets no pointer shapes. iTerm2 over ssh, told by
+  `LC_TERMINAL`, has its version from `LC_TERMINAL_VERSION` (pointer shapes
+  from 3.7, progress from 3.6.6). GNOME Console (`TERM_PROGRAM=kgx`) is
+  VTE, at `VTE_VERSION`. A `TERM` of `dumb` names no terminal, whatever
+  `TERM_PROGRAM` it inherited. `TerminalInfo.sources` says `known` for REP
+  of those terminals and for Terminal.app's DCH, `environment` before.
 - On a terminal without synchronized output (DEC 2026) a scroll view
   narrower than the screen no longer tears while the frame is drawn: its
   rectangle was scrolled as whole rows and the cells beside it (a sidebar,
