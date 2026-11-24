@@ -65,7 +65,9 @@ final _notifications = GalleryPage(
     '// shown where the terminal is known to show one (OSC 9, 777 or 99,',
     '// TerminalInfo.notifications); nothing elsewhere',
     'void _notify() {',
-    "  AppBinding.of(context).notify('${_note.$1}', '${_note.$2}');",
+    '  AppBinding.of(context).notify(',
+    "    DesktopNotification('${_note.$1}', body: '${_note.$2}'),",
+    '  );',
     '  setState(() => _notified++);',
     '}',
     '',
@@ -105,7 +107,8 @@ final class _NotifyState extends TimedState<_Notify> {
   int get _count => (kept['count'] ?? 0) as int;
 
   void _notify() {
-    AppBinding.of(context).notify(_note.$1, _note.$2);
+    AppBinding.of(context)
+        .notify(DesktopNotification(_note.$1, body: _note.$2));
     final at = clockNow;
     setState(() {
       kept

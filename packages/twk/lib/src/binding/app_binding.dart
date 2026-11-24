@@ -27,6 +27,7 @@ import 'package:twk_core/twk_core.dart'
         ColorSchemeReport,
         CountingBackend,
         CursorShape,
+        DesktopNotification,
         HeadlessTerminal,
         InputEvent,
         KeyCode,
@@ -37,6 +38,7 @@ import 'package:twk_core/twk_core.dart'
         MouseKind,
         MouseTracking,
         MouseTrackingBackend,
+        NotificationActivated,
         PaintContext,
         Pen,
         PipelineTextOrder,
@@ -63,6 +65,7 @@ import '../debug/key_hint.dart';
 import '../editing/caret.dart' show restingCell;
 import '../finders/finders.dart' show ElementFinder;
 import '../focus/focus.dart';
+import '../foundation/change_notifier.dart' show VoidCallback;
 import '../foundation/constants.dart'
     show debugAssertsEnabled, kDebugMode, kReleaseMode;
 import '../foundation/helpers.dart';
@@ -781,16 +784,59 @@ final class AppBinding implements FrameClock {
     );
   }
 
-  /// Shows a desktop notification of [title] and [body] where the terminal
-  /// is known to show one (`TerminalInfo.notifications`), through tmux or
-  /// screen: [WindowBackend.notify] of the terminal ([Terminal.notify], or
+  /// Shows [notification] where the terminal is known to show one
+  /// (`TerminalInfo.notifications`), through tmux or screen:
+  /// [WindowBackend.notify] of the terminal ([Terminal.notify], or
   /// [HeadlessTerminal.notify] in a test, or a backend that wraps one and
-  /// passes it on). Does nothing on a backend that is no [WindowBackend].
-  void notify(String title, String body) {
+  /// passes it on). Returns its id, which [closeNotification] takes; null
+  /// on a backend that is no [WindowBackend], where nothing is shown.
+  ///
+  /// [onActivated] runs when the notification is clicked, where that is
+  /// told (`TerminalInfo.reportsNotificationClicks`: OSC 99 of kitty,
+  /// Konsole 24.12 on, foot 1.18 on, and the desktop's service over
+  /// D-Bus), once; it is kept for the [maxActivationWaits] notifications
+  /// shown last, and only for one that was shown. Without it no click is
+  /// asked for: a terminal would also tell one after the app ended, into
+  /// the shell.
+  String? notify(
+    DesktopNotification notification, {
+    VoidCallback? onActivated,
+  }) {
     if (twkApp.terminal case final WindowBackend terminal) {
-      terminal.notify(title, body);
+      final reports = terminal.info.reportsNotificationClicks;
+      final id = terminal.notify(
+        notification,
+        reportActivation: onActivated != null && reports,
+      );
+      if (id != null && onActivated != null && reports) {
+        _activations
+          ..remove(id)
+          ..[id] = onActivated;
+        if (_activations.length > maxActivationWaits) {
+          _activations.remove(_activations.keys.first);
+        }
+      }
+      return id;
+    }
+    return null;
+  }
+
+  /// Takes the notification of [id] ([notify]'s) down where it is still
+  /// shown and the terminal can ([WindowBackend.closeNotification]), and
+  /// forgets its [notify]'s `onActivated`.
+  void closeNotification(String id) {
+    _activations.remove(id);
+    if (twkApp.terminal case final WindowBackend terminal) {
+      terminal.closeNotification(id);
     }
   }
+
+  /// How many notifications' `onActivated` ([notify]) are kept, the
+  /// oldest forgotten first.
+  static const maxActivationWaits = 32;
+
+  /// What runs when the notification of each id is clicked, oldest first.
+  final _activations = <String, VoidCallback>{};
 
   /// Has the app take up its code as a hot reload changed it (`twk run`,
   /// `ext.twk.reassemble`): the next frame rebuilds every element, each
@@ -1697,6 +1743,10 @@ final class AppBinding implements FrameClock {
   }
 
   void _dispatch(InputEvent event) {
+    if (event case NotificationActivated(:final id)) {
+      _activations.remove(id)?.call();
+      return;
+    }
     if (event case ColorSchemeReport(:final brightness)
         when brightness != _brightness || !_brightnessKnown) {
       _brightness = brightness;

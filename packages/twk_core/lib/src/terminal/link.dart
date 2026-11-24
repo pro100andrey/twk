@@ -135,12 +135,13 @@ abstract interface class TerminalLink {
 /// an emulator in a test) declares it rather than pretending to be one
 /// with a `TERM_PROGRAM` that says more than meant.
 ///
-/// Each capability is declared or not: null leaves it to the guess by the
-/// environment (`notificationProtocolFor`, `progressReportsFor`,
-/// `pointerNamesFor`, the known terminals of REP, `graphicsProtocolFor`,
-/// `styledUnderlinesFor`),
-/// as for a real terminal, which declares nothing. Declared, it is what
-/// `TerminalInfo` says, whatever the environment names. A `twk shell`'s
+/// Each capability is declared or not: null leaves it to the probe's
+/// queries and the guess by the terminal's name and environment
+/// (`notificationProtocolFor`, `progressReportsFor`, `pointerNamesFor`,
+/// the known terminals of REP and of DEC 2026, `graphicsProtocolFor`,
+/// `styledUnderlinesFor`), as for a real terminal, which declares
+/// nothing. Declared, it is what `TerminalInfo` says, whatever the
+/// environment names. A `twk shell`'s
 /// terminal declares in its welcome (`declares`, see `socket.dart`).
 final class TerminalDeclaration {
   /// A declaration of what is given, the rest left to the guess.
@@ -152,6 +153,10 @@ final class TerminalDeclaration {
     this.graphics,
     this.styledUnderlines,
     this.remote,
+    this.synchronizedOutput,
+    this.leftRightMargins,
+    this.graphemes,
+    this.insertDelete,
   });
 
   /// What the JSON object [json] declares, as a welcome carries it
@@ -172,17 +177,31 @@ final class TerminalDeclaration {
 
     bool? flag(Object? value) => value is bool ? value : null;
     return TerminalDeclaration(
-      notifications: named(NotificationProtocol.values, json['notifications']),
+      // the desktop's service is the app's own machine's: no far end
+      // declares it
+      notifications: switch (named(
+        NotificationProtocol.values,
+        json['notifications'],
+      )) {
+        NotificationProtocol.dbus => null,
+        final p => p,
+      },
       progressReports: flag(json['progressReports']),
       pointerShapes: flag(json['pointerShapes']),
       repeatChar: flag(json['repeatChar']),
       graphics: named(GraphicsProtocol.values, json['graphics']),
       styledUnderlines: flag(json['styledUnderlines']),
       remote: flag(json['remote']),
+      synchronizedOutput: flag(json['synchronizedOutput']),
+      leftRightMargins: flag(json['leftRightMargins']),
+      graphemes: flag(json['graphemes']),
+      insertDelete: flag(json['insertDelete']),
     );
   }
 
-  /// How desktop notifications are shown (`TerminalInfo.notifications`).
+  /// How desktop notifications are shown (`TerminalInfo.notifications`);
+  /// `NotificationProtocol.dbus`, the app's machine's own service, which
+  /// no terminal declares, is taken for undeclared.
   final NotificationProtocol? notifications;
 
   /// Whether a program's progress is shown, OSC 9;4
@@ -209,13 +228,32 @@ final class TerminalDeclaration {
   /// (`TerminalInfo.remote`).
   final bool? remote;
 
+  /// Whether it shows each frame whole, DEC mode 2026
+  /// (`TerminalCaps.synchronizedOutput`), whatever it answers to DECRQM.
+  final bool? synchronizedOutput;
+
+  /// Whether it has left and right margins, DECSLRM in DEC mode 69
+  /// (`TerminalCaps.leftRightMargins`).
+  final bool? leftRightMargins;
+
+  /// Whether it splits text into cells by grapheme clusters
+  /// (`TerminalInfo.textMode`), as mode 2027 says. Declared, it is not
+  /// told mode 2027 (`TerminalInfo.graphemeMode` is still what it
+  /// answered): it clusters without being asked to.
+  final bool? graphemes;
+
+  /// Whether its ICH and DCH shift a row as xterm's do
+  /// (`TerminalCaps.insertDelete`).
+  final bool? insertDelete;
+
   /// Whether it declares nothing.
   bool get isEmpty => toJson().isEmpty;
 
   /// What it declares as JSON, in this order: `notifications`,
   /// `progressReports`, `pointerShapes`, `repeatChar`, `graphics`,
-  /// `styledUnderlines`, `remote`, each only where declared, the protocols
-  /// by name.
+  /// `styledUnderlines`, `remote`, `synchronizedOutput`,
+  /// `leftRightMargins`, `graphemes`, `insertDelete`, each only where
+  /// declared, the protocols by name.
   Map<String, Object> toJson() => {
     'notifications': ?notifications?.name,
     'progressReports': ?progressReports,
@@ -224,6 +262,10 @@ final class TerminalDeclaration {
     'graphics': ?graphics?.name,
     'styledUnderlines': ?styledUnderlines,
     'remote': ?remote,
+    'synchronizedOutput': ?synchronizedOutput,
+    'leftRightMargins': ?leftRightMargins,
+    'graphemes': ?graphemes,
+    'insertDelete': ?insertDelete,
   };
 
   @override
@@ -235,7 +277,11 @@ final class TerminalDeclaration {
       other.repeatChar == repeatChar &&
       other.graphics == graphics &&
       other.styledUnderlines == styledUnderlines &&
-      other.remote == remote;
+      other.remote == remote &&
+      other.synchronizedOutput == synchronizedOutput &&
+      other.leftRightMargins == leftRightMargins &&
+      other.graphemes == graphemes &&
+      other.insertDelete == insertDelete;
 
   @override
   int get hashCode => Object.hash(
@@ -246,6 +292,10 @@ final class TerminalDeclaration {
     graphics,
     styledUnderlines,
     remote,
+    synchronizedOutput,
+    leftRightMargins,
+    graphemes,
+    insertDelete,
   );
 
   @override

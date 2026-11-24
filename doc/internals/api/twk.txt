@@ -175,6 +175,7 @@ twk.dart class DecoratedBox
 twk.dart class DefaultTextStyle
 twk.dart class DescriptionItem
 twk.dart class DescriptionList
+twk.dart class DesktopNotification
 twk.dart class DiagnosticPropertiesBuilder
 twk.dart class DiagnosticsNode
 twk.dart class DiagnosticsProperty
@@ -318,6 +319,7 @@ twk.dart class NavigatorObserver
 twk.dart class NavigatorState
 twk.dart class NeverScrollableScrollPhysics
 twk.dart class Notification
+twk.dart class NotificationActivated
 twk.dart class NotificationListener
 twk.dart class NumberInput
 twk.dart class ObjectKey
@@ -544,6 +546,7 @@ twk.dart enum MainAxisSize
 twk.dart enum MouseKind
 twk.dart enum Multiplexer
 twk.dart enum NotificationProtocol
+twk.dart enum NotificationUrgency
 twk.dart enum OnEmpty
 twk.dart enum PanelLook
 twk.dart enum PointerMode

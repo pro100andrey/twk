@@ -4,6 +4,18 @@
 
 Added:
 
+- `twk doctor` says where DEC 2026 came from: the terminal's answer, or
+  what twk knows of it by its name and version where it answers no query
+  (`known as konsole 26.8.3`, `yes (known of konsole 26.8.3, which answers
+  no query for it)`), or nothing answered. `--json` has `terminal` and
+  `synchronizedOutputFrom`.
+- `twk doctor` says how desktop notifications are shown and where that came
+  from: the keys the terminal answered OSC 99's query with, or its name and
+  environment. `--json` has `notifications`, `notificationsFrom` and
+  `notificationKeys`; for notifications through the desktop's service
+  over D-Bus it asks the service whether it answers
+  (`desktopServiceAnswers`), which an app asks only at its first
+  notification.
 - `twk mcp`: an MCP server on stdio (JSON-RPC of its own, protocol versions
   2025-06-18, 2025-03-26 and 2024-11-05) that lets a coding agent drive a
   twk app through twk_driver: `start_app`, `screen`, `tree`, `find`, `press`,

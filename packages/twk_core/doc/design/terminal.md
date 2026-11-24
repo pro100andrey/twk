@@ -34,6 +34,28 @@ was entered, the console is restored before the error propagates):
    which answers them itself), kitty's graphics query and the terminal's
    name and version (XTVERSION) where the protocol for images is not given
    and no multiplexer answers in the terminal's place ([§1.14](images.md)),
+   the query of OSC 99, kitty's desktop notifications (`p=?`, not through
+   a multiplexer, which keeps it): kitty, foot 1.18 on and Konsole 24.12 on
+   answer it with the keys they take (`TerminalInfo.notificationKeys`,
+   Konsole's answer read leniently: a `;` after the id, `unfocus`), and a
+   terminal that answers shows OSC 99, whatever its name says (a
+   notification, `DesktopNotification`, then carries its urgency, app name,
+   icon and id, is shown only without the focus by the terminal itself,
+   `o=unfocused`, where it took that key, and reports a click, `a=report`,
+   as `NotificationActivated` where the app asked for it; `Terminal`
+   prefixes the id with the process's, so that a click on another app's is
+   dropped and no app replaces another's; inside tmux, for its own
+   terminal, the app asks tmux whether the pane allows passthrough,
+   `#{allow-passthrough}`, and takes notifications for none where it is
+   `off`; where none is shown, the process's own terminal on the user's
+   desktop, not over ssh, takes the desktop's notification service on the
+   D-Bus session bus, `NotificationProtocol.dbus`, through the core's own
+   client, `platform/dbus.dart` and `platform/desktop_dbus.dart`, which the
+   probe connects within its timeout and `Terminal` closes; failing that,
+   the bell is rung while the window has lost the focus); Zellij, which
+   forwards OSC 99 from 0.44.1 and OSC 9 and 777
+   from 0.45, is no multiplexer to the probe: its query goes out to the
+   terminal outside and the answer comes back;
    the width of East Asian Ambiguous characters (U+2500 drawn at the home
    position, then `CSI 6 n`; in the inline mode `CSI 6 n` asks where the
    cursor is instead, on the normal screen before the queries and again
@@ -41,7 +63,14 @@ was entered, the console is restored before the error propagates):
    line that showed a query erased, [§1.12](inline.md)), and DA1 as the
    "everyone answered" marker, its attribute 4 saying sixel (1 s timeout →
    conservative defaults; answers that come later are dropped, not passed to
-   the app as input);
+   the app as input). What a terminal does without answering a query is
+   read from one identification (`identifyTerminal`, `identity.dart`: the
+   name it tells, else its own `TERM`, else its `TERM_PROGRAM`, else the
+   variables a terminal sets for its programs, the first that names one)
+   and one table of known terminals with the version each fact holds from:
+   Konsole 26.04 on has DEC 2026 though it answers no DECRQM at all, so its
+   frames are synchronized too (not inside a multiplexer, whose answer is
+   the one that counts);
 3. resize: in-band (2048) when available, otherwise SIGWINCH; on Windows
    the size is polled every 100 ms (a cheap console call);
 4. alternate screen (or the inline mode, [§1.12](inline.md)), mouse (on the
@@ -408,9 +437,12 @@ and `holdFlush` stands for a slow connection. Its
 `TerminalInfo.multiplexer` is the `multiplexer` it is given, so what an
 app sends through tmux or screen (the clipboard, notifications) comes
 wrapped for it, and its `TerminalInfo.notifications` the `notifications`
-it is given (by default `none`): `notify(title, body)` writes a desktop
-notification to `frames` in that protocol as `Terminal.notify` does, each
-under an id of its own from 1, and nothing for `none` or once closed.
+it is given (by default `none`): `notify(DesktopNotification)` writes a
+desktop notification to `frames` in that protocol as `Terminal.notify`
+does (`notificationFor`), each without an id of its own under one from 1,
+`closeNotification(id)` OSC 99's `p=close`, and nothing for `none` or
+once closed; a click typed (`OSC 99 ; i=id ; ST`) comes as a
+`NotificationActivated`.
 With `pointerShapes` and `progressReports` its `TerminalInfo` says the
 terminal shows a pointer shape and a progress, and as a
 `TerminalStateBackend` it writes what is set and put back to `frames` as

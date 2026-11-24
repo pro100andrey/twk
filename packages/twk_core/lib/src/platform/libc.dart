@@ -88,6 +88,10 @@ int get errno => (_macos ? _errnoMacos() : _errnoLinux()).value;
 @Native<Int Function(Int)>(isLeaf: true)
 external int close(int fd);
 
+/// getuid(2): the process's real user id.
+@Native<Uint32 Function()>(isLeaf: true)
+external int getuid();
+
 /// read(2): reads at most [count] bytes of [fd] into [buf]; how many,
 /// 0 at the end, or -1. A leaf call: read only what is there (after
 /// [poll], or as many as [fionread] says), or it blocks the isolate's

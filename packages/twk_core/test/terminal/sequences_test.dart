@@ -285,6 +285,12 @@ void main() {
         {'VTE_VERSION': '8200'},
         {'KONSOLE_VERSION': '220400'},
         {'KONSOLE_VERSION': '260400'},
+        // kitty under a TERM of its own choosing, started from an earlier VTE
+        {
+          'TERM': 'xterm-256color',
+          'KITTY_WINDOW_ID': '1',
+          'VTE_VERSION': '7600',
+        },
       ]) {
         expect(sextantsFor(env), isTrue, reason: '$env');
       }
@@ -343,6 +349,8 @@ void main() {
         (<String, String>{}, 'kitty(0.19.2)'),
         (<String, String>{}, 'WezTerm 20210813-000000-abc'),
         (<String, String>{}, 'VTE(7600)'),
+        // the name it tells over variables it inherited
+        ({'KITTY_WINDOW_ID': '1'}, 'VTE(7600)'),
         ({'TERM_PROGRAM': 'vscode', 'KITTY_WINDOW_ID': '1'}, ''),
         (
           {

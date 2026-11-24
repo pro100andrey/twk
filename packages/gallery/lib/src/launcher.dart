@@ -111,7 +111,13 @@ final class Typing
   void setTitle(String title) => terminal.setTitle(title);
 
   @override
-  void notify(String title, String body) => terminal.notify(title, body);
+  String? notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  }) => terminal.notify(notification, reportActivation: reportActivation);
+
+  @override
+  void closeNotification(String id) => terminal.closeNotification(id);
 
   @override
   Future<void> suspend() => terminal.suspend();

@@ -108,7 +108,7 @@ final class _SettingsState extends State<_Settings> {
       _cached = 0;
     });
     showToast(context: context, message: done);
-    AppBinding.of(context).notify('Settings', done);
+    AppBinding.of(context).notify(DesktopNotification('Settings', body: done));
   }
 
   void _askToClear() => unawaited(_clearCache());

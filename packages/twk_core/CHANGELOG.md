@@ -4,12 +4,83 @@
 
 Breaking:
 
+- `WindowBackend.notify` takes a `DesktopNotification` (a title, a body,
+  an id, an urgency, `whenUnfocused`, an app name and an icon name) in
+  place of a title and a body, and returns the notification's id;
+  `notifySequence` takes one too. `WindowBackend.closeNotification(id)`
+  takes one down (OSC 99's `p=close`, kitty). OSC 99 carries the urgency
+  (`u`), the app's name (`f`) and the icon's (`n`); `whenUnfocused` is
+  `o=unfocused` where the terminal takes it, else held back while the
+  window has the focus, as Terminal.app's bell is. `notify(...,
+  reportActivation: true)` asks for a click to be reported (`a=report`),
+  which comes as `NotificationActivated` of the app's id; one on another
+  process's notification is dropped. OSC 9's text that a terminal would
+  take for a ConEmu command (`4;...`) starts with a space.
+  `notificationWireId` is the id as OSC 99 carries it. `notify` returns
+  null where nothing was shown (held back for the focus, no text, only the
+  bell); twk's own ids are `auto-1`, `auto-2`, ..., apart from the app's,
+  and one of the app's of which nothing is left is one of twk's.
+  `TerminalInfo.reportsNotificationClicks` says whether a click is told.
+  A `TerminalDeclaration` of `dbus` is taken for none declared.
+- Desktop notifications through the desktop's own notification service,
+  `org.freedesktop.Notifications` on the D-Bus session bus
+  (`NotificationProtocol.dbus`), where the terminal shows none of its own
+  (Alacritty, xterm, st, GNOME Terminal without its distribution's patch,
+  tmux whose pane allows no passthrough): chosen by the probe for the
+  process's own terminal on the user's desktop (not over ssh, nor over a
+  link) where the service answers, with no code of the app's. Title,
+  body, urgency, app name (the program's, where it names none), icon,
+  replacement by id, `closeNotification`, and a click (its `default`
+  action) as `NotificationActivated`; `whenUnfocused` held back while the
+  window has the focus. The probe sets it by the environment only (a Unix
+  session bus, no `SSH_*`); the bus is reached at the first notification,
+  so an app that shows none pays nothing for it, and where no service
+  answers the bell rings instead. The text is cleaned as for a terminal,
+  and the body escaped where the service takes markup (`body-markup`);
+  every wait on the bus is a guard on real time, bounded.
+  `desktopNotificationsAnswer` asks the service, as `twk doctor` does. The core speaks D-Bus itself, a client of a few
+  hundred lines in its platform layer (EXTERNAL authentication, method
+  calls, signals, the wire format of the types they carry): no new
+  dependency.
+- Where no notification is known to be shown (`NotificationProtocol.none`)
+  `notify` rings the bell while the window doesn't have the focus (a focus
+  report said so), which most terminals mark the window or tab by and
+  Konsole shows a notification of; never where no focus report came.
+- Inside tmux the app asks the tmux it runs in whether its pane allows
+  passthrough (`tmux display -p '#{allow-passthrough}'`, its own terminal
+  only): where it is `off`, as by default, tmux drops what is wrapped for
+  the terminal outside, so `TerminalInfo.notifications` is `none` there
+  (and the bell above stands in) rather than notifications lost without a
+  word. `notificationsThroughTmux` is that rule.
+
 - `TwkApp(clock:)` takes a `Clock`, not a `Stopwatch`; `TwkApp.clock` is a
   `Clock`. A frame that waits is started with `clock.timer`, so a clock that
   moves when told to spaces the frames and holds the timers.
 
 Added:
 
+- `TerminalInfo.terminal` and `TerminalInfo.sources`: the terminal as twk
+  knows it by its name and version (`konsole 26.8.3`, `unknown`), and where
+  each capability that decides how frames are written came from, a
+  `CapabilitySource`: declared, answered (DECRQM), known of the terminal by
+  name, by its environment, or assumed (`synchronizedOutput`,
+  `leftRightMargins`, `graphemes`, `insertDelete`, `repeatChar`,
+  `konsoleLines`). `TerminalInfo.toString` ends with them.
+- Desktop notifications by OSC 99 where the terminal answers that
+  protocol's query (`p=?`, asked in the probe, not through a multiplexer):
+  kitty, foot 1.18 on and Konsole 24.12 on, which got OSC 777 before.
+  `TerminalInfo.notificationKeys` has the keys and values the terminal
+  answered (`p`, `a`, `o`, `u`, `c`, ...); `TerminalInfo.sources` says
+  where `notifications` came from. Without an answer, the name the
+  terminal tells comes before its environment: `notificationProtocolFor`
+  takes its XTVERSION (`version:`), kitty's and foot's 1.18 on showing
+  OSC 99, foot's before it OSC 777, Konsole's from the table of known
+  terminals. Konsole gets OSC 777 from 23.04 (it was 22.12, before Konsole
+  had it) and OSC 99 from 24.12.
+- `TerminalDeclaration` declares `synchronizedOutput`, `leftRightMargins`,
+  `graphemes` and `insertDelete` too: a terminal that knows them (an
+  editor's, an emulator in a test) says so instead of answering the probe's
+  queries, and what it declares comes before what it answers.
 - `Clock` (an `int` of microseconds, `timer`, `periodic`; `ClockElapsed` reads
   it as a `Duration`) and `SystemClock`, the real one, the default.
 - Keys of the kitty keyboard protocol. `KeyCode.modifier`, `KeyCode.lock` and
@@ -145,6 +216,31 @@ Changed:
 
 Fixed:
 
+- Konsole 26.04 and later gets synchronized output (DEC 2026): it honours the
+  mode but answers no DECRQM, so the probe took it for a terminal without
+  and every frame there could be shown half drawn. What a terminal does
+  without answering a query is now read from one identification of it (the
+  name it tells, else its own `TERM`, else its `TERM_PROGRAM`, else
+  `KONSOLE_VERSION` or `VTE_VERSION`) and one table of known terminals,
+  where the version thresholds of Konsole and VTE (notifications, REP,
+  pointer shapes, progress, sextants, bidi, Konsole's lines) are written
+  once. So Konsole told by its name over ssh, where `KONSOLE_VERSION` is not
+  passed on, now gets its pointer shapes, progress and sextants too, and a
+  terminal started from Konsole that names itself (VS Code's) no longer
+  gets Konsole's lines or notifications by the variable it inherited.
+  Nor does one whose `TERM` is neither Konsole's nor VTE's (`st-256color`),
+  and a terminal that answers DECRQM 2026 no has none, whatever the table
+  says of the terminal its variables name.
+- On a terminal without synchronized output (DEC 2026) a scroll view
+  narrower than the screen no longer tears while the frame is drawn: its
+  rectangle was scrolled as whole rows and the cells beside it (a sidebar,
+  a file list) were written back only afterwards, so a terminal that drew
+  mid-frame showed them moved with the rows. There it is now re-diffed
+  instead, as on a terminal with DECSLRM it is scrolled within margins.
+  A row is shifted there (ICH/DCH) only where each glyph it moves lands
+  where the frame has it: a shift that explained most of a changed row
+  showed the rest of its glyphs in cells they were not to be in until
+  written over. It is also fewer bytes: 0.2 % over the presenter's scenes.
 - A second `Terminal.open` while the first is still opening is refused with
   its own message (await the first), not the one for a terminal that can be
   suspended or closed.

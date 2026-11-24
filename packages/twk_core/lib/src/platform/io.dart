@@ -9,10 +9,13 @@ import 'dart:typed_data';
 import '../terminal/link.dart';
 import '../terminal/plain.dart';
 import '../terminal/stdio_link.dart';
+import 'desktop.dart';
+import 'desktop_dbus.dart';
 import 'libc.dart' as c;
 
 export '../terminal/address.dart' show LocalAddress;
 export '../terminal/socket.dart' show ShellEvent, SocketLink, TerminalShell;
+export 'desktop.dart' show DesktopNotifications;
 export 'log_server.dart' show LogServer;
 
 /// The process's environment.
@@ -23,6 +26,79 @@ bool get isWindows => Platform.isWindows;
 
 /// The process's id.
 int get processId => pid;
+
+/// Whether, by [env] alone, the desktop's notification service may be
+/// reached ([openDesktopNotifications]): a session bus of a Unix socket
+/// (`DBUS_SESSION_BUS_ADDRESS`), not on Windows, and not a remote session
+/// (`SSH_CONNECTION`, `SSH_TTY`), whose bus is the machine's it runs on.
+bool desktopNotificationsReachable(Map<String, String> env) {
+  final address = env['DBUS_SESSION_BUS_ADDRESS'] ?? '';
+  return address.contains('unix:') &&
+      !env.containsKey('SSH_CONNECTION') &&
+      !env.containsKey('SSH_TTY') &&
+      !Platform.isWindows;
+}
+
+/// Whether the desktop's notification service of [env]'s session bus
+/// answers ([openDesktopNotifications]), the connection let go at once:
+/// what `twk doctor` asks, where a `Terminal` asks at its first
+/// notification.
+Future<bool> desktopNotificationsAnswer(Map<String, String> env) async {
+  final desktop = await openDesktopNotifications(env);
+  await desktop?.close();
+  return desktop != null;
+}
+
+/// The desktop's notification service on the session bus of [env]
+/// (`DBUS_SESSION_BUS_ADDRESS`), null where there is none to reach within
+/// [within], or the session is a remote one (`SSH_CONNECTION`,
+/// `SSH_TTY`), whose bus is the machine's it runs on, not the user's.
+/// A notification that names no app is named by the program's file name.
+Future<DesktopNotifications?> openDesktopNotifications(
+  Map<String, String> env, {
+  Duration within = const Duration(seconds: 1),
+}) async {
+  if (!desktopNotificationsReachable(env)) {
+    return null;
+  }
+  final address = env['DBUS_SESSION_BUS_ADDRESS']!;
+  final script = Platform.script.pathSegments;
+  final name = script.isEmpty ? '' : script.last.split('.').first;
+  return openDbusNotifications(address, appName: name, within: within);
+}
+
+/// What the tmux this process runs in says [format] is for the pane of
+/// [pane] (`tmux display-message -p -t <pane> <format>`, `#{option}` an
+/// option's value as the pane has it): null where tmux can't be asked or
+/// doesn't answer within [within], whose process is then killed.
+Future<String?> tmuxFormat(
+  String format, {
+  required String pane,
+  Duration within = const Duration(seconds: 1),
+}) async {
+  final Process tmux;
+  try {
+    tmux = await Process.start('tmux', [
+      'display-message',
+      '-p',
+      '-t',
+      pane,
+      format,
+    ]);
+  } on ProcessException {
+    return null;
+  }
+  unawaited(tmux.stdin.close());
+  final out = tmux.stdout.transform(systemEncoding.decoder).join();
+  unawaited(tmux.stderr.drain<void>());
+  try {
+    final code = await tmux.exitCode.timeout(within);
+    return code == 0 ? (await out).trim() : null;
+  } on TimeoutException {
+    tmux.kill();
+    return null;
+  }
+}
 
 /// The process's own terminal, stdin and stdout; null when either is not
 /// one.

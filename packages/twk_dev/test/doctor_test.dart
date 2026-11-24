@@ -67,12 +67,137 @@ void main() {
     expect(out, contains('TERM            xterm-256color'));
     expect(out, contains('colors          trueColor'));
     expect(out, contains('DEC 2026        '));
+    expect(out, isNot(contains('known as')));
     expect(out, contains('kitty keyboard  '));
     expect(out, contains('graphics        none'));
     expect(out, contains('links (OSC 8)   yes'));
     expect(out, contains('answers         '));
     expect(out, contains(' in 0 ms'));
     expect(out, isNot(contains('HOME')));
+  });
+
+  test('says where DEC 2026 came from: answered, or known of a terminal '
+      'that answers no query for it', () {
+    TerminalReport terminal({required String from, String name = 'unknown'}) =>
+        TerminalReport(
+          version: '',
+          colors: 'trueColor',
+          synchronizedOutput: from != 'assumed',
+          kittyKeyboard: false,
+          kittyKeyboardFlags: 0,
+          graphics: 'none',
+          hyperlinks: false,
+          cellWidth: 0,
+          cellHeight: 0,
+          answered: true,
+          probeMilliseconds: 1,
+          terminal: name,
+          synchronizedOutputFrom: from,
+        );
+    String render(TerminalReport t) => Doctor(
+      project: '/p',
+      dart: '3.10.0',
+      environment: const {'TERM': 'xterm-256color'},
+      versions: const {},
+      state: const {},
+      terminal: t,
+    ).render();
+    final konsole = render(terminal(from: 'known', name: 'konsole 26.8.3'));
+    expect(konsole, contains('known as        konsole 26.8.3'));
+    expect(
+      konsole,
+      contains(
+        'DEC 2026        yes (known of konsole 26.8.3, which answers no '
+        'query for it)',
+      ),
+    );
+    expect(
+      render(terminal(from: 'answered')),
+      contains('DEC 2026        yes\n'),
+    );
+    expect(
+      render(terminal(from: 'assumed')),
+      contains('DEC 2026        no (not answered)'),
+    );
+    final json = terminal(from: 'known', name: 'konsole 26.8.3').toJson();
+    expect(json['terminal'], 'konsole 26.8.3');
+    expect(json['synchronizedOutputFrom'], 'known');
+  });
+
+  test('says how notifications are shown and where that came from: the '
+      "keys OSC 99's query was answered with, or the name", () {
+    TerminalReport terminal(String from, Map<String, List<String>> keys) =>
+        TerminalReport(
+          version: '',
+          colors: 'trueColor',
+          synchronizedOutput: true,
+          kittyKeyboard: false,
+          kittyKeyboardFlags: 0,
+          graphics: 'none',
+          hyperlinks: false,
+          cellWidth: 0,
+          cellHeight: 0,
+          answered: true,
+          probeMilliseconds: 1,
+          notifications: from == 'assumed' ? 'none' : 'osc99',
+          notificationsFrom: from,
+          notificationKeys: keys,
+        );
+    String render(TerminalReport t) => Doctor(
+      project: '/p',
+      dart: '3.10.0',
+      environment: const {'TERM': 'xterm-256color'},
+      versions: const {},
+      state: const {},
+      terminal: t,
+    ).render();
+    final answered = terminal('answered', const {
+      'p': ['title', 'body'],
+      'o': ['always', 'unfocused'],
+    });
+    expect(
+      render(answered),
+      contains(
+        'notifications   osc99 (answered: p=title,body o=always,unfocused)',
+      ),
+    );
+    expect(
+      render(
+        const TerminalReport(
+          version: '',
+          colors: 'trueColor',
+          synchronizedOutput: true,
+          kittyKeyboard: false,
+          kittyKeyboardFlags: 0,
+          graphics: 'none',
+          hyperlinks: false,
+          cellWidth: 0,
+          cellHeight: 0,
+          answered: true,
+          probeMilliseconds: 1,
+          notifications: 'dbus',
+          notificationsFrom: 'environment',
+          desktopServiceAnswers: true,
+        ),
+      ),
+      contains(
+        "notifications   dbus (the desktop's notification service on the "
+        'session bus, which answers)',
+      ),
+    );
+    expect(
+      render(terminal('environment', const {})),
+      contains('notifications   osc99 (by its name and environment)'),
+    );
+    expect(
+      render(terminal('assumed', const {})),
+      contains('notifications   none (none known)'),
+    );
+    expect(answered.toJson()['notificationsFrom'], 'answered');
+    expect(answered.toJson()['notificationKeys'], {
+      'p': ['title', 'body'],
+      'o': ['always', 'unfocused'],
+    });
   });
 
   test('closes the terminal it opened', () async {

@@ -78,19 +78,31 @@ escape the title; the clipboard's bytes per multiplexer),
 `test/terminal/notify_test.dart` (`Terminal.copyToClipboard` in a
 pseudo-terminal inside tmux, inside screen and outside both).
 
-## desktop notifications (OSC 9, 777, 99)
+## desktop notifications (OSC 9, 777, 99, D-Bus)
 
-`Terminal.notify(title, body)` (a `WindowBackend`'s), for "the long job
-finished": the sequence the terminal is known to show
+`Terminal.notify(DesktopNotification)` (a `WindowBackend`'s; the app's
+`AppBinding.of(context).notify(DesktopNotification(...), onActivated:)`),
+for "the long job finished": the sequence the terminal is known to show
 (`TerminalInfo.notifications`, see below), wrapped for tmux or screen
-(`TerminalInfo.multiplexer`), nothing elsewhere; control characters removed,
-the title cut to 256 bytes and the body to 1024 between graphemes; the raw
-strings are `notifySequence` and `passthroughSequence`.
+(`TerminalInfo.multiplexer`); where it shows none, the desktop's own
+service over D-Bus for the process's own terminal on the user's desktop,
+connected at the first notification, else the bell while the window lost
+the focus. Control characters are removed, the title cut to 256 bytes and
+the body to 1024 between graphemes (`notificationText`), the same for
+D-Bus, whose body is escaped where the service takes markup. It returns
+the notification's id (the app's, or `auto-1`, `auto-2`, ...), null where
+nothing was shown; `closeNotification(id)` takes it down (OSC 99's
+`p=close`, D-Bus); a click comes as `NotificationActivated` where it was
+asked for and the terminal tells clicks
+(`TerminalInfo.reportsNotificationClicks`). The raw strings are
+`notifySequence`, `closeNotificationSequence` and `passthroughSequence`.
 
 How it is tested: `test/sequences_test.dart` (the bytes per protocol and
 multiplexer, control characters, the cut), `test/terminal_test.dart` (the
 terminal from the environment), `test/terminal/notify_test.dart`
-(`Terminal.notify` in a pseudo-terminal).
+(`Terminal.notify` in a pseudo-terminal), `test/platform/dbus_test.dart`
+(the D-Bus client and the desktop's service against a bus of the test's
+own).
 
 ## Which terminal is sent what
 
@@ -103,17 +115,19 @@ ST` pieces of at most 252 bytes, the OSCs ended by BEL.
 
 | terminal | known by | sent |
 |---|---|---|
-| kitty | `TERM=xterm-kitty`, `KITTY_WINDOW_ID` | OSC 99: the title, then the body under the same id (`pid.n`, so another notification doesn't replace it); a body with line breaks keeps them, in base64 (`e=1`) |
+| any that answers OSC 99's query (`p=?`): kitty, foot 1.18+, Konsole 24.12+ | its answer (`TerminalInfo.notificationKeys`) | OSC 99 |
+| kitty | `TERM=xterm-kitty`, `KITTY_WINDOW_ID`, XTVERSION | OSC 99: the title, then the body under the same id (`pid.id`, so another app's doesn't replace it); a body with line breaks keeps them, in base64 (`e=1`); the urgency, app name, icon, `o=unfocused` and `a=focus,report` on the first |
 | iTerm2 | `TERM_PROGRAM=iTerm.app`, `ITERM_SESSION_ID`, `LC_TERMINAL=iTerm2` (passed on by ssh) | OSC 9: `title: body` |
 | WezTerm | `TERM_PROGRAM=WezTerm`, `WEZTERM_PANE` | OSC 777 `notify;title;body` |
 | Ghostty | `TERM=xterm-ghostty`, `TERM_PROGRAM=ghostty`, `GHOSTTY_RESOURCES_DIR` | OSC 777 (its OSC 9 reads a body like `4;…` as a ConEmu command) |
-| foot | `TERM=foot…` | OSC 777 |
-| Konsole 22.12+ | `KONSOLE_VERSION` | OSC 777 |
+| foot | `TERM=foot…`, XTVERSION (1.18+: OSC 99) | OSC 777 |
+| Konsole 23.04+ (24.12+: OSC 99) | XTVERSION, `KONSOLE_VERSION` | OSC 777 |
 | Windows Terminal | `WT_SESSION` (passed on to WSL) | OSC 777, shown from 1.26, ignored before |
 | urxvt | `TERM=rxvt-unicode…` | OSC 777, shown by a `notify` perl extension where one is installed |
 | VTE 0.52+ (GNOME Terminal, Tilix, Ptyxis) | `VTE_VERSION` | OSC 777, shown where the distribution patched VTE for it (Fedora); upstream VTE ignores it |
 | Terminal.app | `TERM_PROGRAM=Apple_Terminal` (kept inside GNU screen; tmux sets its own, so not inside tmux), or its secondary device attributes `1;95;0` where no multiplexer is between (over ssh too) | BEL alone, unwrapped, rung only after a focus report (`FocusEvent`) says its window lost the focus: never where none come (`TerminalOptions.focusEvents` off, a multiplexer that doesn't pass them on); no title or body, a badge on its icon in the Dock, a bounce, a sound, as its settings say |
-| Alacritty, xterm, any other `TERM_PROGRAM`, `TERM=dumb` | | nothing |
+| Alacritty, xterm, st, upstream GNOME Terminal, tmux whose pane allows no passthrough, on the user's desktop | a Unix `DBUS_SESSION_BUS_ADDRESS`, no `SSH_*`, the process's own terminal | the desktop's service over D-Bus (`NotificationProtocol.dbus`), connected at the first notification; the bell where it does not answer |
+| the same over ssh, any other `TERM_PROGRAM`, `TERM=dumb` | | the bell, while the window lost the focus |
 
 In OSC 777 a `;` would end its field (title or body), so it is sent as
 `,`; a body without a title is sent as the title. OSC 9 and OSC 777 get

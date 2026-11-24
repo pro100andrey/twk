@@ -62,8 +62,8 @@ final bool _tellsExitCode = () {
 /// multiplexer, and those that say this process runs in CI: this
 /// process's, which a program in the emulator is not in, so they are left
 /// out of its environment ([Pty.start]); [Pty.start]'s `environment` can
-/// set any of them. As
-/// tool/pty_run.py's HOST_TERMINAL, which keep in step.
+/// set any of them. As tool/pty_run.py's HOST_TERMINAL, held to the same
+/// names by test/tool/host_terminal_test.dart.
 const _hostTerminal = {
   'TERM_PROGRAM',
   'TERM_PROGRAM_VERSION',

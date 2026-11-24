@@ -11,6 +11,9 @@ library;
 import 'dart:convert';
 
 import '../unicode/unicode.dart';
+import 'identity.dart';
+
+export 'identity.dart' show termNamesItsOwnTerminal;
 
 // Examples can assume:
 // import 'dart:convert';
@@ -126,6 +129,12 @@ enum NotificationProtocol {
   /// breaks.
   osc99,
 
+  /// The desktop's notification service, `org.freedesktop.Notifications`
+  /// on the D-Bus session bus, where the terminal shows none of its own
+  /// and the app runs on the user's desktop (not over ssh): no sequence,
+  /// the `Terminal` speaks to the service itself.
+  dbus,
+
   /// BEL, for Terminal.app, which shows no notification of a program's:
   /// neither title nor body, only its bell (a badge on its icon in the
   /// Dock, a bounce, a sound, as its settings say). Rung only while the
@@ -148,43 +157,128 @@ enum Multiplexer {
   screen,
 }
 
-/// Returns a desktop notification of [title] and [body] in [protocol],
-/// wrapped for [multiplexer].
+/// How urgent a desktop notification is: OSC 99's `u`, which the desktop
+/// may show it by (a critical one stays until dismissed).
+enum NotificationUrgency {
+  /// It can wait.
+  low,
+
+  /// As any other.
+  normal,
+
+  /// It should be seen now.
+  critical,
+}
+
+/// A desktop notification (`WindowBackend.notify`): a [title] and a [body],
+/// and what OSC 99 also carries, which the other protocols leave out.
+final class DesktopNotification {
+  /// A notification of [title] and [body].
+  const DesktopNotification(
+    this.title, {
+    this.body = '',
+    this.id,
+    this.urgency = NotificationUrgency.normal,
+    this.whenUnfocused = false,
+    this.appName = '',
+    this.icon = '',
+  });
+
+  /// Its title, on one line.
+  final String title;
+
+  /// Its text; a line break is kept by OSC 99 and is a space elsewhere.
+  final String body;
+
+  /// Its id among the app's: one sent under the id of one still shown
+  /// replaces it (OSC 99), and `WindowBackend.closeNotification` takes it
+  /// down. Letters, digits and `_-+.`, the rest dropped; null for one of
+  /// its own, which `WindowBackend.notify` returns.
+  final String? id;
+
+  /// How urgent it is (OSC 99's `u`).
+  final NotificationUrgency urgency;
+
+  /// Whether it is shown only while the terminal's window doesn't have the
+  /// focus: OSC 99's `o=unfocused` where the terminal takes it, else as
+  /// the focus reports say (`FocusEvent`), the window taken to have the
+  /// focus without them.
+  final bool whenUnfocused;
+
+  /// The name of the app it comes from (OSC 99's `f`), which the desktop
+  /// shows with it; empty for none.
+  final String appName;
+
+  /// The name of an icon of the desktop's theme (OSC 99's `n`), as the
+  /// freedesktop icon names go: `dialog-information`, `mail-unread`;
+  /// empty for none.
+  final String icon;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DesktopNotification &&
+      other.title == title &&
+      other.body == body &&
+      other.id == id &&
+      other.urgency == urgency &&
+      other.whenUnfocused == whenUnfocused &&
+      other.appName == appName &&
+      other.icon == icon;
+
+  @override
+  int get hashCode =>
+      Object.hash(title, body, id, urgency, whenUnfocused, appName, icon);
+
+  @override
+  String toString() => 'DesktopNotification($title, $body)';
+}
+
+/// Returns [notification] in [protocol], wrapped for [multiplexer].
 ///
 /// Empty for [NotificationProtocol.none] or with nothing to show. Control
 /// characters and the blanks around each text are removed; a line break in
 /// the body is kept by OSC 99 and is a space elsewhere, as a tab is. The
 /// title is cut to 256 bytes of UTF-8 and the body to 1024, between
-/// graphemes, ending with `…`. OSC 9 shows `title: body`; OSC 777 shows a
-/// body without a title as the title, and `,` for `;`, which would end its
-/// field. OSC 99 sends the title and the body as two sequences under [id]
-/// (letters, digits and `_-+.`, the rest dropped): a notification with the
-/// same id that is still shown is replaced. [NotificationProtocol.bell]
-/// is BEL alone, which a multiplexer rings on the terminal outside as its
-/// own bell, unwrapped.
+/// graphemes, ending with `…`. OSC 9 shows `title: body`, its text starting
+/// with a space where it would start as a ConEmu command (`4;`); OSC 777
+/// shows a body without a title as the title, and `,` for `;`, which would
+/// end its field. OSC 99 sends the title and the body as two sequences
+/// under [id] (letters, digits and `_-+.`, the rest dropped): a
+/// notification with the same id that is still shown is replaced. The
+/// first carries the rest: the urgency, `o=unfocused` where [unfocused]
+/// (the terminal takes it), the app's name and the icon's in base64, and
+/// `a=focus,report` where [report] (the terminal then answers a click with
+/// `OSC 99 ; i=id ; ST`, `NotificationActivated`). The others carry the
+/// title and the body only. [NotificationProtocol.bell] is BEL alone,
+/// which a multiplexer rings on the terminal outside as its own bell,
+/// unwrapped.
 String notifySequence(
-  String title,
-  String body, {
+  DesktopNotification notification, {
   required NotificationProtocol protocol,
   Multiplexer multiplexer = Multiplexer.none,
   String id = '1',
+  bool unfocused = false,
+  bool report = false,
 }) {
-  var t = _cut(_plain(title, lines: false), 256);
-  var b = _cut(
-    _plain(body, lines: protocol == NotificationProtocol.osc99),
-    1024,
+  final text = notificationText(
+    notification,
+    lines: protocol == NotificationProtocol.osc99,
   );
-  if (t.isEmpty && b.isEmpty) {
+  if (text == null) {
     return '';
   }
+  var t = text.title;
+  var b = text.body;
   final String s;
   switch (protocol) {
-    case NotificationProtocol.none:
+    case NotificationProtocol.none || NotificationProtocol.dbus:
       return '';
     case NotificationProtocol.bell:
       return '\x07';
     case NotificationProtocol.osc9:
-      s = '\x1b]9;${[t, b].where((p) => p.isNotEmpty).join(': ')}\x1b\\';
+      final text = [t, b].where((p) => p.isNotEmpty).join(': ');
+      // `9;4;...` is ConEmu's progress, `9;9;...` its directory
+      s = '\x1b]9;${_conEmu.hasMatch(text) ? ' ' : ''}$text\x1b\\';
     case NotificationProtocol.osc777:
       if (t.isEmpty) {
         (t, b) = (b, '');
@@ -193,22 +287,79 @@ String notifySequence(
           '\x1b]777;notify;${t.replaceAll(';', ',')};'
           '${b.replaceAll(';', ',')}\x1b\\';
     case NotificationProtocol.osc99:
-      final i = 'i=${id.replaceAll(RegExp(r'[^\w+.-]'), '')}';
+      final n = notification;
+      String b64(String v) => base64.encode(utf8.encode(v));
+      final keys = [
+        'i=${notificationWireId(id)}',
+        if (t.isNotEmpty && b.isNotEmpty) 'd=0',
+        if (report) 'a=focus,report',
+        if (unfocused) 'o=unfocused',
+        if (n.urgency != NotificationUrgency.normal)
+          'u=${n.urgency == NotificationUrgency.low ? 0 : 2}',
+        if (text.appName case final f when f.isNotEmpty) 'f=${b64(f)}',
+        if (text.icon case final i when i.isNotEmpty) 'n=${b64(i)}',
+      ].join(':');
+      final i = 'i=${notificationWireId(id)}';
       final sb = StringBuffer();
       if (t.isNotEmpty) {
-        sb.write('\x1b]99;$i${b.isEmpty ? '' : ':d=0'};$t\x1b\\');
+        sb.write('\x1b]99;$keys;$t\x1b\\');
       }
       if (b.isNotEmpty) {
+        final head = t.isEmpty ? keys : i;
         sb.write(
           b.contains('\n')
-              ? '\x1b]99;$i:p=body:e=1;${base64.encode(utf8.encode(b))}\x1b\\'
-              : '\x1b]99;$i:p=body;$b\x1b\\',
+              ? '\x1b]99;$head:p=body:e=1;${b64(b)}\x1b\\'
+              : '\x1b]99;$head:p=body;$b\x1b\\',
         );
       }
       s = sb.toString();
   }
   return passthroughSequence(s, multiplexer);
 }
+
+/// [notification]'s title and body as they are shown, null where both
+/// are blank: control characters and the blanks around each removed, a
+/// line break in the body kept where [lines] and a space elsewhere, as a
+/// tab is; the title cut to 256 bytes of UTF-8 and the body to 1024,
+/// between graphemes, ending with `…`. Its app name and icon the same,
+/// on one line and cut to 256 bytes.
+({String title, String body, String appName, String icon})? notificationText(
+  DesktopNotification notification, {
+  required bool lines,
+}) {
+  final title = _cut(_plain(notification.title, lines: false), 256);
+  final body = _cut(_plain(notification.body, lines: lines), 1024);
+  if (title.isEmpty && body.isEmpty) {
+    return null;
+  }
+  return (
+    title: title,
+    body: body,
+    appName: _cut(_plain(notification.appName, lines: false), 256),
+    icon: _cut(_plain(notification.icon, lines: false), 256),
+  );
+}
+
+/// The text of OSC 9 a terminal would take for a ConEmu command: a number
+/// and `;`.
+final _conEmu = RegExp(r'^\d+;');
+
+/// [id] as OSC 99 carries it: letters, digits and `_-+.`, the rest dropped.
+String notificationWireId(String id) => id.replaceAll(RegExp(r'[^\w+.-]'), '');
+
+/// OSC 99's `p=close` for the notification of [id], wrapped for
+/// [multiplexer], which takes it down where it is still shown (kitty);
+/// empty for any other protocol, which can't.
+String closeNotificationSequence(
+  String id, {
+  required NotificationProtocol protocol,
+  Multiplexer multiplexer = Multiplexer.none,
+}) => protocol == NotificationProtocol.osc99
+    ? passthroughSequence(
+        '\x1b]99;i=${notificationWireId(id)}:p=close;\x1b\\',
+        multiplexer,
+      )
+    : '';
 
 /// The shapes of the mouse pointer OSC 22 sets ([pointerShapeSequence]),
 /// by the names of CSS's `cursor` ([css]), as kitty's protocol names them,
@@ -375,10 +526,10 @@ PointerNames? pointerNamesFor(
     return null;
   }
   if (version.startsWith('iTerm2 ')) {
-    return _atLeast(version.substring(7), const [3, 7]) ? x11 : null;
+    return dottedAtLeast(version.substring(7), const [3, 7]) ? x11 : null;
   }
   if (version.startsWith('XTerm(')) {
-    return _atLeast(version.substring(6), const [367]) ? x11 : null;
+    return dottedAtLeast(version.substring(6), const [367]) ? x11 : null;
   }
   if (term == 'xterm-kitty' ||
       term == 'xterm-ghostty' ||
@@ -390,7 +541,7 @@ PointerNames? pointerNamesFor(
       return css;
     case 'iTerm.app':
       final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
-      return _atLeast(programVersion, const [3, 7]) ? x11 : null;
+      return dottedAtLeast(programVersion, const [3, 7]) ? x11 : null;
     case '':
       break;
     default:
@@ -398,7 +549,10 @@ PointerNames? pointerNamesFor(
   }
   if (env.containsKey('KITTY_WINDOW_ID') ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['KONSOLE_VERSION']) >= 260400) {
+      identifyTerminal(
+        env,
+        version: version,
+      ).has(TerminalFeature.pointerShapesCss)) {
     return css;
   }
   // xterm's own variable, last: where the terminal told its name (any
@@ -406,7 +560,7 @@ PointerNames? pointerNamesFor(
   final xterm = env['XTERM_VERSION'] ?? '';
   return version.isEmpty &&
           xterm.startsWith('XTerm(') &&
-          _atLeast(xterm.substring(6), const [367])
+          dottedAtLeast(xterm.substring(6), const [367])
       ? x11
       : null;
 }
@@ -475,15 +629,15 @@ bool progressReportsFor(Map<String, String> env, {String version = ''}) {
     case 'ghostty':
       return true;
     case 'iTerm.app':
-      return _atLeast(programVersion, const [3, 6, 6]);
+      return dottedAtLeast(programVersion, const [3, 6, 6]);
     case 'tmux':
-      return _atLeast(programVersion, const [3, 7]);
+      return dottedAtLeast(programVersion, const [3, 7]);
     case 'mintty':
-      return _atLeast(programVersion, const [3, 4, 2]);
+      return dottedAtLeast(programVersion, const [3, 4, 2]);
     case 'rio':
-      return _atLeast(programVersion, const [0, 3, 1]);
+      return dottedAtLeast(programVersion, const [0, 3, 1]);
     case 'contour':
-      return _atLeast(programVersion, const [0, 7]);
+      return dottedAtLeast(programVersion, const [0, 7]);
     case '':
       break;
     default:
@@ -503,8 +657,10 @@ bool progressReportsFor(Map<String, String> env, {String version = ''}) {
       env.containsKey('ConEmuPID') ||
       env['ConEmuANSI'] == 'ON' ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['VTE_VERSION']) >= 8000 ||
-      _number(env['KONSOLE_VERSION']) >= 260400;
+      identifyTerminal(
+        env,
+        version: version,
+      ).has(TerminalFeature.progressReports);
 }
 
 /// Whether the terminal is known to draw the block sextants (U+1FB00 to
@@ -531,19 +687,26 @@ bool sextantsFor(Map<String, String> env, {String version = ''}) {
     return false;
   }
   if (version.startsWith('kitty(')) {
-    return _atLeast(version.substring(6), const [0, 19, 3]);
+    return dottedAtLeast(version.substring(6), const [0, 19, 3]);
   }
   if (version.startsWith('foot(')) {
     return true;
   }
   if (version.startsWith('ghostty ')) {
-    return _atLeast(version.substring(8), const [1]);
+    return dottedAtLeast(version.substring(8), const [1]);
   }
   if (version.startsWith('WezTerm ')) {
-    return _atLeast(version.substring(8), const [20210814]);
+    return dottedAtLeast(version.substring(8), const [20210814]);
   }
-  if (version.startsWith('VTE(')) {
-    return _number(version.substring(4).replaceAll(')', '')) >= 7800;
+  // a terminal told by its name has what the table says; one told by the
+  // variables a terminal it was started from may have left, that or what
+  // the variables below say
+  final identity = identifyTerminal(env, version: version);
+  if (identity.has(TerminalFeature.sextants)) {
+    return true;
+  }
+  if (identity.terminal != null && version.isNotEmpty) {
+    return false;
   }
   if (term == 'xterm-kitty' ||
       term == 'xterm-ghostty' ||
@@ -555,46 +718,24 @@ bool sextantsFor(Map<String, String> env, {String version = ''}) {
     case 'ghostty':
       return true;
     case 'WezTerm':
-      return _atLeast(programVersion, const [20210814]);
+      return dottedAtLeast(programVersion, const [20210814]);
     case 'contour':
-      return _atLeast(programVersion, const [0, 3, 1]);
+      return dottedAtLeast(programVersion, const [0, 3, 1]);
     case 'rio':
-      return _atLeast(programVersion, const [0, 4, 6]);
+      return dottedAtLeast(programVersion, const [0, 4, 6]);
     case '':
       break;
     default:
       return false;
   }
   return env.containsKey('KITTY_WINDOW_ID') ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['VTE_VERSION']) >= 7800 ||
-      _number(env['KONSOLE_VERSION']) >= 220400;
+      env.containsKey('GHOSTTY_RESOURCES_DIR');
 }
 
 /// Whether [version], an XTVERSION answer, is kitty's, 0.38 or later.
 bool _kitty38(String version) =>
     version.startsWith('kitty(') &&
-    _atLeast(version.substring(6), const [0, 38]);
-
-/// Whether the version at the start of [version] (numbers separated by
-/// dots) is [least] or later; false when it starts with no number.
-bool _atLeast(String version, List<int> least) {
-  final parts = RegExp(r'^\d+(\.\d+)*').stringMatch(version);
-  if (parts == null) {
-    return false;
-  }
-  final numbers = parts.split('.').map(int.parse).toList();
-  for (var i = 0; i < least.length; i++) {
-    final n = i < numbers.length ? numbers[i] : 0;
-    if (n != least[i]) {
-      return n > least[i];
-    }
-  }
-  return true;
-}
-
-/// [value] as a number, 0 when it is none.
-int _number(String? value) => int.tryParse(value ?? '') ?? 0;
+    dottedAtLeast(version.substring(6), const [0, 38]);
 
 /// Who puts right-to-left text in the order it reads on a terminal
 /// (`TerminalInfo.bidi`).
@@ -621,18 +762,6 @@ const implicitBidiSequence = '\x1b[8h';
 /// BDSM reset: explicit mode, the terminal shows each character in the
 /// cell it is written to, for an app that orders text itself.
 const explicitBidiSequence = '\x1b[8l';
-
-/// Whether [term], a `TERM`, is a terminal's own name, set by that
-/// terminal (kitty, Ghostty, foot, Alacritty, Contour, WezTerm): it comes
-/// before a `TERM_PROGRAM` or other variables a terminal it was started
-/// from left in its environment, as Terminal.app's `Apple_Terminal`.
-bool termNamesItsOwnTerminal(String term) =>
-    term == 'xterm-kitty' ||
-    term == 'xterm-ghostty' ||
-    term.startsWith('foot') ||
-    term == 'alacritty' ||
-    term == 'contour' ||
-    term == 'wezterm';
 
 /// Who puts right-to-left text in the order it reads on a terminal, by its
 /// answer to [bidiModeQuery], [mode] (the Ps of `CSI 8 ; Ps $ y`, null
@@ -673,10 +802,12 @@ BidiReordering bidiReorderingFor(
       term.startsWith('screen')) {
     return app;
   }
+  final reorders = identifyTerminal(
+    env,
+    version: version,
+  ).has(TerminalFeature.reordersBidi);
   if (version.isNotEmpty) {
-    return version.startsWith('Konsole') || version.startsWith('mlterm')
-        ? terminal
-        : app;
+    return reorders || version.startsWith('mlterm') ? terminal : app;
   }
   if (term.startsWith('putty') || term.startsWith('mlterm')) {
     return terminal;
@@ -692,9 +823,7 @@ BidiReordering bidiReorderingFor(
     default:
       return app;
   }
-  return env.containsKey('KONSOLE_VERSION') || env.containsKey('MLTERM')
-      ? terminal
-      : app;
+  return reorders || env.containsKey('MLTERM') ? terminal : app;
 }
 
 /// What puts a terminal that honours BDSM, [mode] being its answer to

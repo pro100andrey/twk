@@ -23,6 +23,7 @@ import '../platform/platform.dart';
 import '../presenter.dart';
 import '../style.dart';
 import '../unicode/unicode.dart';
+import 'identity.dart';
 import 'link.dart';
 import 'outbox.dart';
 import 'plain.dart';
@@ -70,6 +71,7 @@ final class TerminalInfo {
     this.remote = false,
     this.colorSchemeReports = false,
     this.notifications = NotificationProtocol.none,
+    this.notificationKeys = const {},
     this.multiplexer = Multiplexer.none,
     this.plain = false,
     this.pixelMouse = false,
@@ -80,10 +82,13 @@ final class TerminalInfo {
     this.declaredBrightness,
     this.cursorRgb,
     this.terminalVersion = '',
+    this.terminal = 'unknown',
+    Map<String, CapabilitySource> sources = const {},
     Map<int, int> palette = const {},
     Map<String, String> settings = const {},
   }) : palette = Map.unmodifiable(palette),
        settings = Map.unmodifiable(settings),
+       sources = Map.unmodifiable(sources),
        kittyKeyboardFlags = kittyKeyboard
            ? kittyKeyboardFlags ?? KittyKeyboardFlags.disambiguate
            : 0;
@@ -193,11 +198,39 @@ final class TerminalInfo {
   final bool colorSchemeReports;
 
   /// How the terminal shows desktop notifications ([Terminal.notify]): as
-  /// it declares ([TerminalDeclaration.notifications]), else Terminal.app's
-  /// bell where it answers the secondary device attributes as Terminal.app
-  /// (`1;95;0`, over ssh too), else by its environment
-  /// ([notificationProtocolFor]).
+  /// it declares ([TerminalDeclaration.notifications]), else OSC 99 where
+  /// it answers that protocol's query ([notificationKeys]), else
+  /// Terminal.app's bell where it answers the secondary device attributes
+  /// as Terminal.app (`1;95;0`, over ssh too), else by the name it tells
+  /// and its environment ([notificationProtocolFor]); where that is none,
+  /// for the process's own terminal on the user's desktop (not over ssh),
+  /// the desktop's notification service on the session bus
+  /// ([NotificationProtocol.dbus]) where the environment names one: it is
+  /// reached at the first notification, the bell rung where it is not
+  /// there after all.
   final NotificationProtocol notifications;
+
+  /// What the terminal answered to the query of OSC 99, kitty's protocol
+  /// of desktop notifications (`OSC 99 ; i=… : p=? ; ST`): each key it
+  /// takes and the values it takes for it, as `p` (`title`, `body`,
+  /// `buttons`, ...), `a` (`focus`, `report`), `o` (`always`, `unfocused`,
+  /// `invisible`), `u` (`0`, `1`, `2`) and `c` (`1`: it tells when one is
+  /// closed). Konsole's answer, which puts a `;` where a `:` belongs and
+  /// says `unfocus`, is read as the protocol means it. Empty where it did
+  /// not answer: not asked through a multiplexer, which keeps it.
+  final Map<String, Set<String>> notificationKeys;
+
+  /// Whether a click on a notification that asks for it is told
+  /// ([NotificationActivated]): the desktop's service tells it
+  /// ([NotificationProtocol.dbus]), and a terminal of OSC 99 that named
+  /// `a=report` in its answer ([notificationKeys]), or answered none.
+  bool get reportsNotificationClicks => switch (notifications) {
+    NotificationProtocol.dbus => true,
+    NotificationProtocol.osc99 =>
+      notificationKeys.isEmpty ||
+          (notificationKeys['a']?.contains('report') ?? false),
+    _ => false,
+  };
 
   /// The multiplexer the program runs in, by its environment
   /// ([multiplexerFor]).
@@ -281,6 +314,17 @@ final class TerminalInfo {
   /// logical order for the terminal.
   final BidiReordering bidi;
 
+  /// The terminal as twk tells it by the name and version it told
+  /// ([terminalVersion]), else its environment, among those it knows facts
+  /// of: `konsole 26.8.3`, `vte 0.78.2`; `unknown` for any other.
+  final String terminal;
+
+  /// Where each capability that decides how frames are written came from,
+  /// by its name in [caps] or here: `synchronizedOutput`,
+  /// `leftRightMargins`, `graphemes` ([textMode]), `insertDelete`,
+  /// `repeatChar`, `konsoleLines`. Empty for an info not probed.
+  final Map<String, CapabilitySource> sources;
+
   @override
   String toString() =>
       'sync=${caps.synchronizedOutput} rep=${caps.repeatChar} '
@@ -297,13 +341,43 @@ final class TerminalInfo {
       'answered=$answeredQueries '
       'alternateScreen=$alternateScreen cursorColumn=$cursorColumn '
       'colorSchemeReports=$colorSchemeReports '
-      'notifications=${notifications.name} multiplexer=${multiplexer.name} '
+      'notifications=${notifications.name} '
+      'notificationKeys=${notificationKeys.keys.join(',')} '
+      'multiplexer=${multiplexer.name} '
       'pointerNames=${pointerNames?.name} '
       'progressReports=$progressReports sextants=$sextants '
       'bidi=${bidi.name} '
       'graphics=${caps.graphics.name} konsoleImages=${caps.konsoleImages} '
       'kittyAnimation=${caps.kittyAnimation} '
-      'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain';
+      'cell=${caps.cellPixelWidth}x${caps.cellPixelHeight}px plain=$plain '
+      'terminal=$terminal from=$_sources';
+
+  String get _sources => [
+    for (final MapEntry(:key, :value) in sources.entries) '$key:${value.name}',
+  ].join(',');
+}
+
+/// Where a capability of a [TerminalInfo] came from
+/// ([TerminalInfo.sources]): what the terminal declared or answered comes
+/// before what twk knows of it by name, which comes before a guess by its
+/// environment.
+enum CapabilitySource {
+  /// The terminal declared it (`TerminalDeclaration`).
+  declared,
+
+  /// The terminal answered the probe's query for it (DECRQM), either way.
+  answered,
+
+  /// The table of terminals twk knows has it for this one, by its name and
+  /// version ([TerminalInfo.terminal]), though it answered no query for it.
+  known,
+
+  /// A rule by the terminal's name or environment (`TERM`,
+  /// `TERM_PROGRAM` and the variables terminals set) gives it.
+  environment,
+
+  /// Nothing told: the default.
+  assumed,
 }
 
 /// How [Terminal] opens a terminal: the screen it draws on, the input it
@@ -563,9 +637,29 @@ Brightness? brightnessFor(Map<String, String> env) {
 /// such variables are then those of the terminal it was started from.
 /// Terminal.app (`Apple_Terminal`), which shows none of a program's, has
 /// its bell rung ([NotificationProtocol.bell]); not a terminal of a `TERM`
-/// of its own started from it ([termNamesItsOwnTerminal]).
-NotificationProtocol notificationProtocolFor(Map<String, String> env) {
+/// of its own started from it ([termNamesItsOwnTerminal]). The name and
+/// version the terminal told ([version], XTVERSION) come first: kitty's
+/// and foot's from 1.18 on show OSC 99, foot's before it OSC 777, and
+/// Konsole's are read from the table of known terminals (OSC 777 from
+/// 23.04, OSC 99 from 24.12). A terminal that answers OSC 99's query is
+/// taken at its answer before any of this (`TerminalInfo.notificationKeys`).
+NotificationProtocol notificationProtocolFor(
+  Map<String, String> env, {
+  String version = '',
+}) {
   const osc777 = NotificationProtocol.osc777;
+  if (version.startsWith('kitty(')) {
+    return NotificationProtocol.osc99;
+  }
+  if (version.startsWith('foot(')) {
+    return dottedAtLeast(version.substring(5), const [1, 18])
+        ? NotificationProtocol.osc99
+        : osc777;
+  }
+  final identity = identifyTerminal(env, version: version);
+  if (identity.has(TerminalFeature.notificationsOsc99)) {
+    return NotificationProtocol.osc99;
+  }
   final term = env['TERM'] ?? '';
   if (term == 'xterm-kitty') {
     return NotificationProtocol.osc99;
@@ -592,7 +686,6 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
     default:
       return NotificationProtocol.none;
   }
-  int version(String name) => int.tryParse(env[name] ?? '') ?? 0;
   if (env.containsKey('KITTY_WINDOW_ID')) {
     return NotificationProtocol.osc99;
   }
@@ -601,13 +694,25 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   }
   if (env.containsKey('WEZTERM_PANE') ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      version('KONSOLE_VERSION') >= 221200 ||
       env.containsKey('WT_SESSION') ||
-      version('VTE_VERSION') >= 5200) {
+      identity.has(TerminalFeature.notificationsOsc777)) {
     return osc777;
   }
   return NotificationProtocol.none;
 }
+
+/// How notifications of [protocol] are shown through tmux whose pane's
+/// `allow-passthrough` is [passthrough] (`tmux display -p
+/// '#{allow-passthrough}'`): none where it is `off`, as tmux drops what is
+/// wrapped for the terminal outside it then; as they are where it is `on`
+/// or `all`, or not known (null, or empty: a tmux before 3.3, which always
+/// passed it on). Terminal.app's bell is tmux's own and goes through.
+NotificationProtocol notificationsThroughTmux(
+  NotificationProtocol protocol,
+  String? passthrough,
+) => passthrough == 'off' && protocol != NotificationProtocol.bell
+    ? NotificationProtocol.none
+    : protocol;
 
 /// The multiplexer a program's output goes through, from its environment:
 /// `TMUX` or `STY` in one, a `TERM` of `tmux…` or `screen…` reached from
@@ -888,10 +993,89 @@ abstract interface class WindowBackend implements TerminalBackend {
   /// once closed.
   void setTitle(String title);
 
-  /// Shows a desktop notification of [title] and [body] where the terminal
-  /// is known to show one ([TerminalInfo.notifications]); nothing
-  /// elsewhere, and once closed.
-  void notify(String title, String body);
+  /// Shows [notification] where the terminal is known to show one
+  /// ([TerminalInfo.notifications], [notificationFor]); nothing elsewhere,
+  /// and once closed. Returns its id, [DesktopNotification.id] as OSC 99
+  /// carries it ([notificationWireId]), else one of its own (`auto-1`,
+  /// `auto-2`, ...); null where nothing was shown (none is, it was held
+  /// back for the focus, it has no text, or only the bell rang). Where
+  /// [reportActivation], a click on it comes back as a
+  /// [NotificationActivated] of that id, where the terminal tells clicks
+  /// ([TerminalInfo.reportsNotificationClicks]); the terminal tells one
+  /// whenever the notification is clicked, after the app ended too, so it
+  /// is asked for only where someone listens.
+  String? notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  });
+
+  /// Takes the notification of [id] ([notify]'s) down where it is still
+  /// shown and the terminal can (OSC 99's `p=close`, kitty's; not
+  /// Konsole's, which leaves it to the desktop); nothing elsewhere.
+  void closeNotification(String id);
+}
+
+/// [notification]'s id as [WindowBackend.notify] returns it: its own as
+/// OSC 99 carries it ([notificationWireId]), else, or where nothing of it
+/// is left, `auto-` and the number [next] gives.
+String notificationIdOf(
+  DesktopNotification notification,
+  int Function() next,
+) {
+  final given = notificationWireId(notification.id ?? '');
+  return given.isEmpty ? 'auto-${next()}' : given;
+}
+
+/// Whether [written], what [notificationFor] wrote on a terminal of
+/// [info], shows a notification: a sequence of a protocol that shows one,
+/// not the bell nor nothing.
+bool notificationShown(TerminalInfo info, String written) =>
+    written.isNotEmpty &&
+    info.notifications != NotificationProtocol.bell &&
+    info.notifications != NotificationProtocol.none;
+
+/// What [WindowBackend.notify] writes for [notification] on a terminal of
+/// [info] whose window has the focus where [focused], as [id]: nothing
+/// while it has the focus for Terminal.app's bell
+/// ([NotificationProtocol.bell]) or a notification shown only without the
+/// focus ([DesktopNotification.whenUnfocused]), unless the terminal holds
+/// that back itself (OSC 99's `o=unfocused`, where it named that key in
+/// its answer, or answered none). Where no notification is known to be
+/// shown ([NotificationProtocol.none]) the bell is rung while the window
+/// doesn't have the focus, which most terminals mark the window or tab by
+/// (Konsole shows a notification of it); never where no focus report
+/// said so, the window then taken to have the focus.
+String notificationFor(
+  TerminalInfo info,
+  DesktopNotification notification, {
+  required bool focused,
+  required String id,
+  bool reportActivation = false,
+}) {
+  final protocol = info.notifications;
+  if (protocol == NotificationProtocol.none) {
+    final shows =
+        notification.title.trim().isNotEmpty ||
+        notification.body.trim().isNotEmpty;
+    return focused || !shows ? '' : '\x07';
+  }
+  final keys = info.notificationKeys;
+  final heldBack =
+      protocol == NotificationProtocol.osc99 &&
+      (keys.isEmpty || (keys['o']?.contains('unfocused') ?? false));
+  if (focused &&
+      (protocol == NotificationProtocol.bell ||
+          (notification.whenUnfocused && !heldBack))) {
+    return '';
+  }
+  return notifySequence(
+    notification,
+    protocol: protocol,
+    multiplexer: info.multiplexer,
+    id: id,
+    unfocused: notification.whenUnfocused && heldBack,
+    report: reportActivation,
+  );
 }
 
 /// A terminal a program draws on and reads input from, opened in raw mode,
@@ -1424,6 +1608,7 @@ final class Terminal
     int? bidiMode;
     var secondary = const <int>[];
     var unitId = '';
+    Map<String, Set<String>>? notificationKeys;
     // the queries, all in one write, which the device attributes end
     final round = Completer<bool>()..future.ignore();
     void fail(Object e, StackTrace st) {
@@ -1478,6 +1663,8 @@ final class Terminal
                 version = s.substring(4).replaceFirst(_stringEnd, '');
               } else if (_unitIdReply.firstMatch(s) case final m?) {
                 unitId = _unitIdOf(m[1]!);
+              } else if (_notificationReply.firstMatch(s) case final m?) {
+                notificationKeys = _notificationKeysOf(m[1]!);
               } else if (_bidiModeReply.firstMatch(s) case final m?) {
                 bidiMode = int.parse(m[1]!);
               } else if (_secondaryReply.firstMatch(s) case final m?) {
@@ -1546,6 +1733,8 @@ final class Terminal
         '${o.kittyKeyboard ? '\x1b[?u' : ''}'
         '\x1b[16t\x1b[14t${askName ? _kittyGraphicsQuery : ''}'
         '${askName ? '\x1b[>0q' : ''}'
+        // not of a multiplexer, which keeps it from the terminal
+        '${multiplexerFor(env) == Multiplexer.none ? _notificationQuery : ''}'
         // the Linux console may take it for DA1
         '${term == 'linux' ? '' : '\x1b[>c\x1b[=c'}';
     // inline, where the cursor is before the queries and after them
@@ -1606,35 +1795,84 @@ final class Terminal
       color = ColorMode.ansi256;
     }
 
+    // where each capability below came from (TerminalInfo.sources)
+    final sources = <String, CapabilitySource>{};
+    // [value] as [declaredValue] declares it, else as mode [mode] was
+    // answered yes (where asked), else as [known] holds where the mode was
+    // not answered (a fact of the table is of a terminal that answers no
+    // DECRQM for it: one that answers no is not that terminal), else as
+    // [guessed] by the environment, else as the mode was answered no, else
+    // [assumed]; its source kept as [name]
+    bool resolve(
+      String name, {
+      bool? declaredValue,
+      int? mode,
+      bool known = false,
+      bool guessed = false,
+      bool assumed = false,
+    }) {
+      final (value, source) = switch (declaredValue) {
+        final d? => (d, CapabilitySource.declared),
+        _ when mode != null && supported(mode) => (
+          true,
+          CapabilitySource.answered,
+        ),
+        _ when known && (mode == null || !modes.containsKey(mode)) => (
+          true,
+          CapabilitySource.known,
+        ),
+        _ when guessed => (true, CapabilitySource.environment),
+        _ when mode != null && modes.containsKey(mode) => (
+          false,
+          CapabilitySource.answered,
+        ),
+        _ => (assumed, CapabilitySource.assumed),
+      };
+      sources[name] = source;
+      return value;
+    }
+
     // Grapheme clustering: announced via mode 2027, or known terminals that
     // cluster without it.
-    final graphemes =
-        supported(2027) ||
-        term == 'xterm-kitty' ||
-        env.containsKey('WT_SESSION') ||
-        program == 'WezTerm';
+    final graphemes = resolve(
+      'graphemes',
+      declaredValue: declared.graphemes,
+      mode: 2027,
+      guessed:
+          term == 'xterm-kitty' ||
+          env.containsKey('WT_SESSION') ||
+          program == 'WezTerm',
+    );
 
+    // the terminal as its name and version tell it, for what it is known
+    // to do without answering a query (identity.dart)
+    final identity = identifyTerminal(env, version: version);
     // REP (CSI n b) has no capability query; enable it only for terminals
     // that declare it, or are known to implement it.
-    final vte = int.tryParse(env['VTE_VERSION'] ?? '') ?? 0;
-    final repeatChar =
-        declared.repeatChar ??
-        (!screenLike &&
-            !env.containsKey('TMUX') &&
-            (term == 'xterm-kitty' ||
-                term == 'xterm-ghostty' ||
-                term.startsWith('foot') ||
-                term == 'alacritty' ||
-                program == 'WezTerm' ||
-                program == 'ghostty' ||
-                env.containsKey('WT_SESSION') ||
-                env.containsKey('XTERM_VERSION') ||
-                vte >= 6200));
+    final plainRows = !screenLike && !env.containsKey('TMUX');
+    final repeatChar = resolve(
+      'repeatChar',
+      declaredValue: declared.repeatChar,
+      known: plainRows && identity.has(TerminalFeature.repeatChar),
+      guessed:
+          plainRows &&
+          (term == 'xterm-kitty' ||
+              term == 'xterm-ghostty' ||
+              term.startsWith('foot') ||
+              term == 'alacritty' ||
+              program == 'WezTerm' ||
+              program == 'ghostty' ||
+              env.containsKey('WT_SESSION') ||
+              env.containsKey('XTERM_VERSION')),
+    );
     // the first attribute is the conformance level; 4 is sixel
     final sixel = attributes.skip(1).contains(4);
     final multiplexer = multiplexerFor(env);
     // Konsole's lines and its images come with Konsole itself
-    final konsole = konsoleLinesFor(env, version: version);
+    final konsole = resolve(
+      'konsoleLines',
+      known: konsoleLinesFor(env, version: version),
+    );
     // The environment as the terminal tells it by its secondary device
     // attributes (as vim tells Terminal.app, `1;95;0`): Terminal.app's
     // TERM_PROGRAM where it answers so, also over ssh, which doesn't pass
@@ -1646,6 +1884,83 @@ final class Terminal
       multiplexer == Multiplexer.none ? secondary : const [],
     );
     final apple = _isAppleTerminal(told);
+    // as declared, else OSC 99 where its query was answered, else by the
+    // name the terminal told and its environment
+    // a declared dbus is undeclared: the desktop's service is asked below
+    final declaredNotifications = switch (declared.notifications) {
+      NotificationProtocol.dbus => null,
+      final d => d,
+    };
+    var notifications = switch (declaredNotifications) {
+      final d? => d,
+      _ when notificationKeys != null => NotificationProtocol.osc99,
+      _ => notificationProtocolFor(told, version: version),
+    };
+    // through tmux what is wrapped for it reaches the terminal only where
+    // the pane allows passthrough: asked of the tmux this process runs in,
+    // for its own terminal (a link's environment is the far end's)
+    if (declaredNotifications == null &&
+        multiplexer == Multiplexer.tmux &&
+        isOwnTerminal(link) &&
+        env['TMUX_PANE'] != null &&
+        notificationsThroughTmux(notifications, 'off') != notifications) {
+      notifications = notificationsThroughTmux(
+        notifications,
+        await tmuxFormat(
+          '#{allow-passthrough}',
+          pane: env['TMUX_PANE']!,
+          within: o.probeTimeout,
+        ),
+      );
+    }
+    // where the terminal shows none, the desktop's own service, for the
+    // process's own terminal on the user's desktop: not over a link, whose
+    // far end's desktop is not this machine's, nor over ssh. By its
+    // environment only: the bus is reached at the first notification, so
+    // an app that shows none pays nothing for it
+    if (declaredNotifications == null &&
+        notifications == NotificationProtocol.none &&
+        isOwnTerminal(link) &&
+        desktopNotificationsReachable(env)) {
+      notifications = NotificationProtocol.dbus;
+    }
+    sources['notifications'] = declaredNotifications != null
+        ? CapabilitySource.declared
+        : notificationKeys != null
+        ? CapabilitySource.answered
+        : notifications == NotificationProtocol.none &&
+              notificationProtocolFor(told, version: version) ==
+                  NotificationProtocol.none
+        ? CapabilitySource.assumed
+        : CapabilitySource.environment;
+    // asked with DECRQM, which Konsole answers not; inside a multiplexer
+    // its answer is the only one
+    final synchronizedOutput = resolve(
+      'synchronizedOutput',
+      declaredValue: declared.synchronizedOutput,
+      mode: 2026,
+      known:
+          multiplexer == Multiplexer.none &&
+          identity.has(TerminalFeature.synchronizedOutput),
+    );
+    // not asked of GNU screen, which prints DECRQM
+    final leftRightMargins = resolve(
+      'leftRightMargins',
+      declaredValue: declared.leftRightMargins,
+      mode: screenLike ? null : 69,
+    );
+    // Terminal.app's DCH shifts a line only up to where the cursor last
+    // jumped and drops the background an EL gave the rest of it: its
+    // cells are written again instead, which costs bytes, never cells
+    final insertDelete = switch (declared.insertDelete) {
+      final d? => d,
+      _ => !(apple && multiplexer == Multiplexer.none),
+    };
+    sources['insertDelete'] = declared.insertDelete != null
+        ? CapabilitySource.declared
+        : apple && multiplexer == Multiplexer.none
+        ? CapabilitySource.environment
+        : CapabilitySource.assumed;
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
     final pointerNames = switch (declared.pointerShapes) {
@@ -1664,21 +1979,17 @@ final class Terminal
         );
     final info = TerminalInfo(
       caps: TerminalCaps(
-        synchronizedOutput: supported(2026),
+        synchronizedOutput: synchronizedOutput,
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
         // Terminal.app misreads 4:3: a plain underline it shows
         styledUnderlines:
             declared.styledUnderlines ?? styledUnderlinesFor(told),
-        // Terminal.app's DCH shifts a line only up to where the cursor
-        // last jumped and drops the background an EL gave the rest of it:
-        // its cells are written again instead, which costs bytes, never
-        // cells
-        insertDelete: !(apple && multiplexer == Multiplexer.none),
+        insertDelete: insertDelete,
         konsoleLines: konsole,
         konsoleImages: konsole,
-        leftRightMargins: supported(69) && !screenLike,
+        leftRightMargins: leftRightMargins,
         graphics: graphics,
         // tmux 3.4 shows sixel itself
         graphicsMultiplexer:
@@ -1723,7 +2034,10 @@ final class Terminal
       colorSchemeReports: supported(2031),
       declaredBrightness: brightnessFor(env),
       terminalVersion: version,
-      notifications: declared.notifications ?? notificationProtocolFor(told),
+      terminal: '$identity',
+      sources: sources,
+      notifications: notifications,
+      notificationKeys: notificationKeys ?? const {},
       multiplexer: multiplexer,
       pointerNames: pointerNames,
       progressReports:
@@ -1776,6 +2090,27 @@ final class Terminal
   static final _unitIdReply = RegExp(
     r'^\x1bP!\|([0-9A-Fa-f]*)(?:\x1b\\|\x07)$',
   );
+
+  /// The query of OSC 99, kitty's notifications: `p=?` under an id of its
+  /// own, answered with the keys and values the terminal takes.
+  static const _notificationQuery = '\x1b]99;i=twk:p=?;\x1b\\';
+
+  /// `OSC 99 ; i=id : p=? ; keys ST`, the answer to [_notificationQuery];
+  /// Konsole's has a `;` after the id.
+  static final _notificationReply = RegExp(
+    r'^\x1b\]99;i=[^;:]*[:;]p=\?;(.*?)(?:\x1b\\|\x07)$',
+  );
+
+  /// The keys of an answer to [_notificationQuery], `key=v,v:key=v`, each
+  /// with its values; Konsole's `unfocus` as the protocol's `unfocused`.
+  static Map<String, Set<String>> _notificationKeysOf(String keys) => {
+    for (final part in keys.split(RegExp('[:;]')))
+      if (part.indexOf('=') case final eq when eq > 0)
+        part.substring(0, eq): {
+          for (final v in part.substring(eq + 1).split(','))
+            if (v == 'unfocus') 'unfocused' else if (v.isNotEmpty) v,
+        },
+  };
 
   /// Terminology's unit id (`~~TY`), tildes dropped ([_unitIdOf]).
   static const _terminologyUnit = 'TY';
@@ -1838,7 +2173,8 @@ final class Terminal
         _textAreaReply.hasMatch(s) ||
         _bidiModeReply.hasMatch(s) ||
         _secondaryReply.hasMatch(s) ||
-        _unitIdReply.hasMatch(s);
+        _unitIdReply.hasMatch(s) ||
+        _notificationReply.hasMatch(s);
   }
 
   // --------------------------------------------------------------- modes --
@@ -2185,6 +2521,15 @@ final class Terminal
       height = e.height;
     } else if (e is FocusEvent) {
       _focused = e.focused;
+    } else if (e is NotificationActivated) {
+      // another process's, which the terminal tells this one too
+      if (!e.id.startsWith(_notificationPrefix)) {
+        return;
+      }
+      _events.add(
+        NotificationActivated(e.id.substring(_notificationPrefix.length)),
+      );
+      return;
     }
     _events.add(e);
     if (e is ColorSchemeReport) {
@@ -2465,28 +2810,102 @@ final class Terminal
   // said; with none, it is taken to have it
   var _focused = true;
 
-  /// Shows a desktop notification of [title] and [body] where the terminal
-  /// is known to show one ([TerminalInfo.notifications]), through tmux or
-  /// screen ([TerminalInfo.multiplexer]); does nothing elsewhere. See
-  /// [notifySequence] for what is sent. Terminal.app's bell
-  /// ([NotificationProtocol.bell]) is rung only while its window doesn't
-  /// have the focus ([FocusEvent], [TerminalOptions.focusEvents]).
+  /// Shows [notification] where the terminal is known to show one
+  /// ([TerminalInfo.notifications]), through tmux or screen
+  /// ([TerminalInfo.multiplexer]); does nothing elsewhere. See
+  /// [notificationFor] and [notifySequence] for what is sent. Terminal.app's
+  /// bell ([NotificationProtocol.bell]) and a notification shown only
+  /// without the focus are held back while the window has it
+  /// ([FocusEvent], [TerminalOptions.focusEvents]). OSC 99 carries the id
+  /// after this process's id, so that one app's notifications replace no
+  /// other's, and a click reported for another's is dropped.
   @override
-  void notify(String title, String body) {
-    if (_closed ||
-        (info.notifications == NotificationProtocol.bell && _focused)) {
-      return;
+  String? notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  }) {
+    if (_closed) {
+      return null;
     }
-    final s = notifySequence(
-      title,
-      body,
-      protocol: info.notifications,
-      multiplexer: info.multiplexer,
-      id: '$processId.${++_notifications}',
+    final id = notificationIdOf(notification, () => ++_notifications);
+    if (info.notifications == NotificationProtocol.dbus) {
+      if ((notification.whenUnfocused && _focused) ||
+          notificationText(notification, lines: true) == null) {
+        return null;
+      }
+      _onDesktop((desktop) {
+        if (desktop != null) {
+          desktop.notify(notification, id: id, report: reportActivation);
+        } else if (!_focused) {
+          // no service after all: the bell, as where none is shown
+          _writeUtf8('\x07');
+        }
+      });
+      return id;
+    }
+    final s = notificationFor(
+      info,
+      notification,
+      focused: _focused,
+      id: '$_notificationPrefix$id',
+      reportActivation: reportActivation,
     );
     if (s.isNotEmpty) {
       _writeUtf8(s);
     }
+    return notificationShown(info, s) ? id : null;
+  }
+
+  @override
+  void closeNotification(String id) {
+    if (_closed) {
+      return;
+    }
+    if (info.notifications == NotificationProtocol.dbus) {
+      _onDesktop((desktop) => desktop?.closeNotification(id));
+      return;
+    }
+    final s = closeNotificationSequence(
+      '$_notificationPrefix$id',
+      protocol: info.notifications,
+      multiplexer: info.multiplexer,
+    );
+    if (s.isNotEmpty) {
+      _writeUtf8(s);
+    }
+  }
+
+  /// What the ids of this process's notifications start with on the wire.
+  final _notificationPrefix = '$processId.';
+
+  /// The desktop's notification service, where notifications are shown by
+  /// it ([NotificationProtocol.dbus]): opened at the first notification
+  /// (its clicks then told as [NotificationActivated]), null where it
+  /// could not be; closed with the terminal.
+  Future<DesktopNotifications?>? _desktop;
+
+  /// The clicks [_desktop] tells.
+  StreamSubscription<String>? _desktopClicks;
+
+  /// [then] with the desktop's notification service once it is open, or
+  /// null where it could not be opened; in the order asked, once open.
+  void _onDesktop(void Function(DesktopNotifications? desktop) then) {
+    final opening = _desktop ??= openDesktopNotifications(_link.environment)
+        .then((desktop) {
+          _desktopClicks = desktop?.activated.listen((id) {
+            if (!_closed) {
+              _events.add(NotificationActivated(id));
+            }
+          });
+          return desktop;
+        });
+    unawaited(
+      opening.then((desktop) {
+        if (!_closed) {
+          then(desktop);
+        }
+      }),
+    );
   }
 
   /// Writes the terminal's own [s], UTF-8 encoded; nothing for plain
@@ -2569,6 +2988,7 @@ final class Terminal
     for (final s in _signals) {
       await s.cancel();
     }
+    await _desktopClicks?.cancel();
     try {
       if (!_suspended) {
         // suspended, the modes are off and the screen is another's
@@ -2594,6 +3014,9 @@ final class Terminal
         await _closeTraces(_inputTrace, _outputTrace);
       } finally {
         await _link.close();
+        // the terminal is back as it was: the desktop's service may take
+        // its second for what was asked of it
+        await (await _desktop)?.close();
       }
     }
   }
@@ -2606,16 +3029,13 @@ final class Terminal
 /// and DCH ends with blanks at that length rather than at the right margin.
 /// Inside a multiplexer ([multiplexerFor]) the lines are the multiplexer's,
 /// which does as xterm does. The same terminal's images are Konsole's
-/// ([TerminalCaps.konsoleImages]).
-bool konsoleLinesFor(Map<String, String> env, {String version = ''}) {
-  if (multiplexerFor(env) != Multiplexer.none) {
-    return false;
-  }
-  if (version.isNotEmpty) {
-    return version.startsWith('Konsole');
-  }
-  return env.containsKey('KONSOLE_VERSION');
-}
+/// ([TerminalCaps.konsoleImages]). The terminal is told as
+/// [identifyTerminal] tells it: a `TERM` of another terminal's own, or
+/// another's `TERM_PROGRAM`, makes `KONSOLE_VERSION` that of the Konsole it
+/// was started from.
+bool konsoleLinesFor(Map<String, String> env, {String version = ''}) =>
+    multiplexerFor(env) == Multiplexer.none &&
+    identifyTerminal(env, version: version).has(TerminalFeature.konsoleLines);
 
 /// What the probe of a [Terminal] read and wrote ([CountingBackend]).
 final class _ProbeCounts {

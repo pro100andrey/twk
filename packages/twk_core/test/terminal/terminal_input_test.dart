@@ -236,13 +236,13 @@ void main() {
       expect(term.info.notifications, NotificationProtocol.osc99);
       final opened = link.text.length;
       term
-        ..notify('Build', 'done')
-        ..notify('Tests', '');
+        ..notify(const DesktopNotification('Build', body: 'done'))
+        ..notify(const DesktopNotification('Tests'));
       expect(
         link.text.substring(opened),
-        '\x1b]99;i=$pid.1:d=0;Build\x1b\\'
-        '\x1b]99;i=$pid.1:p=body;done\x1b\\'
-        '\x1b]99;i=$pid.2;Tests\x1b\\',
+        '\x1b]99;i=$pid.auto-1:d=0;Build\x1b\\'
+        '\x1b]99;i=$pid.auto-1:p=body;done\x1b\\'
+        '\x1b]99;i=$pid.auto-2;Tests\x1b\\',
       );
     });
 
@@ -255,16 +255,16 @@ void main() {
       expect(term.info.notifications, NotificationProtocol.bell);
       final events = eventsOf(term);
       final opened = link.text.length;
-      term.notify('Build', 'done');
+      term.notify(const DesktopNotification('Build', body: 'done'));
       expect(link.text.length, opened, reason: 'focused, as with no report');
       link.type('\x1b[O');
       await clock.flushMicrotasks();
       expect(events, const [FocusEvent(false)]);
-      term.notify('Build', 'done');
+      term.notify(const DesktopNotification('Build', body: 'done'));
       expect(link.text.substring(opened), '\x07');
       link.type('\x1b[I');
       await clock.flushMicrotasks();
-      term.notify('Build', 'done');
+      term.notify(const DesktopNotification('Build', body: 'done'));
       expect(link.text.substring(opened), '\x07');
     });
 
@@ -273,7 +273,7 @@ void main() {
       final (term, link) = await answered('');
       expect(term.info.notifications, NotificationProtocol.none);
       final opened = link.text.length;
-      term.notify('Build', 'done');
+      term.notify(const DesktopNotification('Build', body: 'done'));
       expect(link.text.length, opened);
 
       final (kitty, kittyLink) = await answered(
@@ -282,7 +282,7 @@ void main() {
       );
       await clock.runUntil(kitty.close);
       final closed = kittyLink.text.length;
-      kitty.notify('Build', 'done');
+      kitty.notify(const DesktopNotification('Build', body: 'done'));
       expect(kittyLink.text.length, closed);
     });
   });

@@ -207,13 +207,23 @@ final class Doctor {
         '  name, version   '
         '${t.version.isEmpty ? '(not told)' : t.version}',
       );
+      if (t.terminal != 'unknown') {
+        line('  known as        ${t.terminal}');
+      }
       line('  colors          ${t.colors}');
-      line('  DEC 2026        ${_yes(t.synchronizedOutput)}');
+      line(
+        '  DEC 2026        ${_yes(t.synchronizedOutput)}'
+        '${_from(t.synchronizedOutputFrom, t.terminal)}',
+      );
       line(
         '  kitty keyboard  '
         '${t.kittyKeyboard ? 'yes, flags ${t.kittyKeyboardFlags}' : 'no'}',
       );
       line('  graphics        ${t.graphics}');
+      line(
+        '  notifications   ${t.notifications}'
+        '${_notificationsFrom(t)}',
+      );
       line('  links (OSC 8)   ${_yes(t.hyperlinks)}');
       line(
         '  cell size       '
@@ -277,6 +287,36 @@ String _skill(AgentsReport a) {
 
 String _yes(bool value) => value ? 'yes' : 'no';
 
+/// Where a capability came from, as the report says it: what the terminal
+/// answered needs no word.
+String _from(String source, String terminal) => switch (source) {
+  'known' => ' (known of $terminal, which answers no query for it)',
+  'declared' => ' (declared by the terminal)',
+  'assumed' => ' (not answered)',
+  _ => '',
+};
+
+/// Where a report's notifications came from: the keys OSC 99's query was
+/// answered with, else by the name, declared, or nothing known.
+String _notificationsFrom(TerminalReport t) {
+  final keys = [
+    for (final MapEntry(:key, :value) in t.notificationKeys.entries)
+      '$key=${value.join(',')}',
+  ];
+  return switch (t.notificationsFrom) {
+    'environment' when t.notifications == 'dbus' =>
+      t.desktopServiceAnswers
+          ? " (the desktop's notification service on the session bus, "
+                'which answers)'
+          : " (the desktop's notification service on the session bus, "
+                'which does not answer: the bell rings instead)',
+    'answered' => ' (answered: ${keys.join(' ')})',
+    'environment' => ' (by its name and environment)',
+    'declared' => ' (declared by the terminal)',
+    _ => ' (none known)',
+  };
+}
+
 /// What a terminal's probe found.
 final class TerminalReport {
   /// A probe's result.
@@ -292,6 +332,12 @@ final class TerminalReport {
     required this.cellHeight,
     required this.answered,
     required this.probeMilliseconds,
+    this.terminal = 'unknown',
+    this.synchronizedOutputFrom = 'assumed',
+    this.notifications = 'none',
+    this.notificationsFrom = 'assumed',
+    this.notificationKeys = const {},
+    this.desktopServiceAnswers = false,
   });
 
   /// XTVERSION, empty where not told.
@@ -327,6 +373,32 @@ final class TerminalReport {
   /// How long opening the terminal took.
   final int probeMilliseconds;
 
+  /// The terminal as twk knows it by its name and version
+  /// (`TerminalInfo.terminal`): `konsole 26.8.3`, or `unknown`.
+  final String terminal;
+
+  /// Where [synchronizedOutput] came from, a `CapabilitySource`'s name:
+  /// `answered` (DECRQM), `known` (the terminal by its name and version,
+  /// as Konsole, which answers no DECRQM), `declared` or `assumed`.
+  final String synchronizedOutputFrom;
+
+  /// How desktop notifications are shown, a `NotificationProtocol`'s name.
+  final String notifications;
+
+  /// Where [notifications] came from, a `CapabilitySource`'s name:
+  /// `answered` (OSC 99's query), `environment` (the terminal's name and
+  /// environment), `declared` or `assumed`.
+  final String notificationsFrom;
+
+  /// What the terminal answered to OSC 99's query
+  /// (`TerminalInfo.notificationKeys`), each key with its values.
+  final Map<String, List<String>> notificationKeys;
+
+  /// Where [notifications] is `dbus`, whether the desktop's notification
+  /// service on the session bus answers (`desktopNotificationsAnswer`),
+  /// which a `Terminal` asks only at its first notification.
+  final bool desktopServiceAnswers;
+
   /// As JSON.
   Map<String, Object?> toJson() => {
     'version': version,
@@ -340,6 +412,12 @@ final class TerminalReport {
     'cellHeight': cellHeight,
     'answered': answered,
     'probeMilliseconds': probeMilliseconds,
+    'terminal': terminal,
+    'synchronizedOutputFrom': synchronizedOutputFrom,
+    'notifications': notifications,
+    'notificationsFrom': notificationsFrom,
+    'notificationKeys': notificationKeys,
+    'desktopServiceAnswers': desktopServiceAnswers,
   };
 }
 
@@ -362,6 +440,18 @@ Future<TerminalReport> _probe(CliTerminal terminal) async {
       cellHeight: info.caps.cellPixelHeight,
       answered: info.answeredQueries,
       probeMilliseconds: probed ~/ 1000,
+      terminal: info.terminal,
+      synchronizedOutputFrom:
+          info.sources['synchronizedOutput']?.name ?? 'assumed',
+      notifications: info.notifications.name,
+      notificationsFrom: info.sources['notifications']?.name ?? 'assumed',
+      notificationKeys: {
+        for (final MapEntry(:key, :value) in info.notificationKeys.entries)
+          key: value.toList(),
+      },
+      desktopServiceAnswers:
+          info.notifications == NotificationProtocol.dbus &&
+          await desktopNotificationsAnswer(Platform.environment),
     );
   } finally {
     await backend.close();

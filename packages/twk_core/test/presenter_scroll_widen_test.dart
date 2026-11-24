@@ -9,6 +9,8 @@ import 'package:test/test.dart';
 import 'package:twk_core/src/graphics.dart';
 import 'package:twk_core/src/presenter.dart';
 
+import 'package:twk_test/vt.dart' show TearCheck;
+
 import 'support/harness.dart';
 
 const _w = 40;
@@ -179,5 +181,29 @@ void main() {
     hs.frame();
     expect(hs.mismatches(), isEmpty);
     expect(hs.presenter.stats.scrollOps, 2);
+  });
+
+  test('without synchronized output the rows are rewritten, not scrolled: '
+      'the scrollbar beside the log is never shown moved', () {
+    final hs = Harness(
+      _w,
+      _h,
+      caps: const TerminalCaps(synchronizedOutput: false),
+    );
+    paintLog(hs);
+    hs.frame();
+    append(hs, _h);
+    final check = TearCheck(hs.vt)..begin(moves: hs.surface.pendingScrolls);
+    hs.frame();
+    expect(check.end(), isEmpty);
+    expect(hs.vt.errors, isEmpty);
+    expect(hs.mismatches(), isEmpty);
+    expect(hs.presenter.stats.scrollOps, 0);
+    expect(hs.presenter.stats.widenedScrollOps, 0);
+    // no DECSTBM
+    expect(
+      String.fromCharCodes(hs.presenter.out.view),
+      isNot(contains(RegExp(r'\x1b\[\d*;\d*r'))),
+    );
   });
 }

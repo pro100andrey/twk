@@ -52,8 +52,7 @@ void main() {
       String body, {
       Multiplexer multiplexer = Multiplexer.none,
     }) => notifySequence(
-      title,
-      body,
+      DesktopNotification(title, body: body),
       protocol: protocol,
       multiplexer: multiplexer,
       id: '7',
@@ -96,10 +95,83 @@ void main() {
         '$title\x1b]99;i=7:p=body:e=1;$lines\x1b\\',
       );
       expect(
-        notifySequence('t', '', protocol: p, id: 'a:b;c=d 1\x1b\\'),
+        notifySequence(
+          const DesktopNotification('t'),
+          protocol: p,
+          id: 'a:b;c=d 1\x1b\\',
+        ),
         '\x1b]99;i=abcd1;t\x1b\\',
         reason: "only kitty's identifier characters",
       );
+    });
+
+    test('OSC 99 carries the rest on its first sequence: the urgency, '
+        'o=unfocused, the app and the icon in base64, a=focus,report', () {
+      String b64(String s) => base64.encode(utf8.encode(s));
+      const full = DesktopNotification(
+        'Build',
+        body: 'done',
+        urgency: NotificationUrgency.critical,
+        appName: 'tm',
+        icon: 'dialog-information',
+      );
+      expect(
+        notifySequence(
+          full,
+          protocol: NotificationProtocol.osc99,
+          id: '7',
+          unfocused: true,
+          report: true,
+        ),
+        '\x1b]99;i=7:d=0:a=focus,report:o=unfocused:u=2:'
+        'f=${b64('tm')}:n=${b64('dialog-information')};Build\x1b\\'
+        '\x1b]99;i=7:p=body;done\x1b\\',
+      );
+      expect(
+        notifySequence(
+          const DesktopNotification(
+            '',
+            body: 'done',
+            urgency: NotificationUrgency.low,
+          ),
+          protocol: NotificationProtocol.osc99,
+          id: '7',
+        ),
+        '\x1b]99;i=7:u=0:p=body;done\x1b\\',
+        reason: 'a body alone carries them',
+      );
+      // the others show the title and the body only
+      expect(
+        notifySequence(full, protocol: NotificationProtocol.osc777),
+        '\x1b]777;notify;Build;done\x1b\\',
+      );
+    });
+
+    test("OSC 9's text that a terminal would take for a ConEmu command "
+        'starts with a space', () {
+      const p = NotificationProtocol.osc9;
+      expect(notify(p, '4;3', 'done'), '\x1b]9; 4;3: done\x1b\\');
+      expect(notify(p, '', '9;x'), '\x1b]9; 9;x\x1b\\');
+      expect(notify(p, 'v4;', ''), '\x1b]9;v4;\x1b\\');
+    });
+
+    test('closed by id with OSC 99 only', () {
+      expect(
+        closeNotificationSequence(
+          'a b',
+          protocol: NotificationProtocol.osc99,
+          multiplexer: Multiplexer.tmux,
+        ),
+        '\x1bPtmux;\x1b\x1b]99;i=ab:p=close;\x1b\x1b\\\x1b\\',
+      );
+      for (final p in [
+        NotificationProtocol.osc777,
+        NotificationProtocol.osc9,
+        NotificationProtocol.bell,
+        NotificationProtocol.none,
+      ]) {
+        expect(closeNotificationSequence('a', protocol: p), '', reason: '$p');
+      }
     });
 
     test('BEL (Terminal.app): the bell alone, through a multiplexer as its '

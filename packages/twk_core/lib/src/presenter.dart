@@ -103,7 +103,11 @@ final class TerminalCaps {
     this.cellPixelHeight = 0,
   });
 
-  /// Wrap frames in DEC mode 2026 (ignored by terminals that lack it).
+  /// Wrap frames in DEC mode 2026 (ignored by terminals that lack it): the
+  /// terminal shows each frame whole. The probe sets it where the terminal
+  /// answers DECRQM for it, or is known to have it without answering
+  /// (Konsole 26.04 on). Without it the presenter writes nothing a
+  /// terminal that shows a frame before it ends would show torn.
   final bool synchronizedOutput;
 
   /// Erase operations (EL, ECH, SU) fill with the current background.
@@ -2696,6 +2700,10 @@ final class Presenter {
     final shiftStyle = konsole ? 0 : eraseStyle;
     final resetCost = konsole ? (plain ? 0 : 3) : (curOk ? 0 : 3);
 
+    // without synchronized output each step is on the screen: a shift may
+    // then move no glyph to a cell the frame doesn't have it in, where it
+    // would show until written over
+    final exact = !caps.synchronizedOutput;
     var bestK = 0;
     // what a shift has to come under: a clear win over rewriting the span
     var bestCost = changed * 4 ~/ 5 + 1;
@@ -2753,7 +2761,7 @@ final class Presenter {
           }
           for (var i = head; i < rowEnd && cost < bestCost; i++) {
             if (_differs(bc, bs, i, fc[i - k], fs[i - k])) {
-              cost++;
+              cost = exact && fc[i - k] != kBlank ? bestCost : cost + 1;
             }
           }
         } else {
@@ -2761,7 +2769,7 @@ final class Presenter {
           final tail = rowEnd - k;
           for (var i = row + a; i < tail && cost < bestCost; i++) {
             if (_differs(bc, bs, i, fc[i + k], fs[i + k])) {
-              cost++;
+              cost = exact && fc[i + k] != kBlank ? bestCost : cost + 1;
             }
           }
           for (var i = tail; i < rowEnd && cost < bestCost; i++) {
@@ -2918,11 +2926,15 @@ final class Presenter {
   /// like it). Not where the rows are not the
   /// screen's whole rows (a fixed viewport short of an edge), an image the
   /// terminal shows is in them (sixel and iTerm2 pixels are not known to
-  /// move with the rows) or a wide glyph is cut at the edges.
+  /// move with the rows) or a wide glyph is cut at the edges; nor where
+  /// frames are not atomic ([TerminalCaps.synchronizedOutput]): the cells
+  /// beside the rectangle show moved with the rows until the frame writes
+  /// them again, which a terminal that draws mid-frame shows torn.
   @pragma('vm:never-inline')
   bool _widens(Surface back, int top, int bottom, int by, int x0, int x1) {
     final w = width;
-    if (bottom - top < 2 ||
+    if (!caps.synchronizedOutput ||
+        bottom - top < 2 ||
         !_wholeRows ||
         _cutsWideGlyph(top, bottom, x0, x1) ||
         (_shown.isNotEmpty && _scrollsImage(top, bottom, 0, w))) {

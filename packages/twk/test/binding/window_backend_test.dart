@@ -21,7 +21,9 @@ final class _App extends StatelessWidget {
   Widget build(BuildContext context) => TerminalTitle(
     title: 'Editor',
     child: KeyBindings({
-      'n': () => AppBinding.of(context).notify('Build', 'done'),
+      'n': () =>
+          AppBinding.of(context)
+              .notify(const DesktopNotification('Build', body: 'done')),
     }, child: const Text('n notifies')),
   );
 }
@@ -58,7 +60,13 @@ final class _Wrapped implements WindowBackend {
   void setTitle(String title) => terminal.setTitle(title);
 
   @override
-  void notify(String title, String body) => terminal.notify(title, body);
+  String? notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  }) => terminal.notify(notification, reportActivation: reportActivation);
+
+  @override
+  void closeNotification(String id) => terminal.closeNotification(id);
 }
 
 void main() {

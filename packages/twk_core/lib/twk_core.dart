@@ -41,7 +41,12 @@ export 'src/input/events.dart';
 export 'src/input/parser.dart' show InputParser;
 export 'src/line_encoder.dart' show LineEncoder;
 export 'src/platform/platform.dart'
-    show LocalAddress, ShellEvent, TerminalShell, stdioIsTerminal;
+    show
+        LocalAddress,
+        ShellEvent,
+        TerminalShell,
+        desktopNotificationsAnswer,
+        stdioIsTerminal;
 export 'src/presenter.dart'
     show CursorShape, PresentStats, Presenter, TerminalCaps, Viewport;
 export 'src/render/render.dart';
@@ -69,14 +74,18 @@ export 'src/terminal/plain.dart' show plainAsked, runsInCi;
 export 'src/terminal/sequences.dart'
     show
         BidiReordering,
+        DesktopNotification,
         MouseTracking,
         Multiplexer,
         NotificationProtocol,
+        NotificationUrgency,
         PointerNames,
         PointerShape,
         ProgressState,
         clipboardSequence,
+        closeNotificationSequence,
         mouseTrackingSequence,
+        notificationWireId,
         notifySequence,
         passthroughSequence,
         pointerShapeSequence,
@@ -86,6 +95,7 @@ export 'src/terminal/sequences.dart'
         titleSequence;
 export 'src/terminal/terminal.dart'
     show
+        CapabilitySource,
         CountingBackend,
         MouseTrackingBackend,
         SuspendableBackend,

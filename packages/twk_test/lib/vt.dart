@@ -42,6 +42,9 @@ import 'package:twk_core/twk_core.dart'
     show ClusterScan, Color, GraphicsProtocol, TextSegmenter;
 
 import 'src/screen_text.dart';
+import 'src/tear_check.dart';
+
+export 'src/tear_check.dart' show TearCheck;
 
 // Examples can assume:
 // import 'dart:convert';
@@ -439,6 +442,37 @@ final class Vt {
   /// Count of wraps/scrolls caused by printing (should stay 0).
   var printWraps = 0;
 
+  /// Called after each step taken outside a synchronized update (DEC
+  /// 2026, [syncDepth] 0): an escape sequence, a carriage return or line
+  /// feed, a run of text. A terminal without synchronized updates may draw
+  /// its screen after any of them; [TearCheck] looks at the screen there.
+  void Function()? onStep;
+
+  /// Called as rows move: the cells of rows `top` to `bottom` (not
+  /// included) between columns `left` and `right` (not included) by `by`
+  /// rows up, down where negative, by SU/SD, IL/DL or a line feed at the
+  /// bottom margin, the rows that come in blank.
+  void Function(int top, int bottom, int left, int right, int by)? onScroll;
+
+  /// Called as ICH or DCH shifts a row's cells: those of row `row` from
+  /// column `from` to the right edge by `by` columns right, left where
+  /// negative, the cells that come in blank.
+  void Function(int row, int from, int by)? onShift;
+
+  void _stepped() {
+    if (syncDepth == 0) {
+      onStep?.call();
+    }
+  }
+
+  void _scrolled(int top, int bottom, int by) => onScroll?.call(
+    top,
+    bottom,
+    _fullWidthMargins ? 0 : leftMargin,
+    _fullWidthMargins ? width : rightMargin + 1,
+    by,
+  );
+
   /// What went wrong, in order: a sequence not taken, a print that
   /// wrapped, a guarded row changed. Empty while the application writes
   /// only what a terminal shows right.
@@ -641,6 +675,7 @@ final class Vt {
       }
       _print(_utf8.convert(text));
       text.clear();
+      _stepped();
     }
 
     final data = <int>[..._pending, ...bytes];
@@ -655,17 +690,20 @@ final class Vt {
           return;
         }
         i = end;
+        _stepped();
       } else if (b == 0x0D) {
         flushText();
         cx = 0;
         pendingWrap = false;
         i++;
+        _stepped();
       } else if (b == 0x0A &&
           (allowLineFeed || (lineFeedOnNormalScreen && !_alternate))) {
         flushText();
         pendingWrap = false;
         _lineFeed();
         i++;
+        _stepped();
       } else if (b < 0x20 || b == 0x7F) {
         flushText();
         _err('raw control byte 0x${b.toRadixString(16)}');
@@ -1573,6 +1611,7 @@ final class Vt {
       _err('ICH inside a wide glyph');
     }
     final n = count.clamp(0, width - cx);
+    onShift?.call(cy, cx, n);
     for (var x = width - 1; x >= cx + n; x--) {
       row[x].copyFrom(row[x - n]);
     }
@@ -1610,6 +1649,7 @@ final class Vt {
     if (cx + n < width && row[cx + n].role == -1) {
       _err('DCH splits a wide glyph');
     }
+    onShift?.call(cy, cx, -n);
     if (konsoleLines) {
       _deleteKonsole(row, n);
       return;
@@ -1656,6 +1696,7 @@ final class Vt {
       _touch(_grid[y]);
     }
     final n = count.clamp(0, bottomMargin - cy + 1);
+    _scrolled(cy, bottomMargin + 1, -n);
     for (var k = 0; k < n; k++) {
       final removed = _grid.removeAt(bottomMargin);
       _recycle(removed);
@@ -1681,6 +1722,7 @@ final class Vt {
       _touch(_grid[y]);
     }
     final n = count.clamp(0, bottomMargin - cy + 1);
+    _scrolled(cy, bottomMargin + 1, n);
     for (var k = 0; k < n; k++) {
       final removed = _grid.removeAt(cy);
       _recycle(removed);
@@ -1804,6 +1846,7 @@ final class Vt {
   }
 
   void _scrollUpRows(int n) {
+    _scrolled(topMargin, bottomMargin + 1, n);
     if (!_fullWidthMargins) {
       _scrollColumns(n);
       return;
@@ -1843,6 +1886,7 @@ final class Vt {
   }
 
   void _scrollDownRows(int n) {
+    _scrolled(topMargin, bottomMargin + 1, -n);
     if (!_fullWidthMargins) {
       _scrollColumns(-n);
       return;

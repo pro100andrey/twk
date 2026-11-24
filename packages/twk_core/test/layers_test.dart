@@ -33,6 +33,7 @@ const _layers = <(String, List<String>)>[
       'screen.dart',
       'style.dart',
       'surface.dart',
+      'terminal/identity.dart',
       'terminal/sequences.dart',
     ],
   ),
