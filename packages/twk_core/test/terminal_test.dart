@@ -151,6 +151,24 @@ void main() {
     }
   });
 
+  test('through tmux none where its pane allows no passthrough, which drops '
+      'what is wrapped; the bell is its own', () {
+    for (final p in [
+      NotificationProtocol.osc9,
+      NotificationProtocol.osc777,
+      NotificationProtocol.osc99,
+    ]) {
+      expect(notificationsThroughTmux(p, 'off'), NotificationProtocol.none);
+      for (final v in ['on', 'all', '', null]) {
+        expect(notificationsThroughTmux(p, v), p, reason: '$p $v');
+      }
+    }
+    expect(
+      notificationsThroughTmux(NotificationProtocol.bell, 'off'),
+      NotificationProtocol.bell,
+    );
+  });
+
   test('notifications inside tmux or screen, by what the terminal outside '
       'set', () {
     const tmux = {

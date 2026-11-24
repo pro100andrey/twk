@@ -44,7 +44,13 @@ was entered, the console is restored before the error propagates):
    `o=unfocused`, where it took that key, and reports a click, `a=report`,
    as `NotificationActivated` where the app asked for it; `Terminal`
    prefixes the id with the process's, so that a click on another app's is
-   dropped and no app replaces another's);
+   dropped and no app replaces another's; inside tmux, for its own
+   terminal, the app asks tmux whether the pane allows passthrough,
+   `#{allow-passthrough}`, and takes notifications for none where it is
+   `off`; where none is shown, the bell is rung while the window has lost
+   the focus); Zellij, which forwards OSC 99 from 0.44.1 and OSC 9 and 777
+   from 0.45, is no multiplexer to the probe: its query goes out to the
+   terminal outside and the answer comes back;
    the width of East Asian Ambiguous characters (U+2500 drawn at the home
    position, then `CSI 6 n`; in the inline mode `CSI 6 n` asks where the
    cursor is instead, on the normal screen before the queries and again

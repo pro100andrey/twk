@@ -157,6 +157,20 @@ void main() {
       await sub.cancel();
     });
 
+    test('where none is known to be shown the bell, only while the window '
+        'has lost the focus, and not for a notification of no text', () async {
+      final (term, link, clock) = await opened({'TERM': 'xterm-256color'});
+      final before = link.text.length;
+      term.notify(const DesktopNotification('Build'));
+      expect(link.text.substring(before), isEmpty);
+      link.type('\x1b[O');
+      await clock.flushMicrotasks();
+      term
+        ..notify(const DesktopNotification('Build'))
+        ..notify(const DesktopNotification(' '));
+      expect(link.text.substring(before), '\x07');
+    });
+
     test('shown only without the focus: o=unfocused where the terminal '
         'takes it, else held back while the window has the focus', () async {
       const note = DesktopNotification('Build', whenUnfocused: true);

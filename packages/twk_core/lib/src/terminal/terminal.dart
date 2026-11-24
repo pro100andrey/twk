@@ -684,6 +684,19 @@ NotificationProtocol notificationProtocolFor(
   return NotificationProtocol.none;
 }
 
+/// How notifications of [protocol] are shown through tmux whose pane's
+/// `allow-passthrough` is [passthrough] (`tmux display -p
+/// '#{allow-passthrough}'`): none where it is `off`, as tmux drops what is
+/// wrapped for the terminal outside it then; as they are where it is `on`
+/// or `all`, or not known (null, or empty: a tmux before 3.3, which always
+/// passed it on). Terminal.app's bell is tmux's own and goes through.
+NotificationProtocol notificationsThroughTmux(
+  NotificationProtocol protocol,
+  String? passthrough,
+) => passthrough == 'off' && protocol != NotificationProtocol.bell
+    ? NotificationProtocol.none
+    : protocol;
+
 /// The multiplexer a program's output goes through, from its environment:
 /// `TMUX` or `STY` in one, a `TERM` of `tmux…` or `screen…` reached from
 /// one (over ssh).
@@ -984,11 +997,15 @@ abstract interface class WindowBackend implements TerminalBackend {
 
 /// What [WindowBackend.notify] writes for [notification] on a terminal of
 /// [info] whose window has the focus where [focused], as [id]: nothing
-/// where nothing is shown, and Terminal.app's bell
+/// while it has the focus for Terminal.app's bell
 /// ([NotificationProtocol.bell]) or a notification shown only without the
-/// focus ([DesktopNotification.whenUnfocused]) while it has it, unless the
-/// terminal holds it back itself (OSC 99's `o=unfocused`, where it named
-/// that key in its answer, or answered none).
+/// focus ([DesktopNotification.whenUnfocused]), unless the terminal holds
+/// that back itself (OSC 99's `o=unfocused`, where it named that key in
+/// its answer, or answered none). Where no notification is known to be
+/// shown ([NotificationProtocol.none]) the bell is rung while the window
+/// doesn't have the focus, which most terminals mark the window or tab by
+/// (Konsole shows a notification of it); never where no focus report
+/// said so, the window then taken to have the focus.
 String notificationFor(
   TerminalInfo info,
   DesktopNotification notification, {
@@ -997,6 +1014,12 @@ String notificationFor(
   bool reportActivation = false,
 }) {
   final protocol = info.notifications;
+  if (protocol == NotificationProtocol.none) {
+    final shows =
+        notification.title.trim().isNotEmpty ||
+        notification.body.trim().isNotEmpty;
+    return focused || !shows ? '' : '\x07';
+  }
   final keys = info.notificationKeys;
   final heldBack =
       protocol == NotificationProtocol.osc99 &&
@@ -1824,16 +1847,35 @@ final class Terminal
     final apple = _isAppleTerminal(told);
     // as declared, else OSC 99 where its query was answered, else by the
     // name the terminal told and its environment
-    final notifications = switch (declared.notifications) {
+    var notifications = switch (declared.notifications) {
       final d? => d,
       _ when notificationKeys != null => NotificationProtocol.osc99,
       _ => notificationProtocolFor(told, version: version),
     };
+    // through tmux what is wrapped for it reaches the terminal only where
+    // the pane allows passthrough: asked of the tmux this process runs in,
+    // for its own terminal (a link's environment is the far end's)
+    if (declared.notifications == null &&
+        multiplexer == Multiplexer.tmux &&
+        isOwnTerminal(link) &&
+        env['TMUX_PANE'] != null &&
+        notificationsThroughTmux(notifications, 'off') != notifications) {
+      notifications = notificationsThroughTmux(
+        notifications,
+        await tmuxFormat(
+          '#{allow-passthrough}',
+          pane: env['TMUX_PANE']!,
+          within: o.probeTimeout,
+        ),
+      );
+    }
     sources['notifications'] = declared.notifications != null
         ? CapabilitySource.declared
         : notificationKeys != null
         ? CapabilitySource.answered
-        : notifications == NotificationProtocol.none
+        : notifications == NotificationProtocol.none &&
+              notificationProtocolFor(told, version: version) ==
+                  NotificationProtocol.none
         ? CapabilitySource.assumed
         : CapabilitySource.environment;
     // asked with DECRQM, which Konsole answers not; inside a multiplexer

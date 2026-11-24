@@ -17,6 +17,16 @@ Breaking:
   process's notification is dropped. OSC 9's text that a terminal would
   take for a ConEmu command (`4;...`) starts with a space.
   `notificationWireId` is the id as OSC 99 carries it.
+- Where no notification is known to be shown (`NotificationProtocol.none`)
+  `notify` rings the bell while the window doesn't have the focus (a focus
+  report said so), which most terminals mark the window or tab by and
+  Konsole shows a notification of; never where no focus report came.
+- Inside tmux the app asks the tmux it runs in whether its pane allows
+  passthrough (`tmux display -p '#{allow-passthrough}'`, its own terminal
+  only): where it is `off`, as by default, tmux drops what is wrapped for
+  the terminal outside, so `TerminalInfo.notifications` is `none` there
+  (and the bell above stands in) rather than notifications lost without a
+  word. `notificationsThroughTmux` is that rule.
 
 - `TwkApp(clock:)` takes a `Clock`, not a `Stopwatch`; `TwkApp.clock` is a
   `Clock`. A frame that waits is started with `clock.timer`, so a clock that

@@ -24,6 +24,39 @@ bool get isWindows => Platform.isWindows;
 /// The process's id.
 int get processId => pid;
 
+/// What the tmux this process runs in says [format] is for the pane of
+/// [pane] (`tmux display-message -p -t <pane> <format>`, `#{option}` an
+/// option's value as the pane has it): null where tmux can't be asked or
+/// doesn't answer within [within], whose process is then killed.
+Future<String?> tmuxFormat(
+  String format, {
+  required String pane,
+  Duration within = const Duration(seconds: 1),
+}) async {
+  final Process tmux;
+  try {
+    tmux = await Process.start('tmux', [
+      'display-message',
+      '-p',
+      '-t',
+      pane,
+      format,
+    ]);
+  } on ProcessException {
+    return null;
+  }
+  unawaited(tmux.stdin.close());
+  final out = tmux.stdout.transform(systemEncoding.decoder).join();
+  unawaited(tmux.stderr.drain<void>());
+  try {
+    final code = await tmux.exitCode.timeout(within);
+    return code == 0 ? (await out).trim() : null;
+  } on TimeoutException {
+    tmux.kill();
+    return null;
+  }
+}
+
 /// The process's own terminal, stdin and stdout; null when either is not
 /// one.
 TerminalLink? ownTerminalLink() =>

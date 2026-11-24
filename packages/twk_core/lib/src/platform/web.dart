@@ -21,6 +21,13 @@ bool get isWindows => false;
 /// 0 on the web.
 int get processId => 0;
 
+/// Null: there is no tmux to ask on the web.
+Future<String?> tmuxFormat(
+  String format, {
+  required String pane,
+  Duration within = const Duration(seconds: 1),
+}) async => null;
+
 /// None on the web.
 TerminalLink? ownTerminalLink() => null;
 
