@@ -451,8 +451,21 @@ final class Vt {
   /// Called as rows move: the cells of rows `top` to `bottom` (not
   /// included) between columns `left` and `right` (not included) by `by`
   /// rows up, down where negative, by SU/SD, IL/DL or a line feed at the
-  /// bottom margin, the rows that come in blank.
-  void Function(int top, int bottom, int left, int right, int by)? onScroll;
+  /// bottom margin, the rows that come in blank; `scrollback` where the
+  /// rows that leave the top go into the [history] (the whole screen
+  /// scrolled up with a [scrollback]), `lines` where IL or DL moved them,
+  /// from the cursor's row down to the bottom margin whatever rows the app
+  /// meant to move.
+  void Function(
+    int top,
+    int bottom,
+    int left,
+    int right,
+    int by, {
+    required bool scrollback,
+    required bool lines,
+  })?
+  onScroll;
 
   /// Called as ICH or DCH shifts a row's cells: those of row `row` from
   /// column `from` to the right edge by `by` columns right, left where
@@ -465,12 +478,20 @@ final class Vt {
     }
   }
 
-  void _scrolled(int top, int bottom, int by) => onScroll?.call(
+  void _scrolled(
+    int top,
+    int bottom,
+    int by, {
+    bool scrollback = false,
+    bool lines = false,
+  }) => onScroll?.call(
     top,
     bottom,
     _fullWidthMargins ? 0 : leftMargin,
     _fullWidthMargins ? width : rightMargin + 1,
     by,
+    scrollback: scrollback,
+    lines: lines,
   );
 
   /// What went wrong, in order: a sequence not taken, a print that
@@ -1696,7 +1717,7 @@ final class Vt {
       _touch(_grid[y]);
     }
     final n = count.clamp(0, bottomMargin - cy + 1);
-    _scrolled(cy, bottomMargin + 1, -n);
+    _scrolled(cy, bottomMargin + 1, -n, lines: true);
     for (var k = 0; k < n; k++) {
       final removed = _grid.removeAt(bottomMargin);
       _recycle(removed);
@@ -1722,7 +1743,7 @@ final class Vt {
       _touch(_grid[y]);
     }
     final n = count.clamp(0, bottomMargin - cy + 1);
-    _scrolled(cy, bottomMargin + 1, n);
+    _scrolled(cy, bottomMargin + 1, n, lines: true);
     for (var k = 0; k < n; k++) {
       final removed = _grid.removeAt(cy);
       _recycle(removed);
@@ -1846,14 +1867,16 @@ final class Vt {
   }
 
   void _scrollUpRows(int n) {
-    _scrolled(topMargin, bottomMargin + 1, n);
+    final top = topMargin;
+    final bottom = bottomMargin;
+    final intoHistory =
+        _fullWidthMargins && scrollback && top == 0 && bottom == height - 1;
+    _scrolled(top, bottom + 1, n, scrollback: intoHistory);
     if (!_fullWidthMargins) {
       _scrollColumns(n);
       return;
     }
-    final top = topMargin;
-    final bottom = bottomMargin;
-    if (scrollback && top == 0 && bottom == height - 1) {
+    if (intoHistory) {
       // the whole screen moves up: every row keeps its content, the top
       // one in the scrollback
       for (var k = 0; k < n; k++) {
