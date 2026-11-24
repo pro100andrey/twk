@@ -68,22 +68,10 @@ const _table = <String, List<Entry>>{
   ],
   'twk_core/lib/src/platform/dbus.dart': [
     Entry(
-      '_authenticate().timeout(within)',
-      Kind.openZone,
-      "the probe's connection to the session bus",
-    ),
-    Entry('.timeout(within);', Kind.openZone, "the probe's Hello to the bus"),
-  ],
-  'twk_core/lib/src/platform/desktop_dbus.dart': [
-    Entry(
-      '.timeout(within);',
-      Kind.openZone,
-      "the probe's AddMatch and GetCapabilities",
-    ),
-    Entry(
-      'Future.wait(_shown.values).timeout(_closeLimit)',
+      'Zone.root.createTimer(limit',
       Kind.real,
-      "close's guard, in the root zone",
+      "dbusWithin: the bus's deadlines, guards in the root zone (opening at "
+          "the first notification, the service's calls, close's wait)",
     ),
   ],
   'twk_core/lib/src/platform/io.dart': [

@@ -176,12 +176,13 @@ void main() {
           answered: true,
           probeMilliseconds: 1,
           notifications: 'dbus',
-          notificationsFrom: 'answered',
+          notificationsFrom: 'environment',
+          desktopServiceAnswers: true,
         ),
       ),
       contains(
-        "notifications   dbus (the desktop's notification service, on "
-        'the session bus)',
+        "notifications   dbus (the desktop's notification service on the "
+        'session bus, which answers)',
       ),
     );
     expect(

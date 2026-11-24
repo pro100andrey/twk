@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 import 'package:twk_core/src/platform/dbus.dart';
 import 'package:twk_core/src/platform/desktop_dbus.dart';
 import 'package:twk_core/src/platform/platform.dart'
-    show openDesktopNotifications;
+    show desktopNotificationsReachable, openDesktopNotifications;
 import 'package:twk_core/twk_core.dart'
     show DesktopNotification, NotificationUrgency;
 import 'package:twk_test/twk_test.dart' show waitFor, waitUntil;
@@ -20,11 +20,23 @@ import 'package:twk_test/twk_test.dart' show waitFor, waitUntil;
 /// A bus with a notification service on it, or without one where not
 /// [service]: what it was asked, each call's member and values.
 final class _Bus {
-  _Bus._(this._server, this.address, {required this.service}) {
+  _Bus._(
+    this._server,
+    this.address, {
+    required this.service,
+    required this.activatable,
+    required this.markup,
+  }) {
     _server.listen(_accept);
   }
 
-  static Future<_Bus> start({bool service = true}) async {
+  /// A bus with a notification service running where [service], one it
+  /// can start where [activatable], that takes markup where [markup].
+  static Future<_Bus> start({
+    bool service = true,
+    bool activatable = false,
+    bool markup = false,
+  }) async {
     final dir = Directory.systemTemp.createTempSync('twk_dbus');
     addTearDown(() => dir.deleteSync(recursive: true));
     final path = '${dir.path}/bus';
@@ -32,7 +44,13 @@ final class _Bus {
       InternetAddress(path, type: InternetAddressType.unix),
       0,
     );
-    final bus = _Bus._(server, 'unix:path=$path', service: service);
+    final bus = _Bus._(
+      server,
+      'unix:path=$path',
+      service: service,
+      activatable: activatable,
+      markup: markup,
+    );
     addTearDown(bus.close);
     return bus;
   }
@@ -40,6 +58,8 @@ final class _Bus {
   final ServerSocket _server;
   final String address;
   final bool service;
+  final bool activatable;
+  final bool markup;
   final calls = <(String, List<Object?>)>[];
 
   /// Whether a notification shown is clicked at once, the signal sent
@@ -113,9 +133,18 @@ final class _Bus {
         _reply(s, m, 's', [':1.7']);
       case 'AddMatch':
         _reply(s, m);
-      case 'GetCapabilities' when service:
+      case 'NameHasOwner':
+        _reply(s, m, 'b', [service]);
+      case 'ListActivatableNames':
         _reply(s, m, 'as', [
-          ['body', 'actions'],
+          [
+            'org.freedesktop.DBus',
+            if (activatable) 'org.freedesktop.Notifications',
+          ],
+        ]);
+      case 'GetCapabilities' when service || activatable:
+        _reply(s, m, 'as', [
+          ['body', 'actions', if (markup) 'body-markup'],
         ]);
       case 'Notify':
         final replaces = m.values[1]! as int;
@@ -291,6 +320,60 @@ void main() {
     expect(clicks, ['a']);
   });
 
+  test('the text cleaned as for a terminal: no control characters, no '
+      'notification of none; the body escaped where the service takes '
+      'markup', () async {
+    for (final markup in [false, true]) {
+      final bus = await _Bus.start(markup: markup);
+      final desktop = (await openDbusNotifications(
+        bus.address,
+        appName: 'tm',
+      ))!;
+      addTearDown(desktop.close);
+      desktop
+        ..notify(const DesktopNotification(' \t'), id: 'x', report: false)
+        ..notify(
+          const DesktopNotification('a\x00b\x1b', body: '1 < 2 & <b>x</b>'),
+          id: 'y',
+          report: false,
+        );
+      await waitUntil(() => bus.notified.isNotEmpty, 'shown');
+      final [shown] = bus.notified;
+      expect(shown[3], 'ab');
+      expect(
+        shown[4],
+        markup ? '1 &lt; 2 &amp; &lt;b&gt;x&lt;/b&gt;' : '1 < 2 & <b>x</b>',
+        reason: 'markup $markup',
+      );
+    }
+  });
+
+  test("a close told of the id's last one but one leaves the last one to "
+      'be closed', () async {
+    final bus = await _Bus.start();
+    final desktop = (await openDbusNotifications(bus.address, appName: 'tm'))!;
+    addTearDown(desktop.close);
+    desktop.notify(const DesktopNotification('a'), id: 'a', report: false);
+    await waitUntil(() => bus.notified.length == 1, 'the first shown');
+    // the first expires as the second is asked for
+    desktop.notify(const DesktopNotification('a2'), id: 'a', report: false);
+    bus.signal('NotificationClosed', 'uu', [1, 1]);
+    await waitUntil(() => bus.notified.length == 2, 'the second shown');
+    desktop.closeNotification('a');
+    await waitUntil(
+      () => bus.calls.any((c) => c.$1 == 'CloseNotification'),
+      'the second closed',
+    );
+  });
+
+  test('a service the bus can start is taken without starting it', () async {
+    final bus = await _Bus.start(service: false, activatable: true);
+    final desktop = await openDbusNotifications(bus.address, appName: 'tm');
+    expect(desktop, isNotNull);
+    expect(bus.calls.map((c) => c.$1), isNot(contains('GetCapabilities')));
+    await desktop!.close();
+  });
+
   test('none without a notification service, nor where the bus is not '
       'there', () async {
     final bus = await _Bus.start(service: false);
@@ -307,6 +390,24 @@ void main() {
       isNull,
       reason: 'only Unix sockets',
     );
+  });
+
+  test('reachable by the environment alone: a Unix session bus, not over '
+      'ssh', () {
+    const bus = 'unix:path=/run/user/1000/bus';
+    expect(
+      desktopNotificationsReachable({'DBUS_SESSION_BUS_ADDRESS': bus}),
+      isTrue,
+    );
+    for (final env in [
+      <String, String>{},
+      {'DBUS_SESSION_BUS_ADDRESS': ''},
+      {'DBUS_SESSION_BUS_ADDRESS': 'tcp:host=localhost,port=1'},
+      {'DBUS_SESSION_BUS_ADDRESS': bus, 'SSH_TTY': '/dev/pts/3'},
+      {'DBUS_SESSION_BUS_ADDRESS': bus, 'SSH_CONNECTION': '1 2 3 4'},
+    ]) {
+      expect(desktopNotificationsReachable(env), isFalse, reason: '$env');
+    }
   });
 
   test("none for a remote session, whose bus is not the user's desktop's, "

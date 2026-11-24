@@ -177,7 +177,15 @@ final class TerminalDeclaration {
 
     bool? flag(Object? value) => value is bool ? value : null;
     return TerminalDeclaration(
-      notifications: named(NotificationProtocol.values, json['notifications']),
+      // the desktop's service is the app's own machine's: no far end
+      // declares it
+      notifications: switch (named(
+        NotificationProtocol.values,
+        json['notifications'],
+      )) {
+        NotificationProtocol.dbus => null,
+        final p => p,
+      },
       progressReports: flag(json['progressReports']),
       pointerShapes: flag(json['pointerShapes']),
       repeatChar: flag(json['repeatChar']),
@@ -191,7 +199,9 @@ final class TerminalDeclaration {
     );
   }
 
-  /// How desktop notifications are shown (`TerminalInfo.notifications`).
+  /// How desktop notifications are shown (`TerminalInfo.notifications`);
+  /// `NotificationProtocol.dbus`, the app's machine's own service, which
+  /// no terminal declares, is taken for undeclared.
   final NotificationProtocol? notifications;
 
   /// Whether a program's progress is shown, OSC 9;4

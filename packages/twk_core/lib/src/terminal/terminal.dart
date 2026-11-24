@@ -205,7 +205,9 @@ final class TerminalInfo {
   /// and its environment ([notificationProtocolFor]); where that is none,
   /// for the process's own terminal on the user's desktop (not over ssh),
   /// the desktop's notification service on the session bus
-  /// ([NotificationProtocol.dbus]) where it answers.
+  /// ([NotificationProtocol.dbus]) where the environment names one: it is
+  /// reached at the first notification, the bell rung where it is not
+  /// there after all.
   final NotificationProtocol notifications;
 
   /// What the terminal answered to the query of OSC 99, kitty's protocol
@@ -217,6 +219,18 @@ final class TerminalInfo {
   /// says `unfocus`, is read as the protocol means it. Empty where it did
   /// not answer: not asked through a multiplexer, which keeps it.
   final Map<String, Set<String>> notificationKeys;
+
+  /// Whether a click on a notification that asks for it is told
+  /// ([NotificationActivated]): the desktop's service tells it
+  /// ([NotificationProtocol.dbus]), and a terminal of OSC 99 that named
+  /// `a=report` in its answer ([notificationKeys]), or answered none.
+  bool get reportsNotificationClicks => switch (notifications) {
+    NotificationProtocol.dbus => true,
+    NotificationProtocol.osc99 =>
+      notificationKeys.isEmpty ||
+          (notificationKeys['a']?.contains('report') ?? false),
+    _ => false,
+  };
 
   /// The multiplexer the program runs in, by its environment
   /// ([multiplexerFor]).
@@ -981,13 +995,16 @@ abstract interface class WindowBackend implements TerminalBackend {
 
   /// Shows [notification] where the terminal is known to show one
   /// ([TerminalInfo.notifications], [notificationFor]); nothing elsewhere,
-  /// and once closed. Returns its id: [DesktopNotification.id] as OSC 99
-  /// carries it ([notificationWireId]), else one of its own. Where
+  /// and once closed. Returns its id, [DesktopNotification.id] as OSC 99
+  /// carries it ([notificationWireId]), else one of its own (`auto-1`,
+  /// `auto-2`, ...); null where nothing was shown (none is, it was held
+  /// back for the focus, it has no text, or only the bell rang). Where
   /// [reportActivation], a click on it comes back as a
-  /// [NotificationActivated] of that id (OSC 99 only); the terminal sends
-  /// it whenever the notification is clicked, after the app ended too,
-  /// so it is asked for only where someone listens.
-  String notify(
+  /// [NotificationActivated] of that id, where the terminal tells clicks
+  /// ([TerminalInfo.reportsNotificationClicks]); the terminal tells one
+  /// whenever the notification is clicked, after the app ended too, so it
+  /// is asked for only where someone listens.
+  String? notify(
     DesktopNotification notification, {
     bool reportActivation = false,
   });
@@ -997,6 +1014,25 @@ abstract interface class WindowBackend implements TerminalBackend {
   /// Konsole's, which leaves it to the desktop); nothing elsewhere.
   void closeNotification(String id);
 }
+
+/// [notification]'s id as [WindowBackend.notify] returns it: its own as
+/// OSC 99 carries it ([notificationWireId]), else, or where nothing of it
+/// is left, `auto-` and the number [next] gives.
+String notificationIdOf(
+  DesktopNotification notification,
+  int Function() next,
+) {
+  final given = notificationWireId(notification.id ?? '');
+  return given.isEmpty ? 'auto-${next()}' : given;
+}
+
+/// Whether [written], what [notificationFor] wrote on a terminal of
+/// [info], shows a notification: a sequence of a protocol that shows one,
+/// not the bell nor nothing.
+bool notificationShown(TerminalInfo info, String written) =>
+    written.isNotEmpty &&
+    info.notifications != NotificationProtocol.bell &&
+    info.notifications != NotificationProtocol.none;
 
 /// What [WindowBackend.notify] writes for [notification] on a terminal of
 /// [info] whose window has the focus where [focused], as [id]: nothing
@@ -1091,17 +1127,11 @@ final class Terminal
     this._input,
     this._signals,
     this._ofProcess,
-    this._probed,
-    this._desktop, [
+    this._probed, [
     this._inputTrace,
     this._outputTrace,
   ]) : _out = _outbox(_link, _outputTrace),
        _bytesRead = _probed.read {
-    _desktopClicks = _desktop?.activated.listen((id) {
-      if (!_closed) {
-        _events.add(NotificationActivated(id));
-      }
-    });
     _parser
       ..pixelMouse = info.pixelMouse
       ..cellPixelWidth = info.caps.cellPixelWidth
@@ -1379,8 +1409,8 @@ final class Terminal
       final settings = ofProcess
           ? TerminalInfo._settingsOf(link.environment)
           : const <String, String>{};
-      final (info, bidiMode, desktop) = plain
-          ? (_plainInfo(options, settings), null, null)
+      final (info, bidiMode) = plain
+          ? (_plainInfo(options, settings), null)
           : await _probe(
               link,
               parser,
@@ -1401,7 +1431,6 @@ final class Terminal
         signals,
         ofProcess,
         probed,
-        desktop,
         inputTrace,
         outputTrace,
       );
@@ -1549,7 +1578,7 @@ final class Terminal
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
   /// null without one.
-  static Future<(TerminalInfo, int?, DesktopNotifications?)> _probe(
+  static Future<(TerminalInfo, int?)> _probe(
     TerminalLink link,
     InputParser parser,
     StreamSubscription<List<int>> input,
@@ -1857,7 +1886,12 @@ final class Terminal
     final apple = _isAppleTerminal(told);
     // as declared, else OSC 99 where its query was answered, else by the
     // name the terminal told and its environment
-    var notifications = switch (declared.notifications) {
+    // a declared dbus is undeclared: the desktop's service is asked below
+    final declaredNotifications = switch (declared.notifications) {
+      NotificationProtocol.dbus => null,
+      final d => d,
+    };
+    var notifications = switch (declaredNotifications) {
       final d? => d,
       _ when notificationKeys != null => NotificationProtocol.osc99,
       _ => notificationProtocolFor(told, version: version),
@@ -1865,7 +1899,7 @@ final class Terminal
     // through tmux what is wrapped for it reaches the terminal only where
     // the pane allows passthrough: asked of the tmux this process runs in,
     // for its own terminal (a link's environment is the far end's)
-    if (declared.notifications == null &&
+    if (declaredNotifications == null &&
         multiplexer == Multiplexer.tmux &&
         isOwnTerminal(link) &&
         env['TMUX_PANE'] != null &&
@@ -1881,19 +1915,18 @@ final class Terminal
     }
     // where the terminal shows none, the desktop's own service, for the
     // process's own terminal on the user's desktop: not over a link, whose
-    // far end's desktop is not this machine's, nor over ssh
-    DesktopNotifications? desktop;
-    if (declared.notifications == null &&
+    // far end's desktop is not this machine's, nor over ssh. By its
+    // environment only: the bus is reached at the first notification, so
+    // an app that shows none pays nothing for it
+    if (declaredNotifications == null &&
         notifications == NotificationProtocol.none &&
-        isOwnTerminal(link)) {
-      desktop = await openDesktopNotifications(env, within: o.probeTimeout);
-      if (desktop != null) {
-        notifications = NotificationProtocol.dbus;
-      }
+        isOwnTerminal(link) &&
+        desktopNotificationsReachable(env)) {
+      notifications = NotificationProtocol.dbus;
     }
-    sources['notifications'] = declared.notifications != null
+    sources['notifications'] = declaredNotifications != null
         ? CapabilitySource.declared
-        : notificationKeys != null || desktop != null
+        : notificationKeys != null
         ? CapabilitySource.answered
         : notifications == NotificationProtocol.none &&
               notificationProtocolFor(told, version: version) ==
@@ -2014,7 +2047,7 @@ final class Terminal
       bidi: o.bidi ?? bidiReorderingFor(told, mode: bidiMode, version: version),
       settings: settings,
     );
-    return (info, bidiMode, desktop);
+    return (info, bidiMode);
   }
 
   /// OSC 4 for the 16 colors a palette color (`Color.blue` and kin) is
@@ -2787,18 +2820,27 @@ final class Terminal
   /// after this process's id, so that one app's notifications replace no
   /// other's, and a click reported for another's is dropped.
   @override
-  String notify(
+  String? notify(
     DesktopNotification notification, {
     bool reportActivation = false,
   }) {
-    final id = notificationWireId(notification.id ?? '${++_notifications}');
     if (_closed) {
-      return id;
+      return null;
     }
-    if (_desktop case final desktop?) {
-      if (!(notification.whenUnfocused && _focused)) {
-        desktop.notify(notification, id: id, report: reportActivation);
+    final id = notificationIdOf(notification, () => ++_notifications);
+    if (info.notifications == NotificationProtocol.dbus) {
+      if ((notification.whenUnfocused && _focused) ||
+          notificationText(notification, lines: true) == null) {
+        return null;
       }
+      _onDesktop((desktop) {
+        if (desktop != null) {
+          desktop.notify(notification, id: id, report: reportActivation);
+        } else if (!_focused) {
+          // no service after all: the bell, as where none is shown
+          _writeUtf8('\x07');
+        }
+      });
       return id;
     }
     final s = notificationFor(
@@ -2811,7 +2853,7 @@ final class Terminal
     if (s.isNotEmpty) {
       _writeUtf8(s);
     }
-    return id;
+    return notificationShown(info, s) ? id : null;
   }
 
   @override
@@ -2819,8 +2861,8 @@ final class Terminal
     if (_closed) {
       return;
     }
-    if (_desktop case final desktop?) {
-      desktop.closeNotification(id);
+    if (info.notifications == NotificationProtocol.dbus) {
+      _onDesktop((desktop) => desktop?.closeNotification(id));
       return;
     }
     final s = closeNotificationSequence(
@@ -2837,12 +2879,34 @@ final class Terminal
   final _notificationPrefix = '$processId.';
 
   /// The desktop's notification service, where notifications are shown by
-  /// it ([NotificationProtocol.dbus]): opened by the probe, closed with
-  /// the terminal.
-  final DesktopNotifications? _desktop;
+  /// it ([NotificationProtocol.dbus]): opened at the first notification
+  /// (its clicks then told as [NotificationActivated]), null where it
+  /// could not be; closed with the terminal.
+  Future<DesktopNotifications?>? _desktop;
 
-  /// The clicks [_desktop] tells, as [NotificationActivated] events.
+  /// The clicks [_desktop] tells.
   StreamSubscription<String>? _desktopClicks;
+
+  /// [then] with the desktop's notification service once it is open, or
+  /// null where it could not be opened; in the order asked, once open.
+  void _onDesktop(void Function(DesktopNotifications? desktop) then) {
+    final opening = _desktop ??= openDesktopNotifications(_link.environment)
+        .then((desktop) {
+          _desktopClicks = desktop?.activated.listen((id) {
+            if (!_closed) {
+              _events.add(NotificationActivated(id));
+            }
+          });
+          return desktop;
+        });
+    unawaited(
+      opening.then((desktop) {
+        if (!_closed) {
+          then(desktop);
+        }
+      }),
+    );
+  }
 
   /// Writes the terminal's own [s], UTF-8 encoded; nothing for plain
   /// output.
@@ -2925,7 +2989,6 @@ final class Terminal
       await s.cancel();
     }
     await _desktopClicks?.cancel();
-    await _desktop?.close();
     try {
       if (!_suspended) {
         // suspended, the modes are off and the screen is another's
@@ -2951,6 +3014,9 @@ final class Terminal
         await _closeTraces(_inputTrace, _outputTrace);
       } finally {
         await _link.close();
+        // the terminal is back as it was: the desktop's service may take
+        // its second for what was asked of it
+        await (await _desktop)?.close();
       }
     }
   }

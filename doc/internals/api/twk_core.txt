@@ -295,6 +295,7 @@ twk_core.dart function describeInsets
 twk_core.dart function describePen
 twk_core.dart function describeText
 twk_core.dart function describeValue
+twk_core.dart function desktopNotificationsAnswer
 twk_core.dart function fitText
 twk_core.dart function graphemeBoundaries
 twk_core.dart function mayReorder

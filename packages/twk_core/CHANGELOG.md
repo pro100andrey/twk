@@ -16,7 +16,12 @@ Breaking:
   which comes as `NotificationActivated` of the app's id; one on another
   process's notification is dropped. OSC 9's text that a terminal would
   take for a ConEmu command (`4;...`) starts with a space.
-  `notificationWireId` is the id as OSC 99 carries it.
+  `notificationWireId` is the id as OSC 99 carries it. `notify` returns
+  null where nothing was shown (held back for the focus, no text, only the
+  bell); twk's own ids are `auto-1`, `auto-2`, ..., apart from the app's,
+  and one of the app's of which nothing is left is one of twk's.
+  `TerminalInfo.reportsNotificationClicks` says whether a click is told.
+  A `TerminalDeclaration` of `dbus` is taken for none declared.
 - Desktop notifications through the desktop's own notification service,
   `org.freedesktop.Notifications` on the D-Bus session bus
   (`NotificationProtocol.dbus`), where the terminal shows none of its own
@@ -27,7 +32,13 @@ Breaking:
   body, urgency, app name (the program's, where it names none), icon,
   replacement by id, `closeNotification`, and a click (its `default`
   action) as `NotificationActivated`; `whenUnfocused` held back while the
-  window has the focus. The core speaks D-Bus itself, a client of a few
+  window has the focus. The probe sets it by the environment only (a Unix
+  session bus, no `SSH_*`); the bus is reached at the first notification,
+  so an app that shows none pays nothing for it, and where no service
+  answers the bell rings instead. The text is cleaned as for a terminal,
+  and the body escaped where the service takes markup (`body-markup`);
+  every wait on the bus is a guard on real time, bounded.
+  `desktopNotificationsAnswer` asks the service, as `twk doctor` does. The core speaks D-Bus itself, a client of a few
   hundred lines in its platform layer (EXTERNAL authentication, method
   calls, signals, the wire format of the types they carry): no new
   dependency.

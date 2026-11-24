@@ -782,21 +782,24 @@ final class AppBinding implements FrameClock {
   /// passes it on). Returns its id, which [closeNotification] takes; null
   /// on a backend that is no [WindowBackend], where nothing is shown.
   ///
-  /// [onActivated] runs when the notification is clicked, where the
-  /// terminal reports that (OSC 99: kitty, Konsole 24.12 on, foot 1.18
-  /// on), once; it is kept for the [maxActivationWaits] notifications
-  /// shown last. Without it no click is reported: the terminal would also
-  /// report one after the app ended, into the shell.
+  /// [onActivated] runs when the notification is clicked, where that is
+  /// told (`TerminalInfo.reportsNotificationClicks`: OSC 99 of kitty,
+  /// Konsole 24.12 on, foot 1.18 on, and the desktop's service over
+  /// D-Bus), once; it is kept for the [maxActivationWaits] notifications
+  /// shown last, and only for one that was shown. Without it no click is
+  /// asked for: a terminal would also tell one after the app ended, into
+  /// the shell.
   String? notify(
     DesktopNotification notification, {
     VoidCallback? onActivated,
   }) {
     if (twkApp.terminal case final WindowBackend terminal) {
+      final reports = terminal.info.reportsNotificationClicks;
       final id = terminal.notify(
         notification,
-        reportActivation: onActivated != null,
+        reportActivation: onActivated != null && reports,
       );
-      if (onActivated != null) {
+      if (id != null && onActivated != null && reports) {
         _activations
           ..remove(id)
           ..[id] = onActivated;

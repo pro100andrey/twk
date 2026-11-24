@@ -4,7 +4,8 @@
 
 Breaking:
 
-- `VtTerminal.notify` takes a `DesktopNotification` and returns its id, and
+- `VtTerminal.notify` takes a `DesktopNotification` and returns null (it
+  shows none), and
   `VtTerminal.closeNotification` does nothing, as `WindowBackend` now asks.
 
 - `testTwk(trackDisposables:)` is on by default, as Flutter's leak tracker is:

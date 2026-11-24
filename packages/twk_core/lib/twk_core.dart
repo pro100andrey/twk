@@ -41,7 +41,12 @@ export 'src/input/events.dart';
 export 'src/input/parser.dart' show InputParser;
 export 'src/line_encoder.dart' show LineEncoder;
 export 'src/platform/platform.dart'
-    show LocalAddress, ShellEvent, TerminalShell, stdioIsTerminal;
+    show
+        LocalAddress,
+        ShellEvent,
+        TerminalShell,
+        desktopNotificationsAnswer,
+        stdioIsTerminal;
 export 'src/presenter.dart'
     show CursorShape, PresentStats, Presenter, TerminalCaps, Viewport;
 export 'src/render/render.dart';

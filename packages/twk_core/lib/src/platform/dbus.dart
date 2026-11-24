@@ -75,8 +75,8 @@ final class DbusConnection {
   /// A connection to the bus at [address] (`unix:path=...`, or
   /// `unix:abstract=...`; the first of several, `;` between them, that is
   /// one of these), authenticated as this process's user and introduced
-  /// to the bus (`Hello`); null where none of them can be reached within
-  /// [within].
+  /// to the bus (`Hello`); null where that is not done within [within],
+  /// all of it.
   static Future<DbusConnection?> connect(
     String address, {
     Duration within = const Duration(seconds: 1),
@@ -87,21 +87,19 @@ final class DbusConnection {
     }
     Socket? s;
     try {
-      s = await Socket.connect(
-        socket,
-        0,
-        timeout: within,
-      );
+      s = await Socket.connect(socket, 0, timeout: within);
       final connection = DbusConnection._(s);
-      await connection._authenticate().timeout(within);
-      await connection
-          .call(
+      await dbusWithin(
+        connection._authenticate().then(
+          (_) => connection.call(
             destination: 'org.freedesktop.DBus',
             path: '/org/freedesktop/DBus',
             interface: 'org.freedesktop.DBus',
             member: 'Hello',
-          )
-          .timeout(within);
+          ),
+        ),
+        within,
+      );
       return connection;
     } on Object {
       s?.destroy();
@@ -631,4 +629,35 @@ final class _Reader {
     }
     throw FormatException('type $type not read');
   }
+}
+
+/// What [future] completes with, or a [TimeoutException] after [limit] of
+/// real time: a guard, not a time of the app's, so its timer is the root
+/// zone's. Only the timer: [future] is listened to in the zone it was made
+/// in, as an error does not leave its error zone (a `timeout` made in the
+/// root zone would leave one of the app's unhandled in the app's zone).
+Future<T> dbusWithin<T>(Future<T> future, Duration limit) {
+  final done = Completer<T>();
+  final timer = Zone.root.createTimer(limit, () {
+    if (!done.isCompleted) {
+      done.completeError(TimeoutException('no answer', limit));
+    }
+  });
+  unawaited(
+    future.then(
+      (v) {
+        timer.cancel();
+        if (!done.isCompleted) {
+          done.complete(v);
+        }
+      },
+      onError: (Object e, StackTrace st) {
+        timer.cancel();
+        if (!done.isCompleted) {
+          done.completeError(e, st);
+        }
+      },
+    ),
+  );
+  return done.future;
 }

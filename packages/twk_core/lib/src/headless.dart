@@ -325,20 +325,21 @@ final class HeadlessTerminal
   /// Writes [notification] to [frames] as a [Terminal] does
   /// ([Terminal.notify], [notificationFor]), in
   /// [TerminalInfo.notifications] through [TerminalInfo.multiplexer], each
-  /// without an id of its own under one of its own, `1` first, and no
-  /// process's id before it; held back while the focus report typed last
-  /// said the window has the focus where [Terminal.notify] holds it back;
+  /// without an id of its own under one of its own, `auto-1` first, and no
+  /// process's id before it, the id returned where it was shown; held back
+  /// while the focus report typed last said the window has the focus where
+  /// [Terminal.notify] holds it back;
   /// nothing once closed. A click typed (`OSC 99 ; i=id ; ST`) comes as a
   /// [NotificationActivated] of that id.
   @override
-  String notify(
+  String? notify(
     DesktopNotification notification, {
     bool reportActivation = false,
   }) {
-    final id = notificationWireId(notification.id ?? '${++_notifications}');
     if (closed) {
-      return id;
+      return null;
     }
+    final id = notificationIdOf(notification, () => ++_notifications);
     final s = notificationFor(
       info,
       notification,
@@ -349,7 +350,7 @@ final class HeadlessTerminal
     if (s.isNotEmpty) {
       _emit(utf8.encode(s));
     }
-    return id;
+    return notificationShown(info, s) ? id : null;
   }
 
   /// Writes OSC 99's `p=close` for [id] to [frames] as a [Terminal] does

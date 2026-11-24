@@ -111,7 +111,7 @@ final class Typing
   void setTitle(String title) => terminal.setTitle(title);
 
   @override
-  String notify(
+  String? notify(
     DesktopNotification notification, {
     bool reportActivation = false,
   }) => terminal.notify(notification, reportActivation: reportActivation);

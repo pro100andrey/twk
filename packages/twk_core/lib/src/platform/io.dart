@@ -27,6 +27,28 @@ bool get isWindows => Platform.isWindows;
 /// The process's id.
 int get processId => pid;
 
+/// Whether, by [env] alone, the desktop's notification service may be
+/// reached ([openDesktopNotifications]): a session bus of a Unix socket
+/// (`DBUS_SESSION_BUS_ADDRESS`), not on Windows, and not a remote session
+/// (`SSH_CONNECTION`, `SSH_TTY`), whose bus is the machine's it runs on.
+bool desktopNotificationsReachable(Map<String, String> env) {
+  final address = env['DBUS_SESSION_BUS_ADDRESS'] ?? '';
+  return address.contains('unix:') &&
+      !env.containsKey('SSH_CONNECTION') &&
+      !env.containsKey('SSH_TTY') &&
+      !Platform.isWindows;
+}
+
+/// Whether the desktop's notification service of [env]'s session bus
+/// answers ([openDesktopNotifications]), the connection let go at once:
+/// what `twk doctor` asks, where a `Terminal` asks at its first
+/// notification.
+Future<bool> desktopNotificationsAnswer(Map<String, String> env) async {
+  final desktop = await openDesktopNotifications(env);
+  await desktop?.close();
+  return desktop != null;
+}
+
 /// The desktop's notification service on the session bus of [env]
 /// (`DBUS_SESSION_BUS_ADDRESS`), null where there is none to reach within
 /// [within], or the session is a remote one (`SSH_CONNECTION`,
@@ -36,13 +58,10 @@ Future<DesktopNotifications?> openDesktopNotifications(
   Map<String, String> env, {
   Duration within = const Duration(seconds: 1),
 }) async {
-  final address = env['DBUS_SESSION_BUS_ADDRESS'] ?? '';
-  if (address.isEmpty ||
-      env.containsKey('SSH_CONNECTION') ||
-      env.containsKey('SSH_TTY') ||
-      Platform.isWindows) {
+  if (!desktopNotificationsReachable(env)) {
     return null;
   }
+  final address = env['DBUS_SESSION_BUS_ADDRESS']!;
   final script = Platform.script.pathSegments;
   final name = script.isEmpty ? '' : script.last.split('.').first;
   return openDbusNotifications(address, appName: name, within: within);

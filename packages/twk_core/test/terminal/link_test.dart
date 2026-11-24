@@ -756,4 +756,12 @@ void main() {
       expect(traced, isTrue);
     });
   }, testOn: 'linux || mac-os');
+
+  test("a declaration of the desktop's service over D-Bus is none: no far "
+      "end declares the app's machine's own", () {
+    expect(
+      TerminalDeclaration.fromJson(const {'notifications': 'dbus'}),
+      const TerminalDeclaration(),
+    );
+  });
 }

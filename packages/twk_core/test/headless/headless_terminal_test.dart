@@ -187,10 +187,10 @@ void main() {
       ..notify(const DesktopNotification('Build', body: 'failed'));
     expect(
       sent(kitty),
-      '\x1bPtmux;\x1b\x1b]99;i=1:d=0;Build\x1b\x1b\\'
-      '\x1b\x1b]99;i=1:p=body;done\x1b\x1b\\\x1b\\'
-      '\x1bPtmux;\x1b\x1b]99;i=2:d=0;Build\x1b\x1b\\'
-      '\x1b\x1b]99;i=2:p=body;failed\x1b\x1b\\\x1b\\',
+      '\x1bPtmux;\x1b\x1b]99;i=auto-1:d=0;Build\x1b\x1b\\'
+      '\x1b\x1b]99;i=auto-1:p=body;done\x1b\x1b\\\x1b\\'
+      '\x1bPtmux;\x1b\x1b]99;i=auto-2:d=0;Build\x1b\x1b\\'
+      '\x1b\x1b]99;i=auto-2:p=body;failed\x1b\x1b\\\x1b\\',
     );
 
     final foot = HeadlessTerminal(notifications: NotificationProtocol.osc777)

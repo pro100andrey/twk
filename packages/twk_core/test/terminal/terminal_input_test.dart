@@ -240,9 +240,9 @@ void main() {
         ..notify(const DesktopNotification('Tests'));
       expect(
         link.text.substring(opened),
-        '\x1b]99;i=$pid.1:d=0;Build\x1b\\'
-        '\x1b]99;i=$pid.1:p=body;done\x1b\\'
-        '\x1b]99;i=$pid.2;Tests\x1b\\',
+        '\x1b]99;i=$pid.auto-1:d=0;Build\x1b\\'
+        '\x1b]99;i=$pid.auto-1:p=body;done\x1b\\'
+        '\x1b]99;i=$pid.auto-2;Tests\x1b\\',
       );
     });
 

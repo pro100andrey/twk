@@ -260,14 +260,15 @@ String notifySequence(
   bool unfocused = false,
   bool report = false,
 }) {
-  var t = _cut(_plain(notification.title, lines: false), 256);
-  var b = _cut(
-    _plain(notification.body, lines: protocol == NotificationProtocol.osc99),
-    1024,
+  final text = notificationText(
+    notification,
+    lines: protocol == NotificationProtocol.osc99,
   );
-  if (t.isEmpty && b.isEmpty) {
+  if (text == null) {
     return '';
   }
+  var t = text.title;
+  var b = text.body;
   final String s;
   switch (protocol) {
     case NotificationProtocol.none || NotificationProtocol.dbus:
@@ -295,10 +296,8 @@ String notifySequence(
         if (unfocused) 'o=unfocused',
         if (n.urgency != NotificationUrgency.normal)
           'u=${n.urgency == NotificationUrgency.low ? 0 : 2}',
-        if (_plain(n.appName, lines: false) case final f when f.isNotEmpty)
-          'f=${b64(f)}',
-        if (_plain(n.icon, lines: false) case final i when i.isNotEmpty)
-          'n=${b64(i)}',
+        if (text.appName case final f when f.isNotEmpty) 'f=${b64(f)}',
+        if (text.icon case final i when i.isNotEmpty) 'n=${b64(i)}',
       ].join(':');
       final i = 'i=${notificationWireId(id)}';
       final sb = StringBuffer();
@@ -316,6 +315,29 @@ String notifySequence(
       s = sb.toString();
   }
   return passthroughSequence(s, multiplexer);
+}
+
+/// [notification]'s title and body as they are shown, null where both
+/// are blank: control characters and the blanks around each removed, a
+/// line break in the body kept where [lines] and a space elsewhere, as a
+/// tab is; the title cut to 256 bytes of UTF-8 and the body to 1024,
+/// between graphemes, ending with `…`. Its app name and icon the same,
+/// on one line and cut to 256 bytes.
+({String title, String body, String appName, String icon})? notificationText(
+  DesktopNotification notification, {
+  required bool lines,
+}) {
+  final title = _cut(_plain(notification.title, lines: false), 256);
+  final body = _cut(_plain(notification.body, lines: lines), 1024);
+  if (title.isEmpty && body.isEmpty) {
+    return null;
+  }
+  return (
+    title: title,
+    body: body,
+    appName: _cut(_plain(notification.appName, lines: false), 256),
+    icon: _cut(_plain(notification.icon, lines: false), 256),
+  );
 }
 
 /// The text of OSC 9 a terminal would take for a ConEmu command: a number

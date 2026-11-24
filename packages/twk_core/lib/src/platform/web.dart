@@ -24,6 +24,12 @@ bool get isWindows => false;
 /// 0 on the web.
 int get processId => 0;
 
+/// False: there is no desktop's notification service on the web.
+bool desktopNotificationsReachable(Map<String, String> env) => false;
+
+/// False: there is no desktop's notification service on the web.
+Future<bool> desktopNotificationsAnswer(Map<String, String> env) async => false;
+
 /// Null: there is no desktop's notification service on the web.
 Future<DesktopNotifications?> openDesktopNotifications(
   Map<String, String> env, {

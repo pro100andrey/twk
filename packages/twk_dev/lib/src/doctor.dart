@@ -304,8 +304,12 @@ String _notificationsFrom(TerminalReport t) {
       '$key=${value.join(',')}',
   ];
   return switch (t.notificationsFrom) {
-    'answered' when t.notifications == 'dbus' =>
-      " (the desktop's notification service, on the session bus)",
+    'environment' when t.notifications == 'dbus' =>
+      t.desktopServiceAnswers
+          ? " (the desktop's notification service on the session bus, "
+                'which answers)'
+          : " (the desktop's notification service on the session bus, "
+                'which does not answer: the bell rings instead)',
     'answered' => ' (answered: ${keys.join(' ')})',
     'environment' => ' (by its name and environment)',
     'declared' => ' (declared by the terminal)',
@@ -333,6 +337,7 @@ final class TerminalReport {
     this.notifications = 'none',
     this.notificationsFrom = 'assumed',
     this.notificationKeys = const {},
+    this.desktopServiceAnswers = false,
   });
 
   /// XTVERSION, empty where not told.
@@ -389,6 +394,11 @@ final class TerminalReport {
   /// (`TerminalInfo.notificationKeys`), each key with its values.
   final Map<String, List<String>> notificationKeys;
 
+  /// Where [notifications] is `dbus`, whether the desktop's notification
+  /// service on the session bus answers (`desktopNotificationsAnswer`),
+  /// which a `Terminal` asks only at its first notification.
+  final bool desktopServiceAnswers;
+
   /// As JSON.
   Map<String, Object?> toJson() => {
     'version': version,
@@ -407,6 +417,7 @@ final class TerminalReport {
     'notifications': notifications,
     'notificationsFrom': notificationsFrom,
     'notificationKeys': notificationKeys,
+    'desktopServiceAnswers': desktopServiceAnswers,
   };
 }
 
@@ -438,6 +449,9 @@ Future<TerminalReport> _probe(CliTerminal terminal) async {
         for (final MapEntry(:key, :value) in info.notificationKeys.entries)
           key: value.toList(),
       },
+      desktopServiceAnswers:
+          info.notifications == NotificationProtocol.dbus &&
+          await desktopNotificationsAnswer(Platform.environment),
     );
   } finally {
     await backend.close();

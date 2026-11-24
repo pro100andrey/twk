@@ -39,7 +39,7 @@ void main() {
         'TMUX': '/tmp/tmux-1000/default,4242,0',
         'KITTY_WINDOW_ID': '1',
       });
-      final id = RegExp(r'\]99;i=(\d+\.1):').firstMatch(s)?[1];
+      final id = RegExp(r'\]99;i=(\d+\.auto-1):').firstMatch(s)?[1];
       expect(id, isNotNull, reason: s);
       expect(
         s,
@@ -117,7 +117,7 @@ void main() {
       final (term, link, _) = await opened({'TERM': 'xterm-kitty'});
       final before = link.text.length;
       expect(term.notify(const DesktopNotification('a', id: 'build')), 'build');
-      expect(term.notify(const DesktopNotification('b')), '1');
+      expect(term.notify(const DesktopNotification('b')), 'auto-1');
       expect(
         term.notify(const DesktopNotification('c', id: 'x:y z')),
         'xyz',
@@ -127,10 +127,34 @@ void main() {
       expect(
         link.text.substring(before),
         '\x1b]99;i=$pid.build;a\x1b\\'
-        '\x1b]99;i=$pid.1;b\x1b\\'
+        '\x1b]99;i=$pid.auto-1;b\x1b\\'
         '\x1b]99;i=$pid.xyz;c\x1b\\'
         '\x1b]99;i=$pid.build:p=close;\x1b\\',
       );
+    });
+
+    test("the app's ids and twk's own apart: twk's are auto-1, auto-2...; "
+        'an id of which nothing is left is one of its own', () async {
+      final (term, _, _) = await opened({'TERM': 'xterm-kitty'});
+      expect(term.notify(const DesktopNotification('a', id: '1')), '1');
+      expect(term.notify(const DesktopNotification('b')), 'auto-1');
+      expect(term.notify(const DesktopNotification('c', id: 'ü')), 'auto-2');
+    });
+
+    test('null where nothing was shown: held back for the focus, no text, '
+        'the bell only', () async {
+      final (kitty, _, _) = await opened({'TERM': 'xterm-kitty'});
+      expect(kitty.notify(const DesktopNotification(' ')), isNull);
+      final (foot, _, _) = await opened({'TERM': 'foot'});
+      expect(
+        foot.notify(const DesktopNotification('a', whenUnfocused: true)),
+        isNull,
+      );
+      final (none, link, clock) = await opened({'TERM': 'xterm-256color'});
+      link.type('\x1b[O');
+      await clock.flushMicrotasks();
+      expect(none.notify(const DesktopNotification('a')), isNull);
+      expect(link.text, endsWith('\x07'));
     });
 
     test("a click asked for comes back under the app's id; one on "

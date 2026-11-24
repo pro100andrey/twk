@@ -72,6 +72,21 @@ void main() {
     expect(t.written(), endsWith('\x1b]99;i=build:p=close;\x1b\\'));
   });
 
+  testTwk('no onActivated kept for one not shown, nor where clicks are not '
+      'told', (t) async {
+    await t.pumpWidget(
+      const _Clicked(),
+      size: (20, 2),
+      notifications: NotificationProtocol.osc777,
+    );
+    await t.press('n');
+    await t.pump();
+    expect(t.written(), isNot(contains('report')));
+    t.terminal.type('\x1b]99;i=build;\x1b\\');
+    await t.pump();
+    expect(t, matchesScreen('clicks 0\n'));
+  });
+
   testTwk('no click asked for where nobody listens', (t) async {
     await t.pumpWidget(
       const _Build(),
@@ -129,7 +144,7 @@ void main() {
     await t.press('n');
     await t.pump();
     final s = t.written();
-    for (final id in ['1', '2']) {
+    for (final id in ['auto-1', 'auto-2']) {
       expect(
         s,
         contains(
