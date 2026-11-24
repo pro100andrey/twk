@@ -9,10 +9,13 @@ import 'dart:typed_data';
 import '../terminal/link.dart';
 import '../terminal/plain.dart';
 import '../terminal/stdio_link.dart';
+import 'desktop.dart';
+import 'desktop_dbus.dart';
 import 'libc.dart' as c;
 
 export '../terminal/address.dart' show LocalAddress;
 export '../terminal/socket.dart' show ShellEvent, SocketLink, TerminalShell;
+export 'desktop.dart' show DesktopNotifications;
 export 'log_server.dart' show LogServer;
 
 /// The process's environment.
@@ -23,6 +26,27 @@ bool get isWindows => Platform.isWindows;
 
 /// The process's id.
 int get processId => pid;
+
+/// The desktop's notification service on the session bus of [env]
+/// (`DBUS_SESSION_BUS_ADDRESS`), null where there is none to reach within
+/// [within], or the session is a remote one (`SSH_CONNECTION`,
+/// `SSH_TTY`), whose bus is the machine's it runs on, not the user's.
+/// A notification that names no app is named by the program's file name.
+Future<DesktopNotifications?> openDesktopNotifications(
+  Map<String, String> env, {
+  Duration within = const Duration(seconds: 1),
+}) async {
+  final address = env['DBUS_SESSION_BUS_ADDRESS'] ?? '';
+  if (address.isEmpty ||
+      env.containsKey('SSH_CONNECTION') ||
+      env.containsKey('SSH_TTY') ||
+      Platform.isWindows) {
+    return null;
+  }
+  final script = Platform.script.pathSegments;
+  final name = script.isEmpty ? '' : script.last.split('.').first;
+  return openDbusNotifications(address, appName: name, within: within);
+}
 
 /// What the tmux this process runs in says [format] is for the pane of
 /// [pane] (`tmux display-message -p -t <pane> <format>`, `#{option}` an

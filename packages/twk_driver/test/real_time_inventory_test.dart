@@ -66,6 +66,26 @@ const _table = <String, List<Entry>>{
     ),
     Entry('_statsClock = Stopwatch()', Kind.measure, 'frame cost'),
   ],
+  'twk_core/lib/src/platform/dbus.dart': [
+    Entry(
+      '_authenticate().timeout(within)',
+      Kind.openZone,
+      "the probe's connection to the session bus",
+    ),
+    Entry('.timeout(within);', Kind.openZone, "the probe's Hello to the bus"),
+  ],
+  'twk_core/lib/src/platform/desktop_dbus.dart': [
+    Entry(
+      '.timeout(within);',
+      Kind.openZone,
+      "the probe's AddMatch and GetCapabilities",
+    ),
+    Entry(
+      'Future.wait(_shown.values).timeout(_closeLimit)',
+      Kind.real,
+      "close's guard, in the root zone",
+    ),
+  ],
   'twk_core/lib/src/platform/io.dart': [
     Entry(
       'tmux.exitCode.timeout(within)',

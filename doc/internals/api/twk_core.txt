@@ -11,6 +11,7 @@ libc.dart function calloc
 libc.dart function close
 libc.dart function free
 libc.dart function getppid
+libc.dart function getuid
 libc.dart function ioctl
 libc.dart function isatty
 libc.dart function open

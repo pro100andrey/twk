@@ -516,6 +516,8 @@ one cannot slip in unclassified.
 |---|---|---|---|
 | `terminal.dart:1424`, :1843, :1858, :1872 | probe timeout, late probe, paste, escape | the zone `Terminal.open` ran in | real: the terminal opens before the zone exists |
 | `io.dart` (`tmuxFormat`) | the probe's question to tmux, whether its pane allows passthrough | the zone `Terminal.open` ran in | real: as the probe timeout |
+| `dbus.dart`, `desktop_dbus.dart` (`openDesktopNotifications`) | the probe's connection to the session bus and its notification service | the zone `Terminal.open` ran in | real: as the probe timeout |
+| `desktop_dbus.dart` (`close`) | close's wait for the notifications asked for | the root zone | real: a guard, as close's own |
 | `terminal.dart:2067`, :2075 | resume's cursor timeout, late cursor | the app's zone (resume) | **driven: move to the terminal's captured zone** |
 | `terminal.dart:2202`, :2208 | close's flush guards | the zone `TwkApp.run` awaits close in | **driven: same fix**. Unfixed, exit hangs on a terminal that stops reading |
 | `terminal.dart:1730` | terminal state refresh, 10 s periodic | the app's zone | driven, on purpose: the app's own refresh, and the app is not quiet while it runs |

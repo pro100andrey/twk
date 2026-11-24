@@ -202,7 +202,10 @@ final class TerminalInfo {
   /// it answers that protocol's query ([notificationKeys]), else
   /// Terminal.app's bell where it answers the secondary device attributes
   /// as Terminal.app (`1;95;0`, over ssh too), else by the name it tells
-  /// and its environment ([notificationProtocolFor]).
+  /// and its environment ([notificationProtocolFor]); where that is none,
+  /// for the process's own terminal on the user's desktop (not over ssh),
+  /// the desktop's notification service on the session bus
+  /// ([NotificationProtocol.dbus]) where it answers.
   final NotificationProtocol notifications;
 
   /// What the terminal answered to the query of OSC 99, kitty's protocol
@@ -1088,11 +1091,17 @@ final class Terminal
     this._input,
     this._signals,
     this._ofProcess,
-    this._probed, [
+    this._probed,
+    this._desktop, [
     this._inputTrace,
     this._outputTrace,
   ]) : _out = _outbox(_link, _outputTrace),
        _bytesRead = _probed.read {
+    _desktopClicks = _desktop?.activated.listen((id) {
+      if (!_closed) {
+        _events.add(NotificationActivated(id));
+      }
+    });
     _parser
       ..pixelMouse = info.pixelMouse
       ..cellPixelWidth = info.caps.cellPixelWidth
@@ -1370,8 +1379,8 @@ final class Terminal
       final settings = ofProcess
           ? TerminalInfo._settingsOf(link.environment)
           : const <String, String>{};
-      final (info, bidiMode) = plain
-          ? (_plainInfo(options, settings), null)
+      final (info, bidiMode, desktop) = plain
+          ? (_plainInfo(options, settings), null, null)
           : await _probe(
               link,
               parser,
@@ -1392,6 +1401,7 @@ final class Terminal
         signals,
         ofProcess,
         probed,
+        desktop,
         inputTrace,
         outputTrace,
       );
@@ -1539,7 +1549,7 @@ final class Terminal
   /// Queries the terminal; what the user types meanwhile goes to [early].
   /// Returns what it found and its answer about BDSM ([bidiModeQuery]),
   /// null without one.
-  static Future<(TerminalInfo, int?)> _probe(
+  static Future<(TerminalInfo, int?, DesktopNotifications?)> _probe(
     TerminalLink link,
     InputParser parser,
     StreamSubscription<List<int>> input,
@@ -1869,9 +1879,21 @@ final class Terminal
         ),
       );
     }
+    // where the terminal shows none, the desktop's own service, for the
+    // process's own terminal on the user's desktop: not over a link, whose
+    // far end's desktop is not this machine's, nor over ssh
+    DesktopNotifications? desktop;
+    if (declared.notifications == null &&
+        notifications == NotificationProtocol.none &&
+        isOwnTerminal(link)) {
+      desktop = await openDesktopNotifications(env, within: o.probeTimeout);
+      if (desktop != null) {
+        notifications = NotificationProtocol.dbus;
+      }
+    }
     sources['notifications'] = declared.notifications != null
         ? CapabilitySource.declared
-        : notificationKeys != null
+        : notificationKeys != null || desktop != null
         ? CapabilitySource.answered
         : notifications == NotificationProtocol.none &&
               notificationProtocolFor(told, version: version) ==
@@ -1992,7 +2014,7 @@ final class Terminal
       bidi: o.bidi ?? bidiReorderingFor(told, mode: bidiMode, version: version),
       settings: settings,
     );
-    return (info, bidiMode);
+    return (info, bidiMode, desktop);
   }
 
   /// OSC 4 for the 16 colors a palette color (`Color.blue` and kin) is
@@ -2773,6 +2795,12 @@ final class Terminal
     if (_closed) {
       return id;
     }
+    if (_desktop case final desktop?) {
+      if (!(notification.whenUnfocused && _focused)) {
+        desktop.notify(notification, id: id, report: reportActivation);
+      }
+      return id;
+    }
     final s = notificationFor(
       info,
       notification,
@@ -2791,6 +2819,10 @@ final class Terminal
     if (_closed) {
       return;
     }
+    if (_desktop case final desktop?) {
+      desktop.closeNotification(id);
+      return;
+    }
     final s = closeNotificationSequence(
       '$_notificationPrefix$id',
       protocol: info.notifications,
@@ -2803,6 +2835,14 @@ final class Terminal
 
   /// What the ids of this process's notifications start with on the wire.
   final _notificationPrefix = '$processId.';
+
+  /// The desktop's notification service, where notifications are shown by
+  /// it ([NotificationProtocol.dbus]): opened by the probe, closed with
+  /// the terminal.
+  final DesktopNotifications? _desktop;
+
+  /// The clicks [_desktop] tells, as [NotificationActivated] events.
+  StreamSubscription<String>? _desktopClicks;
 
   /// Writes the terminal's own [s], UTF-8 encoded; nothing for plain
   /// output.
@@ -2884,6 +2924,8 @@ final class Terminal
     for (final s in _signals) {
       await s.cancel();
     }
+    await _desktopClicks?.cancel();
+    await _desktop?.close();
     try {
       if (!_suspended) {
         // suspended, the modes are off and the screen is another's

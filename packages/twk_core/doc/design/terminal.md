@@ -47,8 +47,13 @@ was entered, the console is restored before the error propagates):
    dropped and no app replaces another's; inside tmux, for its own
    terminal, the app asks tmux whether the pane allows passthrough,
    `#{allow-passthrough}`, and takes notifications for none where it is
-   `off`; where none is shown, the bell is rung while the window has lost
-   the focus); Zellij, which forwards OSC 99 from 0.44.1 and OSC 9 and 777
+   `off`; where none is shown, the process's own terminal on the user's
+   desktop, not over ssh, takes the desktop's notification service on the
+   D-Bus session bus, `NotificationProtocol.dbus`, through the core's own
+   client, `platform/dbus.dart` and `platform/desktop_dbus.dart`, which the
+   probe connects within its timeout and `Terminal` closes; failing that,
+   the bell is rung while the window has lost the focus); Zellij, which
+   forwards OSC 99 from 0.44.1 and OSC 9 and 777
    from 0.45, is no multiplexer to the probe: its query goes out to the
    terminal outside and the answer comes back;
    the width of East Asian Ambiguous characters (U+2500 drawn at the home

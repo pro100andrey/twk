@@ -304,6 +304,8 @@ String _notificationsFrom(TerminalReport t) {
       '$key=${value.join(',')}',
   ];
   return switch (t.notificationsFrom) {
+    'answered' when t.notifications == 'dbus' =>
+      " (the desktop's notification service, on the session bus)",
     'answered' => ' (answered: ${keys.join(' ')})',
     'environment' => ' (by its name and environment)',
     'declared' => ' (declared by the terminal)',

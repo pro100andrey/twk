@@ -11,6 +11,9 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import '../terminal/link.dart';
+import 'desktop.dart';
+
+export 'desktop.dart' show DesktopNotifications;
 
 /// None on the web.
 Map<String, String> get environment => const {};
@@ -20,6 +23,12 @@ bool get isWindows => false;
 
 /// 0 on the web.
 int get processId => 0;
+
+/// Null: there is no desktop's notification service on the web.
+Future<DesktopNotifications?> openDesktopNotifications(
+  Map<String, String> env, {
+  Duration within = const Duration(seconds: 1),
+}) async => null;
 
 /// Null: there is no tmux to ask on the web.
 Future<String?> tmuxFormat(

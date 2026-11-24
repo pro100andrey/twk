@@ -162,6 +162,29 @@ void main() {
       ),
     );
     expect(
+      render(
+        const TerminalReport(
+          version: '',
+          colors: 'trueColor',
+          synchronizedOutput: true,
+          kittyKeyboard: false,
+          kittyKeyboardFlags: 0,
+          graphics: 'none',
+          hyperlinks: false,
+          cellWidth: 0,
+          cellHeight: 0,
+          answered: true,
+          probeMilliseconds: 1,
+          notifications: 'dbus',
+          notificationsFrom: 'answered',
+        ),
+      ),
+      contains(
+        "notifications   dbus (the desktop's notification service, on "
+        'the session bus)',
+      ),
+    );
+    expect(
       render(terminal('environment', const {})),
       contains('notifications   osc99 (by its name and environment)'),
     );

@@ -17,6 +17,20 @@ Breaking:
   process's notification is dropped. OSC 9's text that a terminal would
   take for a ConEmu command (`4;...`) starts with a space.
   `notificationWireId` is the id as OSC 99 carries it.
+- Desktop notifications through the desktop's own notification service,
+  `org.freedesktop.Notifications` on the D-Bus session bus
+  (`NotificationProtocol.dbus`), where the terminal shows none of its own
+  (Alacritty, xterm, st, GNOME Terminal without its distribution's patch,
+  tmux whose pane allows no passthrough): chosen by the probe for the
+  process's own terminal on the user's desktop (not over ssh, nor over a
+  link) where the service answers, with no code of the app's. Title,
+  body, urgency, app name (the program's, where it names none), icon,
+  replacement by id, `closeNotification`, and a click (its `default`
+  action) as `NotificationActivated`; `whenUnfocused` held back while the
+  window has the focus. The core speaks D-Bus itself, a client of a few
+  hundred lines in its platform layer (EXTERNAL authentication, method
+  calls, signals, the wire format of the types they carry): no new
+  dependency.
 - Where no notification is known to be shown (`NotificationProtocol.none`)
   `notify` rings the bell while the window doesn't have the focus (a focus
   report said so), which most terminals mark the window or tab by and

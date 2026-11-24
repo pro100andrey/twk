@@ -129,6 +129,12 @@ enum NotificationProtocol {
   /// breaks.
   osc99,
 
+  /// The desktop's notification service, `org.freedesktop.Notifications`
+  /// on the D-Bus session bus, where the terminal shows none of its own
+  /// and the app runs on the user's desktop (not over ssh): no sequence,
+  /// the `Terminal` speaks to the service itself.
+  dbus,
+
   /// BEL, for Terminal.app, which shows no notification of a program's:
   /// neither title nor body, only its bell (a badge on its icon in the
   /// Dock, a bounce, a sound, as its settings say). Rung only while the
@@ -264,7 +270,7 @@ String notifySequence(
   }
   final String s;
   switch (protocol) {
-    case NotificationProtocol.none:
+    case NotificationProtocol.none || NotificationProtocol.dbus:
       return '';
     case NotificationProtocol.bell:
       return '\x07';
