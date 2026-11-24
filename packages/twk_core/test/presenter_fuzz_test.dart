@@ -10,6 +10,7 @@ import 'package:twk_core/src/presenter.dart';
 import 'package:twk_core/src/style.dart';
 import 'package:twk_core/src/surface.dart';
 import 'package:twk_core/src/unicode/unicode.dart';
+import 'package:twk_test/vt.dart' show TearCheck;
 
 import 'support/harness.dart';
 
@@ -24,8 +25,10 @@ void runFuzz(
   bool ignoreUncertain = false,
   void Function(Presenter p)? tune,
   bool sweep = false,
+  bool tears = false,
+  String? skip,
 }) {
-  test(name, () {
+  test(name, skip: skip, () {
     var totalFrames = 0;
     var shifted = 0;
     var multiScroll = 0;
@@ -85,7 +88,19 @@ void runFuzz(
             ..cursorShape =
                 CursorShape.values[rnd.nextInt(CursorShape.values.length)];
         }
-        hs.frame();
+        if (tears) {
+          // a terminal without synchronized updates may show any screen
+          // between the frame's steps
+          final check = TearCheck(hs.vt)
+            ..begin(moves: hs.surface.pendingScrolls, rowOffset: hs.top);
+          hs.frame();
+          final torn = check.end();
+          if (torn.isNotEmpty) {
+            fail('torn (seed $seed f $f, ${w}x$h):\n${torn.join('\n')}');
+          }
+        } else {
+          hs.frame();
+        }
         if (sweep) {
           sweepHarness(hs);
         }
@@ -400,6 +415,15 @@ void main() {
         synchronizedOutput: false,
         hardwareScroll: false,
       ),
+    );
+    runFuzz(
+      'no synchronized output: no screen between the steps of a frame torn',
+      seeds: 300,
+      caps: const TerminalCaps(synchronizedOutput: false),
+      tears: true,
+      // seed 0 frame 12: a rectangle (columns 4-15) scrolled as whole rows
+      // moves the cells beside it with them (_widens)
+      skip: 'torn by the widened scroll until presenter-nonatomic',
     );
     runFuzz(
       'scroll detection: one block, short moves',

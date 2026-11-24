@@ -28,6 +28,13 @@ Breaking:
 
 Added:
 
+- `TearCheck` (`package:twk_test/vt.dart`): what a terminal without
+  synchronized updates (DEC 2026) may show while a frame is drawn. Every
+  screen between the frame's steps is held to the screen before it and after
+  it; a cell the frame leaves as it is that shows anything else, such as the
+  cells beside a rectangle scrolled as whole rows, is reported. `Vt.onStep`
+  and `Vt.onScroll` say when the emulator took a step outside a synchronized
+  update and when it moved rows.
 - `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
   process in a pseudo-terminal on driven time. `d.start(program, size:,
   profile:, env:, driven:, inline:)` returns a `DriverApp`: `press`, `type`,
