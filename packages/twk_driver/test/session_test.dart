@@ -264,6 +264,7 @@ void main() {
             allOf(
               contains('ext.twk.find'),
               contains('within 0:00:05'),
+              contains('Screen at frame 1'),
             ),
           ),
         ),

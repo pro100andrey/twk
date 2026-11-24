@@ -827,7 +827,7 @@ final class Session {
         done.completeError(
           DriverError(
             "no $what within $timeout of the driver's clock; the app has "
-            'not answered',
+            'not answered. Screen at frame $frame:\n${_screen.frame.text}',
           ),
         );
       }
