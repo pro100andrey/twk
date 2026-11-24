@@ -11,6 +11,9 @@ library;
 import 'dart:convert';
 
 import '../unicode/unicode.dart';
+import 'identity.dart';
+
+export 'identity.dart' show termNamesItsOwnTerminal;
 
 // Examples can assume:
 // import 'dart:convert';
@@ -375,10 +378,10 @@ PointerNames? pointerNamesFor(
     return null;
   }
   if (version.startsWith('iTerm2 ')) {
-    return _atLeast(version.substring(7), const [3, 7]) ? x11 : null;
+    return dottedAtLeast(version.substring(7), const [3, 7]) ? x11 : null;
   }
   if (version.startsWith('XTerm(')) {
-    return _atLeast(version.substring(6), const [367]) ? x11 : null;
+    return dottedAtLeast(version.substring(6), const [367]) ? x11 : null;
   }
   if (term == 'xterm-kitty' ||
       term == 'xterm-ghostty' ||
@@ -390,7 +393,7 @@ PointerNames? pointerNamesFor(
       return css;
     case 'iTerm.app':
       final programVersion = env['TERM_PROGRAM_VERSION'] ?? '';
-      return _atLeast(programVersion, const [3, 7]) ? x11 : null;
+      return dottedAtLeast(programVersion, const [3, 7]) ? x11 : null;
     case '':
       break;
     default:
@@ -398,7 +401,10 @@ PointerNames? pointerNamesFor(
   }
   if (env.containsKey('KITTY_WINDOW_ID') ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['KONSOLE_VERSION']) >= 260400) {
+      identifyTerminal(
+        env,
+        version: version,
+      ).has(TerminalFeature.pointerShapesCss)) {
     return css;
   }
   // xterm's own variable, last: where the terminal told its name (any
@@ -406,7 +412,7 @@ PointerNames? pointerNamesFor(
   final xterm = env['XTERM_VERSION'] ?? '';
   return version.isEmpty &&
           xterm.startsWith('XTerm(') &&
-          _atLeast(xterm.substring(6), const [367])
+          dottedAtLeast(xterm.substring(6), const [367])
       ? x11
       : null;
 }
@@ -475,15 +481,15 @@ bool progressReportsFor(Map<String, String> env, {String version = ''}) {
     case 'ghostty':
       return true;
     case 'iTerm.app':
-      return _atLeast(programVersion, const [3, 6, 6]);
+      return dottedAtLeast(programVersion, const [3, 6, 6]);
     case 'tmux':
-      return _atLeast(programVersion, const [3, 7]);
+      return dottedAtLeast(programVersion, const [3, 7]);
     case 'mintty':
-      return _atLeast(programVersion, const [3, 4, 2]);
+      return dottedAtLeast(programVersion, const [3, 4, 2]);
     case 'rio':
-      return _atLeast(programVersion, const [0, 3, 1]);
+      return dottedAtLeast(programVersion, const [0, 3, 1]);
     case 'contour':
-      return _atLeast(programVersion, const [0, 7]);
+      return dottedAtLeast(programVersion, const [0, 7]);
     case '':
       break;
     default:
@@ -503,8 +509,10 @@ bool progressReportsFor(Map<String, String> env, {String version = ''}) {
       env.containsKey('ConEmuPID') ||
       env['ConEmuANSI'] == 'ON' ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['VTE_VERSION']) >= 8000 ||
-      _number(env['KONSOLE_VERSION']) >= 260400;
+      identifyTerminal(
+        env,
+        version: version,
+      ).has(TerminalFeature.progressReports);
 }
 
 /// Whether the terminal is known to draw the block sextants (U+1FB00 to
@@ -531,19 +539,20 @@ bool sextantsFor(Map<String, String> env, {String version = ''}) {
     return false;
   }
   if (version.startsWith('kitty(')) {
-    return _atLeast(version.substring(6), const [0, 19, 3]);
+    return dottedAtLeast(version.substring(6), const [0, 19, 3]);
   }
   if (version.startsWith('foot(')) {
     return true;
   }
   if (version.startsWith('ghostty ')) {
-    return _atLeast(version.substring(8), const [1]);
+    return dottedAtLeast(version.substring(8), const [1]);
   }
   if (version.startsWith('WezTerm ')) {
-    return _atLeast(version.substring(8), const [20210814]);
+    return dottedAtLeast(version.substring(8), const [20210814]);
   }
-  if (version.startsWith('VTE(')) {
-    return _number(version.substring(4).replaceAll(')', '')) >= 7800;
+  final identity = identifyTerminal(env, version: version);
+  if (identity.terminal != null) {
+    return identity.has(TerminalFeature.sextants);
   }
   if (term == 'xterm-kitty' ||
       term == 'xterm-ghostty' ||
@@ -555,46 +564,24 @@ bool sextantsFor(Map<String, String> env, {String version = ''}) {
     case 'ghostty':
       return true;
     case 'WezTerm':
-      return _atLeast(programVersion, const [20210814]);
+      return dottedAtLeast(programVersion, const [20210814]);
     case 'contour':
-      return _atLeast(programVersion, const [0, 3, 1]);
+      return dottedAtLeast(programVersion, const [0, 3, 1]);
     case 'rio':
-      return _atLeast(programVersion, const [0, 4, 6]);
+      return dottedAtLeast(programVersion, const [0, 4, 6]);
     case '':
       break;
     default:
       return false;
   }
   return env.containsKey('KITTY_WINDOW_ID') ||
-      env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      _number(env['VTE_VERSION']) >= 7800 ||
-      _number(env['KONSOLE_VERSION']) >= 220400;
+      env.containsKey('GHOSTTY_RESOURCES_DIR');
 }
 
 /// Whether [version], an XTVERSION answer, is kitty's, 0.38 or later.
 bool _kitty38(String version) =>
     version.startsWith('kitty(') &&
-    _atLeast(version.substring(6), const [0, 38]);
-
-/// Whether the version at the start of [version] (numbers separated by
-/// dots) is [least] or later; false when it starts with no number.
-bool _atLeast(String version, List<int> least) {
-  final parts = RegExp(r'^\d+(\.\d+)*').stringMatch(version);
-  if (parts == null) {
-    return false;
-  }
-  final numbers = parts.split('.').map(int.parse).toList();
-  for (var i = 0; i < least.length; i++) {
-    final n = i < numbers.length ? numbers[i] : 0;
-    if (n != least[i]) {
-      return n > least[i];
-    }
-  }
-  return true;
-}
-
-/// [value] as a number, 0 when it is none.
-int _number(String? value) => int.tryParse(value ?? '') ?? 0;
+    dottedAtLeast(version.substring(6), const [0, 38]);
 
 /// Who puts right-to-left text in the order it reads on a terminal
 /// (`TerminalInfo.bidi`).
@@ -621,18 +608,6 @@ const implicitBidiSequence = '\x1b[8h';
 /// BDSM reset: explicit mode, the terminal shows each character in the
 /// cell it is written to, for an app that orders text itself.
 const explicitBidiSequence = '\x1b[8l';
-
-/// Whether [term], a `TERM`, is a terminal's own name, set by that
-/// terminal (kitty, Ghostty, foot, Alacritty, Contour, WezTerm): it comes
-/// before a `TERM_PROGRAM` or other variables a terminal it was started
-/// from left in its environment, as Terminal.app's `Apple_Terminal`.
-bool termNamesItsOwnTerminal(String term) =>
-    term == 'xterm-kitty' ||
-    term == 'xterm-ghostty' ||
-    term.startsWith('foot') ||
-    term == 'alacritty' ||
-    term == 'contour' ||
-    term == 'wezterm';
 
 /// Who puts right-to-left text in the order it reads on a terminal, by its
 /// answer to [bidiModeQuery], [mode] (the Ps of `CSI 8 ; Ps $ y`, null
@@ -673,10 +648,12 @@ BidiReordering bidiReorderingFor(
       term.startsWith('screen')) {
     return app;
   }
+  final reorders = identifyTerminal(
+    env,
+    version: version,
+  ).has(TerminalFeature.reordersBidi);
   if (version.isNotEmpty) {
-    return version.startsWith('Konsole') || version.startsWith('mlterm')
-        ? terminal
-        : app;
+    return reorders || version.startsWith('mlterm') ? terminal : app;
   }
   if (term.startsWith('putty') || term.startsWith('mlterm')) {
     return terminal;
@@ -692,9 +669,7 @@ BidiReordering bidiReorderingFor(
     default:
       return app;
   }
-  return env.containsKey('KONSOLE_VERSION') || env.containsKey('MLTERM')
-      ? terminal
-      : app;
+  return reorders || env.containsKey('MLTERM') ? terminal : app;
 }
 
 /// What puts a terminal that honours BDSM, [mode] being its answer to

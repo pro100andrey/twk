@@ -23,6 +23,7 @@ import '../platform/platform.dart';
 import '../presenter.dart';
 import '../style.dart';
 import '../unicode/unicode.dart';
+import 'identity.dart';
 import 'link.dart';
 import 'outbox.dart';
 import 'plain.dart';
@@ -592,7 +593,6 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
     default:
       return NotificationProtocol.none;
   }
-  int version(String name) => int.tryParse(env[name] ?? '') ?? 0;
   if (env.containsKey('KITTY_WINDOW_ID')) {
     return NotificationProtocol.osc99;
   }
@@ -601,9 +601,8 @@ NotificationProtocol notificationProtocolFor(Map<String, String> env) {
   }
   if (env.containsKey('WEZTERM_PANE') ||
       env.containsKey('GHOSTTY_RESOURCES_DIR') ||
-      version('KONSOLE_VERSION') >= 221200 ||
       env.containsKey('WT_SESSION') ||
-      version('VTE_VERSION') >= 5200) {
+      identifyTerminal(env).has(TerminalFeature.notificationsOsc777)) {
     return osc777;
   }
   return NotificationProtocol.none;
@@ -1614,9 +1613,11 @@ final class Terminal
         env.containsKey('WT_SESSION') ||
         program == 'WezTerm';
 
+    // the terminal as its name and version tell it, for what it is known
+    // to do without answering a query (identity.dart)
+    final identity = identifyTerminal(env, version: version);
     // REP (CSI n b) has no capability query; enable it only for terminals
     // that declare it, or are known to implement it.
-    final vte = int.tryParse(env['VTE_VERSION'] ?? '') ?? 0;
     final repeatChar =
         declared.repeatChar ??
         (!screenLike &&
@@ -1629,7 +1630,7 @@ final class Terminal
                 program == 'ghostty' ||
                 env.containsKey('WT_SESSION') ||
                 env.containsKey('XTERM_VERSION') ||
-                vte >= 6200));
+                identity.has(TerminalFeature.repeatChar)));
     // the first attribute is the conformance level; 4 is sixel
     final sixel = attributes.skip(1).contains(4);
     final multiplexer = multiplexerFor(env);
@@ -1664,7 +1665,12 @@ final class Terminal
         );
     final info = TerminalInfo(
       caps: TerminalCaps(
-        synchronizedOutput: supported(2026),
+        // asked with DECRQM, which Konsole answers not; inside a
+        // multiplexer its answer is the only one
+        synchronizedOutput:
+            supported(2026) ||
+            (multiplexer == Multiplexer.none &&
+                identity.has(TerminalFeature.synchronizedOutput)),
         // GNU screen without `defbce on` erases with the default background
         backgroundColorErase: !screenLike,
         repeatChar: repeatChar,
@@ -2606,16 +2612,13 @@ final class Terminal
 /// and DCH ends with blanks at that length rather than at the right margin.
 /// Inside a multiplexer ([multiplexerFor]) the lines are the multiplexer's,
 /// which does as xterm does. The same terminal's images are Konsole's
-/// ([TerminalCaps.konsoleImages]).
-bool konsoleLinesFor(Map<String, String> env, {String version = ''}) {
-  if (multiplexerFor(env) != Multiplexer.none) {
-    return false;
-  }
-  if (version.isNotEmpty) {
-    return version.startsWith('Konsole');
-  }
-  return env.containsKey('KONSOLE_VERSION');
-}
+/// ([TerminalCaps.konsoleImages]). The terminal is told as
+/// [identifyTerminal] tells it: a `TERM` of another terminal's own, or
+/// another's `TERM_PROGRAM`, makes `KONSOLE_VERSION` that of the Konsole it
+/// was started from.
+bool konsoleLinesFor(Map<String, String> env, {String version = ''}) =>
+    multiplexerFor(env) == Multiplexer.none &&
+    identifyTerminal(env, version: version).has(TerminalFeature.konsoleLines);
 
 /// What the probe of a [Terminal] read and wrote ([CountingBackend]).
 final class _ProbeCounts {

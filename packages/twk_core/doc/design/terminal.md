@@ -41,7 +41,14 @@ was entered, the console is restored before the error propagates):
    line that showed a query erased, [§1.12](inline.md)), and DA1 as the
    "everyone answered" marker, its attribute 4 saying sixel (1 s timeout →
    conservative defaults; answers that come later are dropped, not passed to
-   the app as input);
+   the app as input). What a terminal does without answering a query is
+   read from one identification (`identifyTerminal`, `identity.dart`: the
+   name it tells, else its own `TERM`, else its `TERM_PROGRAM`, else the
+   variables a terminal sets for its programs, the first that names one)
+   and one table of known terminals with the version each fact holds from:
+   Konsole 26.04 on has DEC 2026 though it answers no DECRQM at all, so its
+   frames are synchronized too (not inside a multiplexer, whose answer is
+   the one that counts);
 3. resize: in-band (2048) when available, otherwise SIGWINCH; on Windows
    the size is polled every 100 ms (a cheap console call);
 4. alternate screen (or the inline mode, [§1.12](inline.md)), mouse (on the

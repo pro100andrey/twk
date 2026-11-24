@@ -103,7 +103,11 @@ final class TerminalCaps {
     this.cellPixelHeight = 0,
   });
 
-  /// Wrap frames in DEC mode 2026 (ignored by terminals that lack it).
+  /// Wrap frames in DEC mode 2026 (ignored by terminals that lack it): the
+  /// terminal shows each frame whole. The probe sets it where the terminal
+  /// answers DECRQM for it, or is known to have it without answering
+  /// (Konsole 26.04 on). Without it the presenter writes nothing a
+  /// terminal that shows a frame before it ends would show torn.
   final bool synchronizedOutput;
 
   /// Erase operations (EL, ECH, SU) fill with the current background.

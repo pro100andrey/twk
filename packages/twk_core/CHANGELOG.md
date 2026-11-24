@@ -145,6 +145,18 @@ Changed:
 
 Fixed:
 
+- Konsole 26.04 and later gets synchronized output (DEC 2026): it honours the
+  mode but answers no DECRQM, so the probe took it for a terminal without
+  and every frame there could be shown half drawn. What a terminal does
+  without answering a query is now read from one identification of it (the
+  name it tells, else its own `TERM`, else its `TERM_PROGRAM`, else
+  `KONSOLE_VERSION` or `VTE_VERSION`) and one table of known terminals,
+  where the version thresholds of Konsole and VTE (notifications, REP,
+  pointer shapes, progress, sextants, bidi, Konsole's lines) are written
+  once. So Konsole told by its name over ssh, where `KONSOLE_VERSION` is not
+  passed on, now gets its pointer shapes, progress and sextants too, and a
+  terminal started from Konsole that names itself (VS Code's) no longer
+  gets Konsole's lines or notifications by the variable it inherited.
 - On a terminal without synchronized output (DEC 2026) a scroll view
   narrower than the screen no longer tears while the frame is drawn: its
   rectangle was scrolled as whole rows and the cells beside it (a sidebar,
