@@ -92,7 +92,7 @@ void main() {
       'not written', () {
     final term = VtTerminal(width: 10, height: 2)
       ..setTitle('Editor')
-      ..notify('Build', 'done');
+      ..notify(const DesktopNotification('Build', body: 'done'));
     expect(term.frames, [bytes(titleSequence('Editor'))]);
     expect(term.lines, ['', '']);
   });

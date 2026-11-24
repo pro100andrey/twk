@@ -810,6 +810,25 @@ final class CursorReport extends InputEvent {
   final int y;
 }
 
+/// A desktop notification shown with OSC 99 was clicked: the terminal's
+/// `OSC 99 ; i=id ; ST`, sent where the notification asked for it
+/// (`a=report`, `Terminal.notify`'s `reportActivation`). [id] is the
+/// terminal's, which `Terminal` hands on as the app's own.
+final class NotificationActivated extends InputEvent {
+  /// The notification of [id] was clicked.
+  const NotificationActivated(this.id);
+
+  /// The notification's id.
+  final String id;
+  @override
+  bool operator ==(Object other) =>
+      other is NotificationActivated && other.id == id;
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  String toString() => 'NotificationActivated($id)';
+}
+
 /// An escape sequence the parser recognised as one but doesn't map to an
 /// event: a key it has no [KeyCode] for, a reply to a query it doesn't
 /// decode, a sequence cut off or aborted by the next ESC.

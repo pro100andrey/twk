@@ -38,7 +38,13 @@ was entered, the console is restored before the error propagates):
    a multiplexer, which keeps it): kitty, foot 1.18 on and Konsole 24.12 on
    answer it with the keys they take (`TerminalInfo.notificationKeys`,
    Konsole's answer read leniently: a `;` after the id, `unfocus`), and a
-   terminal that answers shows OSC 99, whatever its name says;
+   terminal that answers shows OSC 99, whatever its name says (a
+   notification, `DesktopNotification`, then carries its urgency, app name,
+   icon and id, is shown only without the focus by the terminal itself,
+   `o=unfocused`, where it took that key, and reports a click, `a=report`,
+   as `NotificationActivated` where the app asked for it; `Terminal`
+   prefixes the id with the process's, so that a click on another app's is
+   dropped and no app replaces another's);
    the width of East Asian Ambiguous characters (U+2500 drawn at the home
    position, then `CSI 6 n`; in the inline mode `CSI 6 n` asks where the
    cursor is instead, on the normal screen before the queries and again
@@ -420,9 +426,12 @@ and `holdFlush` stands for a slow connection. Its
 `TerminalInfo.multiplexer` is the `multiplexer` it is given, so what an
 app sends through tmux or screen (the clipboard, notifications) comes
 wrapped for it, and its `TerminalInfo.notifications` the `notifications`
-it is given (by default `none`): `notify(title, body)` writes a desktop
-notification to `frames` in that protocol as `Terminal.notify` does, each
-under an id of its own from 1, and nothing for `none` or once closed.
+it is given (by default `none`): `notify(DesktopNotification)` writes a
+desktop notification to `frames` in that protocol as `Terminal.notify`
+does (`notificationFor`), each without an id of its own under one from 1,
+`closeNotification(id)` OSC 99's `p=close`, and nothing for `none` or
+once closed; a click typed (`OSC 99 ; i=id ; ST`) comes as a
+`NotificationActivated`.
 With `pointerShapes` and `progressReports` its `TerminalInfo` says the
 terminal shows a pointer shape and a progress, and as a
 `TerminalStateBackend` it writes what is set and put back to `frames` as

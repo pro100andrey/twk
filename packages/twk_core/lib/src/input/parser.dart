@@ -759,7 +759,14 @@ final class InputParser {
     r'rgb:([0-9a-fA-F]{1,4})/([0-9a-fA-F]{1,4})/([0-9a-fA-F]{1,4})$',
   );
 
+  // "99;i=ID;" or "99;i=ID;N" (a button): a notification clicked, not
+  // the answer to OSC 99's query (p=?) nor a close report (p=close)
+  static final _notificationClick = RegExp(r'^99;i=([\w+.-]+);\d*$');
+
   static InputEvent? _oscReply(String body) {
+    if (_notificationClick.firstMatch(body) case final n?) {
+      return NotificationActivated(n[1]!);
+    }
     final m = _colorReply.firstMatch(body);
     if (m == null) {
       return null;

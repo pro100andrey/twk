@@ -4,6 +4,14 @@
 
 Breaking:
 
+- `AppBinding.notify` takes a `DesktopNotification` (title, body, id,
+  urgency, `whenUnfocused`, app name, icon) and returns its id, null on a
+  backend that shows none; `onActivated` runs when the notification is
+  clicked, where the terminal reports that (OSC 99: kitty, Konsole 24.12
+  on, foot 1.18 on). `AppBinding.closeNotification(id)` takes one down.
+  `DesktopNotification`, `NotificationUrgency` and `NotificationActivated`
+  are exported.
+
 - The default theme is the terminal's own colors: without a `Theme`,
   `Theme.of` gives `ThemeData.terminalOf(context)` (`ThemeData.terminalOn`
   where the terminal told its background, `ThemeData.terminal` of its

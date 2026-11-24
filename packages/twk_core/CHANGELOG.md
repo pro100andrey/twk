@@ -4,6 +4,20 @@
 
 Breaking:
 
+- `WindowBackend.notify` takes a `DesktopNotification` (a title, a body,
+  an id, an urgency, `whenUnfocused`, an app name and an icon name) in
+  place of a title and a body, and returns the notification's id;
+  `notifySequence` takes one too. `WindowBackend.closeNotification(id)`
+  takes one down (OSC 99's `p=close`, kitty). OSC 99 carries the urgency
+  (`u`), the app's name (`f`) and the icon's (`n`); `whenUnfocused` is
+  `o=unfocused` where the terminal takes it, else held back while the
+  window has the focus, as Terminal.app's bell is. `notify(...,
+  reportActivation: true)` asks for a click to be reported (`a=report`),
+  which comes as `NotificationActivated` of the app's id; one on another
+  process's notification is dropped. OSC 9's text that a terminal would
+  take for a ConEmu command (`4;...`) starts with a space.
+  `notificationWireId` is the id as OSC 99 carries it.
+
 - `TwkApp(clock:)` takes a `Clock`, not a `Stopwatch`; `TwkApp.clock` is a
   `Clock`. A frame that waits is started with `clock.timer`, so a clock that
   moves when told to spaces the frames and holds the timers.

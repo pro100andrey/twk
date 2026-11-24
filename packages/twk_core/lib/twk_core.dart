@@ -69,14 +69,18 @@ export 'src/terminal/plain.dart' show plainAsked, runsInCi;
 export 'src/terminal/sequences.dart'
     show
         BidiReordering,
+        DesktopNotification,
         MouseTracking,
         Multiplexer,
         NotificationProtocol,
+        NotificationUrgency,
         PointerNames,
         PointerShape,
         ProgressState,
         clipboardSequence,
+        closeNotificationSequence,
         mouseTrackingSequence,
+        notificationWireId,
         notifySequence,
         passthroughSequence,
         pointerShapeSequence,

@@ -37,6 +37,7 @@ terminal.dart class ColorSchemeReport
 terminal.dart class CountingBackend
 terminal.dart class CursorReport
 terminal.dart class DeclaringLink
+terminal.dart class DesktopNotification
 terminal.dart class DeviceAttributes
 terminal.dart class FocusEvent
 terminal.dart class InputEvent
@@ -54,6 +55,7 @@ terminal.dart class Mod
 terminal.dart class ModeReport
 terminal.dart class MouseEvent
 terminal.dart class MouseTrackingBackend
+terminal.dart class NotificationActivated
 terminal.dart class PasteEvent
 terminal.dart class Pen
 terminal.dart class PixelSizedLink
@@ -87,6 +89,7 @@ terminal.dart enum MouseKind
 terminal.dart enum MouseTracking
 terminal.dart enum Multiplexer
 terminal.dart enum NotificationProtocol
+terminal.dart enum NotificationUrgency
 terminal.dart enum PointerNames
 terminal.dart enum PointerShape
 terminal.dart enum ProgressState
@@ -96,11 +99,13 @@ terminal.dart enum TextOverflow
 terminal.dart extension type Color
 terminal.dart extension type StyleId
 terminal.dart function clipboardSequence
+terminal.dart function closeNotificationSequence
 terminal.dart function colorModeFor
 terminal.dart function fitText
 terminal.dart function graphemeBoundaries
 terminal.dart function log
 terminal.dart function mouseTrackingSequence
+terminal.dart function notificationWireId
 terminal.dart function notifySequence
 terminal.dart function padCells
 terminal.dart function passthroughSequence
@@ -129,6 +134,7 @@ twk_core.dart class ColorSchemeReport
 twk_core.dart class CountingBackend
 twk_core.dart class CursorReport
 twk_core.dart class DeclaringLink
+twk_core.dart class DesktopNotification
 twk_core.dart class DeviceAttributes
 twk_core.dart class DiagnosticPropertiesBuilder
 twk_core.dart class DiagnosticsNode
@@ -161,6 +167,7 @@ twk_core.dart class Mod
 twk_core.dart class ModeReport
 twk_core.dart class MouseEvent
 twk_core.dart class MouseTrackingBackend
+twk_core.dart class NotificationActivated
 twk_core.dart class OverflowReport
 twk_core.dart class PaintContext
 twk_core.dart class ParentData
@@ -252,6 +259,7 @@ twk_core.dart enum MouseKind
 twk_core.dart enum MouseTracking
 twk_core.dart enum Multiplexer
 twk_core.dart enum NotificationProtocol
+twk_core.dart enum NotificationUrgency
 twk_core.dart enum PointerNames
 twk_core.dart enum PointerShape
 twk_core.dart enum ProgressState
@@ -277,6 +285,7 @@ twk_core.dart function bidiMirror
 twk_core.dart function breakLines
 twk_core.dart function brightnessFor
 twk_core.dart function clipboardSequence
+twk_core.dart function closeNotificationSequence
 twk_core.dart function colorModeFor
 twk_core.dart function describeAlignment
 twk_core.dart function describeColor
@@ -289,6 +298,7 @@ twk_core.dart function fitText
 twk_core.dart function graphemeBoundaries
 twk_core.dart function mayReorder
 twk_core.dart function mouseTrackingSequence
+twk_core.dart function notificationWireId
 twk_core.dart function notifySequence
 twk_core.dart function padCells
 twk_core.dart function passthroughSequence

@@ -963,10 +963,57 @@ abstract interface class WindowBackend implements TerminalBackend {
   /// once closed.
   void setTitle(String title);
 
-  /// Shows a desktop notification of [title] and [body] where the terminal
-  /// is known to show one ([TerminalInfo.notifications]); nothing
-  /// elsewhere, and once closed.
-  void notify(String title, String body);
+  /// Shows [notification] where the terminal is known to show one
+  /// ([TerminalInfo.notifications], [notificationFor]); nothing elsewhere,
+  /// and once closed. Returns its id: [DesktopNotification.id] as OSC 99
+  /// carries it ([notificationWireId]), else one of its own. Where
+  /// [reportActivation], a click on it comes back as a
+  /// [NotificationActivated] of that id (OSC 99 only); the terminal sends
+  /// it whenever the notification is clicked, after the app ended too,
+  /// so it is asked for only where someone listens.
+  String notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  });
+
+  /// Takes the notification of [id] ([notify]'s) down where it is still
+  /// shown and the terminal can (OSC 99's `p=close`, kitty's; not
+  /// Konsole's, which leaves it to the desktop); nothing elsewhere.
+  void closeNotification(String id);
+}
+
+/// What [WindowBackend.notify] writes for [notification] on a terminal of
+/// [info] whose window has the focus where [focused], as [id]: nothing
+/// where nothing is shown, and Terminal.app's bell
+/// ([NotificationProtocol.bell]) or a notification shown only without the
+/// focus ([DesktopNotification.whenUnfocused]) while it has it, unless the
+/// terminal holds it back itself (OSC 99's `o=unfocused`, where it named
+/// that key in its answer, or answered none).
+String notificationFor(
+  TerminalInfo info,
+  DesktopNotification notification, {
+  required bool focused,
+  required String id,
+  bool reportActivation = false,
+}) {
+  final protocol = info.notifications;
+  final keys = info.notificationKeys;
+  final heldBack =
+      protocol == NotificationProtocol.osc99 &&
+      (keys.isEmpty || (keys['o']?.contains('unfocused') ?? false));
+  if (focused &&
+      (protocol == NotificationProtocol.bell ||
+          (notification.whenUnfocused && !heldBack))) {
+    return '';
+  }
+  return notifySequence(
+    notification,
+    protocol: protocol,
+    multiplexer: info.multiplexer,
+    id: id,
+    unfocused: notification.whenUnfocused && heldBack,
+    report: reportActivation,
+  );
 }
 
 /// A terminal a program draws on and reads input from, opened in raw mode,
@@ -2377,6 +2424,15 @@ final class Terminal
       height = e.height;
     } else if (e is FocusEvent) {
       _focused = e.focused;
+    } else if (e is NotificationActivated) {
+      // another process's, which the terminal tells this one too
+      if (!e.id.startsWith(_notificationPrefix)) {
+        return;
+      }
+      _events.add(
+        NotificationActivated(e.id.substring(_notificationPrefix.length)),
+      );
+      return;
     }
     _events.add(e);
     if (e is ColorSchemeReport) {
@@ -2657,29 +2713,54 @@ final class Terminal
   // said; with none, it is taken to have it
   var _focused = true;
 
-  /// Shows a desktop notification of [title] and [body] where the terminal
-  /// is known to show one ([TerminalInfo.notifications]), through tmux or
-  /// screen ([TerminalInfo.multiplexer]); does nothing elsewhere. See
-  /// [notifySequence] for what is sent. Terminal.app's bell
-  /// ([NotificationProtocol.bell]) is rung only while its window doesn't
-  /// have the focus ([FocusEvent], [TerminalOptions.focusEvents]).
+  /// Shows [notification] where the terminal is known to show one
+  /// ([TerminalInfo.notifications]), through tmux or screen
+  /// ([TerminalInfo.multiplexer]); does nothing elsewhere. See
+  /// [notificationFor] and [notifySequence] for what is sent. Terminal.app's
+  /// bell ([NotificationProtocol.bell]) and a notification shown only
+  /// without the focus are held back while the window has it
+  /// ([FocusEvent], [TerminalOptions.focusEvents]). OSC 99 carries the id
+  /// after this process's id, so that one app's notifications replace no
+  /// other's, and a click reported for another's is dropped.
   @override
-  void notify(String title, String body) {
-    if (_closed ||
-        (info.notifications == NotificationProtocol.bell && _focused)) {
+  String notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  }) {
+    final id = notificationWireId(notification.id ?? '${++_notifications}');
+    if (_closed) {
+      return id;
+    }
+    final s = notificationFor(
+      info,
+      notification,
+      focused: _focused,
+      id: '$_notificationPrefix$id',
+      reportActivation: reportActivation,
+    );
+    if (s.isNotEmpty) {
+      _writeUtf8(s);
+    }
+    return id;
+  }
+
+  @override
+  void closeNotification(String id) {
+    if (_closed) {
       return;
     }
-    final s = notifySequence(
-      title,
-      body,
+    final s = closeNotificationSequence(
+      '$_notificationPrefix$id',
       protocol: info.notifications,
       multiplexer: info.multiplexer,
-      id: '$processId.${++_notifications}',
     );
     if (s.isNotEmpty) {
       _writeUtf8(s);
     }
   }
+
+  /// What the ids of this process's notifications start with on the wire.
+  final _notificationPrefix = '$processId.';
 
   /// Writes the terminal's own [s], UTF-8 encoded; nothing for plain
   /// output.

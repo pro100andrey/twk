@@ -122,9 +122,20 @@ final class VtTerminal implements WindowBackend {
       write(Uint8List.fromList(utf8.encode(titleSequence(title))));
 
   /// Nothing: the terminal shows no notifications
-  /// ([TerminalInfo.notifications] is [NotificationProtocol.none]).
+  /// ([TerminalInfo.notifications] is [NotificationProtocol.none]). Returns
+  /// [DesktopNotification.id] as OSC 99 would carry it, else one of its
+  /// own.
   @override
-  void notify(String title, String body) {}
+  String notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  }) => notificationWireId(notification.id ?? '${++_notifications}');
+
+  var _notifications = 0;
+
+  /// Nothing: the terminal shows no notifications.
+  @override
+  void closeNotification(String id) {}
 
   @override
   Future<void> flush() async {}

@@ -37,7 +37,7 @@ void main() {
       environment: _windowsTerminal,
     );
     await run.settle();
-    run.binding.notify('Build', 'done');
+    run.binding.notify(const DesktopNotification('Build', body: 'done'));
     await run.settle();
     await run.quit();
     expect(run.link.written, contains('\x1b]777;notify;Build;done\x1b\\'));

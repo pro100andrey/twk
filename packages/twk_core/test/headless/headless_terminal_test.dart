@@ -183,8 +183,8 @@ void main() {
     );
     expect(kitty.info.notifications, NotificationProtocol.osc99);
     kitty
-      ..notify('Build', 'done')
-      ..notify('Build', 'failed');
+      ..notify(const DesktopNotification('Build', body: 'done'))
+      ..notify(const DesktopNotification('Build', body: 'failed'));
     expect(
       sent(kitty),
       '\x1bPtmux;\x1b\x1b]99;i=1:d=0;Build\x1b\x1b\\'
@@ -194,7 +194,7 @@ void main() {
     );
 
     final foot = HeadlessTerminal(notifications: NotificationProtocol.osc777)
-      ..notify('Build', 'done; 3 tests');
+      ..notify(const DesktopNotification('Build', body: 'done; 3 tests'));
     expect(sent(foot), '\x1b]777;notify;Build;done, 3 tests\x1b\\');
   });
 
@@ -203,15 +203,15 @@ void main() {
     String sent(HeadlessTerminal t) =>
         utf8.decode([for (final f in t.frames) ...f]);
     final t = HeadlessTerminal(notifications: NotificationProtocol.bell)
-      ..notify('Build', 'done');
+      ..notify(const DesktopNotification('Build', body: 'done'));
     expect(t.frames, isEmpty);
     t
       ..type('\x1b[O')
-      ..notify('Build', 'done');
+      ..notify(const DesktopNotification('Build', body: 'done'));
     expect(sent(t), '\x07');
     t
       ..type('\x1b[I')
-      ..notify('Build', 'done');
+      ..notify(const DesktopNotification('Build', body: 'done'));
     expect(sent(t), '\x07');
   });
 
@@ -219,12 +219,12 @@ void main() {
       'once closed', () async {
     open();
     expect(term.info.notifications, NotificationProtocol.none);
-    term.notify('Build', 'done');
+    term.notify(const DesktopNotification('Build', body: 'done'));
     expect(term.frames, isEmpty);
 
     final t = HeadlessTerminal(notifications: NotificationProtocol.osc9);
     await t.close();
-    t.notify('Build', 'done');
+    t.notify(const DesktopNotification('Build', body: 'done'));
     expect(t.frames, isEmpty);
   });
 

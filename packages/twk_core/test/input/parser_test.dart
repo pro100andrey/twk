@@ -11,6 +11,23 @@ import 'package:twk_core/twk_core.dart';
 List<InputEvent> parse(String s) => InputParser().feed(s.codeUnits);
 
 void main() {
+  test('a click on a notification (OSC 99 i=id ;) is NotificationActivated, '
+      "a button's too; the answer to its query and a close report are not", () {
+    expect(parse('\x1b]99;i=42.build;\x1b\\'), [
+      const NotificationActivated('42.build'),
+    ]);
+    expect(parse('\x1b]99;i=42.b;2\x07'), [
+      const NotificationActivated('42.b'),
+    ]);
+    for (final s in [
+      '\x1b]99;i=twk:p=?;p=title,body\x1b\\',
+      '\x1b]99;i=twk;p=?;p=title,body\x1b\\',
+      '\x1b]99;i=42.b:p=close;\x1b\\',
+    ]) {
+      expect(parse(s), [isA<UnknownSequence>()], reason: s);
+    }
+  });
+
   test('F1 to F4 with modifiers come as CSI 1 ; modifiers P, Q, R, S', () {
     expect(parse('\x1b[1;5P\x1b[1;2Q\x1b[1;2R\x1b[1;3S'), const [
       KeyEvent(KeyCode.f1, modifiers: Mod.ctrl),

@@ -482,7 +482,9 @@ var _notified = 0;
 // shown where the terminal is known to show one (OSC 9, 777 or 99,
 // TerminalInfo.notifications); nothing elsewhere
 void _notify() {
-  AppBinding.of(context).notify('Build finished', 'ran 214 tests in 3.2 s');
+  AppBinding.of(context).notify(
+    DesktopNotification('Build finished', body: 'ran 214 tests in 3.2 s'),
+  );
   setState(() => _notified++);
 }
 

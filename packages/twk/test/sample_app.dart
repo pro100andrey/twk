@@ -82,6 +82,21 @@ String snapshot() =>
 (Duration, StyleId) elapsedAndBase(Clock clock) =>
     (ClockElapsed(clock).elapsed, StyleId.base);
 
+/// A desktop notification of [title], critical, shown only without the
+/// focus, and whether [event] is a click on the one of [id].
+(DesktopNotification, bool) notificationAndClick(
+  String title,
+  InputEvent event,
+  String id,
+) => (
+  DesktopNotification(
+    title,
+    urgency: NotificationUrgency.critical,
+    whenUnfocused: true,
+  ),
+  event is NotificationActivated && event.id == id,
+);
+
 final class SampleApp extends StatefulWidget {
   const SampleApp({super.key});
 

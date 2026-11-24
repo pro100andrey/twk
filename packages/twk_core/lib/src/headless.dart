@@ -322,23 +322,47 @@ final class HeadlessTerminal
 
   var _notifications = 0;
 
-  /// Writes a desktop notification of [title] and [body] to [frames] as a
-  /// [Terminal] does ([Terminal.notify]), in [TerminalInfo.notifications]
-  /// through [TerminalInfo.multiplexer], each under an id of its own, `1`
-  /// first; the bell only while the focus report typed last said the
-  /// window lost the focus; nothing once closed.
+  /// Writes [notification] to [frames] as a [Terminal] does
+  /// ([Terminal.notify], [notificationFor]), in
+  /// [TerminalInfo.notifications] through [TerminalInfo.multiplexer], each
+  /// without an id of its own under one of its own, `1` first, and no
+  /// process's id before it; held back while the focus report typed last
+  /// said the window has the focus where [Terminal.notify] holds it back;
+  /// nothing once closed. A click typed (`OSC 99 ; i=id ; ST`) comes as a
+  /// [NotificationActivated] of that id.
   @override
-  void notify(String title, String body) {
-    if (closed ||
-        (info.notifications == NotificationProtocol.bell && _focused)) {
+  String notify(
+    DesktopNotification notification, {
+    bool reportActivation = false,
+  }) {
+    final id = notificationWireId(notification.id ?? '${++_notifications}');
+    if (closed) {
+      return id;
+    }
+    final s = notificationFor(
+      info,
+      notification,
+      focused: _focused,
+      id: id,
+      reportActivation: reportActivation,
+    );
+    if (s.isNotEmpty) {
+      _emit(utf8.encode(s));
+    }
+    return id;
+  }
+
+  /// Writes OSC 99's `p=close` for [id] to [frames] as a [Terminal] does
+  /// ([Terminal.closeNotification]); nothing once closed.
+  @override
+  void closeNotification(String id) {
+    if (closed) {
       return;
     }
-    final s = notifySequence(
-      title,
-      body,
+    final s = closeNotificationSequence(
+      id,
       protocol: info.notifications,
       multiplexer: info.multiplexer,
-      id: '${++_notifications}',
     );
     if (s.isNotEmpty) {
       _emit(utf8.encode(s));

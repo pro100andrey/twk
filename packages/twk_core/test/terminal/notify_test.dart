@@ -1,6 +1,7 @@
 // Terminal.notify and Terminal.copyToClipboard over a link in memory, in
 // the environment of one terminal or another.
 import 'dart:convert';
+import 'dart:io' show pid;
 
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart';
@@ -19,7 +20,7 @@ Future<String> written(Map<String, String> env) async {
     const TerminalOptions(probeTimeout: Duration(seconds: 5)),
   );
   term
-    ..notify('Build', 'done; 3 tests')
+    ..notify(const DesktopNotification('Build', body: 'done; 3 tests'))
     ..copyToClipboard('copied 🧪');
   await clock.runUntil(term.close);
   return link.text;
@@ -89,5 +90,95 @@ void main() {
     final s = await written({'TERM': 'xterm-256color'});
     expect(s, contains('$_copied\x1b\\'));
     expect(s, isNot(contains('\x1bP')));
+  });
+
+  group('a notification of its own', () {
+    /// A terminal of [env] that answers OSC 99's query with [keys] (none
+    /// where empty), opened on a clock.
+    Future<(Terminal, FakeLink, FakeClock)> opened(
+      Map<String, String> env, {
+      String keys = '',
+    }) async {
+      final clock = FakeClock();
+      final link = FakeLink(environment: env)
+        ..type(
+          '${keys.isEmpty ? '' : '\x1b]99;i=twk:p=?;$keys\x1b\\'}'
+          '\x1b[?1004;1\$y\x1b[?62;22c',
+        );
+      final term = await clock.open(
+        link,
+        const TerminalOptions(probeTimeout: Duration(seconds: 5)),
+      );
+      return (term, link, clock);
+    }
+
+    test("its id after the process's on the wire, returned as the app's; "
+        'one of its own where it has none', () async {
+      final (term, link, _) = await opened({'TERM': 'xterm-kitty'});
+      final before = link.text.length;
+      expect(term.notify(const DesktopNotification('a', id: 'build')), 'build');
+      expect(term.notify(const DesktopNotification('b')), '1');
+      expect(
+        term.notify(const DesktopNotification('c', id: 'x:y z')),
+        'xyz',
+        reason: "only OSC 99's identifier characters",
+      );
+      term.closeNotification('build');
+      expect(
+        link.text.substring(before),
+        '\x1b]99;i=$pid.build;a\x1b\\'
+        '\x1b]99;i=$pid.1;b\x1b\\'
+        '\x1b]99;i=$pid.xyz;c\x1b\\'
+        '\x1b]99;i=$pid.build:p=close;\x1b\\',
+      );
+    });
+
+    test("a click asked for comes back under the app's id; one on "
+        "another process's is dropped", () async {
+      final (term, link, clock) = await opened({'TERM': 'xterm-kitty'});
+      final events = <InputEvent>[];
+      final sub = term.events.listen(events.add);
+      final before = link.text.length;
+      term.notify(
+        const DesktopNotification('Build', id: 'b'),
+        reportActivation: true,
+      );
+      expect(
+        link.text.substring(before),
+        '\x1b]99;i=$pid.b:a=focus,report;Build\x1b\\',
+      );
+      link
+        ..type('\x1b]99;i=$pid.b;\x1b\\')
+        ..type('\x1b]99;i=1.b;\x1b\\');
+      await clock.flushMicrotasks();
+      expect(events.whereType<NotificationActivated>(), [
+        const NotificationActivated('b'),
+      ]);
+      await sub.cancel();
+    });
+
+    test('shown only without the focus: o=unfocused where the terminal '
+        'takes it, else held back while the window has the focus', () async {
+      const note = DesktopNotification('Build', whenUnfocused: true);
+      final (kitty, kittyLink, _) = await opened(
+        {'TERM': 'xterm-256color'},
+        keys: 'p=title,body:o=always,unfocused',
+      );
+      final k = kittyLink.text.length;
+      kitty.notify(note);
+      expect(kittyLink.text.substring(k), contains(':o=unfocused;Build'));
+
+      final (foot, footLink, clock) = await opened({'TERM': 'foot'});
+      final f = footLink.text.length;
+      foot.notify(note);
+      expect(footLink.text.substring(f), isEmpty);
+      footLink.type('\x1b[O');
+      await clock.flushMicrotasks();
+      foot.notify(note);
+      expect(
+        footLink.text.substring(f),
+        '\x1b]777;notify;Build;\x1b\\',
+      );
+    });
   });
 }

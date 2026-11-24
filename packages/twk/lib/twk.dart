@@ -63,6 +63,9 @@ export 'package:twk_core/twk_core.dart'
         BidiReordering,
         Clock,
         ClockElapsed,
+        DesktopNotification,
+        NotificationActivated,
+        NotificationUrgency,
         SystemClock,
         TerminalBackend,
         Viewport;

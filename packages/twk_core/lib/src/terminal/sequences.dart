@@ -151,30 +151,112 @@ enum Multiplexer {
   screen,
 }
 
-/// Returns a desktop notification of [title] and [body] in [protocol],
-/// wrapped for [multiplexer].
+/// How urgent a desktop notification is: OSC 99's `u`, which the desktop
+/// may show it by (a critical one stays until dismissed).
+enum NotificationUrgency {
+  /// It can wait.
+  low,
+
+  /// As any other.
+  normal,
+
+  /// It should be seen now.
+  critical,
+}
+
+/// A desktop notification (`WindowBackend.notify`): a [title] and a [body],
+/// and what OSC 99 also carries, which the other protocols leave out.
+final class DesktopNotification {
+  /// A notification of [title] and [body].
+  const DesktopNotification(
+    this.title, {
+    this.body = '',
+    this.id,
+    this.urgency = NotificationUrgency.normal,
+    this.whenUnfocused = false,
+    this.appName = '',
+    this.icon = '',
+  });
+
+  /// Its title, on one line.
+  final String title;
+
+  /// Its text; a line break is kept by OSC 99 and is a space elsewhere.
+  final String body;
+
+  /// Its id among the app's: one sent under the id of one still shown
+  /// replaces it (OSC 99), and `WindowBackend.closeNotification` takes it
+  /// down. Letters, digits and `_-+.`, the rest dropped; null for one of
+  /// its own, which `WindowBackend.notify` returns.
+  final String? id;
+
+  /// How urgent it is (OSC 99's `u`).
+  final NotificationUrgency urgency;
+
+  /// Whether it is shown only while the terminal's window doesn't have the
+  /// focus: OSC 99's `o=unfocused` where the terminal takes it, else as
+  /// the focus reports say (`FocusEvent`), the window taken to have the
+  /// focus without them.
+  final bool whenUnfocused;
+
+  /// The name of the app it comes from (OSC 99's `f`), which the desktop
+  /// shows with it; empty for none.
+  final String appName;
+
+  /// The name of an icon of the desktop's theme (OSC 99's `n`), as the
+  /// freedesktop icon names go: `dialog-information`, `mail-unread`;
+  /// empty for none.
+  final String icon;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DesktopNotification &&
+      other.title == title &&
+      other.body == body &&
+      other.id == id &&
+      other.urgency == urgency &&
+      other.whenUnfocused == whenUnfocused &&
+      other.appName == appName &&
+      other.icon == icon;
+
+  @override
+  int get hashCode =>
+      Object.hash(title, body, id, urgency, whenUnfocused, appName, icon);
+
+  @override
+  String toString() => 'DesktopNotification($title, $body)';
+}
+
+/// Returns [notification] in [protocol], wrapped for [multiplexer].
 ///
 /// Empty for [NotificationProtocol.none] or with nothing to show. Control
 /// characters and the blanks around each text are removed; a line break in
 /// the body is kept by OSC 99 and is a space elsewhere, as a tab is. The
 /// title is cut to 256 bytes of UTF-8 and the body to 1024, between
-/// graphemes, ending with `…`. OSC 9 shows `title: body`; OSC 777 shows a
-/// body without a title as the title, and `,` for `;`, which would end its
-/// field. OSC 99 sends the title and the body as two sequences under [id]
-/// (letters, digits and `_-+.`, the rest dropped): a notification with the
-/// same id that is still shown is replaced. [NotificationProtocol.bell]
-/// is BEL alone, which a multiplexer rings on the terminal outside as its
-/// own bell, unwrapped.
+/// graphemes, ending with `…`. OSC 9 shows `title: body`, its text starting
+/// with a space where it would start as a ConEmu command (`4;`); OSC 777
+/// shows a body without a title as the title, and `,` for `;`, which would
+/// end its field. OSC 99 sends the title and the body as two sequences
+/// under [id] (letters, digits and `_-+.`, the rest dropped): a
+/// notification with the same id that is still shown is replaced. The
+/// first carries the rest: the urgency, `o=unfocused` where [unfocused]
+/// (the terminal takes it), the app's name and the icon's in base64, and
+/// `a=focus,report` where [report] (the terminal then answers a click with
+/// `OSC 99 ; i=id ; ST`, `NotificationActivated`). The others carry the
+/// title and the body only. [NotificationProtocol.bell] is BEL alone,
+/// which a multiplexer rings on the terminal outside as its own bell,
+/// unwrapped.
 String notifySequence(
-  String title,
-  String body, {
+  DesktopNotification notification, {
   required NotificationProtocol protocol,
   Multiplexer multiplexer = Multiplexer.none,
   String id = '1',
+  bool unfocused = false,
+  bool report = false,
 }) {
-  var t = _cut(_plain(title, lines: false), 256);
+  var t = _cut(_plain(notification.title, lines: false), 256);
   var b = _cut(
-    _plain(body, lines: protocol == NotificationProtocol.osc99),
+    _plain(notification.body, lines: protocol == NotificationProtocol.osc99),
     1024,
   );
   if (t.isEmpty && b.isEmpty) {
@@ -187,7 +269,9 @@ String notifySequence(
     case NotificationProtocol.bell:
       return '\x07';
     case NotificationProtocol.osc9:
-      s = '\x1b]9;${[t, b].where((p) => p.isNotEmpty).join(': ')}\x1b\\';
+      final text = [t, b].where((p) => p.isNotEmpty).join(': ');
+      // `9;4;...` is ConEmu's progress, `9;9;...` its directory
+      s = '\x1b]9;${_conEmu.hasMatch(text) ? ' ' : ''}$text\x1b\\';
     case NotificationProtocol.osc777:
       if (t.isEmpty) {
         (t, b) = (b, '');
@@ -196,22 +280,58 @@ String notifySequence(
           '\x1b]777;notify;${t.replaceAll(';', ',')};'
           '${b.replaceAll(';', ',')}\x1b\\';
     case NotificationProtocol.osc99:
-      final i = 'i=${id.replaceAll(RegExp(r'[^\w+.-]'), '')}';
+      final n = notification;
+      String b64(String v) => base64.encode(utf8.encode(v));
+      final keys = [
+        'i=${notificationWireId(id)}',
+        if (t.isNotEmpty && b.isNotEmpty) 'd=0',
+        if (report) 'a=focus,report',
+        if (unfocused) 'o=unfocused',
+        if (n.urgency != NotificationUrgency.normal)
+          'u=${n.urgency == NotificationUrgency.low ? 0 : 2}',
+        if (_plain(n.appName, lines: false) case final f when f.isNotEmpty)
+          'f=${b64(f)}',
+        if (_plain(n.icon, lines: false) case final i when i.isNotEmpty)
+          'n=${b64(i)}',
+      ].join(':');
+      final i = 'i=${notificationWireId(id)}';
       final sb = StringBuffer();
       if (t.isNotEmpty) {
-        sb.write('\x1b]99;$i${b.isEmpty ? '' : ':d=0'};$t\x1b\\');
+        sb.write('\x1b]99;$keys;$t\x1b\\');
       }
       if (b.isNotEmpty) {
+        final head = t.isEmpty ? keys : i;
         sb.write(
           b.contains('\n')
-              ? '\x1b]99;$i:p=body:e=1;${base64.encode(utf8.encode(b))}\x1b\\'
-              : '\x1b]99;$i:p=body;$b\x1b\\',
+              ? '\x1b]99;$head:p=body:e=1;${b64(b)}\x1b\\'
+              : '\x1b]99;$head:p=body;$b\x1b\\',
         );
       }
       s = sb.toString();
   }
   return passthroughSequence(s, multiplexer);
 }
+
+/// The text of OSC 9 a terminal would take for a ConEmu command: a number
+/// and `;`.
+final _conEmu = RegExp(r'^\d+;');
+
+/// [id] as OSC 99 carries it: letters, digits and `_-+.`, the rest dropped.
+String notificationWireId(String id) => id.replaceAll(RegExp(r'[^\w+.-]'), '');
+
+/// OSC 99's `p=close` for the notification of [id], wrapped for
+/// [multiplexer], which takes it down where it is still shown (kitty);
+/// empty for any other protocol, which can't.
+String closeNotificationSequence(
+  String id, {
+  required NotificationProtocol protocol,
+  Multiplexer multiplexer = Multiplexer.none,
+}) => protocol == NotificationProtocol.osc99
+    ? passthroughSequence(
+        '\x1b]99;i=${notificationWireId(id)}:p=close;\x1b\\',
+        multiplexer,
+      )
+    : '';
 
 /// The shapes of the mouse pointer OSC 22 sets ([pointerShapeSequence]),
 /// by the names of CSS's `cursor` ([css]), as kitty's protocol names them,

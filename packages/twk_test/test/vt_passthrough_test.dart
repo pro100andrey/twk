@@ -5,7 +5,12 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:twk_core/twk_core.dart'
-    show Multiplexer, NotificationProtocol, clipboardSequence, notifySequence;
+    show
+        DesktopNotification,
+        Multiplexer,
+        NotificationProtocol,
+        clipboardSequence,
+        notifySequence;
 import 'package:twk_test/vt.dart';
 
 /// The top row of a fresh emulator fed [s], at once or byte by byte.
@@ -31,8 +36,7 @@ void main() {
       expect(shown('a${copy}b'), 'ab', reason: m.name);
       expect(shown('a${copy}b', byByte: true), 'ab', reason: m.name);
       final note = notifySequence(
-        'Build',
-        'done',
+        const DesktopNotification('Build', body: 'done'),
         protocol: NotificationProtocol.osc99,
         multiplexer: m,
       );
