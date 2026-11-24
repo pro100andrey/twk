@@ -40,6 +40,35 @@ void main() {
         'vte 0.80.2',
       );
       expect('${identifyTerminal(const {'TERM': 'xterm'})}', 'unknown');
+      expect(
+        '${identifyTerminal(const {}, version: 'Konsole')}',
+        'konsole',
+      );
+    });
+
+    test('not by those variables under a TERM of another terminal, which '
+        'was started from theirs', () {
+      for (final term in ['st-256color', 'linux']) {
+        expect(
+          identifyTerminal({
+            'TERM': term,
+            'KONSOLE_VERSION': '260803',
+            'VTE_VERSION': '8002',
+          }).terminal,
+          isNull,
+          reason: term,
+        );
+      }
+      for (final term in ['xterm-256color', 'konsole-256color', 'tmux']) {
+        expect(
+          identifyTerminal({
+            'TERM': term,
+            'KONSOLE_VERSION': '260803',
+          }).terminal,
+          KnownTerminal.konsole,
+          reason: term,
+        );
+      }
     });
 
     test('a name told, a TERM or a TERM_PROGRAM of another terminal comes '
@@ -180,6 +209,16 @@ void main() {
       ]) {
         expect(info.caps.synchronizedOutput, isFalse);
       }
+    });
+
+    test('a terminal that answers DECRQM 2026 no has none, though its '
+        'variables name Konsole 26.04 on', () async {
+      final info = await probe(const {
+        'TERM': 'xterm-256color',
+        'KONSOLE_VERSION': '260803',
+      }, mode: 0);
+      expect(info.caps.synchronizedOutput, isFalse);
+      expect(info.sources['synchronizedOutput'], CapabilitySource.answered);
     });
 
     test('a terminal that answers DECRQM has what it answers', () async {

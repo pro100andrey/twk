@@ -550,9 +550,15 @@ bool sextantsFor(Map<String, String> env, {String version = ''}) {
   if (version.startsWith('WezTerm ')) {
     return dottedAtLeast(version.substring(8), const [20210814]);
   }
+  // a terminal told by its name has what the table says; one told by the
+  // variables a terminal it was started from may have left, that or what
+  // the variables below say
   final identity = identifyTerminal(env, version: version);
-  if (identity.terminal != null) {
-    return identity.has(TerminalFeature.sextants);
+  if (identity.has(TerminalFeature.sextants)) {
+    return true;
+  }
+  if (identity.terminal != null && version.isNotEmpty) {
+    return false;
   }
   if (term == 'xterm-kitty' ||
       term == 'xterm-ghostty' ||

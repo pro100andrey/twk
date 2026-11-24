@@ -227,7 +227,9 @@ final class TerminalDeclaration {
   final bool? leftRightMargins;
 
   /// Whether it splits text into cells by grapheme clusters
-  /// (`TerminalInfo.textMode`), as mode 2027 says.
+  /// (`TerminalInfo.textMode`), as mode 2027 says. Declared, it is not
+  /// told mode 2027 (`TerminalInfo.graphemeMode` is still what it
+  /// answered): it clusters without being asked to.
   final bool? graphemes;
 
   /// Whether its ICH and DCH shift a row as xterm's do

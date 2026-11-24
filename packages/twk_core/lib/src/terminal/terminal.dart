@@ -1650,8 +1650,11 @@ final class Terminal
     // where each capability below came from (TerminalInfo.sources)
     final sources = <String, CapabilitySource>{};
     // [value] as [declaredValue] declares it, else as mode [mode] was
-    // answered (where asked), else as [known] holds, else as [guessed] by
-    // the environment, else false; its source kept as [name]
+    // answered yes (where asked), else as [known] holds where the mode was
+    // not answered (a fact of the table is of a terminal that answers no
+    // DECRQM for it: one that answers no is not that terminal), else as
+    // [guessed] by the environment, else as the mode was answered no, else
+    // [assumed]; its source kept as [name]
     bool resolve(
       String name, {
       bool? declaredValue,
@@ -1666,7 +1669,10 @@ final class Terminal
           true,
           CapabilitySource.answered,
         ),
-        _ when known => (true, CapabilitySource.known),
+        _ when known && (mode == null || !modes.containsKey(mode)) => (
+          true,
+          CapabilitySource.known,
+        ),
         _ when guessed => (true, CapabilitySource.environment),
         _ when mode != null && modes.containsKey(mode) => (
           false,

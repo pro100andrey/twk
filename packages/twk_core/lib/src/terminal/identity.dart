@@ -109,7 +109,9 @@ final class TerminalIdentity {
 /// ([termNamesItsOwnTerminal]), then a `TERM_PROGRAM` other than tmux's:
 /// either names a terminal, and the variables a terminal sets for its
 /// programs (`KONSOLE_VERSION`, `VTE_VERSION`) are then those of the
-/// terminal it was started from. Then those variables.
+/// terminal it was started from. Then those variables, where `TERM` is
+/// one those terminals set, a multiplexer's or not told: under another
+/// (`st-256color`) they too are of the terminal it was started from.
 TerminalIdentity identifyTerminal(
   Map<String, String> env, {
   String version = '',
@@ -117,10 +119,10 @@ TerminalIdentity identifyTerminal(
   if (version.isNotEmpty &&
       !version.startsWith('tmux') &&
       !version.startsWith('screen')) {
-    if (version.startsWith('Konsole ')) {
+    if (version.startsWith('Konsole')) {
       return TerminalIdentity(
         KnownTerminal.konsole,
-        _dotted(version.substring(8)),
+        _dotted(version.substring(7).trimLeft()),
       );
     }
     if (version.startsWith('VTE(')) {
@@ -136,6 +138,9 @@ TerminalIdentity identifyTerminal(
   }
   final program = env['TERM_PROGRAM'] ?? '';
   if (program.isNotEmpty && program != 'tmux') {
+    return TerminalIdentity.unknown;
+  }
+  if (!_termOfKonsoleOrVte(env['TERM'] ?? '')) {
     return TerminalIdentity.unknown;
   }
   final konsole = _number(env['KONSOLE_VERSION']);
@@ -155,6 +160,19 @@ TerminalIdentity identifyTerminal(
   }
   return TerminalIdentity.unknown;
 }
+
+/// Whether [term], a `TERM`, may be one Konsole or VTE sets (`xterm-256color`
+/// by default, `konsole-256color` as a profile may name it) or a
+/// multiplexer's inside them, or is not told: any other (`st-256color`,
+/// `linux`) is a terminal's that was started from them and inherited their
+/// variables.
+bool _termOfKonsoleOrVte(String term) =>
+    term.isEmpty ||
+    term.startsWith('xterm') ||
+    term.startsWith('konsole') ||
+    term.startsWith('vte') ||
+    term.startsWith('tmux') ||
+    term.startsWith('screen');
 
 /// Whether [term], a `TERM`, is a terminal's own name, set by that
 /// terminal (kitty, Ghostty, foot, Alacritty, Contour, WezTerm): it comes

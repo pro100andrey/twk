@@ -70,6 +70,20 @@ void main() {
     expect(torn, isEmpty);
   });
 
+  test('content scrolled down with its rows, then within a rectangle of '
+      'them, then shifted along its row, came by every move: no tear', () {
+    final vt = Vt(6, 3)..feed(utf8.encode('\x1b[1;5HF'));
+    final torn = _torn(
+      vt,
+      '\x1b[1;2r\x1b[1T\x1b[r'
+      '\x1b[?69h\x1b[2;3r\x1b[3;6s\x1b[1T\x1b[r\x1b[s\x1b[?69l'
+      '\x1b[3;1H\x1b[2P\x1b[3;1H\x1b[K',
+      moves: const [0, 2, -1, 0, 6, 1, 3, -1, 2, 6],
+    );
+    expect(vt.lines.map((l) => l.trim()), ['', '', '']);
+    expect(torn, isEmpty);
+  });
+
   test('whole rows scrolled where no move was asked for (a scroll the '
       'presenter detected) move as one: no tear', () {
     final vt = Vt(4, 4);

@@ -119,8 +119,8 @@ final class TearCheck {
   }
 
   /// Whether cell ([x], [y]) shows what the scrolls and shifts covering
-  /// it before [s] brought there, as [k]: each alone, and all of them in
-  /// turn.
+  /// it before [s] brought there, as [k]: each alone, all of them in turn,
+  /// and along the path back through each that covers where it came from.
   bool _brought(_Screen s, int x, int y, int k) {
     final w = vt.width;
     final h = vt.height;
@@ -136,6 +136,22 @@ final class TearCheck {
       dy += r.by;
       dx += r.dx;
       if (was(x - dx, y + dy) || was(x - r.dx, y + r.by)) {
+        return true;
+      }
+    }
+    // the path back through every move, the last first: content a move
+    // brought to where a later one took it from (rows scrolled down, a
+    // rectangle in them scrolled again, the row then shifted)
+    var px = x;
+    var py = y;
+    for (var m = s.moved - 1; m >= 0; m--) {
+      final r = _moved[m];
+      if (py < r.top || py >= r.bottom || px < r.left || px >= r.right) {
+        continue;
+      }
+      px -= r.dx;
+      py += r.by;
+      if (was(px, py)) {
         return true;
       }
     }

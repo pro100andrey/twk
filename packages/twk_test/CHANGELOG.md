@@ -32,7 +32,8 @@ Added:
   synchronized updates (DEC 2026) may show while a frame is drawn. Every
   screen between the frame's steps is held to the screen before it and after
   it: a cell showing content that is in it neither before nor after, and
-  that no scroll the app asked for or row shift brought there, such as the
+  that no scroll the app asked for or row shift brought there, alone or one
+  after another (rows scrolled, a rectangle of them, the row shifted), such as the
   cells beside a rectangle scrolled as whole rows, is reported; a space,
   what an erase leaves, is not. `Vt.onStep`, `Vt.onScroll` and `Vt.onShift`
   say when the emulator took a step outside a synchronized update, moved

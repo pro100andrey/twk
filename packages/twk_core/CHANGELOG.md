@@ -168,6 +168,9 @@ Fixed:
   passed on, now gets its pointer shapes, progress and sextants too, and a
   terminal started from Konsole that names itself (VS Code's) no longer
   gets Konsole's lines or notifications by the variable it inherited.
+  Nor does one whose `TERM` is neither Konsole's nor VTE's (`st-256color`),
+  and a terminal that answers DECRQM 2026 no has none, whatever the table
+  says of the terminal its variables name.
 - On a terminal without synchronized output (DEC 2026) a scroll view
   narrower than the screen no longer tears while the frame is drawn: its
   rectangle was scrolled as whole rows and the cells beside it (a sidebar,

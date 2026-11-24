@@ -428,6 +428,16 @@ void main() {
       tears: true,
     );
     runFuzz(
+      'no synchronized output, left and right margins: no screen between '
+      'the steps of a frame torn',
+      seeds: 200,
+      caps: const TerminalCaps(
+        synchronizedOutput: false,
+        leftRightMargins: true,
+      ),
+      tears: true,
+    );
+    runFuzz(
       'scroll detection: one block, short moves',
       seeds: 200,
       tune: (p) => p
