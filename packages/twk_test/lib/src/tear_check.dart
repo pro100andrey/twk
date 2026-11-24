@@ -13,8 +13,10 @@ import '../vt.dart';
 /// it shows what it showed before the frame or what it shows after it, a
 /// space (what an erase or a scroll leaves before a cell is written: a
 /// flicker at most, which no terminal without synchronized updates
-/// avoids), or, in what a scroll or a shift of a row's cells (ICH, DCH)
-/// moved, the content they brought there so far.
+/// avoids), or, in what a scroll moved, the content the scrolls so far
+/// brought there. A shift of a row's cells (ICH, DCH) brings nothing: the
+/// presenter shifts a row only to put its glyphs where the frame has them,
+/// so one shifted to another cell is torn.
 ///
 /// What a scroll moved is the rectangle of the move the app asked for
 /// (`moves` of [begin], as [Surface.pendingScrolls] records them) where
@@ -121,6 +123,8 @@ final class TearCheck {
   /// Whether cell ([x], [y]) shows what the scrolls and shifts covering
   /// it before [s] brought there, as [k]: each alone, all of them in turn,
   /// and along the path back through each that covers where it came from.
+  /// A row shift (ICH, DCH) brings nothing: what it moved is to be where
+  /// the frame leaves it.
   bool _brought(_Screen s, int x, int y, int k) {
     final w = vt.width;
     final h = vt.height;
@@ -130,6 +134,9 @@ final class TearCheck {
         fx >= 0 && fx < w && fy >= 0 && fy < h && _before[fy * w + fx] == k;
     for (var m = 0; m < s.moved; m++) {
       final r = _moved[m];
+      if (r.dx != 0) {
+        continue; // a shift: below
+      }
       if (y < r.top || y >= r.bottom || x < r.left || x >= r.right) {
         continue;
       }
@@ -141,13 +148,18 @@ final class TearCheck {
     }
     // the path back through every move, the last first: content a move
     // brought to where a later one took it from (rows scrolled down, a
-    // rectangle in them scrolled again, the row then shifted)
+    // rectangle in them scrolled again)
     var px = x;
     var py = y;
     for (var m = s.moved - 1; m >= 0; m--) {
       final r = _moved[m];
       if (py < r.top || py >= r.bottom || px < r.left || px >= r.right) {
         continue;
+      }
+      if (r.dx != 0) {
+        // what a row shift (ICH, DCH) moved is to be where the frame has
+        // it: a glyph it takes elsewhere shows there until written over
+        return false;
       }
       px -= r.dx;
       py += r.by;

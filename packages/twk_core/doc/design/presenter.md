@@ -36,11 +36,14 @@
 * on a terminal without `DEC 2026` (`TerminalCaps.synchronizedOutput`
   off) a frame may be shown before it ends, so every screen between its
   steps shows each cell as it was, as it will be, a blank, or what a
-  scroll or a row shift moved there — never a cell the frame leaves as it
-  is moved away: no rectangle is scrolled as whole rows there (`_widens`),
-  as its scroll would carry the cells beside it along until they are
-  written again (a sidebar shown shifted); full-width scrolls, DECSLRM
-  rectangles and ICH/DCH shifts stay, moving only what moves. twk_test's
+  scroll moved there — never a cell the frame leaves as it is moved away:
+  no rectangle is scrolled as whole rows there (`_widens`), as its scroll
+  would carry the cells beside it along until they are written again (a
+  sidebar shown shifted); full-width scrolls and DECSLRM rectangles stay,
+  moving only what moves. A row is shifted (ICH/DCH, `_tryRowShift`)
+  there only where each glyph it moves lands on the cell the frame has it
+  in, as a key typed into a field does: a shift that took one elsewhere
+  showed it there until written over. twk_test's
   `TearCheck` holds the fuzz to this (`presenter_fuzz_test.dart`, no
   synchronized output);
 * a full frame (the first one, after a resize or `invalidate()`) with

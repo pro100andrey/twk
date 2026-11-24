@@ -177,6 +177,10 @@ Fixed:
   a file list) were written back only afterwards, so a terminal that drew
   mid-frame showed them moved with the rows. There it is now re-diffed
   instead, as on a terminal with DECSLRM it is scrolled within margins.
+  A row is shifted there (ICH/DCH) only where each glyph it moves lands
+  where the frame has it: a shift that explained most of a changed row
+  showed the rest of its glyphs in cells they were not to be in until
+  written over. It is also fewer bytes: 0.2 % over the presenter's scenes.
 - A second `Terminal.open` while the first is still opening is refused with
   its own message (await the first), not the one for a terminal that can be
   suspended or closed.

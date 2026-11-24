@@ -32,11 +32,12 @@ Added:
   synchronized updates (DEC 2026) may show while a frame is drawn. Every
   screen between the frame's steps is held to the screen before it and after
   it: a cell showing content that is in it neither before nor after, and
-  that no scroll the app asked for or row shift brought there, alone or one
-  after another (rows scrolled, a rectangle of them, the row shifted), such as the
-  cells beside a rectangle scrolled as whole rows, is reported; a space,
-  what an erase leaves, is not. `Vt.onStep`, `Vt.onScroll` and `Vt.onShift`
-  say when the emulator took a step outside a synchronized update, moved
+  that no scroll the app asked for brought there, alone or one after
+  another (rows scrolled, a rectangle of them), such as the cells beside a
+  rectangle scrolled as whole rows, is reported; a space, what an erase
+  leaves, is not. A row shift (ICH, DCH) brings nothing: a glyph it moved
+  is to be where the frame leaves it. `Vt.onStep`, `Vt.onScroll` and
+  `Vt.onShift` say when the emulator took a step outside a synchronized update, moved
   rows and shifted a row's cells (ICH, DCH).
 - `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
   process in a pseudo-terminal on driven time. `d.start(program, size:,

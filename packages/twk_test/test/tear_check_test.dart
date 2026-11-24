@@ -71,17 +71,28 @@ void main() {
   });
 
   test('content scrolled down with its rows, then within a rectangle of '
-      'them, then shifted along its row, came by every move: no tear', () {
-    final vt = Vt(6, 3)..feed(utf8.encode('\x1b[1;5HF'));
-    final torn = _torn(
-      vt,
-      '\x1b[1;2r\x1b[1T\x1b[r'
-      '\x1b[?69h\x1b[2;3r\x1b[3;6s\x1b[1T\x1b[r\x1b[s\x1b[?69l'
-      '\x1b[3;1H\x1b[2P\x1b[3;1H\x1b[K',
-      moves: const [0, 2, -1, 0, 6, 1, 3, -1, 2, 6],
-    );
+      'them, came by both moves: no tear; shifted along its row then to a '
+      'cell the frame leaves blank, it is torn', () {
+    const scrolls =
+        '\x1b[1;2r\x1b[1T\x1b[r'
+        '\x1b[?69h\x1b[2;3r\x1b[3;6s\x1b[1T\x1b[r\x1b[s\x1b[?69l';
+    const moves = [0, 2, -1, 0, 6, 1, 3, -1, 2, 6];
+    var vt = Vt(6, 3)..feed(utf8.encode('\x1b[1;5HF'));
+    expect(_torn(vt, '$scrolls\x1b[3;5H\x1b[K', moves: moves), isEmpty);
     expect(vt.lines.map((l) => l.trim()), ['', '', '']);
-    expect(torn, isEmpty);
+    vt = Vt(6, 3)..feed(utf8.encode('\x1b[1;5HF'));
+    expect(
+      _torn(
+        vt,
+        '$scrolls\x1b[3;1H\x1b[2P\x1b[3;1H\x1b[K',
+        moves: moves,
+      ),
+      [
+        startsWith('step 12 of 14: (2,2) "F"'),
+        startsWith('step 13 of 14: (2,2) "F"'),
+        contains('row 2 from column 0 by -2'),
+      ],
+    );
   });
 
   test('whole rows scrolled where no move was asked for (a scroll the '
@@ -99,8 +110,20 @@ void main() {
     expect(torn, isEmpty);
   });
 
-  test('a row shifted by ICH and written over, and a cell erased before it '
-      'is written, are no tear', () {
+  test('a row shifted by ICH to where the frame has its cells, and a cell '
+      'erased before it is written, are no tear', () {
+    final vt = Vt(6, 1)..feed(utf8.encode('abcd'));
+    final torn = _torn(
+      vt,
+      '\x1b[1;2H\x1b[1@\x1b[1;2HX\x1b[1;5H\x1b[K\x1b[1;5Hd',
+      moves: const [],
+    );
+    expect(vt.lines, ['aXbcd']);
+    expect(torn, isEmpty);
+  });
+
+  test('a glyph a row shift took to a cell the frame writes over is torn '
+      'until written', () {
     final vt = Vt(6, 1)..feed(utf8.encode('abcd'));
     final torn = _torn(
       vt,
@@ -108,7 +131,8 @@ void main() {
       moves: const [],
     );
     expect(vt.lines, ['aXbccd']);
-    expect(torn, isEmpty);
+    expect(torn, isNotEmpty);
+    expect(torn.first, contains('(4,0) "d"'));
   });
 
   test('a cell the frame leaves as it is, written over in a step, is torn', () {
