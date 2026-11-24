@@ -32,8 +32,10 @@ and `cellPixelHeight` (0 where the terminal told none).
   a clip, they are not shown (the cells stay blank); drawn over, they
   are dropped, their pixels left in the cells still reserved until they
   are painted again;
-* a frame that writes images is a synchronized update; a frame without
-  images does no work for them (`PresentStats.images` counts those a
+* a frame that writes images is a synchronized update where the terminal
+  has them (DEC 2026); on one without, an image deleted and placed again
+  may blink while the frame is drawn; a frame without images does no work
+  for them (`PresentStats.images` counts those a
   frame sent or placed again).
 
 The protocol: `TerminalOptions.graphics`, else `TWK_GRAPHICS` (`kitty`,

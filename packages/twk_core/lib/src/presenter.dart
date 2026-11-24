@@ -2918,11 +2918,15 @@ final class Presenter {
   /// like it). Not where the rows are not the
   /// screen's whole rows (a fixed viewport short of an edge), an image the
   /// terminal shows is in them (sixel and iTerm2 pixels are not known to
-  /// move with the rows) or a wide glyph is cut at the edges.
+  /// move with the rows) or a wide glyph is cut at the edges; nor where
+  /// frames are not atomic ([TerminalCaps.synchronizedOutput]): the cells
+  /// beside the rectangle show moved with the rows until the frame writes
+  /// them again, which a terminal that draws mid-frame shows torn.
   @pragma('vm:never-inline')
   bool _widens(Surface back, int top, int bottom, int by, int x0, int x1) {
     final w = width;
-    if (bottom - top < 2 ||
+    if (!caps.synchronizedOutput ||
+        bottom - top < 2 ||
         !_wholeRows ||
         _cutsWideGlyph(top, bottom, x0, x1) ||
         (_shown.isNotEmpty && _scrollsImage(top, bottom, 0, w))) {

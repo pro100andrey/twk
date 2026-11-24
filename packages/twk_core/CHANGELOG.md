@@ -145,6 +145,12 @@ Changed:
 
 Fixed:
 
+- On a terminal without synchronized output (DEC 2026) a scroll view
+  narrower than the screen no longer tears while the frame is drawn: its
+  rectangle was scrolled as whole rows and the cells beside it (a sidebar,
+  a file list) were written back only afterwards, so a terminal that drew
+  mid-frame showed them moved with the rows. There it is now re-diffed
+  instead, as on a terminal with DECSLRM it is scrolled within margins.
 - A second `Terminal.open` while the first is still opening is refused with
   its own message (await the first), not the one for a terminal that can be
   suspended or closed.

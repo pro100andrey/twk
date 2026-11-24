@@ -454,6 +454,11 @@ final class Vt {
   /// bottom margin, the rows that come in blank.
   void Function(int top, int bottom, int left, int right, int by)? onScroll;
 
+  /// Called as ICH or DCH shifts a row's cells: those of row `row` from
+  /// column `from` to the right edge by `by` columns right, left where
+  /// negative, the cells that come in blank.
+  void Function(int row, int from, int by)? onShift;
+
   void _stepped() {
     if (syncDepth == 0) {
       onStep?.call();
@@ -1606,6 +1611,7 @@ final class Vt {
       _err('ICH inside a wide glyph');
     }
     final n = count.clamp(0, width - cx);
+    onShift?.call(cy, cx, n);
     for (var x = width - 1; x >= cx + n; x--) {
       row[x].copyFrom(row[x - n]);
     }
@@ -1643,6 +1649,7 @@ final class Vt {
     if (cx + n < width && row[cx + n].role == -1) {
       _err('DCH splits a wide glyph');
     }
+    onShift?.call(cy, cx, -n);
     if (konsoleLines) {
       _deleteKonsole(row, n);
       return;

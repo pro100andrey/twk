@@ -168,13 +168,18 @@ void runFuzz(
     } else {
       expect(rectScroll, 0);
     }
-    if (caps.hardwareScroll && !caps.leftRightMargins) {
+    if (caps.hardwareScroll &&
+        caps.synchronizedOutput &&
+        !caps.leftRightMargins) {
       // a rectangle the terminal has no margins for: whole rows
       expect(
         widened,
         greaterThan(0),
         reason: 'rectangle scroll as whole rows never exercised',
       );
+    } else if (!caps.synchronizedOutput) {
+      // the cells beside it would show moved until written again
+      expect(widened, 0, reason: 'rectangle scrolled as whole rows unsynced');
     }
     // Coverage counters: show that each fast path actually ran.
     // ignore: avoid_print
@@ -421,9 +426,6 @@ void main() {
       seeds: 300,
       caps: const TerminalCaps(synchronizedOutput: false),
       tears: true,
-      // seed 0 frame 12: a rectangle (columns 4-15) scrolled as whole rows
-      // moves the cells beside it with them (_widens)
-      skip: 'torn by the widened scroll until presenter-nonatomic',
     );
     runFuzz(
       'scroll detection: one block, short moves',

@@ -31,10 +31,12 @@ Added:
 - `TearCheck` (`package:twk_test/vt.dart`): what a terminal without
   synchronized updates (DEC 2026) may show while a frame is drawn. Every
   screen between the frame's steps is held to the screen before it and after
-  it; a cell the frame leaves as it is that shows anything else, such as the
-  cells beside a rectangle scrolled as whole rows, is reported. `Vt.onStep`
-  and `Vt.onScroll` say when the emulator took a step outside a synchronized
-  update and when it moved rows.
+  it: a cell showing content that is in it neither before nor after, and
+  that no scroll the app asked for or row shift brought there, such as the
+  cells beside a rectangle scrolled as whole rows, is reported; a space,
+  what an erase leaves, is not. `Vt.onStep`, `Vt.onScroll` and `Vt.onShift`
+  say when the emulator took a step outside a synchronized update, moved
+  rows and shifted a row's cells (ICH, DCH).
 - `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
   process in a pseudo-terminal on driven time. `d.start(program, size:,
   profile:, env:, driven:, inline:)` returns a `DriverApp`: `press`, `type`,

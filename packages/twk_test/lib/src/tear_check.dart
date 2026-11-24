@@ -1,8 +1,6 @@
 /// @docImport 'package:twk_core/twk_core.dart';
 library;
 
-import 'dart:typed_data';
-
 import '../vt.dart';
 
 /// What a terminal without synchronized updates (DEC 2026) may show while
@@ -10,12 +8,13 @@ import '../vt.dart';
 /// held to the screen before the frame and the one after it.
 ///
 /// [begin] before the frame is fed to the [vt], [end] after it: [end]
-/// lists the cells of those screens that are torn. A cell is not torn
-/// where it shows what it showed before the frame or what it shows after
-/// it; where the frame changes it, a space, or what its row showed
-/// elsewhere (a row shifted by ICH or DCH); in what a scroll moved, the
-/// content the scrolls so far brought there or a blank one exposed. A cell
-/// the frame leaves as it is shows nothing else: that is the tear.
+/// lists the cells of those screens that are torn, showing content that
+/// is there neither before the frame nor after it. A cell is not torn where
+/// it shows what it showed before the frame or what it shows after it, a
+/// space (what an erase or a scroll leaves before a cell is written: a
+/// flicker at most, which no terminal without synchronized updates
+/// avoids), or, in what a scroll or a shift of a row's cells (ICH, DCH)
+/// moved, the content they brought there so far.
 ///
 /// What a scroll moved is the rectangle of the move the app asked for
 /// (`moves` of [begin], as [Surface.pendingScrolls] records them) where
@@ -45,7 +44,7 @@ final class TearCheck {
   /// tuples in the rows of the app's surface, which start at row
   /// [rowOffset] of the [vt] (an inline region below what it printed).
   void begin({List<int> moves = const [], int rowOffset = 0}) {
-    final (:keys, blank: _, :texts) = _keys();
+    final (:keys, :texts) = _keys();
     _before = keys;
     _beforeTexts = texts;
     _screens.clear();
@@ -54,7 +53,8 @@ final class TearCheck {
     _rowOffset = rowOffset;
     vt
       ..onStep = _step
-      ..onScroll = _scroll;
+      ..onScroll = _scroll
+      ..onShift = _shift;
   }
 
   /// Stops watching, the frame fed: the cells of the screens between its
@@ -63,8 +63,9 @@ final class TearCheck {
   List<String> end({int limit = 5}) {
     vt
       ..onStep = null
-      ..onScroll = null;
-    final (keys: after, blank: _, :texts) = _keys();
+      ..onScroll = null
+      ..onShift = null;
+    final (keys: after, :texts) = _keys();
     String row(List<String> t, int y) =>
         t.sublist(y * vt.width, (y + 1) * vt.width).join();
     final w = vt.width;
@@ -82,10 +83,8 @@ final class TearCheck {
           if (k == _before[i] || k == after[i]) {
             continue;
           }
-          if (_before[i] != after[i] && (s.texts[i] == ' ' || _fromRow(y, k))) {
-            // a cell the frame changes, erased or its row shifted (ICH,
-            // DCH) before it is drawn
-            continue;
+          if (s.texts[i] == ' ') {
+            continue; // erased or exposed, not yet written
           }
           if (_brought(s, x, y, k)) {
             continue;
@@ -104,57 +103,48 @@ final class TearCheck {
     return out.isEmpty ? out : (out..add(_scrolls()));
   }
 
-  static String _report(_Moved m) =>
-      'rows ${m.top}-${m.bottom - 1} by ${m.by} (columns '
-      '${m.termLeft}-${m.termRight - 1}, asked ${m.left}-${m.right - 1})';
+  static String _report(_Moved m) => m.dx != 0
+      ? 'row ${m.top} from column ${m.left} by ${m.dx} columns'
+      : 'rows ${m.top}-${m.bottom - 1} by ${m.by} (columns '
+            '${m.termLeft}-${m.termRight - 1}, asked '
+            '${m.left}-${m.right - 1})';
 
   /// The scrolls the terminal made and the moves asked for, for a report.
   String _scrolls() {
     final scrolls = [
       for (final m in _moved) _report(m),
     ];
-    return 'the terminal scrolled ${scrolls.join('; ')}; '
+    return 'the terminal moved ${scrolls.join('; ')}; '
         'moves asked (top, bottom, n, x0, x1): $_moves';
   }
 
-  /// Whether row [y] showed [k] somewhere before the frame.
-  bool _fromRow(int y, int k) {
+  /// Whether cell ([x], [y]) shows what the scrolls and shifts covering
+  /// it before [s] brought there, as [k]: each alone, and all of them in
+  /// turn.
+  bool _brought(_Screen s, int x, int y, int k) {
     final w = vt.width;
-    for (var i = y * w; i < (y + 1) * w; i++) {
-      if (_before[i] == k) {
+    final h = vt.height;
+    var dy = 0;
+    var dx = 0;
+    bool was(int fx, int fy) =>
+        fx >= 0 && fx < w && fy >= 0 && fy < h && _before[fy * w + fx] == k;
+    for (var m = 0; m < s.moved; m++) {
+      final r = _moved[m];
+      if (y < r.top || y >= r.bottom || x < r.left || x >= r.right) {
+        continue;
+      }
+      dy += r.by;
+      dx += r.dx;
+      if (was(x - dx, y + dy) || was(x - r.dx, y + r.by)) {
         return true;
       }
     }
     return false;
   }
 
-  /// Whether cell ([x], [y]) of [s] is a blank a scroll exposed, or what
-  /// the scrolls covering it before [s] brought there, as [k].
-  bool _brought(_Screen s, int x, int y, int k) {
-    final w = vt.width;
-    final h = vt.height;
-    var covered = false;
-    var sum = 0;
-    for (var m = 0; m < s.moved; m++) {
-      final r = _moved[m];
-      if (y < r.top || y >= r.bottom || x < r.left || x >= r.right) {
-        continue;
-      }
-      covered = true;
-      sum += r.by;
-      for (final off in [sum, r.by]) {
-        final from = y + off;
-        if (from >= 0 && from < h && _before[from * w + x] == k) {
-          return true;
-        }
-      }
-    }
-    return covered && s.blank[y * w + x] == 1;
-  }
-
   void _step() {
-    final (:keys, :blank, :texts) = _keys();
-    _screens.add(_Screen(keys, blank, texts, _moved.length));
+    final (:keys, :texts) = _keys();
+    _screens.add(_Screen(keys, texts, _moved.length));
   }
 
   void _scroll(int top, int bottom, int left, int right, int by) {
@@ -173,18 +163,22 @@ final class TearCheck {
     _moved.add(_Moved(top, bottom, left, right, by, left, right));
   }
 
-  ({List<int> keys, Uint8List blank, List<String> texts}) _keys() {
+  void _shift(int row, int from, int by) => _moved.add(
+    _Moved(row, row + 1, from, vt.width, 0, from, vt.width, dx: by),
+  );
+
+  ({List<int> keys, List<String> texts}) _keys() {
     final w = vt.width;
     final h = vt.height;
     final keys = List<int>.filled(w * h, 0);
-    final blank = Uint8List(w * h);
     final texts = List<String>.filled(w * h, '');
     for (var y = 0; y < h; y++) {
       for (var x = 0; x < w; x++) {
         final c = vt.cell(x, y);
         final i = y * w + x;
+        // the trailing half of a wide glyph is the glyph's: its lead's text
         keys[i] = Object.hash(
-          c.text,
+          c.role == -1 && x > 0 ? vt.cell(x - 1, y).text : c.text,
           c.fg,
           c.bg,
           c.ul,
@@ -193,27 +187,24 @@ final class TearCheck {
           c.link,
         );
         texts[i] = c.text;
-        if (c.text == ' ' && c.attrs == 0 && c.role == 0 && c.link == null) {
-          blank[i] = 1;
-        }
       }
     }
-    return (keys: keys, blank: blank, texts: texts);
+    return (keys: keys, texts: texts);
   }
 }
 
 /// A screen between two steps, and how many scrolls came before it.
 final class _Screen {
-  _Screen(this.keys, this.blank, this.texts, this.moved);
+  _Screen(this.keys, this.texts, this.moved);
 
   final List<int> keys;
-  final Uint8List blank;
   final List<String> texts;
   final int moved;
 }
 
-/// What a scroll moved: rows [top, bottom) by [left, right) by [by] rows;
-/// the terminal moved columns [termLeft, termRight) of those rows.
+/// What a scroll moved: rows [top, bottom) by [left, right) by [by] rows
+/// up, the terminal having moved columns [termLeft, termRight) of them; or
+/// a shift: one row's cells from [left] by [dx] columns right.
 final class _Moved {
   _Moved(
     this.top,
@@ -222,8 +213,9 @@ final class _Moved {
     this.right,
     this.by,
     this.termLeft,
-    this.termRight,
-  );
+    this.termRight, {
+    this.dx = 0,
+  });
 
   final int top;
   final int bottom;
@@ -232,4 +224,5 @@ final class _Moved {
   final int by;
   final int termLeft;
   final int termRight;
+  final int dx;
 }

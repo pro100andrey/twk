@@ -28,6 +28,7 @@ const _recorded = <String, (int, int)>{
   'no BCE': (0x38ece176, 6074635),
   'Konsole lines': (0x7e9dfbdf, 4648363),
   'no sync, no hardware scroll': (0x9cd61c16, 5106042),
+  'no sync': (0x6ab360e, 4790038),
   'one scroll block, short moves': (0xaabfb77c, 4689181),
   'no scroll detection': (0xd0703964, 4836243),
   'inline, BCE': (0x9a9a5a34, 2106469),
@@ -194,6 +195,10 @@ void main() {
         synchronizedOutput: false,
         hardwareScroll: false,
       ),
+    );
+    _check(
+      'no sync',
+      caps: const TerminalCaps(synchronizedOutput: false),
     );
     _check(
       'one scroll block, short moves',
