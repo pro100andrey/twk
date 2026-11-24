@@ -661,28 +661,38 @@ final class AppBinding implements FrameClock {
       );
     } on Object catch (error, stack) {
       _ended();
-      // a widget's error was told at the throw
-      if (error is! WidgetError) {
-        _report(error, stack, ErrorOrigin.uncaught, null);
-      }
       try {
-        _unmount();
-      } on Object catch (error, stack) {
-        // outside the app's zone now: into its log by hand
-        twkApp.logs.add(
-          LogRecord(
-            DateTime.now(),
-            LogLevel.error,
-            'a state failed to dispose as the app ended with an error',
-            error: error,
-            stack: stack,
-          ),
-        );
+        // a widget's error was told at the throw
+        if (error is! WidgetError) {
+          _report(error, stack, ErrorOrigin.uncaught, null);
+        }
+        try {
+          _unmount();
+        } on Object catch (error, stack) {
+          // outside the app's zone now: into its log by hand
+          twkApp.logs.add(
+            LogRecord(
+              DateTime.now(),
+              LogLevel.error,
+              'a state failed to dispose as the app ended with an error',
+              error: error,
+              stack: stack,
+            ),
+          );
+        }
+      } finally {
+        // after what the end logged, the hook's error and the states'
+        // dispose among it, which a driver is still to be told of
+        debug._dispose();
       }
       rethrow;
     }
     _ended();
-    _unmount();
+    try {
+      _unmount();
+    } finally {
+      debug._dispose();
+    }
   }
 
   // run has ended, whichever way: no frame callback is called any more
@@ -694,7 +704,6 @@ final class AppBinding implements FrameClock {
     _postFrame.clear();
     _framing = false;
     _waitForDue();
-    debug._dispose();
   }
 
   // the tree after run: unmounted, its states disposed
@@ -2676,7 +2685,10 @@ final class DebugAids {
     );
   }
 
+  /// Ends the aids with the app: what its log has pending is posted
+  /// first, then the events and their listeners are off.
   void _dispose() {
+    _flushLog();
     frameEvents = false;
     _overlay?.dispose();
     _console?.dispose();

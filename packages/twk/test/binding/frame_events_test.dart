@@ -10,6 +10,7 @@ import 'package:twk/log.dart' as twk show log;
 import 'package:twk/twk.dart';
 import 'package:twk_test/twk_test.dart';
 
+import 'harness.dart' show Label, Probe, ProbeState, Run;
 import 'service_extensions_test.dart' show call;
 
 typedef Json = Map<String, Object?>;
@@ -287,6 +288,44 @@ void main() {
       expect(posted, isEmpty);
     });
   });
+
+  test(
+    'what is logged as the app ends is posted before the events go off: '
+    'the hook told of the error it ended with, the states disposed',
+    () async {
+      final key = GlobalKey<ProbeState>();
+      late final Run run;
+      run = Run(
+        Probe(
+          key: key,
+          (_) => const Label('x'),
+          onDispose: () => run.logs.run(() => twk.log('disposed')),
+        ),
+        onError: (e, s, o, p) => throw StateError('hook oops'),
+      );
+      await run.settle();
+      final binding = AppBinding.of(key.currentContext!);
+      binding.debug.frameEvents = true;
+      binding.startTimer(
+        const Duration(milliseconds: 5),
+        () => throw StateError('late oops'),
+      );
+      await run.settle();
+      await run.ended().then<void>((_) {}, onError: (_) {});
+      expect(binding.debug.frameEvents, isFalse);
+      final messages = [
+        for (final batch in of('twk.log'))
+          for (final r in (batch['records']! as List).cast<Json>())
+            r['message'],
+      ];
+      expect(messages, contains('uncaught error'));
+      expect(
+        messages,
+        contains(startsWith('onError threw while told of uncaught error')),
+      );
+      expect(messages.last, 'disposed');
+    },
+  );
 
   testTwk('ext.twk.status answers what twk.frame carries, changes nothing '
       'and posts nothing', (t) async {
