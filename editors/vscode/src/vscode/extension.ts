@@ -658,7 +658,7 @@ export function activate(context: vscode.ExtensionContext): Api {
   command('twk.replayInputStop', async () => inputReplay?.stop());
 
   // A test of a recording: `twk test-from-cast`, run in the recording's
-  // project; the test it wrote is opened
+  // project; the test it wrote is opened, also when its screen files were not written
   const castTests = new CastTests({ start: startNodeProcess, command: twkCommand, projectOf, env: process.env, log });
   command('twk.testFromCast', async (uri) => {
     const file =
@@ -686,8 +686,10 @@ export function activate(context: vscode.ExtensionContext): Api {
       void vscode.window.showErrorMessage(`twk: ${name}: ${(result.error ?? '').split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
     } else {
       await vscode.window.showTextDocument(vscode.Uri.file(result.test), { preview: false });
-      if (result.said !== '') {
-        void vscode.window.showWarningMessage(`twk: ${name}: ${result.said.split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
+      // the test without its screen files (no twk_test, or its run failed) says why, before any other note
+      const note = result.goldens ?? result.said;
+      if (note !== '') {
+        void vscode.window.showWarningMessage(`twk: ${name}: ${note.split('\n')[0]}`, 'Show Output').then((b) => b && log.show(true));
       }
     }
     return result;

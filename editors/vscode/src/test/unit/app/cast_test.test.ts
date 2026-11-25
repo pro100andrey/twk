@@ -75,6 +75,7 @@ describe('CastTests', () => {
     assert.equal(result.cast, inProject('test', 'counter.cast'));
     assert.equal(result.said, 'twk test-from-cast: no markers; the last screen is checked');
     assert.equal(result.error, undefined);
+    assert.equal(result.goldens, undefined);
     assert.match(log.text, /twk test-from-cast: exit 0/);
   });
 
@@ -101,6 +102,28 @@ describe('CastTests', () => {
     assert.equal(result.cancelled, true);
     assert.equal(result.test, undefined);
     assert.ok(proc.signals.includes('SIGTERM'));
+  });
+
+  it('a test written whose screen files were not (no twk_test, or its run failed): the test, and why not', async () => {
+    const done = tests.create(file);
+    proc.say(
+      'wrote test/counter_test.dart and test/counter.cast\n' +
+        'twk test-from-cast: . has no twk_test dev dependency, so the screen files are not written; add it and run `TWK_UPDATE_GOLDENS=1 dart test test/counter_test.dart`\n',
+    );
+    proc.end({ code: 1, signal: null });
+    const result = await done;
+    assert.equal(result.test, inProject('test', 'counter_test.dart'));
+    assert.equal(result.cast, inProject('test', 'counter.cast'));
+    assert.equal(result.error, undefined);
+    assert.match(result.goldens ?? '', /has no twk_test dev dependency/);
+
+    // cancelled while its run writes them: cancelled, as any other
+    proc = new FakeProcess();
+    const abort = new AbortController();
+    const cancelled = tests.create(file, abort.signal);
+    proc.say('wrote test/counter_test.dart and test/counter.cast\n');
+    abort.abort();
+    assert.equal((await cancelled).cancelled, true);
   });
 
   it('one run per file at a time: a second ask while one runs is refused and starts nothing', async () => {

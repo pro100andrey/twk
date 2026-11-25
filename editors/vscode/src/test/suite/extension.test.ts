@@ -1339,9 +1339,11 @@ describe('a test made of a recording', () => {
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
   });
 
-  it('twk.testFromCast runs twk test-from-cast in the recording\'s project and opens the test it wrote', async () => {
-    const result = await vscode.commands.executeCommand<{ test?: string; error?: string }>('twk.testFromCast', vscode.Uri.file(castFile));
+  it("twk.testFromCast runs twk test-from-cast in the recording's project and opens the test it wrote, saying why its screen files were not written", async () => {
+    const result = await vscode.commands.executeCommand<{ test?: string; error?: string; goldens?: string }>('twk.testFromCast', vscode.Uri.file(castFile));
     assert.equal(result.error, undefined);
+    // the scratch project has no twk_test dev dependency: the test written, its screen files not
+    assert.match(result.goldens ?? '', /no twk_test dev dependency/);
     assert.equal(result.test, path.join(dir, 'test', 'hello_test.dart'));
     assert.ok(fs.existsSync(path.join(dir, 'test', 'hello.cast')), 'the recording copied beside the test');
     assert.match(fs.readFileSync(result.test!, 'utf8'), /screenFrames/);

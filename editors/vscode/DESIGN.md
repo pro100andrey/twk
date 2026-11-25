@@ -1596,11 +1596,17 @@ are twk_dev's `castTestSource` (a line of the screen at each marker of the
 recording, the last screen where there are none), so a replay stopped at a
 frame does not choose the frame checked; the command has no option for one.
 `CastTests` reads `wrote <test> and <cast>` from its output, anything else
-it said (the notes) is shown as a warning, and the test is opened. Tests:
+it said (the notes) is shown as a warning, and the test is opened. The
+command then runs the test once to write its screen files and ends with 1
+where the project has no twk_test dev dependency or that run fails, the
+test left: the result has the test and, as `goldens`, why its screen files
+were not written, which the warning shows in place of the notes; only
+where it said no `wrote` is it an error (`error`). Tests:
 `cast_test.test.ts` over a fake process (the arguments, the directory, the
-files, why none), the player's and the protocol's control; in the real VS
-Code suite "a test made of a recording" (the command, and the bar's
-control, in a project of its own; not run by the author).
+files, why none, the test without its screen files), the player's and the
+protocol's control; in the real VS Code suite "a test made of a recording"
+(the command, and the bar's control, in a project of its own without
+twk_test: the test opened, its screen files' note).
 
 **The golden** `packages/twk_dev/test/cast.golden.json` (made by running
 cast.dart on its inputs): what a `CastWriter` writes for a header and

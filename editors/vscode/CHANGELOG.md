@@ -22,6 +22,10 @@
   Debug it no longer stops on the app's `TerminalException` (the
   connection lost) with `app_binding.dart` opened, and F5's session ends
   with its panel.
+- Create a test from a recording opens the test also where its screen
+  files could not be written (no twk_test dev dependency, or the test's
+  run failed), with a warning saying why, instead of an error with the
+  test left unopened.
 
 ## 0.1.0
 

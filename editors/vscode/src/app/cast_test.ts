@@ -24,6 +24,13 @@ export interface CastTestResult {
   readonly said: string;
   /** Why no test was written. */
   readonly error?: string;
+  /**
+   * Why the screen files of the test were not written, where the test was:
+   * twk writes the test, then runs it once to write them, and ends with 1
+   * where the project has no twk_test dev dependency or that run fails,
+   * the test left in place.
+   */
+  readonly goldens?: string;
   readonly cancelled: boolean;
   /** Whether it ran none, as one was running on this recording already. */
   readonly busy?: boolean;
@@ -60,10 +67,11 @@ export class CastTests {
     // `wrote <test> and <cast>`, both relative to the project
     const wrote = lines.map((l) => WROTE.exec(l)).find((m) => m !== null);
     const said = lines.filter((l) => !WROTE.test(l)).join('\n');
-    if (run.exit.code === 0 && wrote) {
-      return { test: path.resolve(cwd, wrote[1]), cast: path.resolve(cwd, wrote[2]), said, cancelled: false };
-    }
     const why = run.problems[0] ? `cannot start ${this.deps.command()[0]}: ${run.problems[0].message}` : run.timedOut ? 'timed out' : said || `exit ${run.exit.signal ?? run.exit.code}`;
+    if (wrote && !run.cancelled) {
+      const files = { test: path.resolve(cwd, wrote[1]), cast: path.resolve(cwd, wrote[2]), said, cancelled: false };
+      return run.exit.code === 0 ? files : { ...files, goldens: why };
+    }
     return { said, error: why, cancelled: run.cancelled };
   }
 }
