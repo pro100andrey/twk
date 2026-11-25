@@ -301,7 +301,8 @@ describe("the terminal's capabilities", () => {
     const { terminal, found: f } = await found();
     assert.match(terminal.title(), /· everything/);
     assert.equal(f.get('kittyKeyboard'), 'true');
-    assert.equal(f.get('kittyKeyboardFlags'), '1');
+    // disambiguate (1) and alternate keys (4), which twk pushes always (the shortcuts of any layout)
+    assert.equal(f.get('kittyKeyboardFlags'), '5');
     assert.equal(f.get('graphics'), 'sixel');
     assert.equal(f.get('notifications'), 'osc777');
     assert.equal(f.get('repeatChar'), 'true');
