@@ -1204,9 +1204,11 @@ WebSocket):
   `scope` runs it in a new isolate of the group: new statics, the
   reloaded code, the app's own `Platform.script` (the group's root
   library: a generated host file, tried first, made it the host's, and
-  Flutter's is its `.dill`). The new binding's `ServiceExtensionAdded` is
+  Flutter's is its `.dill`), named `main, restart <n>` (a debugger lists
+  the root's `main` too). The new binding's `ServiceExtensionAdded` is
   the restart's end. The process, its VM service connection, Dart-Code's
-  session and its breakpoints stay; tens of milliseconds where a new
+  session and its breakpoints stay (the debug adapter sets them in each
+  new isolate: the suite's Dart-Code test stops at one after a restart); tens of milliseconds where a new
   process took a second through the resident compiler and four without.
   The new app's end ends the process (twk exits from the root). A twk
   with no `ext.twk.teardown` (0.3.0) restarts as below. Not ended by it:

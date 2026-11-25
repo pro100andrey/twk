@@ -51,7 +51,8 @@ Future<void> _restartWith(Function main, List<String> args) async {
     [main, args],
     onExit: exits.sendPort,
     onError: errors.sendPort,
-    debugName: 'main',
+    // apart from the root isolate's `main`, which a debugger lists too
+    debugName: 'main, restart $generation',
   );
   _restartReplacing = false;
 }

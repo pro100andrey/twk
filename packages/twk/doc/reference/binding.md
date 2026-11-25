@@ -278,8 +278,8 @@ so, kills its isolate where it is not the root, collects the garbage
 and, by the VM service's `evaluate` in
 `package:twk/src/platform/hot_restart.dart` (loaded on the VM, nothing of
 it public), runs the app's `main` again in a new isolate of the same
-group: new statics, the reloaded code, the app's own `Platform.script`.
-The root isolate is kept meanwhile, and the new app's end ends the
+group, named `main, restart <n>`: new statics, the reloaded code, the
+app's own `Platform.script`. The root isolate is kept meanwhile, and the new app's end ends the
 process. What the app left that no `dispose` ends (a child process, a
 timer of the first app) stays.
 

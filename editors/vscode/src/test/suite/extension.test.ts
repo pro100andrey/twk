@@ -1095,7 +1095,7 @@ describe('twk terminal under Dart-Code', () => {
     await shows('the app went away', 'normal');
   });
 
-  it('a save reloads the app debugged, a breakpoint set before hits after it, and a restart starts the session again', async () => {
+  it('a save reloads the app debugged, a breakpoint set before hits after it, and a restart runs it again in the same session, the breakpoint hit there too', async () => {
     const file = scratchCounter();
     // `setState` in the Up key's closure, as above
     const breakpoint = new vscode.SourceBreakpoint(new vscode.Location(file, new vscode.Position(24, 18)));
@@ -1113,24 +1113,29 @@ describe('twk terminal under Dart-Code', () => {
 
     terminal.type('\x1b[A');
     const stop = await until('stop at the breakpoint after the reload', async () => stops.find((s) => s.reason === 'breakpoint'));
-    vscode.debug.removeBreakpoints([breakpoint]);
     await session.customRequest('continue', { threadId: stop.threadId });
     await shows(terminal, 'Clicks: 1', 'alternate');
 
-    // the debug adapter has no restart of a Dart CLI app: the session ends
-    // and the same launch starts again, the new app in the same terminal
+    // a restart in the process: the app's main again in a new isolate, the
+    // session the same, its breakpoints set in the new isolate too
+    stops.length = 0;
     await vscode.commands.executeCommand('twk.hotRestart');
-    const next = await until('a new debug session', async () => {
-      const s = vscode.debug.activeDebugSession;
-      return s && s.id !== session.id ? s : undefined;
-    });
     await shows(terminal, 'Clicks: 0', 'alternate');
+    await status(api, 'running', (s) => s.state === 'running' && s.restartMs !== undefined);
+    assert.equal(vscode.debug.activeDebugSession?.id, session.id, 'the same session');
     assert.equal(newest(api), terminal, 'the same terminal');
-    await status(api, 'running');
+    terminal.type('\x1b[A');
+    const again = await until('stop at the breakpoint in the new isolate', async () => stops.find((s) => s.reason === 'breakpoint'));
+    assert.notEqual(again.threadId, stop.threadId, 'another thread: the new isolate');
+    const { threads } = (await session.customRequest('threads')) as { threads: { id: number; name: string }[] };
+    assert.equal(threads.find((t) => t.id === again.threadId)?.name, 'main, restart 1', 'named apart from the root isolate');
+    vscode.debug.removeBreakpoints([breakpoint]);
+    await session.customRequest('continue', { threadId: again.threadId });
+    await shows(terminal, 'Clicks: 1', 'alternate');
     await edit(file, "'Clicks: '", "'Taps: '");
-    await shows(terminal, 'Taps: 0', 'alternate');
+    await shows(terminal, 'Taps: 1', 'alternate');
 
-    await vscode.debug.stopDebugging(next);
+    await vscode.debug.stopDebugging(session);
     await shows(terminal, 'the app went away', 'normal');
     await until('no app reloaded', async () => (api.hots().length === 0 ? true : undefined));
   });
