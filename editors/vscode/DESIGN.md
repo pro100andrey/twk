@@ -1190,7 +1190,10 @@ WebSocket):
   reloaded into the isolate group (`reloadSources` in the root isolate);
   a compile error fails it, the app running on (status `failed`), and a
   change the VM can't reload (its notice names a class or library: a
-  class made an enum) makes it a new process's. Then `evaluate` of twk's
+  class made an enum) makes it a new process's. The app's isolate, and
+  the root, are resumed where paused (`resume`, as Flutter's restart
+  does): paused at a breakpoint, the app would run its teardown only
+  once the person pressed Continue. Then `evaluate` of twk's
   `_restartBegin()` (`package:twk/src/platform/hot_restart.dart`) keeps
   the root isolate; the binding's `ext.twk.teardown` ends the app as its
   quit does (states disposed, the terminal handed back; `runApp` never

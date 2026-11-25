@@ -1095,7 +1095,7 @@ describe('twk terminal under Dart-Code', () => {
     await shows('the app went away', 'normal');
   });
 
-  it('a save reloads the app debugged, a breakpoint set before hits after it, and a restart runs it again in the same session, the breakpoint hit there too', async () => {
+  it('a save reloads the app debugged, a breakpoint set before hits after it, and a restart runs it again in the same session, the breakpoint hit there too, a restart while paused there too', async () => {
     const file = scratchCounter();
     // `setState` in the Up key's closure, as above
     const breakpoint = new vscode.SourceBreakpoint(new vscode.Location(file, new vscode.Position(24, 18)));
@@ -1129,8 +1129,19 @@ describe('twk terminal under Dart-Code', () => {
     assert.notEqual(again.threadId, stop.threadId, 'another thread: the new isolate');
     const { threads } = (await session.customRequest('threads')) as { threads: { id: number; name: string }[] };
     assert.equal(threads.find((t) => t.id === again.threadId)?.name, 'main, restart 1', 'named apart from the root isolate');
+
+    // a restart while paused at the breakpoint: the app resumed first, as
+    // Flutter's restart does, not waiting for a continue to end
+    stops.length = 0;
+    await vscode.commands.executeCommand('twk.hotRestart');
+    await shows(terminal, 'Clicks: 0', 'alternate');
+    assert.equal(vscode.debug.activeDebugSession?.id, session.id, 'the same session');
+    terminal.type('\x1b[A');
+    const third = await until('stop at the breakpoint in the next isolate', async () => stops.find((s) => s.reason === 'breakpoint'));
+    const after = (await session.customRequest('threads')) as { threads: { id: number; name: string }[] };
+    assert.equal(after.threads.find((t) => t.id === third.threadId)?.name, 'main, restart 2');
     vscode.debug.removeBreakpoints([breakpoint]);
-    await session.customRequest('continue', { threadId: again.threadId });
+    await session.customRequest('continue', { threadId: third.threadId });
     await shows(terminal, 'Clicks: 1', 'alternate');
     await edit(file, "'Clicks: '", "'Taps: '");
     await shows(terminal, 'Taps: 1', 'alternate');

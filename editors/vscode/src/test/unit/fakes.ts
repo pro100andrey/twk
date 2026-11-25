@@ -476,6 +476,8 @@ export class FakeVm implements Vm {
   /** When set, `getVM` fails with it. */
   getVmFails: Error | undefined;
   isClosed = false;
+  /** The isolates paused at a breakpoint, until resumed. */
+  readonly paused = new Set<string>();
   /** The isolates twk's restart in the process started, the first app's being i/1. */
   private spawned = 1;
   private gone!: () => void;
@@ -490,7 +492,14 @@ export class FakeVm implements Vm {
         }
         return { isolates: [{ id: 'i/1' }] };
       case 'getIsolate':
-        return { extensionRPCs: this.extensions, rootLib: { id: 'libraries/1' }, libraries: [{ id: 'libraries/1' }, { id: 'libraries/2', uri: restartLibrary }] };
+        return {
+          extensionRPCs: this.extensions,
+          pauseEvent: { kind: this.paused.has(String(params.isolateId)) ? 'PauseBreakpoint' : 'Resume' },
+          rootLib: { id: 'libraries/1' }, libraries: [{ id: 'libraries/1' }, { id: 'libraries/2', uri: restartLibrary }],
+        };
+      case 'resume':
+        this.paused.delete(String(params.isolateId));
+        return {};
       case 'evaluate':
         if (String(params.expression).startsWith('_restartWith(')) {
           // the app's new isolate, whose binding registers its extensions soon after

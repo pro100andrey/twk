@@ -87,8 +87,23 @@ describe('HotApp', () => {
     vm.calls.length = 0;
     assert.equal(await app.restartInPlace(['a']), 'restarted');
     assert.equal(app.isolate, 'i/3');
-    assert.deepEqual(vm.calls, ['getIsolate', 'reloadSources', 'evaluate', 'ext.twk.teardown', 'kill', 'getAllocationProfile', 'evaluate', 'evaluate']);
+    assert.deepEqual(vm.calls, ['getIsolate', 'reloadSources', 'getIsolate', 'getIsolate', 'evaluate', 'ext.twk.teardown', 'kill', 'getAllocationProfile', 'evaluate', 'evaluate']);
     assert.deepEqual(statuses, ['restarting', 'restarting']);
+  });
+
+  it('a restart in the process of an app paused at a breakpoint resumes it first: paused, it would run its teardown only once the person resumed it', async () => {
+    const vm = new FakeVm(['ext.twk.reassemble', 'ext.twk.log', 'ext.twk.teardown']);
+    const app = await attach(vm);
+    vm.paused.add('i/1');
+    assert.equal(await app.restartInPlace([]), 'restarted');
+    assert.deepEqual(vm.calls.slice(vm.calls.indexOf('reloadSources')), ['reloadSources', 'getIsolate', 'resume', 'evaluate', 'ext.twk.teardown', 'getAllocationProfile', 'evaluate', 'evaluate']);
+
+    // the app restarted paused, the root running: the app alone resumed
+    vm.paused.add('i/2');
+    vm.calls.length = 0;
+    assert.equal(await app.restartInPlace([]), 'restarted');
+    assert.deepEqual(vm.calls, ['getIsolate', 'reloadSources', 'getIsolate', 'resume', 'getIsolate', 'evaluate', 'ext.twk.teardown', 'kill', 'getAllocationProfile', 'evaluate', 'evaluate']);
+    assert.equal(vm.paused.size, 0);
   });
 
   it("a restart in the process: none from a twk without ext.twk.teardown; a compile error keeps the app; a change the VM refuses, a new process's", async () => {

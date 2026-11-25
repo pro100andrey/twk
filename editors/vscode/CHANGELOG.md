@@ -13,7 +13,8 @@
 - A hot restart runs the app's `main` again in a new isolate of its
   process, as Flutter's does, where its twk has the restart in the process
   (`ext.twk.teardown`): tens of milliseconds, the debug session and its
-  breakpoints kept, the app's own `Platform.script`. A change the VM can't
+  breakpoints kept, the app's own `Platform.script`; an app paused at a
+  breakpoint is resumed first. A change the VM can't
   reload, or an older twk, restarts it as a new process as before.
 
 ## 0.1.0

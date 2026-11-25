@@ -221,6 +221,12 @@ export class HotApp implements AppService {
     }
     const bound = new Promise<void>((resolve) => this.binding.push(resolve));
     try {
+      // an app paused (at a breakpoint) runs its teardown only once
+      // resumed, and the root a new isolate only once it runs: resumed,
+      // as Flutter's restart does
+      for (const id of binding === root ? [root] : [binding, root]) {
+        await this.resumePaused(id);
+      }
       await this.evaluate(root, restartLib, '_restartBegin()');
       await this.vmService.call(teardown, { isolateId: binding });
       this.isolate = undefined;
@@ -303,6 +309,15 @@ export class HotApp implements AppService {
     return this.isolate !== undefined;
   }
 
+  /** Resumes [isolateId] where it is paused. */
+  private async resumePaused(isolateId: string): Promise<void> {
+    const isolate = await this.vmService.call('getIsolate', { isolateId });
+    const [pause] = records([isolate.pauseEvent]);
+    if (pausedToRun(pause?.kind)) {
+      await this.vmService.call('resume', { isolateId });
+    }
+  }
+
   private found(isolate: string): void {
     this.isolate = isolate;
     this.root ??= isolate;
@@ -346,6 +361,11 @@ const teardown = 'ext.twk.teardown';
 export function dartStrings(args: readonly string[]): string {
   const quoted = args.map((a) => `'${a.replace(/[\\'$]/g, (c) => `\\${c}`).replace(/\n/g, '\\n').replace(/\r/g, '\\r')}'`);
   return `const <String>[${quoted.join(', ')}]`;
+}
+
+/** The pauses a restart resumes from: all but an isolate's end, which no resume undoes. */
+function pausedToRun(kind: unknown): boolean {
+  return typeof kind === 'string' && kind.startsWith('Pause') && kind !== 'PauseExit';
 }
 
 /** The objects of [v], a JSON array; nothing else. */

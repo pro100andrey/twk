@@ -396,6 +396,8 @@ describe('HotApps', () => {
     assert.deepEqual(asked.filter((m) => m !== 'log info hot reload' && !m.startsWith('log ')), [
       'getIsolate',
       'reloadSources',
+      // paused, it would be resumed: it runs
+      'getIsolate',
       'evaluate _restartBegin()',
       'ext.twk.teardown',
       // the first app's isolate is the root, which stays
