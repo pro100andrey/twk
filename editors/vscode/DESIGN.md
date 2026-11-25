@@ -1168,6 +1168,18 @@ WebSocket):
   the app it started ended through its handle (SIGTERM, which has twk put
   the terminal back, then SIGKILL after 5 s; on Windows `taskkill /T`)
   and started again; the shell takes the new app, so the terminal stays.
+  The app is compiled through a resident frontend compiler (`dart run
+  --resident --quiet --resident-compiler-info-file=<its own>`,
+  `src/core/resident.ts`), so a restart compiles what changed: a plain
+  `dart run` compiles all of it from source each time, 3.7 s for a script
+  importing package:twk (Dart 3.14), against 1.6 s for the compiler's
+  first and 0.3 to 0.5 s for the next. The compiler is the extension's
+  own, by an info file in a directory of its own: the machine's default
+  one is shared with other tools, and ending it here would end it under
+  them. `dart run` starts it with the first run, and again where the file
+  names one that is gone; the extension ends it when it deactivates
+  (`dart compilation-server shutdown`, killed after 5 s), after the apps.
+  A VS Code that dies without deactivating leaves it running.
 - **Debug**: the launch gets `env: {TWK_DEBUG: keys, TWK_SHELL: ...}` and
   a `twkSession` field, the key of its terminal; a debug adapter tracker
   on such sessions connects to the address

@@ -106,3 +106,26 @@ describe('HotRun, waiting for the VM service', () => {
     assert.equal(clock.pending, 0);
   });
 });
+
+describe('HotRun, compiling through a resident compiler', () => {
+  it("passes the compiler's arguments to dart run, before the app's file", async () => {
+    const started: (readonly string[])[] = [];
+    const run = HotRun.start(
+      { file: '/p/bin/main.dart', cwd: '/p', onOutput: () => {}, onStatus: () => {} },
+      {
+        startProcess: (_command, args) => {
+          started.push(args);
+          return new FakeProcess(args);
+        },
+        connectVm: async (): Promise<Vm> => new FakeVm(),
+        env: {},
+        clock: new FakeClock(),
+        compilerArgs: ['--resident', '--quiet', '--resident-compiler-info-file=/c/info'],
+      },
+    );
+    await run.stop();
+    const [args] = started;
+    assert.deepEqual(args.slice(0, 4), ['run', '--resident', '--quiet', '--resident-compiler-info-file=/c/info']);
+    assert.equal(args[args.length - 1], '/p/bin/main.dart');
+  });
+});

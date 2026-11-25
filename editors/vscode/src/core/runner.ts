@@ -8,7 +8,8 @@
 // terminal. What `twk run` (twk_dev's HotRunner) does, without twk_dev:
 // any project's apps run so, and the extension sees how each reload
 // ended. No vscode import: its tests run under plain node. The process
-// and the VM service connection come from the caller ([HotRunDeps]).
+// and the VM service connection come from the caller ([HotRunDeps]), and
+// so does the resident compiler a restart compiles through (resident.ts).
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -27,6 +28,12 @@ export interface HotRunDeps {
   readonly env: Readonly<Record<string, string | undefined>>;
   /** What the wait for the app's VM service is bounded by. */
   readonly clock: Clock;
+  /**
+   * The arguments of `dart run` that have it compile the app through a
+   * resident compiler ([ResidentCompiler.runArgs]), so that a restart
+   * compiles incrementally; none: `dart run` compiles all of it each time.
+   */
+  readonly compilerArgs?: readonly string[];
 }
 
 export interface HotRunOptions {
@@ -136,6 +143,7 @@ export class HotRun {
       this.options.dart ?? 'dart',
       [
         'run',
+        ...(this.deps.compilerArgs ?? []),
         '--enable-vm-service=0',
         '--no-serve-devtools',
         '-DSILENT_VM_SERVICE=true',

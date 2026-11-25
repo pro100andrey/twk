@@ -41,6 +41,7 @@ import { isFilter } from '../webview/log_protocol';
 import { startNodeProcess } from '../core/process';
 import { projectOf } from '../core/project';
 import { describeSwitches, switchItems, switchesPicked } from '../core/switches';
+import { ResidentCompiler } from '../core/resident';
 import { HotRun } from '../core/runner';
 import { TerminalShell } from '../core/shell';
 import { VmClient } from '../core/vm';
@@ -121,10 +122,19 @@ export function activate(context: vscode.ExtensionContext): Api {
   const debug = new VsCodeDebugger();
   context.subscriptions.push(debug);
   const connectVm = (uri: string) => VmClient.connect(uri, realClock);
+  // the runs' apps compiled by a compiler kept between them: a restart
+  // compiles what changed, not all of it
+  const compiler = ResidentCompiler.create(os.tmpdir(), { startProcess: startNodeProcess, env: process.env, clock: realClock });
   const hot = new HotApps({
     terminals,
     runner: (options) => {
-      const run = HotRun.start(options, { startProcess: startNodeProcess, connectVm, env: process.env, clock: realClock });
+      const run = HotRun.start(options, {
+        startProcess: startNodeProcess,
+        connectVm,
+        env: process.env,
+        clock: realClock,
+        compilerArgs: compiler.runArgs,
+      });
       return {
         get pid() {
           return run.process?.pid;
@@ -238,6 +248,8 @@ export function activate(context: vscode.ExtensionContext): Api {
     inputReplay?.stop();
     await recordings.dispose();
     await hot.dispose();
+    // after the apps: none is compiling through it any more
+    await compiler.shutdown();
     await terminals.dispose();
   };
 

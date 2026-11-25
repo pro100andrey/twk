@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Run compiles its app through a resident frontend compiler of the
+  extension's own (`dart run --resident`), kept between runs and ended with
+  the window: a hot restart compiles what changed, 0.3 to 0.5 s where it
+  took 3.7 s for a small app.
+
 ## 0.1.0
 
 The first packaged version (a preview, `.vsix` built from this repository).

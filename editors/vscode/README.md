@@ -10,7 +10,8 @@ in a terminal of the extension's own, beside the editor.
 - **Run, Debug, F5.** Run with `dart run`; Debug through the Dart extension;
   F5 on a `"type": "twk"` launch configuration.
 - **Hot reload on save**, and hot restart (Ctrl+Alt+R, Ctrl+Alt+Shift+R): every
-  widget is rebuilt with its state kept.
+  widget is rebuilt with its state kept. Run compiles through a resident
+  compiler, so a restart compiles only what changed.
 - **What the terminal is**: presets and switches (colors, sixel and iTerm2
   images, kitty's keyboard protocol, synchronized output, notifications,
   links, the clipboard), a screen reader, and twk's debug aids.
