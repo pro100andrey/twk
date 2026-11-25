@@ -6,6 +6,8 @@
   extension's own (`dart run --resident`), kept between runs and ended with
   the window: a hot restart compiles what changed, 0.3 to 0.5 s where it
   took 3.7 s for a small app.
+- Run or Debug of a file whose app has ended takes its panel again,
+  instead of opening one more beside it.
 
 ## 0.1.0
 

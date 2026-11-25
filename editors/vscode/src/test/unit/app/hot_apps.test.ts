@@ -111,11 +111,72 @@ describe('HotApps', () => {
     assert.equal(terminal.isClosed, false, 'the terminal stays, with what the app left on it');
   });
 
-  it('two runs of one file: two terminals, two shells', async () => {
+  it('two runs of one file at once: two terminals, two shells', async () => {
     await apps.runFile(file);
     await apps.runFile(file);
     assert.equal(terminals.all().length, 2);
     assert.notEqual(runs[0].options.env!.TWK_SHELL, runs[1].options.env!.TWK_SHELL);
+  });
+
+  it("a run of a file whose app has ended takes that file's terminal again, shown", async () => {
+    await apps.runFile(file);
+    runs[0].end(0);
+    await until('the run gone', () => apps.hots().length === 0);
+    await apps.runFile(file);
+    assert.equal(terminals.all().length, 1);
+    assert.equal(runs[1].options.env!.TWK_SHELL, runs[0].options.env!.TWK_SHELL);
+    assert.equal(views[0].revealed, 1);
+    assert.equal(apps.hots()[0].terminal, terminals.all()[0]);
+    // the newest again, before a terminal made after it: what a command takes when no panel is focused
+    await apps.runFile(path.join(project, 'bin', 'other.dart'));
+    runs[2].end(0);
+    runs[1].end(0);
+    await until('the runs gone', () => apps.hots().length === 0);
+    await apps.runFile(file);
+    assert.deepEqual(
+      terminals.all().map((t) => t.name),
+      ['other.dart', 'main.dart'],
+    );
+    views[0].close();
+    await until('the third run stopped', () => runs[3].asked.includes('stop'));
+  });
+
+  it('a reused terminal is closed: its run ends', async () => {
+    await apps.runFile(file);
+    runs[0].end(0);
+    await until('the run gone', () => apps.hots().length === 0);
+    await apps.runFile(file);
+    // the new run ends with the terminal, as the first did
+    views[0].close();
+    await until('the second run stopped', () => runs[1].asked.includes('stop'));
+  });
+
+  it('a terminal an app still has, its run ended (an app started with its TWK_SHELL): not taken', async () => {
+    await apps.runFile(file);
+    const app = await App.connect(runs[0].options.env!.TWK_SHELL);
+    await app.next(ShellFrame.welcome);
+    runs[0].end(0);
+    await until('the run gone', () => apps.hots().length === 0);
+    await apps.runFile(file);
+    assert.equal(terminals.all().length, 2);
+    app.socket.destroy();
+  });
+
+  it("another file's ended run: its terminal is not taken", async () => {
+    await apps.runFile(file);
+    runs[0].end(0);
+    await until('the run gone', () => apps.hots().length === 0);
+    await apps.runFile(path.join(project, 'bin', 'other.dart'));
+    assert.equal(terminals.all().length, 2);
+  });
+
+  it('a closed terminal is not taken: a new one', async () => {
+    await apps.runFile(file);
+    views[0].close();
+    await until('the run ended', () => apps.hots().length === 0);
+    await apps.runFile(file);
+    assert.equal(terminals.all().length, 1);
+    assert.equal(views.length, 2);
   });
 
   it('closing the terminal of a run ends its app, which is restarted no more', async () => {
@@ -219,6 +280,28 @@ describe('HotApps', () => {
     assert.equal(terminals.all().length, 2);
     assert.notEqual(debug.started[0].env.TWK_SHELL, debug.started[1].env.TWK_SHELL);
     assert.notEqual(debug.started[0].twkSession, debug.started[1].twkSession);
+  });
+
+  it("a debug of a file whose session has ended takes its terminal again; the ended launch holds it no more", async () => {
+    await apps.debugFile(file);
+    const [first] = debug.sessions;
+    debug.terminate(first.id);
+    await apps.debugFile(file);
+    assert.equal(terminals.all().length, 1);
+    assert.equal(debug.started[1].env.TWK_SHELL, debug.started[0].env.TWK_SHELL);
+    assert.notEqual(debug.started[1].twkSession, debug.started[0].twkSession);
+    const second = debug.sessions[1];
+    views[0].close();
+    await until('the second session stopped', () => debug.stopped.includes(second.id));
+    assert.deepEqual(debug.stopped, [second.id], 'the ended one is not stopped again');
+  });
+
+  it('a debug launch not started yet, or a run on it: its terminal is not taken', async () => {
+    await apps.debugLaunch({ program: file, env: {}, others: {} });
+    await apps.runFile(file);
+    assert.equal(terminals.all().length, 2);
+    await apps.runFile(file);
+    assert.equal(terminals.all().length, 3);
   });
 
   it('a debug session that did not start: its terminal closed', async () => {

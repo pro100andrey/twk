@@ -177,7 +177,11 @@ export class FakeView implements TerminalView {
     }
   }
 
-  reveal(): void {}
+  /** How often it was shown again. */
+  revealed = 0;
+  reveal(): void {
+    this.revealed++;
+  }
 
   close(): void {
     if (this.closed) {

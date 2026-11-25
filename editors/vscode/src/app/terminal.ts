@@ -139,6 +139,11 @@ export class TwkTerminal implements TerminalPane, Screen {
     return this.shell.variable;
   }
 
+  /** Whether an app has it now (connected through its TWK_SHELL). */
+  get hasApp(): boolean {
+    return this.shell?.serving ?? false;
+  }
+
   reveal(): void {
     this.view.reveal();
   }
@@ -147,7 +152,7 @@ export class TwkTerminal implements TerminalPane, Screen {
   title(): string {
     const { size, choice, switches } = this.facts();
     const on = switches === '' ? '' : ` + ${switches}`;
-    const app = this.shell?.serving ? '' : ' (waiting)';
+    const app = this.hasApp ? '' : ' (waiting)';
     const recording = this.recorded ? ' · ● recording' : '';
     return `${this.name} · ${size} · ${choice}${on}${app}${recording}`;
   }

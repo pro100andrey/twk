@@ -4,7 +4,8 @@ Run and debug [twk](https://github.com/pro100andrey/twk) terminal apps (Dart)
 in a terminal of the extension's own, beside the editor.
 
 - **A twk terminal per app.** Run or Debug a Dart file and its app draws in an
-  xterm.js panel of its own, titled by the file. The app finds it through
+  xterm.js panel of its own, titled by the file; running it again once it
+  ended takes the same panel. The app finds it through
   `TWK_SHELL` in its environment, so it needs no tty: the Debug Console stays
   free of its frames and the terminal survives a hot restart.
 - **Run, Debug, F5.** Run with `dart run`; Debug through the Dart extension;

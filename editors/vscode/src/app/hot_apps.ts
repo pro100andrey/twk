@@ -62,6 +62,10 @@ export interface AppConnection {
 interface Served {
   readonly terminal: TwkTerminal;
   session: DebugSession | undefined;
+  /** Launched and not started yet, or between the two sessions of a restart: the terminal is not free. */
+  pending: boolean;
+  /** What it listens to on its terminal, ended when the terminal is taken by another launch or run. */
+  readonly listening: Disposable[];
 }
 
 export class HotApps {
@@ -69,6 +73,8 @@ export class HotApps {
   private readonly debugged = new Map<string, Hot>();
   /** The terminals of the debug launches, by their `twkSession`. */
   private readonly served = new Map<string, Served>();
+  /** The terminal each file was last run or debugged in, by its path: taken again once its app has ended. */
+  private readonly terminalOf = new Map<string, TwkTerminal>();
   private nextSession = 0;
   private readonly statuses = new Emitter<HotStatus>();
   /** An event for each status any app goes through. */
@@ -148,7 +154,7 @@ export class HotApps {
 
   /**
    * Runs the Dart file with `dart run`, its stdin and stdout pipes, in a
-   * new twk terminal (TWK_SHELL); what it prints goes to the log. With
+   * twk terminal (TWK_SHELL: [terminalFor]); what it prints goes to the log. With
    * the VM service on: a save reloads it, and it restarts in place.
    * Closing the terminal ends it.
    */
@@ -157,7 +163,7 @@ export class HotApps {
     if (!project) {
       throw new Error('no Dart file of a project open');
     }
-    const terminal = await this.deps.terminals.create(path.basename(file));
+    const terminal = await this.terminalFor(file);
     terminal.say(`\x1b[2mtwk: dart run ${path.relative(project, file)}\x1b[0m\r\n`);
     let hot: Hot | undefined;
     const run = this.deps.runner({
@@ -195,7 +201,7 @@ export class HotApps {
 
   /**
    * The launch that debugs [request]'s program with Dart-Code in the Debug
-   * Console, in a new twk terminal (TWK_SHELL in its `env`): a breakpoint
+   * Console, in a twk terminal ([terminalFor]; TWK_SHELL in its `env`): a breakpoint
    * stops the app, not the terminal. Closing the terminal ends the session.
    */
   async debugLaunch(request: DebugRequest): Promise<DartLaunch> {
@@ -204,17 +210,19 @@ export class HotApps {
     if (!project) {
       throw new Error(`${program} is in no Dart project (pubspec.yaml)`);
     }
-    const terminal = await this.deps.terminals.create(path.basename(program));
+    const terminal = await this.terminalFor(program);
     const key = `twk-${this.nextSession++}`;
-    const served: Served = { terminal, session: undefined };
+    const served: Served = { terminal, session: undefined, pending: true, listening: [] };
     this.served.set(key, served);
-    terminal.onDidDispose(() => {
-      this.served.delete(key);
-      if (served.session) {
-        void this.deps.debugger.stop(served.session).catch((e: unknown) => this.deps.log.appendLine(`twk: stopping the session failed: ${String(e)}`));
-      }
-    });
-    terminal.onDidReload(() => void (served.session && this.debugged.get(served.session.id)?.redraw()));
+    served.listening.push(
+      terminal.onDidDispose(() => {
+        this.served.delete(key);
+        if (served.session) {
+          void this.deps.debugger.stop(served.session).catch((e: unknown) => this.deps.log.appendLine(`twk: stopping the session failed: ${String(e)}`));
+        }
+      }),
+      terminal.onDidReload(() => void (served.session && this.debugged.get(served.session.id)?.redraw())),
+    );
     terminal.say(`\x1b[2mtwk: debugging ${path.relative(project, program)}\x1b[0m\r\n`);
     return {
       type: 'dart',
@@ -229,7 +237,7 @@ export class HotApps {
     };
   }
 
-  /** Debugs the Dart file in a new twk terminal ([debugLaunch]); whether the session started. */
+  /** Debugs the Dart file in a twk terminal ([debugLaunch]); whether the session started. */
   async debugFile(file: string): Promise<boolean> {
     if (!projectOf(file)) {
       throw new Error('no Dart file of a project open');
@@ -238,7 +246,11 @@ export class HotApps {
     const started = await this.deps.debugger.start(launch);
     if (!started) {
       // nothing will run in it
-      await this.served.get(launch.twkSession)?.terminal.dispose();
+      const served = this.served.get(launch.twkSession);
+      if (served) {
+        served.pending = false;
+        await served.terminal.dispose();
+      }
     }
     return started;
   }
@@ -251,6 +263,7 @@ export class HotApps {
       return;
     }
     served.session = session;
+    served.pending = false;
   }
 
   /**
@@ -287,16 +300,26 @@ export class HotApps {
             return;
           }
           app?.restarting();
+          const served = this.served.get(session.configuration.twkSession);
           let ending: Disposable | undefined;
           try {
+            // the terminal is not free while the session is between the two
+            if (served) {
+              served.pending = true;
+            }
             const ended = new Promise<void>((resolve) => {
               ending = debug.onTerminated((id) => id === session.id && resolve());
             });
             await debug.stop(session);
             await ended;
-            if (!terminal.isClosed) {
-              await debug.start(session.configuration);
+            if (!terminal.isClosed && !(await debug.start(session.configuration)) && served) {
+              served.pending = false;
             }
+          } catch (e) {
+            if (served) {
+              served.pending = false;
+            }
+            throw e;
           } finally {
             ending?.dispose();
             // one that failed may be tried again
@@ -333,6 +356,41 @@ export class HotApps {
       this.debugged.delete(session.id);
       this.removed(hot);
     }
+  }
+
+  /**
+   * The terminal [file] was last run or debugged in, shown again, where it is
+   * open and free: no app has it, and no run or debug session of the
+   * extension's is on it or on its way to it. Else a new one. A terminal
+   * for any app, a replay's, is never taken: it is no file's.
+   */
+  private async terminalFor(file: string): Promise<TwkTerminal> {
+    const last = this.terminalOf.get(file);
+    if (last && this.isFree(last)) {
+      // the launches that ended in it hold it no more
+      for (const [key, served] of this.served) {
+        if (served.terminal === last) {
+          served.listening.forEach((d) => d.dispose());
+          this.served.delete(key);
+        }
+      }
+      this.deps.terminals.taken(last);
+      last.reveal();
+      return last;
+    }
+    const terminal = await this.deps.terminals.create(path.basename(file));
+    this.terminalOf.set(file, terminal);
+    terminal.onDidDispose(() => this.terminalOf.get(file) === terminal && this.terminalOf.delete(file));
+    return terminal;
+  }
+
+  private isFree(terminal: TwkTerminal): boolean {
+    return (
+      !terminal.isClosed &&
+      !terminal.hasApp &&
+      ![...this.running].some((h) => h.terminal === terminal) &&
+      ![...this.served.values()].some((s) => s.terminal === terminal && (s.pending || s.session !== undefined))
+    );
   }
 
   /** Each app the extension reloads, or the ones of [project] only. */

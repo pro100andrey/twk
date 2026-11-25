@@ -16,7 +16,11 @@ says it was not.
 
 - **A twk terminal per app.** Each Run and each Debug opens a panel
   beside the editor with an xterm.js terminal of the extension's own,
-  titled by the file (`counter.dart · twk 80x24 · xterm.js`). The app
+  titled by the file (`counter.dart · twk 80x24 · xterm.js`); a Run or a
+  Debug of a file whose last panel is free (its app ended, no run or
+  session of the extension's on it or on its way) takes that panel again,
+  shown, with what the app before left on it (`HotApps.terminalFor`), and
+  a new one opens only while the old one is busy. The app
   finds it by `TWK_SHELL` in its environment (twk's socket terminal, the
   `twk shell` protocol), so it needs no tty: the Debug Console stays free
   of its frames, the terminal survives a hot restart, and a killed app's

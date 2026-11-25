@@ -1,5 +1,6 @@
-// The twk terminals open: one per run or debug session, each with a shell
-// of its own, opened on demand and forgotten once closed.
+// The twk terminals open: one per run or debug session (a file's next one
+// taking it again once it is free: HotApps), each with a shell of its own,
+// opened on demand and forgotten once closed.
 import { shellVariable } from '../core/address';
 import { Emitter } from '../core/events';
 import { Desktop, Log, Settings, TerminalViewFactory } from './ports';
@@ -21,9 +22,16 @@ export class Terminals {
 
   constructor(private readonly deps: TerminalsDeps) {}
 
-  /** The terminals open now, the oldest first. */
+  /** The terminals open now, the least recently made or taken again ([taken]) first. */
   all(): TwkTerminal[] {
     return [...this.open];
+  }
+
+  /** [terminal] was taken again by a new app: it is the newest now, the one a command takes where no panel is focused. */
+  taken(terminal: TwkTerminal): void {
+    if (this.open.delete(terminal)) {
+      this.open.add(terminal);
+    }
   }
 
   /** A new terminal for [name] (the file of the app it is for), serving once it settles. */
