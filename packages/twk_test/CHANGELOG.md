@@ -39,10 +39,17 @@ Added:
   that no scroll the app asked for brought there, alone or one after
   another (rows scrolled, a rectangle of them), such as the cells beside a
   rectangle scrolled as whole rows, is reported; a space, what an erase
-  leaves, is not. A row shift (ICH, DCH) brings nothing: a glyph it moved
-  is to be where the frame leaves it. `Vt.onStep`, `Vt.onScroll` and
-  `Vt.onShift` say when the emulator took a step outside a synchronized update, moved
-  rows and shifted a row's cells (ICH, DCH).
+  leaves, is not. Nor, in the inline mode, a row the frame commits as it
+  passes through the screen: what the scrolls after the step, one into the
+  scrollback at least, carry to where the frame leaves it, on the screen
+  or its line of `Vt.history`. A move asked for is matched to the
+  terminal's scroll in its direction too, and to DECSTBM with SU/SD only,
+  not to IL or DL, which move the rows down to the bottom margin. A row
+  shift (ICH, DCH) brings nothing: a glyph it moved is to be where the
+  frame leaves it. `Vt.onStep`, `Vt.onScroll` and `Vt.onShift` say when the
+  emulator took a step outside a synchronized update, moved rows (into
+  the scrollback, `scrollback`, or by IL or DL, `lines`) and shifted a
+  row's cells (ICH, DCH).
 - `package:twk_test/driver.dart`: `driverTest`, tests of a twk app as a real
   process in a pseudo-terminal on driven time. `d.start(program, size:,
   profile:, env:, driven:, inline:)` returns a `DriverApp`: `press`, `type`,

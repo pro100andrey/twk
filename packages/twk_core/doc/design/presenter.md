@@ -45,7 +45,8 @@
   in, as a key typed into a field does: a shift that took one elsewhere
   showed it there until written over. twk_test's
   `TearCheck` holds the fuzz to this (`presenter_fuzz_test.dart`, no
-  synchronized output);
+  synchronized output), the inline mode's too, where the rows a frame
+  commits pass through the screen on their way into the scrollback;
 * a full frame (the first one, after a resize or `invalidate()`) with
   `DEC 2026`: the most common blank style is painted with one `ED 2`
   (BCE), then only the other cells are written — no flash, because the

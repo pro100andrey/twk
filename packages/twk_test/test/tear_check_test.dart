@@ -28,6 +28,7 @@ List<String> _torn(Vt vt, String frame, {List<int> moves = _listUp}) {
 const _after = ['S0 bbbb', 'S1 cccc', 'S2 dddd', 'S3 eeee'];
 
 void main() {
+  group('inline', inlineTests);
   test('a rectangle scrolled as whole rows tears the cells beside it until '
       'they are written again', () {
     final vt = _screen();
@@ -140,5 +141,59 @@ void main() {
     final torn = _torn(vt, '\x1b[1;1Hx\x1b[1;1Ha', moves: const []);
     expect(vt.lines, ['ab']);
     expect(torn.first, startsWith('step 2 of 4: (0,0) "x"'));
+  });
+}
+
+/// An inline region's terminal: a screen of 6 x 3 with a scrollback.
+Vt _inline() =>
+    Vt(6, 3, scrollback: true, allowLineFeed: true)
+      ..feed(utf8.encode('r0\r\nr1\r\nr2'));
+
+void inlineTests() {
+  test('a row committed on the screen and scrolled into the scrollback '
+      'by line feeds passes through: no tear', () {
+    final vt = _inline();
+    // the row printed on the region's last row, scrolled up into the
+    // scrollback, the region written again below it
+    final torn = _torn(
+      vt,
+      '\x1b[3;1HCOMMIT\r\n\r\n\r\n\x1b[1;1Hr0\x1b[2;1Hr1\x1b[3;1Hr2',
+      moves: const [],
+    );
+    expect(vt.history.map((r) => r.map((c) => c.text).join()).last, 'COMMIT');
+    expect(torn, isEmpty);
+  });
+
+  test('a row deleted off the top (DL) is not scrolled into the scrollback: '
+      'written and deleted, it is torn', () {
+    final vt = _inline();
+    // the same row then printed again and scrolled into the scrollback by
+    // a line feed, where the deleted one is not
+    final torn = _torn(
+      vt,
+      [
+        '\x1b[1;1HGONE  \x1b[1;1H\x1b[M',
+        '\x1b[1;1HGONE  \x1b[3;1H\n',
+        '\x1b[1;1Hr1\x1b[2;1Hr2\x1b[3;1Hr3',
+      ].join(),
+      moves: const [],
+    );
+    expect(vt.history.map((r) => r.map((c) => c.text).join()).last, 'GONE  ');
+    expect(torn, isNotEmpty);
+    expect(torn.first, startsWith('step 2 of'));
+  });
+
+  test('a scroll is the move asked for only in its direction', () {
+    // the rows scrolled down (SD) where a move of the list up was asked:
+    // not that move, so the sidebar moved down with its rows, as the
+    // terminal moved it, and is no tear
+    final vt = _screen();
+    final torn = _torn(
+      vt,
+      '\x1b[1;4r\x1b[1T\x1b[r'
+      '\x1b[1;1HS0 bbbb\x1b[2;1HS1 cccc\x1b[3;1HS2 dddd\x1b[4;1HS3 eeee',
+    );
+    expect(vt.lines, _after);
+    expect(torn, isEmpty);
   });
 }

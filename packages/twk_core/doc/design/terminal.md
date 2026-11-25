@@ -66,11 +66,17 @@ was entered, the console is restored before the error propagates):
    the app as input). What a terminal does without answering a query is
    read from one identification (`identifyTerminal`, `identity.dart`: the
    name it tells, else its own `TERM`, else its `TERM_PROGRAM`, else the
-   variables a terminal sets for its programs, the first that names one)
-   and one table of known terminals with the version each fact holds from:
-   Konsole 26.04 on has DEC 2026 though it answers no DECRQM at all, so its
-   frames are synchronized too (not inside a multiplexer, whose answer is
-   the one that counts);
+   variables a terminal sets for its programs, the first that names one,
+   kitty's, Ghostty's, WezTerm's and iTerm2's before Konsole's and VTE's,
+   and those only under a `TERM` those terminals set) and one table of
+   known terminals with the version each fact holds from, and whether one
+   whose version is not told has it (kitty under its own `TERM` tells
+   none). Every rule that decides by a terminal's name asks it: colors,
+   styled underlines, notifications, pointer shapes, progress, sextants,
+   bidi, images, REP, graphemes, Terminal.app's DCH. Konsole 26.04 on has
+   DEC 2026 though it answers no DECRQM at all, so its frames are
+   synchronized too (not inside a multiplexer, whose answer is the one that
+   counts);
 3. resize: in-band (2048) when available, otherwise SIGWINCH; on Windows
    the size is polled every 100 ms (a cheap console call);
 4. alternate screen (or the inline mode, [§1.12](inline.md)), mouse (on the

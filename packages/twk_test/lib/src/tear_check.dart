@@ -14,16 +14,21 @@ import '../vt.dart';
 /// space (what an erase or a scroll leaves before a cell is written: a
 /// flicker at most, which no terminal without synchronized updates
 /// avoids), or, in what a scroll moved, the content the scrolls so far
-/// brought there. A shift of a row's cells (ICH, DCH) brings nothing: the
-/// presenter shifts a row only to put its glyphs where the frame has them,
-/// so one shifted to another cell is torn.
+/// brought there, or, where the scrolls after it take it into the
+/// scrollback ([Vt.history]) or through a scroll into it, what they carry
+/// to where the frame leaves it, on its line of the scrollback or the
+/// screen after it: the rows an inline region commits pass through the
+/// screen so. A shift of a row's cells (ICH,
+/// DCH) brings nothing: the presenter shifts a row only to put its glyphs
+/// where the frame has them, so one shifted to another cell is torn.
 ///
 /// What a scroll moved is the rectangle of the move the app asked for
 /// (`moves` of [begin], as [Surface.pendingScrolls] records them) where
-/// the terminal scrolled its rows, whole or within margins; else what the
-/// terminal scrolled. So a rectangle scrolled as whole rows (DECSTBM,
-/// without margins on its sides) is torn beside the rectangle wherever the
-/// rows there differ: those cells move although nothing asked them to.
+/// the terminal scrolled its rows (DECSTBM and SU/SD), whole or within
+/// margins; else what the terminal scrolled (IL, DL, a line feed). So a
+/// rectangle scrolled as whole rows (DECSTBM, without margins on its
+/// sides) is torn beside the rectangle wherever the rows there differ:
+/// those cells move although nothing asked them to.
 ///
 /// Steps inside a synchronized update are not looked at: the terminal
 /// shows none of them.
@@ -88,7 +93,7 @@ final class TearCheck {
           if (s.texts[i] == ' ') {
             continue; // erased or exposed, not yet written
           }
-          if (_brought(s, x, y, k)) {
+          if (_brought(s, x, y, k) || _carried(s, x, y, k, after)) {
             continue;
           }
           out.add(
@@ -170,25 +175,100 @@ final class TearCheck {
     return false;
   }
 
+  /// Whether cell ([x], [y]) of [s] shows, as [k], what the scrolls after
+  /// [s], one of them into the scrollback at least, carry to where the
+  /// frame leaves it: the screen [after] it, or the line of the scrollback
+  /// such a scroll took it to. Through a row shift nothing is carried (see
+  /// [_brought]).
+  bool _carried(_Screen s, int x, int y, int k, List<int> after) {
+    final w = vt.width;
+    var py = y;
+    var scrolledBack = false;
+    for (var m = s.moved; m < _moved.length; m++) {
+      final r = _moved[m];
+      if (py < r.top || py >= r.bottom || x < r.left || x >= r.right) {
+        continue;
+      }
+      if (r.dx != 0) {
+        return false;
+      }
+      scrolledBack = scrolledBack || r.history != null;
+      final from = py;
+      py -= r.by;
+      if (py >= r.top && py < r.bottom) {
+        continue;
+      }
+      // out of what moved: into the scrollback, the top rows of a scroll
+      // of the whole screen, else gone
+      final line = r.history;
+      if (line == null || py >= r.top) {
+        return false;
+      }
+      // row `from` of the screen, its top row 0, went to line `line + from`
+      final at = line + from;
+      return at < vt.history.length && _historyKey(at, x) == k;
+    }
+    return scrolledBack && py >= 0 && py < vt.height && after[py * w + x] == k;
+  }
+
+  /// The key of cell [x] of line [line] of the scrollback, as [_keys]
+  /// makes a screen's.
+  int _historyKey(int line, int x) {
+    final row = vt.history[line];
+    if (x >= row.length) {
+      return 0;
+    }
+    final c = row[x];
+    return _key(c, c.role == -1 && x > 0 ? row[x - 1].text : c.text);
+  }
+
+  static int _key(VtCell c, String text) =>
+      Object.hash(text, c.fg, c.bg, c.ul, c.attrs, c.role, c.link);
+
   void _step() {
     final (:keys, :texts) = _keys();
     _screens.add(_Screen(keys, texts, _moved.length));
   }
 
-  void _scroll(int top, int bottom, int left, int right, int by) {
-    // the move asked for whose rows the terminal scrolled: its rectangle
-    // is what moves
-    for (var i = 0; i + 4 < _moves.length; i += 5) {
+  void _scroll(
+    int top,
+    int bottom,
+    int left,
+    int right,
+    int by, {
+    required bool scrollback,
+    required bool lines,
+  }) {
+    // its top rows into the scrollback, from its line now on
+    final history = scrollback ? vt.history.length : null;
+    // the move asked for whose rows the terminal scrolled (DECSTBM and
+    // SU/SD, exactly those rows by as many): its rectangle is what moves.
+    // Not a scroll into the scrollback, which no move asks for (an inline
+    // region commits rows so), nor IL or DL, which move the rows down to
+    // the bottom margin, whichever the app meant (an inline region scrolls
+    // with a DL and an IL)
+    for (var i = 0; !scrollback && !lines && i + 4 < _moves.length; i += 5) {
       if (_moves[i] + _rowOffset == top &&
           _moves[i + 1] + _rowOffset == bottom &&
-          _moves[i + 2].abs() == by.abs()) {
+          _moves[i + 2] == by) {
         _moved.add(
-          _Moved(top, bottom, _moves[i + 3], _moves[i + 4], by, left, right),
+          _Moved(
+            top,
+            bottom,
+            _moves[i + 3],
+            _moves[i + 4],
+            by,
+            left,
+            right,
+            history: history,
+          ),
         );
         return;
       }
     }
-    _moved.add(_Moved(top, bottom, left, right, by, left, right));
+    _moved.add(
+      _Moved(top, bottom, left, right, by, left, right, history: history),
+    );
   }
 
   void _shift(int row, int from, int by) => _moved.add(
@@ -205,14 +285,9 @@ final class TearCheck {
         final c = vt.cell(x, y);
         final i = y * w + x;
         // the trailing half of a wide glyph is the glyph's: its lead's text
-        keys[i] = Object.hash(
+        keys[i] = _key(
+          c,
           c.role == -1 && x > 0 ? vt.cell(x - 1, y).text : c.text,
-          c.fg,
-          c.bg,
-          c.ul,
-          c.attrs,
-          c.role,
-          c.link,
         );
         texts[i] = c.text;
       }
@@ -231,8 +306,10 @@ final class _Screen {
 }
 
 /// What a scroll moved: rows [top, bottom) by [left, right) by [by] rows
-/// up, the terminal having moved columns [termLeft, termRight) of them; or
-/// a shift: one row's cells from [left] by [dx] columns right.
+/// up, the terminal having moved columns [termLeft, termRight) of them,
+/// its top rows into the scrollback from its line [history] on where it
+/// scrolled the whole screen up; or a shift: one row's cells from [left] by
+/// [dx] columns right.
 final class _Moved {
   _Moved(
     this.top,
@@ -243,6 +320,7 @@ final class _Moved {
     this.termLeft,
     this.termRight, {
     this.dx = 0,
+    this.history,
   });
 
   final int top;
@@ -253,4 +331,5 @@ final class _Moved {
   final int termLeft;
   final int termRight;
   final int dx;
+  final int? history;
 }

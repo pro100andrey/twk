@@ -208,6 +208,7 @@ void runInlineFuzz(
   TerminalCaps caps = const TerminalCaps(),
   bool vtBce = true,
   bool sweep = false,
+  bool tears = false,
 }) {
   test(name, () {
     var scrolls = 0;
@@ -271,7 +272,22 @@ void runInlineFuzz(
           sweepHarness(hs);
         }
         hs.presenter.screenHeight = rnd.nextInt(4) == 0 ? 0 : screenH;
-        hs.frame();
+        if (tears) {
+          // a terminal without synchronized updates may show any screen
+          // between the frame's steps: the rows committed pass through it
+          final check = TearCheck(hs.vt)
+            ..begin(moves: hs.surface.pendingScrolls, rowOffset: hs.top);
+          hs.frame();
+          final torn = check.end();
+          if (torn.isNotEmpty) {
+            fail(
+              'torn (seed $seed f $f, ${w}x$h on ${w}x$screenH):\n'
+              '${torn.join('\n')}',
+            );
+          }
+        } else {
+          hs.frame();
+        }
         scrolls += hs.presenter.stats.scrollOps;
         widened += hs.presenter.stats.widenedScrollOps;
         committed += hs.presenter.stats.committedRows;
@@ -307,6 +323,9 @@ void runInlineFuzz(
     expect(committed, greaterThan(0), reason: 'no row was committed');
     if (caps.hardwareScroll) {
       expect(scrolls, greaterThan(0), reason: 'IL/DL scrolls never ran');
+    }
+    if (caps.hardwareScroll && caps.synchronizedOutput) {
+      // not without: the cells beside the rectangle would show moved
       expect(
         widened,
         greaterThan(0),
@@ -478,6 +497,12 @@ void main() {
         synchronizedOutput: false,
         hardwareScroll: false,
       ),
+    );
+    runInlineFuzz(
+      'no synchronized output: no screen between the steps of a frame torn',
+      seeds: 300,
+      caps: const TerminalCaps(synchronizedOutput: false),
+      tears: true,
     );
     runInlineFuzz(
       'left/right margins announced',
