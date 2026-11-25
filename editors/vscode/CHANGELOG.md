@@ -16,6 +16,8 @@
   breakpoints kept, the app's own `Platform.script`; an app paused at a
   breakpoint is resumed first, which the output says. A change the VM can't
   reload, or an older twk, restarts it as a new process as before.
+- A new `launch.json` made for "Dart in a twk Terminal" has its
+  configuration once, not twice.
 
 ## 0.1.0
 

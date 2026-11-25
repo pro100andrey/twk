@@ -16,7 +16,12 @@ export const twkDebugType = 'twk';
 /** What the providers hand the use case: a new terminal and the launch for it. */
 export type LaunchFor = (request: DebugRequest) => Promise<DartLaunch>;
 
-/** The first configuration of a new launch.json, and the snippet. */
+/**
+ * The configuration of F5 with no launch.json, and of the Run and Debug
+ * view's list. A new launch.json's is package.json's
+ * `initialConfigurations`, the same, alone: VS Code adds what a provider's
+ * `provideDebugConfigurations` gives to those, which wrote it twice.
+ */
 export const currentFile: vscode.DebugConfiguration = {
   type: twkDebugType,
   request: 'launch',
@@ -27,7 +32,6 @@ export const currentFile: vscode.DebugConfiguration = {
 /** Registers the providers: `twk` turned into Dart, Dart's with `twkTerminal` given their terminal. */
 export function registerLaunches(launchFor: LaunchFor, error: (message: string) => void): vscode.Disposable {
   const twk: vscode.DebugConfigurationProvider = {
-    provideDebugConfigurations: () => [currentFile],
     resolveDebugConfiguration: (_folder, c) => {
       // F5 with no launch.json: the current file
       const dart = asDartConfiguration(c.type ? c : { ...currentFile, ...c });
