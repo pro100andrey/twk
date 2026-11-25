@@ -18,7 +18,8 @@ export type HotStatus =
   | { state: 'reloading' }
   | { state: 'reloaded'; libraries: number; ms: number }
   | { state: 'failed'; errors: string }
-  | { state: 'restarting' }
+  /** Under way; [resumed], once the restart in the process resumed the app from a pause of that kind (`breakpoint`, `exception`...), its code run on before its end. */
+  | { state: 'restarting'; resumed?: string }
   | { state: 'ended' };
 
 /** The library of twk's hot restart in the process, reached by `evaluate` (twk's `platform/hot_restart.dart`). */
@@ -225,7 +226,10 @@ export class HotApp implements AppService {
       // resumed, and the root a new isolate only once it runs: resumed,
       // as Flutter's restart does
       for (const id of binding === root ? [root] : [binding, root]) {
-        await this.resumePaused(id);
+        const resumed = await this.resumePaused(id);
+        if (resumed) {
+          this.status({ state: 'restarting', resumed });
+        }
       }
       await this.evaluate(root, restartLib, '_restartBegin()');
       await this.vmService.call(teardown, { isolateId: binding });
@@ -309,13 +313,16 @@ export class HotApp implements AppService {
     return this.isolate !== undefined;
   }
 
-  /** Resumes [isolateId] where it is paused. */
-  private async resumePaused(isolateId: string): Promise<void> {
+  /** Resumes [isolateId] where it is paused: the pause's kind, `PauseBreakpoint` as `breakpoint`; undefined where it ran. */
+  private async resumePaused(isolateId: string): Promise<string | undefined> {
     const isolate = await this.vmService.call('getIsolate', { isolateId });
     const [pause] = records([isolate.pauseEvent]);
-    if (pausedToRun(pause?.kind)) {
-      await this.vmService.call('resume', { isolateId });
+    const kind = pause?.kind;
+    if (!pausedToRun(kind)) {
+      return undefined;
     }
+    await this.vmService.call('resume', { isolateId });
+    return kind.slice('Pause'.length).replace(/^./, (c) => c.toLowerCase());
   }
 
   private found(isolate: string): void {
@@ -364,7 +371,7 @@ export function dartStrings(args: readonly string[]): string {
 }
 
 /** The pauses a restart resumes from: all but an isolate's end, which no resume undoes. */
-function pausedToRun(kind: unknown): boolean {
+function pausedToRun(kind: unknown): kind is string {
   return typeof kind === 'string' && kind.startsWith('Pause') && kind !== 'PauseExit';
 }
 

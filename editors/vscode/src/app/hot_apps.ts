@@ -139,6 +139,8 @@ export class HotApps {
       log.appendLine(`twk: hot reload failed:\n${s.errors}`);
     } else if (s.state === 'reloaded' || (s.state === 'running' && s.restartMs !== undefined)) {
       log.appendLine(describe(s));
+    } else if (s.state === 'restarting' && s.resumed) {
+      log.appendLine(`twk: the app was paused (${s.resumed}): resumed for the restart`);
     }
     this.deps.status.show(s, this.running.size > 0);
     this.statuses.fire(s);

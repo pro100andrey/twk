@@ -27,8 +27,23 @@ async function settled(done: () => boolean): Promise<void> {
 
 describe('HotApp', () => {
   const statuses: HotStatus['state'][] = [];
-  const attach = (vm: Vm, restart = () => {}) => HotApp.attach(vm, (s) => statuses.push(s.state), restart);
-  beforeEach(() => (statuses.length = 0));
+  /** The pauses a restart resumed the app from. */
+  const resumed: string[] = [];
+  const attach = (vm: Vm, restart = () => {}) =>
+    HotApp.attach(
+      vm,
+      (s) => {
+        statuses.push(s.state);
+        if (s.state === 'restarting' && s.resumed) {
+          resumed.push(s.resumed);
+        }
+      },
+      restart,
+    );
+  beforeEach(() => {
+    statuses.length = 0;
+    resumed.length = 0;
+  });
 
   it('reloads the sources, then has the app reassemble, then says so in its log', async () => {
     const vm = new FakeVm();
@@ -104,6 +119,9 @@ describe('HotApp', () => {
     assert.equal(await app.restartInPlace([]), 'restarted');
     assert.deepEqual(vm.calls, ['getIsolate', 'reloadSources', 'getIsolate', 'resume', 'getIsolate', 'evaluate', 'ext.twk.teardown', 'kill', 'getAllocationProfile', 'evaluate', 'evaluate']);
     assert.equal(vm.paused.size, 0);
+    // said each time: the app's code ran on past its pause
+    assert.deepEqual(statuses, ['restarting', 'restarting', 'restarting', 'restarting']);
+    assert.deepEqual(resumed, ['breakpoint', 'breakpoint']);
   });
 
   it("a restart in the process: none from a twk without ext.twk.teardown; a compile error keeps the app; a change the VM refuses, a new process's", async () => {

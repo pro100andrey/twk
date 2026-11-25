@@ -409,6 +409,27 @@ describe('HotApps', () => {
     assert.equal(status.states.at(-1), 'running');
   });
 
+  it('a restart of an app paused at a breakpoint says it resumed it: its code ran on before its end', async () => {
+    connectVm = async () => {
+      const vm = new FakeVm(['ext.twk.reassemble', 'ext.twk.log', 'ext.twk.teardown']);
+      vms.push(vm);
+      return vm;
+    };
+    await apps.debugLaunch({ program: file, env: {}, others: {} }).then((launch) => debug.start(launch));
+    debug.vmService(debug.sessions[0]);
+    await until('the VM service', () => status.states.includes('running'));
+    vms[0].paused.add('i/1');
+    await apps.restartAll();
+    assert.match(log.text, /twk: the app was paused \(breakpoint\): resumed for the restart\n(.*\n)*twk: restarted \(\d+ ms\)/);
+    assert.equal(vms[0].paused.size, 0);
+    assert.equal(debug.started.length, 1, 'the session kept');
+
+    // not said where it ran
+    const before = log.text;
+    await apps.restartAll();
+    assert.doesNotMatch(log.text.slice(before.length), /paused/);
+  });
+
   it("a save reloads the saved file's project's apps, the saves of a moment as one, after 100 ms", async () => {
     await apps.runFile(file);
     const [run] = runs;
