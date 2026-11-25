@@ -419,12 +419,41 @@ function editorAt(file: vscode.Uri, line: number): Promise<vscode.TextEditor> {
 /** Whether [screen] shows a cell of a background of its own: twk's outline. */
 const outlined = (screen: Snapshot) => (screen.backgrounds ?? []).some((r) => r.includes('#'));
 
-/** Presses and releases the left button on [text]'s first cell (SGR), as a click on the terminal does for an app that reports the mouse. */
-function clickOn(terminal: TwkTerminal, screen: Snapshot, text: string): void {
+/**
+ * Presses and releases the left button on [text]'s first cell, as a click
+ * on the terminal does for an app that reports the mouse: by SGR in cells,
+ * or in pixels (the middle of the cell) where the app switched SGR-Pixels
+ * on, mode 1016, which twk does where the terminal tells a cell's size, as
+ * the view does by default. Both the mode and the size are the view's
+ * answers (its replies reach the app too, which takes them as it took the
+ * first).
+ */
+async function clickOn(terminal: TwkTerminal, screen: Snapshot, text: string): Promise<void> {
   const row = screen.rows.findIndex((r) => r.includes(text));
   assert.ok(row >= 0, `"${text}" on the screen:\n${screen.rows.join('\n')}`);
   const column = screen.rows[row].indexOf(text);
-  terminal.type(`\x1b[<0;${column + 1};${row + 1}M\x1b[<0;${column + 1};${row + 1}m`);
+  const cell = await pixelCell(terminal);
+  const [x, y] = cell ? [column * cell.width + Math.floor(cell.width / 2) + 1, row * cell.height + Math.floor(cell.height / 2) + 1] : [column + 1, row + 1];
+  terminal.type(`\x1b[<0;${x};${y}M\x1b[<0;${x};${y}m`);
+}
+
+/** A cell's size in pixels where the app has the view report the mouse in pixels (SGR-Pixels, mode 1016 set); undefined where in cells. */
+async function pixelCell(terminal: TwkTerminal): Promise<{ width: number; height: number } | undefined> {
+  let answers = '';
+  const listening = terminal.onDidInput((b) => (answers += Buffer.from(b).toString('latin1')));
+  try {
+    // DECRQM of 1016, the cell's size (CSI 16 t), and DA1, answered last
+    await terminal.write(Buffer.from('\x1b[?1016$p\x1b[16t\x1b[c'));
+    await until('the answer to DA1', async () => (/\x1b\[\?[\d;]*c/.test(answers) ? true : undefined), 10000);
+    if (!/\x1b\[\?1016;1\$y/.test(answers)) {
+      return undefined;
+    }
+    const size = /\x1b\[6;(\d+);(\d+)t/.exec(answers);
+    assert.ok(size, `SGR-Pixels on, a cell's size told: ${JSON.stringify(answers)}`);
+    return { width: Number(size[2]), height: Number(size[1]) };
+  } finally {
+    listening.dispose();
+  }
 }
 
 /** The inspector's view on the screen, in Run and Debug. */
@@ -475,7 +504,7 @@ describe('the twk inspector', () => {
     assert.ok(!vscode.window.visibleTextEditors.some((e) => e.document.uri.fsPath === file.fsPath), 'nothing opened');
     await vscode.commands.executeCommand('twk.inspector.pick');
     assert.equal(api.inspector.picking, true, 'its button pressed');
-    clickOn(terminal, screen, 'Count: 1');
+    await clickOn(terminal, screen, 'Count: 1');
     const picked = await until('the widget picked, selected in the view', async () => {
       const n = api.inspectorView.treeView.selection[0];
       return n?.name === 'Text' ? n : undefined;
@@ -493,7 +522,7 @@ describe('the twk inspector', () => {
     // object there is the Box's _DecoratedBox (a widget of its own since the
     // Box draws through one), made inside the Box: the pick selects that
     // widget, whose creation site is the call of the Box
-    clickOn(terminal, screen, '╭─');
+    await clickOn(terminal, screen, '╭─');
     await until('the Box picked', async () => (api.inspectorView.treeView.selection[0]?.name === '_DecoratedBox' ? true : undefined));
     await until('where the _DecoratedBox was made', async () => {
       const seen = vscode.window.visibleTextEditors.map((e) => e.document.uri.fsPath);
@@ -1047,6 +1076,15 @@ describe('twk terminal under Dart-Code', () => {
     });
   });
 
+  // a test that failed leaves no session for the next: each starts its own
+  afterEach(async function () {
+    if (this.currentTest?.state !== 'failed' || !vscode.debug.activeDebugSession) {
+      return;
+    }
+    await vscode.debug.stopDebugging();
+    await until('no debug session left', async () => (vscode.debug.activeDebugSession ? undefined : true), 30000);
+  });
+
   it('stops at a breakpoint with the app on the twk terminal, which keeps its screen', async () => {
     const file = vscode.Uri.file(path.join(project, 'example', 'counter.dart'));
     // `setState` in `'up': () => setState(() => _n++),`: a breakpoint in the
@@ -1166,12 +1204,15 @@ describe('twk terminal under Dart-Code', () => {
     const source = fs.readFileSync(file.fsPath, 'utf8').split('\n');
     await vscode.commands.executeCommand('twk.inspector.pick');
     const screen = await terminal.snapshot();
-    clickOn(terminal, screen, 'Count: 1');
+    await clickOn(terminal, screen, 'Count: 1');
     await until('the widget picked', async () => (api.inspectorView.treeView.selection[0]?.name === 'Text' ? true : undefined));
     await editorAt(file, source.findIndex((l) => l.includes('Text.rich(')));
-    clickOn(terminal, screen, '╭─');
-    await until('the Box picked', async () => (api.inspectorView.treeView.selection[0]?.name === 'Box' ? true : undefined));
-    await editorAt(file, source.findIndex((l) => l.includes('child: Box(')));
+    await clickOn(terminal, screen, '╭─');
+    // the Box's border is its _DecoratedBox's, made in the Box (as in Run)
+    await until('the Box picked', async () => (api.inspectorView.treeView.selection[0]?.name === '_DecoratedBox' ? true : undefined));
+    await until('where the _DecoratedBox was made', async () =>
+      vscode.window.visibleTextEditors.some((e) => e.document.uri.fsPath.endsWith(path.join('layout', 'box.dart'))) ? true : undefined,
+    );
     await until('outlined', async () => (outlined(await terminal.snapshot()) ? true : undefined));
     await vscode.commands.executeCommand('twk.inspector.stopPicking');
     await until('the outline gone from the screen', async () => (outlined(await terminal.snapshot()) ? undefined : true));

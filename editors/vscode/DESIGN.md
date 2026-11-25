@@ -1466,19 +1466,25 @@ Run: the counter's tree with `Counter` built by `_CounterState`; Up, and
 the tree's `Count: 1` by the event; the Box selected by hand, outlined
 on the screen (the webview's snapshot tells the cells of a background of
 their own) and nothing opened; the pick mode on, a pick by an SGR press
-on the counter's cell of the real webview: the Text selected in the
+on the counter's cell of the real webview (in pixels, the middle of the
+cell, where the app has SGR-Pixels on, mode 1016, as twk does where the
+view tells a cell's size, by default: the test asks the view the mode
+and the size, DECRQM and `CSI 16 t`): the Text selected in the
 TreeView, the scratch copy shown at `Text.rich(`, the Text outlined in
-place of the Box; a second press on the border: the Box, at `child:
-Box(`; off: the outline gone from the screen, the TreeView selecting
+place of the Box; a second press on the border: its `_DecoratedBox`,
+made in `layout/box.dart`; off: the outline gone from the screen, the TreeView selecting
 nothing, the app's `select` false; "Go to Where the Widget Was Made" from
 the tree at `Text.rich(`, "Go to the Build Method" at `build(`; the
 overlay on (its `median` drawn) and off; a save's reload, the tree's
 `Clicks: 1`; q, the view saying no app runs. Debug under Dart-Code: the
 same tree, followed, two picks opened, off and the outline gone, over
-the extension's own connection, and gone with the stop button.
+the extension's own connection, and gone with the stop button; a test
+of that block that fails stops the session it left, so the next starts
+its own.
 
 Not done: a person using it; a real click in the webview (the tests
-type the SGR press the click would send; the webview's own pick, for
+type the SGR press the click would send, in cells or pixels as xterm.js
+would; the webview's own pick, for
 the inline mode, is tested in its parts: the cell's and the cursor's
 arithmetic, the messages, the view's port, and against twk over a
 headless xterm.js, not clicked in a real webview); the render tree
