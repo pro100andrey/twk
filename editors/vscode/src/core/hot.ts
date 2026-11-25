@@ -13,7 +13,8 @@ import { AppEvent, AppService } from './inspect';
 import { Vm, VmError, VmEvent } from './vm';
 
 export type HotStatus =
-  | { state: 'running' }
+  /** Connected, reload ready; after a restart, how long that took: from the restart asked to the new app's service attached. */
+  | { state: 'running'; restartMs?: number }
   | { state: 'reloading' }
   | { state: 'reloaded'; libraries: number; ms: number }
   | { state: 'failed'; errors: string }
@@ -241,7 +242,7 @@ function records(v: unknown): Record<string, unknown>[] {
 export function describe(s: HotStatus): string {
   switch (s.state) {
     case 'running':
-      return 'twk: hot reload ready';
+      return s.restartMs === undefined ? 'twk: hot reload ready' : `twk: restarted (${s.restartMs} ms)`;
     case 'reloading':
       return 'twk: reloading';
     case 'reloaded':

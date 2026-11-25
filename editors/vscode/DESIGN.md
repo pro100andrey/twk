@@ -1198,7 +1198,9 @@ WebSocket):
   Leave `dart.hotReloadOnSave` at `never`, or both reload.
 - The status bar: `twk: hot reload ready`, `reloading`, `reloaded (N
   libraries, T ms)`, `reload failed` (red, the errors in the tooltip and
-  the output channel), `restarting`, `the app ended`.
+  the output channel), `restarting`, `restarted (T ms)` (from the restart
+  asked to the new app's VM service attached, a Debug's across its two
+  sessions; also a line in the output, as a reload's), `the app ended`.
 
 Tests in VS Code (run in a git worktree, on a copy of the counter in
 `packages/twk/.dart_tool/twk_vscode_test/`, which git ignores):

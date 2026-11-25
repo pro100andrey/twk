@@ -69,6 +69,8 @@ export class HotRun {
   hot: HotApp | undefined;
   private readonly dir = fs.mkdtempSync(path.join(os.tmpdir(), 'twk_vscode_run_'));
   private restarting = false;
+  /** When the restart under way was asked for ([Clock.now]), until the new app's service is attached. */
+  private restartAt: number | undefined;
   private stopping = false;
   private hotReady: Promise<HotApp | undefined> = Promise.resolve(undefined);
   /** Settles once the run has ended — the app ended by itself, or [stop] — with the app's exit code or signal. */
@@ -105,6 +107,7 @@ export class HotRun {
       return;
     }
     this.restarting = true;
+    this.restartAt = this.deps.clock.now();
     this.hot?.restarting();
     this.options.onStatus({ state: 'restarting' });
     await HotRun.kill(app);
@@ -197,7 +200,9 @@ export class HotRun {
         return undefined;
       }
       this.hot = hot;
-      this.options.onStatus({ state: 'running' });
+      const at = this.restartAt;
+      this.restartAt = undefined;
+      this.options.onStatus(at === undefined ? { state: 'running' } : { state: 'running', restartMs: Math.round(this.deps.clock.now() - at) });
       this.options.onApp?.(hot);
       return hot;
     } catch (e) {

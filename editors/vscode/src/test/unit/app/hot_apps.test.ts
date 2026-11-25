@@ -368,6 +368,10 @@ describe('HotApps', () => {
     assert.deepEqual(debug.started[1], session.configuration);
     assert.ok(status.states.includes('restarting'));
     assert.equal(terminals.all().length, 1, 'no new terminal');
+    // how long it took, from the restart asked to the new session's app attached
+    clock.elapse(700);
+    debug.vmService(debug.sessions[1]);
+    await until('the restart timed', () => /twk: restarted \(700 ms\)/.test(log.text));
     // the new session ends with the terminal too
     views[0].close();
     await until('the new session stopped', () => debug.stopped.includes(debug.sessions[1].id));

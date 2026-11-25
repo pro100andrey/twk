@@ -99,6 +99,19 @@ describe('HotRun, waiting for the VM service', () => {
     assert.deepEqual(connected, []);
   });
 
+  it("a restart: the new app's running status says how long it took, the first one's nothing", async () => {
+    fs.writeFileSync(processes[0].serviceInfo, '{"uri":"http://127.0.0.1:1/a=/"}');
+    await until('running', () => statuses.some((s) => s.state === 'running'), 100000);
+    assert.deepEqual(statuses.at(-1), { state: 'running' });
+    const restarted = run.restart();
+    await until('the second app', () => processes.length === 2, 100000);
+    await restarted;
+    clock.elapse(850);
+    fs.writeFileSync(processes[1].serviceInfo, '{"uri":"http://127.0.0.1:1/b=/"}');
+    await until('running again', () => statuses.at(-1)?.state === 'running', 100000);
+    assert.deepEqual(statuses.at(-1), { state: 'running', restartMs: 850 });
+  });
+
   it('an app that ends before it names one: the wait ends with it', async () => {
     const reload = run.reload();
     processes[0].signal('SIGTERM');

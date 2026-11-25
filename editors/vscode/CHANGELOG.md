@@ -8,6 +8,8 @@
   took 3.7 s for a small app.
 - Run or Debug of a file whose app has ended takes its panel again,
   instead of opening one more beside it.
+- A hot restart says how long it took, `twk: restarted (N ms)`, in the
+  status bar and the output, as a reload does.
 
 ## 0.1.0
 

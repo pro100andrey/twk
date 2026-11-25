@@ -64,6 +64,8 @@ interface Served {
   session: DebugSession | undefined;
   /** Launched and not started yet, or between the two sessions of a restart: the terminal is not free. */
   pending: boolean;
+  /** When the restart under way was asked for ([Clock.now]), until the new session's app is attached. */
+  restartAt?: number;
   /** What it listens to on its terminal, ended when the terminal is taken by another launch or run. */
   readonly listening: Disposable[];
 }
@@ -135,7 +137,7 @@ export class HotApps {
     this.last = s;
     if (s.state === 'failed') {
       log.appendLine(`twk: hot reload failed:\n${s.errors}`);
-    } else if (s.state === 'reloaded') {
+    } else if (s.state === 'reloaded' || (s.state === 'running' && s.restartMs !== undefined)) {
       log.appendLine(describe(s));
     }
     this.deps.status.show(s, this.running.size > 0);
@@ -306,6 +308,7 @@ export class HotApps {
             // the terminal is not free while the session is between the two
             if (served) {
               served.pending = true;
+              served.restartAt = this.deps.clock.now();
             }
             const ended = new Promise<void>((resolve) => {
               ending = debug.onTerminated((id) => id === session.id && resolve());
@@ -314,10 +317,12 @@ export class HotApps {
             await ended;
             if (!terminal.isClosed && !(await debug.start(session.configuration)) && served) {
               served.pending = false;
+              served.restartAt = undefined;
             }
           } catch (e) {
             if (served) {
               served.pending = false;
+              served.restartAt = undefined;
             }
             throw e;
           } finally {
@@ -348,7 +353,12 @@ export class HotApps {
         app.close();
         return;
       }
-      this.show({ state: 'running' });
+      const served = this.served.get(session.configuration.twkSession);
+      const at = served?.restartAt;
+      if (served) {
+        served.restartAt = undefined;
+      }
+      this.show(at === undefined ? { state: 'running' } : { state: 'running', restartMs: Math.round(this.deps.clock.now() - at) });
       this.connections.fire({ terminal, service: app });
     } catch (e) {
       log.appendLine(`twk: no hot reload for the debug session: ${String(e)}`);
