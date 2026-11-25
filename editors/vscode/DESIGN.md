@@ -24,7 +24,12 @@ says it was not.
   finds it by `TWK_SHELL` in its environment (twk's socket terminal, the
   `twk shell` protocol), so it needs no tty: the Debug Console stays free
   of its frames, the terminal survives a hot restart, and a killed app's
-  terminal is put back. Closing the panel ends its app.
+  terminal is put back. Closing the panel ends its app, and then stops
+  serving it (`TwkTerminal.endsWith`): the run stopped (SIGTERM) or the
+  debug session ended, for at most 5 s, while the app still has the
+  terminal, so that it puts it back and ends as on SIGTERM. The shell
+  stopped first, twk throws `TerminalException` (the connection lost),
+  where Dart-Code stops on it as an uncaught exception.
 - **Run, Debug, F5.** Run with `dart run` and the VM service; Debug
   through Dart-Code (its debug adapter, breakpoints and all) with the app
   on the twk terminal; F5 on a `"type": "twk"` launch configuration.

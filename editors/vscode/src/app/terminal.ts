@@ -82,6 +82,8 @@ export class TwkTerminal implements TerminalPane, Screen {
   private readonly listening: Disposable[];
   /** What its view answers for the app taken last: given again to a view that came back empty. */
   private answering: Answers | undefined;
+  /** What ends the app it serves once it is closed, before its shell stops ([endsWith]). */
+  private readonly enders = new Set<() => Promise<void>>();
 
   constructor(
     /** What it is for: the file of the app it runs, or "twk". */
@@ -308,7 +310,19 @@ export class TwkTerminal implements TerminalPane, Screen {
     this.shell?.input(bytes);
   }
 
-  /** Stops serving and closes the view; once, however often it is called. */
+  /**
+   * Has [end] end the app it serves once it is closed, awaited before its
+   * shell stops: ended while the terminal still has it, the app puts the
+   * terminal back and ends as on SIGTERM; the shell stopped first, its twk
+   * throws on the connection lost (`TerminalException`), where a debugger
+   * stops.
+   */
+  endsWith(end: () => Promise<void>): Disposable {
+    this.enders.add(end);
+    return { dispose: () => this.enders.delete(end) };
+  }
+
+  /** Ends its app ([endsWith]), stops serving and closes the view; once, however often it is called. */
   dispose(): Promise<void> {
     this.disposing ??= this.disposeOnce();
     return this.disposing;
@@ -317,6 +331,8 @@ export class TwkTerminal implements TerminalPane, Screen {
   private async disposeOnce(): Promise<void> {
     this.view.close();
     this.listening.forEach((d) => d.dispose());
+    await Promise.allSettled([...this.enders].map((end) => end()));
+    this.enders.clear();
     await this.shell?.stop();
     this.shell = undefined;
     this.disposed.fire();

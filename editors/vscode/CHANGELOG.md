@@ -18,6 +18,10 @@
   reload, or an older twk, restarts it as a new process as before.
 - A new `launch.json` made for "Dart in a twk Terminal" has its
   configuration once, not twice.
+- Closing the panel of an app ends the app before the terminal: under
+  Debug it no longer stops on the app's `TerminalException` (the
+  connection lost) with `app_binding.dart` opened, and F5's session ends
+  with its panel.
 
 ## 0.1.0
 

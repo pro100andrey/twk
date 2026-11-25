@@ -16,6 +16,13 @@ import { Clock, DartLaunch, DebugSession, Debugger, HotContext, Log, Runner, Set
 import { TwkTerminal } from './terminal';
 import { Terminals } from './terminals';
 
+/**
+ * How long a closed terminal waits for its debug session to end before it
+ * stops serving: Dart's debug adapter ends the app with SIGTERM, then
+ * SIGKILL.
+ */
+export const sessionPatience = 5000;
+
 /** An app the extension reloads and restarts. */
 export interface Hot {
   readonly kind: 'run' | 'debug';
@@ -192,8 +199,8 @@ export class HotApps {
     hot = started;
     this.added(started);
     const listening = [
-      // the app ends with its terminal, and is started again no more
-      terminal.onDidDispose(() => void run.stop()),
+      // the app ends with its terminal, before it: and is started again no more
+      terminal.endsWith(() => run.stop()),
       terminal.onDidReload(() => void run.redraw()),
     ];
     void run.ended.then(() => {
@@ -219,12 +226,9 @@ export class HotApps {
     const served: Served = { terminal, session: undefined, pending: true, listening: [] };
     this.served.set(key, served);
     served.listening.push(
-      terminal.onDidDispose(() => {
-        this.served.delete(key);
-        if (served.session) {
-          void this.deps.debugger.stop(served.session).catch((e: unknown) => this.deps.log.appendLine(`twk: stopping the session failed: ${String(e)}`));
-        }
-      }),
+      // the session ends with its terminal, before it
+      terminal.endsWith(() => this.endSession(served)),
+      terminal.onDidDispose(() => this.served.delete(key)),
       terminal.onDidReload(() => void (served.session && this.debugged.get(served.session.id)?.redraw())),
     );
     terminal.say(`\x1b[2mtwk: debugging ${path.relative(project, program)}\x1b[0m\r\n`);
@@ -257,6 +261,33 @@ export class HotApps {
       }
     }
     return started;
+  }
+
+  /**
+   * Stops [served]'s session and waits for its end, for at most
+   * [sessionPatience]: its terminal is to stop serving only once the app
+   * is gone.
+   */
+  private async endSession(served: Served): Promise<void> {
+    const { session } = served;
+    if (!session) {
+      return;
+    }
+    const listening: Disposable[] = [];
+    const ended = new Promise<void>((resolve) => {
+      listening.push(
+        this.deps.debugger.onTerminated((id) => id === session.id && resolve()),
+        this.deps.clock.setTimeout(resolve, sessionPatience),
+      );
+    });
+    try {
+      await this.deps.debugger.stop(session);
+      await ended;
+    } catch (e) {
+      this.deps.log.appendLine(`twk: stopping the session failed: ${String(e)}`);
+    } finally {
+      listening.forEach((d) => d.dispose());
+    }
   }
 
   /** A session of a launch of [debugLaunch] started: it ends with its terminal, or at once when that is gone. */

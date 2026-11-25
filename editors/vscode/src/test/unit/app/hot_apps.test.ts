@@ -6,11 +6,18 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
-import { HotApps } from '../../../app/hot_apps';
+import { HotApps, sessionPatience } from '../../../app/hot_apps';
 import { Terminals } from '../../../app/terminals';
 import { Vm } from '../../../core/vm';
 import { ShellFrame } from '../../../core/wire';
 import { App, FakeClock, FakeDebugger, FakeDesktop, FakeLog, FakeRun, FakeSettings, FakeStatus, FakeView, FakeVm, realShell, until } from '../fakes';
+
+/** Lets what is under way go on: a few turns of the event loop. */
+async function flushTurns(): Promise<void> {
+  for (let i = 0; i < 20; i++) {
+    await new Promise((r) => setImmediate(r));
+  }
+}
 
 describe('HotApps', () => {
   let project: string;
@@ -179,12 +186,21 @@ describe('HotApps', () => {
     assert.equal(views.length, 2);
   });
 
-  it('closing the terminal of a run ends its app, which is restarted no more', async () => {
+  it('closing the terminal of a run ends its app, before the terminal stops serving it, and it is restarted no more', async () => {
     await apps.runFile(file);
     const [run] = runs;
+    const [terminal] = terminals.all();
+    const app = await App.connect(run.options.env!.TWK_SHELL);
+    await app.next(ShellFrame.welcome);
+    let served: boolean | undefined;
+    const stop = run.stop.bind(run);
+    run.stop = () => ((served = terminal.shell?.serving), stop());
     views[0].close();
     await until('the run ended', () => apps.hots().length === 0);
     assert.deepEqual(run.asked, ['stop']);
+    // its twk would throw on the connection lost, not end as on SIGTERM
+    assert.equal(served, true, 'the app ended while the terminal served it');
+    app.socket.destroy();
     await assert.rejects(apps.restartAll(), /no app running/);
   });
 
@@ -310,14 +326,25 @@ describe('HotApps', () => {
     assert.deepEqual(terminals.all(), []);
   });
 
-  it('closing the terminal of a debug session ends the session; a restart then starts no app', async () => {
+  it('closing the terminal of a debug session ends the session, the terminal serving the app until the session ended; a restart then starts no app', async () => {
     await apps.debugFile(file);
     const [session] = debug.sessions;
     debug.vmService(session);
     await until('the VM service', () => status.states.includes('running'));
     const [hot] = apps.hots();
+    const [terminal] = terminals.all();
+    const app = await App.connect(debug.started[0].env.TWK_SHELL);
+    await app.next(ShellFrame.welcome);
+    debug.terminateOnStop = false;
     views[0].close();
     await until('the session stopped', () => debug.stopped.includes(session.id));
+    // the app is to end as on SIGTERM, its terminal put back, not throw on
+    // the connection lost, where Dart-Code would stop on it
+    await flushTurns();
+    assert.equal(terminal.shell?.serving, true, 'still serving the app');
+    debug.terminate(session.id);
+    await until('the terminal stopped serving', () => terminal.shell === undefined);
+    app.socket.destroy();
     await until('the session gone', () => apps.hots().length === 0);
     await hot.restart();
     assert.equal(debug.started.length, 1, 'not launched again: it would have no terminal');
@@ -332,10 +359,25 @@ describe('HotApps', () => {
     const restarting = apps.restartAll();
     await until('the stop', () => debug.stopped.length === 1);
     views[0].close();
-    await until('the terminal gone', () => terminals.all().length === 0);
     debug.terminate(session.id);
+    await until('the terminal gone', () => terminals.all().length === 0);
     await restarting;
     assert.equal(debug.started.length, 1);
+  });
+
+  it('a session that does not end once stopped: its closed terminal stops serving after sessionPatience all the same', async () => {
+    await apps.debugFile(file);
+    const [terminal] = terminals.all();
+    const app = await App.connect(debug.started[0].env.TWK_SHELL);
+    await app.next(ShellFrame.welcome);
+    debug.terminateOnStop = false;
+    views[0].close();
+    await until('the session stopped', () => debug.stopped.length === 1);
+    await flushTurns();
+    assert.equal(terminal.shell?.serving, true);
+    clock.elapse(sessionPatience);
+    await until('the terminal stopped serving', () => terminal.shell === undefined);
+    app.socket.destroy();
   });
 
   it('a session of a launch whose terminal was closed meanwhile is stopped as it starts', async () => {
