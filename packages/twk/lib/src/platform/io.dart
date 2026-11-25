@@ -15,6 +15,9 @@ import 'file_identity.dart';
 import 'follow_machine.dart';
 import 'tail_event.dart';
 
+// loaded with this library, on the VM only: a tool reaches it by `evaluate`
+export 'hot_restart.dart';
+
 /// The process's environment.
 Map<String, String> get environment => Platform.environment;
 

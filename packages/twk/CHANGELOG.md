@@ -47,6 +47,14 @@ Breaking:
 
 Added:
 
+- A hot restart in the app's process, for a tool over the VM service (the
+  twk extension for VS Code): `ext.twk.teardown` ends the app as `quit`
+  does, `runApp` then never returning, and
+  `package:twk/src/platform/hot_restart.dart` runs its `main` again in a
+  new isolate of the same group (new statics, the app's own
+  `Platform.script`), the root isolate kept and the new app's end ending
+  the process. Tens of milliseconds where a new process took a second or
+  more.
 - Shortcuts work on any keyboard layout where the terminal has the kitty
   keyboard protocol: a `KeyCombo` accepts a key with Ctrl, Alt or Super by
   the key it is on a US layout too (`KeyEvent.baseChar`), so `ctrl+c` fires

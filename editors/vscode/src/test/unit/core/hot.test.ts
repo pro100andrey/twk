@@ -9,7 +9,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { realClock } from '../../../core/events';
-import { HotApp, HotStatus } from '../../../core/hot';
+import { HotApp, HotStatus, dartStrings } from '../../../core/hot';
 import { startNodeProcess } from '../../../core/process';
 import { HotRun } from '../../../core/runner';
 import { Vm, VmClient, webSocketUri } from '../../../core/vm';
@@ -76,6 +76,39 @@ describe('HotApp', () => {
     vm.streams.get('Isolate')!({ kind: 'ServiceExtensionAdded', extensionRPC: 'ext.twk.reassemble', isolate: { id: 'i/2' } });
     assert.equal((await reload).state, 'reloaded');
     assert.equal(app.isolate, 'i/2');
+  });
+
+  it('a restart in the process: the root kept the first time, the app before killed the next, the new binding followed', async () => {
+    const vm = new FakeVm(['ext.twk.reassemble', 'ext.twk.log', 'ext.twk.teardown']);
+    const app = await attach(vm);
+    assert.equal(await app.restartInPlace([]), 'restarted');
+    assert.equal(app.isolate, 'i/2');
+    assert.ok(!vm.calls.includes('kill'), 'the root stays');
+    vm.calls.length = 0;
+    assert.equal(await app.restartInPlace(['a']), 'restarted');
+    assert.equal(app.isolate, 'i/3');
+    assert.deepEqual(vm.calls, ['getIsolate', 'reloadSources', 'evaluate', 'ext.twk.teardown', 'kill', 'getAllocationProfile', 'evaluate', 'evaluate']);
+    assert.deepEqual(statuses, ['restarting', 'restarting']);
+  });
+
+  it("a restart in the process: none from a twk without ext.twk.teardown; a compile error keeps the app; a change the VM refuses, a new process's", async () => {
+    assert.equal(await (await attach(new FakeVm())).restartInPlace([]), 'unsupported');
+
+    const vm = new FakeVm(['ext.twk.reassemble', 'ext.twk.log', 'ext.twk.teardown']);
+    const app = await attach(vm);
+    vm.report = { type: 'ReloadReport', success: false, notices: [{ type: 'ReasonForCancelling', message: "app.dart:2:15: Error: Expected ';'" }] };
+    assert.equal(await app.restartInPlace([]), 'failed');
+    assert.ok(!vm.calls.includes('ext.twk.teardown'), 'the app not ended');
+    assert.ok(vm.calls.includes('log warning hot restart failed'));
+    assert.equal(app.isolate, 'i/1');
+    vm.report = { type: 'ReloadReport', success: false, notices: [{ type: 'ReasonForCancelling', class: { name: 'Shape' }, message: 'Shape changed' }] };
+    assert.equal(await app.restartInPlace([]), 'refused');
+    assert.ok(!vm.calls.includes('ext.twk.teardown'));
+  });
+
+  it('Dart string lists, quoted', () => {
+    assert.equal(dartStrings([]), 'const <String>[]');
+    assert.equal(dartStrings(["it's", '$x', 'a\\b', 'l\nm']), "const <String>['it\\'s', '\\$x', 'a\\\\b', 'l\\nm']");
   });
 
   it("the app's keys: twk.reload reloads, twk.restart is passed on", async () => {

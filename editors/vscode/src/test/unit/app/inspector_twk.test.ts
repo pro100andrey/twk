@@ -86,6 +86,7 @@ describe('the inspector, on a twk app', function () {
   let viewFor: ((title: string) => TerminalView) | undefined;
   let terminals: Terminals;
   let apps: HotApps;
+  const runs: HotRun[] = [];
   let view: FakeInspectorView;
   let details: FakeNodeDetailsView;
   let opener: FakeOpener;
@@ -129,6 +130,7 @@ describe('the inspector, on a twk app', function () {
       terminals,
       runner: (options) => {
         const run = HotRun.start(options, { startProcess: startNodeProcess, connectVm, env: process.env, clock: realClock });
+        runs.push(run);
         return {
           get pid() {
             return run.process?.pid;
@@ -234,10 +236,13 @@ describe('the inspector, on a twk app', function () {
     const moved = await inspector.goToSource(textShowing(inspector.tree, 'final word')!.id);
     assert.deepEqual({ line: moved.line, column: moved.column }, place(fs.readFileSync(file, 'utf8'), "Text('final"));
 
-    // the debug aids, given again to the app a restart starts
+    // the debug aids, given again to the app a restart starts, in the same
+    // process (twk's restart in the process), the state new
     await inspector.setFlags({ overlay: true });
+    const pid = runs.at(-1)!.process!.pid;
     await apps.restartAll();
     await until('the new app', () => textShowing(view.tree, 'count 0') !== undefined);
+    assert.equal(runs.at(-1)!.process!.pid, pid, 'the same process');
     let flags = await inspector.flags();
     for (const end = Date.now() + 10000; !(flags.overlay && flags.treeEvents) && Date.now() < end; flags = await inspector.flags()) {
       await new Promise((r) => setTimeout(r, 20));

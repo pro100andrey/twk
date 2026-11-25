@@ -377,6 +377,36 @@ describe('HotApps', () => {
     await until('the new session stopped', () => debug.stopped.includes(debug.sessions[1].id));
   });
 
+  it("restarts a debug session's app in its process: ended, collected and run again in a new isolate with the launch's args, the session kept, the time said", async () => {
+    connectVm = async () => {
+      const vm = new FakeVm(['ext.twk.reassemble', 'ext.twk.log', 'ext.twk.teardown']);
+      vms.push(vm);
+      return vm;
+    };
+    await apps.debugLaunch({ program: file, env: {}, others: { args: ["it's", '$x'] } }).then((launch) => debug.start(launch));
+    const [session] = debug.sessions;
+    debug.vmService(session);
+    await until('the VM service', () => status.states.includes('running'));
+    const asked: string[] = [];
+    const call = vms[0].call.bind(vms[0]);
+    vms[0].call = (method, params = {}) => (asked.push(method === 'evaluate' ? `evaluate ${String(params.expression)}` : method), call(method, params));
+    await apps.restartAll();
+    assert.deepEqual(debug.stopped, [], 'the session not stopped');
+    assert.equal(debug.started.length, 1, 'nor launched again');
+    assert.deepEqual(asked.filter((m) => m !== 'log info hot reload' && !m.startsWith('log ')), [
+      'getIsolate',
+      'reloadSources',
+      'evaluate _restartBegin()',
+      'ext.twk.teardown',
+      // the first app's isolate is the root, which stays
+      'getAllocationProfile',
+      'evaluate main',
+      "evaluate _restartWith(entry, const <String>['it\\'s', '\\$x'])",
+    ]);
+    assert.match(log.text, /twk: restarted \(\d+ ms\)/);
+    assert.equal(status.states.at(-1), 'running');
+  });
+
   it("a save reloads the saved file's project's apps, the saves of a moment as one, after 100 ms", async () => {
     await apps.runFile(file);
     const [run] = runs;

@@ -8,7 +8,7 @@ import { ShellAddress, connectionOf, fromVariable } from '../../core/address';
 import { Answers, Choice, choiceOf } from '../../core/capabilities';
 import { TerminalRequest } from '../../core/emulation';
 import { Clock, Disposable, Emitter } from '../../core/events';
-import { HotStatus } from '../../core/hot';
+import { HotStatus, restartLibrary } from '../../core/hot';
 import { AppEvent, AppService, DetailSection, InspectTree, TreeKind } from '../../core/inspect';
 import { LogConnection, LogEndpoints } from '../../core/log_follow';
 import { SourceSpot } from '../../core/locator';
@@ -476,6 +476,8 @@ export class FakeVm implements Vm {
   /** When set, `getVM` fails with it. */
   getVmFails: Error | undefined;
   isClosed = false;
+  /** The isolates twk's restart in the process started, the first app's being i/1. */
+  private spawned = 1;
   private gone!: () => void;
   readonly closed = new Promise<void>((r) => (this.gone = r));
   constructor(public extensions: string[] = ['ext.twk.reassemble', 'ext.twk.log']) {}
@@ -488,7 +490,13 @@ export class FakeVm implements Vm {
         }
         return { isolates: [{ id: 'i/1' }] };
       case 'getIsolate':
-        return { extensionRPCs: this.extensions };
+        return { extensionRPCs: this.extensions, rootLib: { id: 'libraries/1' }, libraries: [{ id: 'libraries/1' }, { id: 'libraries/2', uri: restartLibrary }] };
+      case 'evaluate':
+        if (String(params.expression).startsWith('_restartWith(')) {
+          // the app's new isolate, whose binding registers its extensions soon after
+          setImmediate(() => this.streams.get('Isolate')?.({ kind: 'ServiceExtensionAdded', extensionRPC: 'ext.twk.reassemble', isolate: { id: `i/${++this.spawned}` } }));
+        }
+        return { type: '@Instance', id: 'objects/1' };
       case 'reloadSources':
         await this.gate;
         return this.report;

@@ -3,7 +3,7 @@
 // paints every render object again and writes the whole screen again;
 // ext.twk.log puts what the tool says in the app's log, an error opening
 // the console; Ctrl+G h and Ctrl+G H ask the tool for a reload or a
-// restart.
+// restart; ext.twk.teardown ends the app for a restart in its process.
 import 'dart:convert';
 import 'dart:developer' show ServiceExtensionResponse;
 
@@ -129,6 +129,20 @@ void main() {
       await t.pump();
       expect(t.lines.first, 'count');
       expect(t, containsLine(contains('a record')));
+    });
+  });
+
+  group('ext.twk.teardown', () {
+    testTwk('ends the app as quit does, for a restart in its process: its '
+        'states disposed, answered once it has ended', (t) async {
+      _Disposed.disposed = 0;
+      await t.pumpWidget(const _Disposed(), size: (20, 2));
+      expect(AppBinding.serviceExtensions, contains('ext.twk.teardown'));
+      final answer = call(t, 'ext.twk.teardown');
+      await t.pump();
+      expect(await answer, {'version': AppBinding.serviceExtensionsVersion});
+      expect(t.binding.twkApp.quitting, isTrue);
+      expect(_Disposed.disposed, 1);
     });
   });
 
@@ -342,4 +356,25 @@ final class _RenderBar extends RenderObject {
       _fill.codeUnitAt(0),
     );
   }
+}
+
+final class _Disposed extends StatefulWidget {
+  const _Disposed();
+
+  /// How many of its states were disposed.
+  static var disposed = 0;
+
+  @override
+  State<_Disposed> createState() => _DisposedState();
+}
+
+final class _DisposedState extends State<_Disposed> {
+  @override
+  void dispose() {
+    _Disposed.disposed++;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const Text('here');
 }

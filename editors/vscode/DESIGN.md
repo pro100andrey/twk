@@ -1184,6 +1184,35 @@ WebSocket):
   names one that is gone; the extension ends it when it deactivates
   (`dart compilation-server shutdown`, killed after 5 s), after the apps.
   A VS Code that dies without deactivating leaves it running.
+- **A restart in the process** (`HotApp.restartInPlace`), for Run and
+  Debug alike, tried first: what Flutter's hot restart is, with the VM
+  service's own calls (`runtime/vm/service/service.md`). The sources are
+  reloaded into the isolate group (`reloadSources` in the root isolate);
+  a compile error fails it, the app running on (status `failed`), and a
+  change the VM can't reload (its notice names a class or library: a
+  class made an enum) makes it a new process's. Then `evaluate` of twk's
+  `_restartBegin()` (`package:twk/src/platform/hot_restart.dart`) keeps
+  the root isolate; the binding's `ext.twk.teardown` ends the app as its
+  quit does (states disposed, the terminal handed back; `runApp` never
+  returns, so an `exit` after it does not run); the app's isolate is
+  killed (`kill`) where it is not the root; `getAllocationProfile` with
+  `gc` collects the group, so that what the killed isolate left open is
+  closed by its finalizer (measured: a killed isolate's `ServerSocket`
+  keeps its port until a GC, the next app failing to bind it); and
+  `evaluate` of `main` in the root library and of `_restartWith(entry,
+  args)` (the launch's `args` for Debug, none for Run) with `main` in its
+  `scope` runs it in a new isolate of the group: new statics, the
+  reloaded code, the app's own `Platform.script` (the group's root
+  library: a generated host file, tried first, made it the host's, and
+  Flutter's is its `.dill`). The new binding's `ServiceExtensionAdded` is
+  the restart's end. The process, its VM service connection, Dart-Code's
+  session and its breakpoints stay; tens of milliseconds where a new
+  process took a second through the resident compiler and four without.
+  The new app's end ends the process (twk exits from the root). A twk
+  with no `ext.twk.teardown` (0.3.0) restarts as below. Not ended by it:
+  what no `dispose` ends (a child process, a timer the root's first app
+  left). The VM has no restart of its own (`_restartVM` is gone; Dart's
+  debug adapter has `supportsRestartRequest` false for a CLI app).
 - **Debug**: the launch gets `env: {TWK_DEBUG: keys, TWK_SHELL: ...}` and
   a `twkSession` field, the key of its terminal; a debug adapter tracker
   on such sessions connects to the address
@@ -1982,6 +2011,16 @@ What the repository offers for the wished features:
    protocol `null`, and a hello that is not UTF-8 is no hello. A change to
    the wire is made in `socket.dart`, the golden and the extension
    together: each test fails without the others.
+6. **A hot restart in the process** (part 2a): the binding's
+   `ext.twk.teardown` (the app ended as by `quit`, `runApp` never
+   returning) and twk's `platform/hot_restart.dart`, whose private
+   `_restartBegin` and `_restartWith(main, args)` the extension calls by
+   `evaluate` in the root isolate. In twk after 0.3.0; with an older one
+   (no `ext.twk.teardown` among the binding's extensions) a restart is a
+   new process. Tests: twk's `hot_reload_test.dart` (the teardown), the
+   extension's `inspector_twk.test.ts` (a restart of a real twk app in the
+   same process, the state new, the aids given again) and `hot.test.ts`
+   (the steps and the falls back, over a fake VM service).
 
 ## 5. Scope
 

@@ -236,6 +236,12 @@ Future<void> runApp(
     onError: onError,
   ).run(app);
   await (driven == null ? start() : driven.zone.run(start));
+  // torn down for a hot restart in its process (`ext.twk.teardown`): what
+  // main does after runApp, an exit among it, is not to run, the app's
+  // main being run again in a new isolate
+  if (AppBinding._tornDown) {
+    await Completer<void>().future;
+  }
 }
 
 /// A widget tree run as an app on a terminal by a `TwkApp` ([twkApp]),
@@ -646,6 +652,17 @@ final class AppBinding implements FrameClock {
   /// throws meanwhile goes to the log of [twkApp] (`TwkApp.logs`), the
   /// first error being the one thrown.
   Future<void> run(Widget app) async {
+    try {
+      await _run(app);
+    } finally {
+      _runEnd.complete();
+    }
+  }
+
+  // completed once run has ended and the tree is unmounted
+  final _runEnd = Completer<void>();
+
+  Future<void> _run(Widget app) async {
     attachRootWidget(app);
     _zone = Zone.current;
     _running = true;
@@ -740,6 +757,18 @@ final class AppBinding implements FrameClock {
 
   /// Ends [run].
   void quit() => twkApp.quit();
+
+  // ext.twk.teardown: the app ended for a hot restart in its process,
+  // runApp kept from returning
+  Future<Map<String, Object?>> _teardown() async {
+    _tornDown = true;
+    quit();
+    await _runEnd.future;
+    return const {};
+  }
+
+  // whether an app of this isolate was torn down (ext.twk.teardown)
+  static var _tornDown = false;
 
   /// The wall time of the app. In an app, the system's (`DateTime.now()`),
   /// whatever the system does to it: a sleep, a time set. Given a
@@ -869,6 +898,7 @@ final class AppBinding implements FrameClock {
     'ext.twk.log',
     'ext.twk.status',
     'ext.twk.clock',
+    'ext.twk.teardown',
   ];
 
   /// The version of the shape of what [callServiceExtension] answers: an
@@ -979,6 +1009,11 @@ final class AppBinding implements FrameClock {
   ///   ops move a driven clock, firing the timers in due order, each
   ///   timer's microtasks and a running frame awaited after it; one call at
   ///   a time.
+  /// * `ext.twk.teardown`: ends the app as [quit] does, for a hot restart
+  ///   in its process (a tool runs its `main` again in a new isolate of
+  ///   the same group): its states are disposed and the terminal handed
+  ///   back, and [runApp] then never returns, so what `main` does after it
+  ///   does not run. It answers once the app has ended.
   /// * `ext.twk.reassemble`: [reassemble]s the app, after a hot reload of
   ///   its code; it answers `frame` (the frames run) and `frameDue`, which
   ///   a driver moves a driven clock to.
@@ -992,9 +1027,11 @@ final class AppBinding implements FrameClock {
     Map<String, String> parameters,
   ) async {
     try {
-      final answer = method == 'ext.twk.clock'
-          ? await _clockCall(parameters)
-          : _answer(method, parameters);
+      final answer = switch (method) {
+        'ext.twk.clock' => await _clockCall(parameters),
+        'ext.twk.teardown' => await _teardown(),
+        _ => _answer(method, parameters),
+      };
       return ServiceExtensionResponse.result(
         jsonEncode({'version': serviceExtensionsVersion, ...answer}),
       );

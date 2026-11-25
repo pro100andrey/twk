@@ -268,7 +268,20 @@ the app and answers the frame run and the frame due; `ext.twk.clock` (`op`:
 microseconds; `describe`) says where the app's clock stands and, for an app
 a driver runs on its time (`TWK_DRIVEN`), moves it; `ext.twk.log`
 (`message`, `level`: `debug`, `info` by default, `warning` or `error`;
-`error`) adds a record to the app's log, an error opening the console.
+`error`) adds a record to the app's log, an error opening the console;
+`ext.twk.teardown` ends the app as `quit` does, for a hot restart in its
+process, answering once it has ended, and `runApp` then never returns, so
+what `main` does after it (an `exit`) does not run. The restart is a
+tool's (the extension for VS Code): it reloads the sources, ends the app
+so, kills its isolate where it is not the root, collects the garbage
+(what the isolate left open, a server socket, closed by its finalizer)
+and, by the VM service's `evaluate` in
+`package:twk/src/platform/hot_restart.dart` (loaded on the VM, nothing of
+it public), runs the app's `main` again in a new isolate of the same
+group: new statics, the reloaded code, the app's own `Platform.script`.
+The root isolate is kept meanwhile, and the new app's end ends the
+process. What the app left that no `dispose` ends (a child process, a
+timer of the first app) stays.
 
 ## `TerminalProgress`
 

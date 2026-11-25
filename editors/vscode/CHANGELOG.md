@@ -10,6 +10,11 @@
   instead of opening one more beside it.
 - A hot restart says how long it took, `twk: restarted (N ms)`, in the
   status bar and the output, as a reload does.
+- A hot restart runs the app's `main` again in a new isolate of its
+  process, as Flutter's does, where its twk has the restart in the process
+  (`ext.twk.teardown`): tens of milliseconds, the debug session and its
+  breakpoints kept, the app's own `Platform.script`. A change the VM can't
+  reload, or an older twk, restarts it as a new process as before.
 
 ## 0.1.0
 

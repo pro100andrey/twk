@@ -69,6 +69,7 @@ export class HotRun {
   hot: HotApp | undefined;
   private readonly dir = fs.mkdtempSync(path.join(os.tmpdir(), 'twk_vscode_run_'));
   private restarting = false;
+  private restartingInPlace = false;
   /** When the restart under way was asked for ([Clock.now]), until the new app's service is attached. */
   private restartAt: number | undefined;
   private stopping = false;
@@ -98,16 +99,33 @@ export class HotRun {
   }
 
   /**
-   * Ends the app this started (SIGTERM, then SIGKILL after [patience]) and
-   * starts it again; settles once the new one runs.
+   * Restarts the app: in its process where its twk can
+   * ([HotApp.restartInPlace]), else the app this started ended (SIGTERM,
+   * then SIGKILL after [patience]) and started again; settles once the new
+   * one runs, or the restart in place ended.
    */
   async restart(): Promise<void> {
     const app = this.process;
-    if (!app || this.restarting || this.stopping) {
+    if (!app || this.restarting || this.restartingInPlace || this.stopping) {
+      return;
+    }
+    const at = this.deps.clock.now();
+    // apart from [restarting]: an app that ends meanwhile is not started again
+    this.restartingInPlace = true;
+    // `dart run <file>` passes the app no arguments
+    const inPlace = this.hot ? await this.hot.restartInPlace([]) : 'unsupported';
+    this.restartingInPlace = false;
+    if (inPlace === 'restarted' || inPlace === 'failed') {
+      if (inPlace === 'restarted' && this.process === app) {
+        this.options.onStatus({ state: 'running', restartMs: Math.round(this.deps.clock.now() - at) });
+      }
+      return;
+    }
+    if (this.stopping || this.process !== app) {
       return;
     }
     this.restarting = true;
-    this.restartAt = this.deps.clock.now();
+    this.restartAt = at;
     this.hot?.restarting();
     this.options.onStatus({ state: 'restarting' });
     await HotRun.kill(app);

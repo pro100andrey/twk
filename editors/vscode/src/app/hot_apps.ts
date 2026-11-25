@@ -301,6 +301,20 @@ export class HotApps {
           if (terminal.isClosed) {
             return;
           }
+          const at = this.deps.clock.now();
+          const args = session.configuration.others.args;
+          const inPlace = app ? await app.restartInPlace(Array.isArray(args) ? args.map(String) : []) : 'unsupported';
+          if (inPlace === 'restarted') {
+            if (this.running.has(hot)) {
+              this.show({ state: 'running', restartMs: Math.round(this.deps.clock.now() - at) });
+            }
+            restarting = undefined;
+            return;
+          }
+          if (inPlace === 'failed' || terminal.isClosed) {
+            restarting = undefined;
+            return;
+          }
           app?.restarting();
           const served = this.served.get(session.configuration.twkSession);
           let ending: Disposable | undefined;

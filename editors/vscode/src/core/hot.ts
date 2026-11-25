@@ -21,9 +21,29 @@ export type HotStatus =
   | { state: 'restarting' }
   | { state: 'ended' };
 
+/** The library of twk's hot restart in the process, reached by `evaluate` (twk's `platform/hot_restart.dart`). */
+export const restartLibrary = 'package:twk/src/platform/hot_restart.dart';
+
+/**
+ * How a restart in place ([HotApp.restartInPlace]) ended: `restarted`, the
+ * app's `main` running again in a new isolate; `failed`, the sources did not
+ * compile, the app running on with the code it had (said as a status);
+ * `refused`, the VM took no reload of the change (a class made an enum...),
+ * or a step after the app was ended failed; `unsupported`, the app's twk
+ * has no restart in the process (before 0.4.0). Only a new process restarts
+ * it then, and should, but for `failed`.
+ */
+export type InPlace = 'restarted' | 'failed' | 'refused' | 'unsupported';
+
 export class HotApp implements AppService {
   /** The isolate of the app's binding, once it registered `ext.twk.reassemble`. */
   isolate: string | undefined;
+  /** The isolate the app's first binding was in: the root, which twk's restart in the process keeps and starts each new app from. */
+  private root: string | undefined;
+  /** Whether the binding ends the app for a restart in the process (`ext.twk.teardown`, twk 0.4.0). */
+  private tearsDown = false;
+  /** What waits for the binding of a restart's new isolate, or for the app's end. */
+  private binding: (() => void)[] = [];
   private reloading: Promise<HotStatus> | undefined;
   private again = false;
   /** A reload was asked for before the binding was there: done when it is. */
@@ -53,6 +73,7 @@ export class HotApp implements AppService {
         try {
           const isolate = await vm.call('getIsolate', { isolateId: id });
           if (Array.isArray(isolate.extensionRPCs) && isolate.extensionRPCs.includes('ext.twk.reassemble')) {
+            app.tearsDown ||= isolate.extensionRPCs.includes(teardown);
             app.found(id);
           }
         } catch {
@@ -68,6 +89,7 @@ export class HotApp implements AppService {
       app.events.dispose();
       app.status({ state: 'ended' });
       app.held.splice(0).forEach((f) => f(app.last));
+      app.binding.splice(0).forEach((f) => f());
     });
     return app;
   }
@@ -145,6 +167,86 @@ export class HotApp implements AppService {
     this.status({ state: 'restarting' });
   }
 
+  /**
+   * Restarts the app in its process: its sources reloaded into the isolate
+   * group, the app ended as by its own quit (`ext.twk.teardown`: its states
+   * disposed, the terminal handed back), its isolate killed where it is not
+   * the root, a garbage collection run (what the killed isolate left open,
+   * a server socket, is closed by its finalizer), and its `main` run again
+   * in a new isolate of the group (twk's `_restartWith`, by `evaluate` in
+   * the root isolate, with [args]): new statics, the new code, the app's
+   * own `Platform.script`. Settles once that one's binding is there, or the
+   * app ended. Whoever started the app restarts it as a new process where
+   * this says `refused` or `unsupported`.
+   */
+  async restartInPlace(args: readonly string[]): Promise<InPlace> {
+    const binding = this.isolate;
+    const root = this.root;
+    if (binding === undefined || root === undefined || !this.tearsDown) {
+      return 'unsupported';
+    }
+    let rootLib: string | undefined;
+    let restartLib: string | undefined;
+    try {
+      const isolate = await this.vmService.call('getIsolate', { isolateId: root });
+      const [lib] = records([isolate.rootLib]);
+      rootLib = typeof lib?.id === 'string' ? lib.id : undefined;
+      const restart = records(isolate.libraries).find((l) => l.uri === restartLibrary);
+      restartLib = typeof restart?.id === 'string' ? restart.id : undefined;
+    } catch {
+      // the root went away
+    }
+    if (rootLib === undefined || restartLib === undefined) {
+      return 'unsupported';
+    }
+    this.status({ state: 'restarting' });
+    let report: Record<string, unknown>;
+    try {
+      report = await this.vmService.call('reloadSources', { isolateId: root });
+    } catch {
+      return 'refused';
+    }
+    if (report.success !== true) {
+      const notices = records(report.notices);
+      // a change the VM can't reload names its class or library; a
+      // compile error is a message alone
+      if (notices.some((n) => 'class' in n || 'library' in n)) {
+        return 'refused';
+      }
+      const messages = notices.map((n) => n.message).filter((m) => typeof m === 'string' && m);
+      const errors = messages.join('\n') || JSON.stringify(report);
+      await this.log(binding, 'hot restart failed', 'warning', errors);
+      this.status({ state: 'failed', errors });
+      return 'failed';
+    }
+    const bound = new Promise<void>((resolve) => this.binding.push(resolve));
+    try {
+      await this.evaluate(root, restartLib, '_restartBegin()');
+      await this.vmService.call(teardown, { isolateId: binding });
+      this.isolate = undefined;
+      if (binding !== root) {
+        await this.vmService.call('kill', { isolateId: binding }).catch(() => undefined);
+      }
+      await this.vmService.call('getAllocationProfile', { isolateId: root, gc: true });
+      const main = await this.evaluate(root, rootLib, 'main');
+      await this.evaluate(root, restartLib, `_restartWith(entry, ${dartStrings(args)})`, { entry: main });
+    } catch {
+      this.binding.splice(0).forEach((f) => f());
+      return 'refused';
+    }
+    await bound;
+    return 'restarted';
+  }
+
+  /** The id of what [expression] evaluates to in [target] of [isolate]; an error of the VM's or of the expression thrown. */
+  private async evaluate(isolate: string, target: string, expression: string, scope?: Record<string, string>): Promise<string> {
+    const r = await this.vmService.call('evaluate', { isolateId: isolate, targetId: target, expression, ...(scope ? { scope } : {}) });
+    if (r.type === '@Error' || r.type === 'Error' || typeof r.id !== 'string') {
+      throw new Error(`evaluate ${expression}: ${JSON.stringify(r.message ?? r)}`);
+    }
+    return r.id;
+  }
+
   close(): void {
     this.vmService.close();
   }
@@ -203,6 +305,8 @@ export class HotApp implements AppService {
 
   private found(isolate: string): void {
     this.isolate = isolate;
+    this.root ??= isolate;
+    this.binding.splice(0).forEach((f) => f());
     this.events.fire({ kind: 'bound' });
     const held = this.held.splice(0);
     if (held.length) {
@@ -213,6 +317,8 @@ export class HotApp implements AppService {
   private onIsolateEvent(e: VmEvent): void {
     if (e.kind === 'ServiceExtensionAdded' && e.extensionRPC === 'ext.twk.reassemble' && e.isolate) {
       this.found(e.isolate.id);
+    } else if (e.kind === 'ServiceExtensionAdded' && e.extensionRPC === teardown) {
+      this.tearsDown = true;
     } else if (e.kind === 'IsolateExit' && e.isolate?.id === this.isolate) {
       this.isolate = undefined;
     }
@@ -231,6 +337,15 @@ export class HotApp implements AppService {
       this.onRestart();
     }
   }
+}
+
+/** The binding's service extension that ends the app for a restart in the process. */
+const teardown = 'ext.twk.teardown';
+
+/** [args] as a Dart list literal of strings. */
+export function dartStrings(args: readonly string[]): string {
+  const quoted = args.map((a) => `'${a.replace(/[\\'$]/g, (c) => `\\${c}`).replace(/\n/g, '\\n').replace(/\r/g, '\\r')}'`);
+  return `const <String>[${quoted.join(', ')}]`;
 }
 
 /** The objects of [v], a JSON array; nothing else. */
