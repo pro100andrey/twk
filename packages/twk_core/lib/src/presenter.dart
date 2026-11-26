@@ -2199,8 +2199,11 @@ final class Presenter {
         }
       }
 
-      _bridge(bc, bs, row, x, y);
-      _moveTo(x, y);
+      if (_cx != x || _cy != y) {
+        // both only where the cursor is elsewhere, as it rarely is
+        _bridge(bc, bs, row, x, y);
+        _moveTo(x, y);
+      }
       final adv = _emitHere(
         c,
         c == kBlank ? _blankPen(bc, bs, row, x, hi, s) : s,
@@ -2535,10 +2538,19 @@ final class Presenter {
   static int _countBytes(int n) => n == 1 ? 3 : 3 + decimalDigits(n);
 
   /// Moves the cursor with the shortest sequence the model allows.
+  ///
+  /// Called before every cell written, where the cursor is nearly always
+  /// there already: that check inlined, the planning ([_moveCursor]) out of
+  /// line.
+  @pragma('vm:prefer-inline')
   void _moveTo(int x, int y) {
-    if (_cy == y && _cx == x) {
-      return;
+    if (_cx != x || _cy != y) {
+      _moveCursor(x, y);
     }
+  }
+
+  /// [_moveTo] for a cursor that is elsewhere.
+  void _moveCursor(int x, int y) {
     assert(!inline || _cy >= 0, 'an inline region is addressed relatively');
     // the screen's column and row: a fixed viewport's are offset
     final sx = x + _ox;
@@ -2589,9 +2601,10 @@ final class Presenter {
       // counted as they reach the terminal. Never inline, whose rows below
       // may not be on the screen yet; on the whole screen the row is on it,
       // and the margins are the screen's (a scroll resets DECSTBM), so a
-      // line feed above the last row scrolls nothing.
+      // line feed above the last row scrolls nothing. Three rows at most: a
+      // fourth costs as many bytes as CUD even where each is one.
       final dy = y - _cy;
-      if (!inline && dy > 0) {
+      if (dy > 0 && dy <= 3 && !inline) {
         switch (caps.lineFeed) {
           case LineFeed.keepsColumn:
             // a byte each, the column kept: with any horizontal move
