@@ -3,8 +3,17 @@
 [The design](README.md)
 
 * cursor model: picks the shortest of `CUP`, `CHA`, `CUF/CUB`, `CUD/CUU`,
-  `CR`; adjacent cells are written without moves; short gaps in the same
-  style are rewritten instead of skipped;
+  `CR` and, on the whole screen, line feeds down, counted as they reach
+  the terminal (`TerminalCaps.lineFeed`): where a tty makes each `CR LF`
+  (ONLCR, which raw mode leaves on; `StdioLink` reads it) two bytes that
+  land in the first column, where nothing between does (xterm.js, the VS
+  Code panel) a byte that keeps the column, and where that is not known
+  two bytes followed by a column set absolutely (`CR` before, `CHA`
+  after), which lands the same either way; never inline, whose rows below
+  may not be on the screen, nor where a line feed would scroll (the
+  margins are the screen's, a scroll resets `DECSTBM`); adjacent cells
+  are written without moves; short gaps in the same style are rewritten
+  instead of skipped;
 * a parameter equal to its default is left out: a count of 1 (`CUU`,
   `CUD`, `CUF`, `CUB`, `ICH`, `DCH`, `IL`, `DL`, `SU`, `SD` as `CSI A` and
   the like), column 1 of `CUP` (`CSI y H`, `CSI H`), and SGR 0 (`CSI m`);

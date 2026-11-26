@@ -20,7 +20,6 @@ void main() {
       2,
       konsoleLines: true,
       scrollback: true,
-      allowLineFeed: true,
     )..feed(utf8.encode('abcdefghijklmno\x1b[2;1H\n'));
     expect(vt.history, hasLength(1));
     vt

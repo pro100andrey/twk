@@ -76,7 +76,7 @@ describe('Terminals', () => {
     const first = await App.connect(t.variable);
     const welcome = JSON.parse((await first.next(ShellFrame.welcome)).toString()) as { environment: Record<string, string>; declares: unknown };
     assert.deepEqual(welcome.environment, { TERM: 'xterm-256color', COLORTERM: 'truecolor', TERM_PROGRAM: 'twk-vscode' });
-    assert.deepEqual(welcome.declares, { notifications: 'none', progressReports: true, pointerShapes: true, repeatChar: true, graphics: 'sixel' });
+    assert.deepEqual(welcome.declares, { notifications: 'none', progressReports: true, pointerShapes: true, repeatChar: true, graphics: 'sixel', lineFeed: 'keepsColumn' });
     assert.equal(views[0].answered.length, 1, 'told as the app was taken');
     assert.equal(views[0].answered[0].kittyKeyboard, true);
     assert.equal(views[0].answered[0].notifications, false);

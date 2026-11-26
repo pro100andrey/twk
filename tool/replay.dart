@@ -128,7 +128,6 @@ void main(List<String> args) {
     h!,
     strict: false,
     scrollback: inline,
-    allowLineFeed: inline,
     // a viewport is where it is on the screen
     relativeOnly: inline && view == null,
   );

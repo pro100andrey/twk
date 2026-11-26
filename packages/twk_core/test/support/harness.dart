@@ -34,6 +34,9 @@ final class Harness {
          konsoleImages: vtKonsoleImages,
          segmenter: vtSegmenter,
          strict: strict,
+         // a presenter that does not know line feeds keep the column must
+         // write the same screen where each is CR LF
+         onlcr: caps.lineFeed != LineFeed.keepsColumn,
        ),
        inline = false,
        history = const [] {
@@ -69,7 +72,6 @@ final class Harness {
          segmenter: vtSegmenter,
          strict: strict,
          scrollback: true,
-         allowLineFeed: true,
          relativeOnly: true,
        ),
        inline = true,

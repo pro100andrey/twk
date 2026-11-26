@@ -199,13 +199,13 @@ final class VtImage {
 /// A sequence it does not take, and a print that wraps or scrolls, is an
 /// error: kept in [errors], and thrown as a [StateError] when [strict].
 ///
-/// It is the oracle of what a twk app writes, which takes no line feed and
-/// no mode it does not ask for. Another program's output (a recording of a
-/// real terminal replayed, `ls`, `less`, a shell) has both, and fails it at
-/// once: a raw LF, application cursor keys (`CSI ? 1 h`), `ESC =`, `CSI 3
-/// J`. Read such output with `strict: false` and `allowLineFeed: true`, as
-/// `screenFrames` reads a recording: what it does not take is dropped and
-/// kept in [errors], and the screen is the rest.
+/// It is the oracle of what a twk app writes, which takes no mode it does
+/// not ask for. Another program's output (a recording of a real terminal
+/// replayed, `ls`, `less`, a shell) has such, and fails it at once:
+/// application cursor keys (`CSI ? 1 h`), `ESC =`, `CSI 3 J`, a tab. Read
+/// such output with `strict: false`, as `screenFrames` reads a recording:
+/// what it does not take is dropped and kept in [errors], and the screen is
+/// the rest.
 ///
 /// A screen of 20 × 2 cells, fed a bold word and a move to the next row:
 ///
@@ -229,7 +229,7 @@ final class Vt {
   /// [segmenter] splits printed text into cells, by default as the
   /// application's [TextSegmenter] does. [strict] throws each error as it
   /// happens; off, they are only kept in [errors]. [allowLineFeed] takes
-  /// LF ([lineFeedOnNormalScreen]: only off the alternate screen),
+  /// LF, [onlcr] makes it CR LF as a tty's output flags do,
   /// [scrollback] keeps the lines scrolled off the top in [history],
   /// and [relativeOnly] makes an absolute row an error, as drawing on the
   /// alternate screen is (going there to ask queries is not): the three of
@@ -243,8 +243,8 @@ final class Vt {
     this.konsoleImages = false,
     TextSegmenter? segmenter,
     this.strict = true,
-    this.allowLineFeed = false,
-    this.lineFeedOnNormalScreen = false,
+    this.allowLineFeed = true,
+    this.onlcr = false,
     this.scrollback = false,
     this.relativeOnly = false,
     this.cellPixelWidth = 10,
@@ -295,16 +295,17 @@ final class Vt {
   /// being kept in [errors].
   final bool strict;
 
-  /// Accept LF (cursor down, scrolling at the bottom margin). Off by default:
-  /// twk_core never emits LF (with the tty's ONLCR an LF would also return
-  /// the cursor to column 0).
+  /// Accept LF (cursor down, scrolling at the bottom margin). On by default:
+  /// twk's presenter moves the cursor down with line feeds, on the whole
+  /// screen too. Off, an LF is an error.
   final bool allowLineFeed;
 
-  /// Accept LF while the normal screen is up, not while the alternate one
-  /// is: what a fullscreen app's own output after it left the alternate
-  /// screen is (the log it prints at exit, one line each), where the
-  /// terminal's ONLCR makes it CR LF. Off, only [allowLineFeed] says.
-  final bool lineFeedOnNormalScreen;
+  /// Each LF also returns the cursor to the first column, as it does where
+  /// a tty between turns it into CR LF (OPOST and ONLCR). A presenter that
+  /// doesn't know the tty's flags (`TerminalCaps.lineFeedKeepsColumn` off)
+  /// sets the column after every line feed: under this its screen is the
+  /// same.
+  final bool onlcr;
 
   /// A normal screen: lines scrolled off its top (by LF or SU over the
   /// whole screen) are kept in [history] instead of being dropped.
@@ -697,11 +698,13 @@ final class Vt {
         pendingWrap = false;
         i++;
         _stepped();
-      } else if (b == 0x0A &&
-          (allowLineFeed || (lineFeedOnNormalScreen && !_alternate))) {
+      } else if (b == 0x0A && allowLineFeed) {
         flushText();
         pendingWrap = false;
         _lineFeed();
+        if (onlcr) {
+          cx = 0;
+        }
         i++;
         _stepped();
       } else if (b < 0x20 || b == 0x7F) {

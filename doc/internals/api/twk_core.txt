@@ -48,6 +48,7 @@ terminal.dart class KeyboardFlagsReport
 terminal.dart class KittyKey
 terminal.dart class KittyKeyboardFlags
 terminal.dart class LineEncoder
+terminal.dart class LineFeedLink
 terminal.dart class LocalAddress
 terminal.dart class LogData
 terminal.dart class LogRecord
@@ -85,6 +86,7 @@ terminal.dart enum ColorMode
 terminal.dart enum GraphicsProtocol
 terminal.dart enum KeyCode
 terminal.dart enum KeyKind
+terminal.dart enum LineFeed
 terminal.dart enum LogLevel
 terminal.dart enum MouseKind
 terminal.dart enum MouseTracking
@@ -161,6 +163,7 @@ twk_core.dart class KeyboardFlagsReport
 twk_core.dart class KittyKey
 twk_core.dart class KittyKeyboardFlags
 twk_core.dart class LineEncoder
+twk_core.dart class LineFeedLink
 twk_core.dart class ListItemManager
 twk_core.dart class ListParentData
 twk_core.dart class LocalAddress
@@ -254,6 +257,7 @@ twk_core.dart enum GridTrackKind
 twk_core.dart enum HitTestBehavior
 twk_core.dart enum KeyCode
 twk_core.dart enum KeyKind
+twk_core.dart enum LineFeed
 twk_core.dart enum MainAxisAlignment
 twk_core.dart enum MainAxisSize
 twk_core.dart enum MouseKind

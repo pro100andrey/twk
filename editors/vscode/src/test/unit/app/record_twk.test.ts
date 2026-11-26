@@ -209,7 +209,7 @@ describe('a recording of a twk app, read back by twk_dev', function () {
     // and what its log made of the same
     logPanel.flush();
     const names = logPanel.entries().map((e) => e.name);
-    assert.ok(names.some((n) => /^frame \d+: .*CUP/.test(n)), names.join('\n'));
+    assert.ok(names.some((n) => /^frame \d+: full repaint, .*text/.test(n)), names.join('\n'));
     assert.ok(names.includes('key Up'), names.join('\n'));
     assert.ok(names.includes('key q'), names.join('\n'));
     assert.ok(names.some((n) => n.startsWith('DECRST 1049')), names.join('\n'));

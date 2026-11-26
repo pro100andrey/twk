@@ -59,6 +59,19 @@ Breaking:
 
 Added:
 
+- The presenter moves the cursor a few rows down on the whole screen with
+  line feeds where they cost fewer bytes than `CUD`, counted as they reach
+  the terminal: `TerminalCaps.lineFeed` (`LineFeed.unknown`, `keepsColumn`,
+  `crLf`), set by `Terminal.open` from the terminal's declaration
+  (`TerminalDeclaration.lineFeed`) or the link (`LineFeedLink`; the
+  process's own reads the tty's OPOST and ONLCR). On a tty with ONLCR, as
+  raw mode leaves it, the start of the next row is an LF (`CR LF` on the
+  wire, 2 bytes) where it was `CR CUD` (4); where nothing between turns an
+  LF into CR LF (xterm.js, the VS Code panel) a row down is a byte in any
+  column; not known, an LF is followed by a column set absolutely. The
+  differential scenes write 1.1 % fewer bytes not known, 1.4 % with
+  `keepsColumn`.
+
 - `TerminalInfo.terminal` and `TerminalInfo.sources`: the terminal as twk
   knows it by its name and version (`konsole 26.8.3`, `unknown`), and where
   each capability that decides how frames are written came from, a

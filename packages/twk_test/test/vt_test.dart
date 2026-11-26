@@ -49,19 +49,20 @@ void main() {
     expect(vt.lines, ['ab']);
   });
 
-  test('LF is an error unless allowed, and then moves the cursor down', () {
-    final vt = Vt(10, 2, strict: false)..feed(utf8.encode('a\nb'));
-    expect(vt.errors, ['raw control byte 0xa']);
-    final lf = Vt(10, 2, allowLineFeed: true)..feed(utf8.encode('a\nb'));
+  test('LF moves the cursor down, keeping its column; an error where not '
+      'allowed', () {
+    final lf = Vt(10, 2)..feed(utf8.encode('a\nb'));
     expect(lf.lines, ['a', ' b']);
+    final vt = Vt(10, 2, strict: false, allowLineFeed: false)
+      ..feed(utf8.encode('a\nb'));
+    expect(vt.errors, ['raw control byte 0xa']);
   });
 
-  test('lineFeedOnNormalScreen takes LF off the alternate screen only', () {
-    final vt = Vt(10, 3, strict: false, lineFeedOnNormalScreen: true)
-      ..feed(utf8.encode('\x1b[?1049ha\nb'));
-    expect(vt.errors, ['raw control byte 0xa']);
-    vt.feed(utf8.encode('\x1b[?1049l\r\nlog'));
-    expect(vt.errors, ['raw control byte 0xa']);
+  test('onlcr: an LF returns to the first column, on the alternate screen '
+      'too', () {
+    final vt = Vt(10, 3, onlcr: true)..feed(utf8.encode('\x1b[?1049ha\nb'));
+    expect(vt.lines, ['a', 'b', '']);
+    expect(vt.errors, isEmpty);
   });
 
   test('a print past the last column wraps, which is an error', () {

@@ -109,6 +109,7 @@ export 'package:twk_core/twk_core.dart'
         ColorMode,
         GraphicsProtocol,
         HeadlessTerminal,
+        LineFeed,
         Multiplexer,
         NotificationProtocol,
         PointerNames,

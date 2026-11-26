@@ -541,6 +541,7 @@ twk.dart enum KeyCode
 twk.dart enum KeyEventResult
 twk.dart enum KeyKind
 twk.dart enum LegendPosition
+twk.dart enum LineFeed
 twk.dart enum MainAxisAlignment
 twk.dart enum MainAxisSize
 twk.dart enum MouseKind

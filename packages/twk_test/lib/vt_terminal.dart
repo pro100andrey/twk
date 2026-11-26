@@ -42,7 +42,6 @@ final class VtTerminal implements WindowBackend {
          width,
          height,
          scrollback: true,
-         allowLineFeed: true,
          relativeOnly: true,
        ) {
     for (var i = 0; i < history.length; i++) {

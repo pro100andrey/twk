@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The terminal declares that a line feed keeps the column
+  (`lineFeed: keepsColumn` in the welcome): the app's bytes reach xterm.js
+  as they are, so twk moves the cursor a row down with a byte where it
+  wrote three.
 - The sequence log's resize says the size before (`size 34x45 → 93x50`),
   and a frame says when it is a full repaint (it erases the whole screen)
   and, the first after a resize, how long after it it began: `frame 83:

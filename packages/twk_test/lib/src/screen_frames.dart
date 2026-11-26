@@ -108,7 +108,7 @@ List<ScreenFrame> screenFrames(
   Iterable<TerminalWrite> writes, {
   Set<int> screens = const {},
 }) {
-  final vt = Vt(width, height, strict: false, allowLineFeed: true);
+  final vt = Vt(width, height, strict: false);
   final frames = <ScreenFrame>[];
   var errors = const <String>[];
   for (final write in writes) {

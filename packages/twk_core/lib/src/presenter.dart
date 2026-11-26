@@ -60,6 +60,25 @@ void _fillFlags(Uint8List a, int start, int end, int value) {
   }
 }
 
+/// What an LF the presenter writes does at the terminal
+/// ([TerminalCaps.lineFeed]).
+enum LineFeed {
+  /// Not known: either of the others. A line feed is then followed by a
+  /// column set absolutely (CR before it for the first column, CHA after it
+  /// for another), which lands the same under both, and costs as CR LF.
+  unknown,
+
+  /// It reaches the terminal as an LF alone, a row down in the same column:
+  /// nothing between turns it into CR LF (no tty, or one whose output
+  /// processing, OPOST or ONLCR, is off). A byte a row where CUD is three.
+  keepsColumn,
+
+  /// A tty between turns it into CR LF (OPOST and ONLCR on, which raw mode
+  /// leaves): a row down to the first column, two bytes on the wire, where
+  /// CR CUD is four.
+  crLf,
+}
+
 /// What the presenter may assume about the terminal.
 ///
 /// Each capability on lets the presenter write fewer bytes, or draw what
@@ -84,7 +103,8 @@ final class TerminalCaps {
   /// synchronized output, background color erase, hardware scrolling,
   /// full frames cleared, ICH/DCH and styled underlines, without REP,
   /// Konsole's lines and images, left and right margins, a graphics
-  /// protocol or kitty's animation.
+  /// protocol or kitty's animation, and a line feed not known to keep the
+  /// column or not.
   const TerminalCaps({
     this.synchronizedOutput = true,
     this.backgroundColorErase = true,
@@ -96,6 +116,7 @@ final class TerminalCaps {
     this.konsoleLines = false,
     this.konsoleImages = false,
     this.leftRightMargins = false,
+    this.lineFeed = LineFeed.unknown,
     this.graphics = GraphicsProtocol.none,
     this.graphicsMultiplexer = Multiplexer.none,
     this.kittyAnimation = false,
@@ -164,6 +185,12 @@ final class TerminalCaps {
   /// detected with DECRQM): a scroll view narrower than the screen scrolls
   /// in hardware too.
   final bool leftRightMargins;
+
+  /// What an LF the presenter writes does at the terminal: a move a few
+  /// rows down is line feeds where they cost fewer bytes than CUD, counted
+  /// as they reach it (CR LF where a tty makes them so). `Terminal.open`
+  /// sets it from the link (`LineFeedLink`) or the terminal's declaration.
+  final LineFeed lineFeed;
 
   /// How the terminal shows images ([Canvas.image]); with
   /// [GraphicsProtocol.none], and for an image encoded for another
@@ -2524,8 +2551,10 @@ final class Presenter {
         : sx > 0
         ? 4 + decimalDigits(sy + 1) + decimalDigits(sx + 1)
         : (sy > 0 ? 3 + decimalDigits(sy + 1) : 3);
-    var plan = 0; // 0 CUP, 1 horizontal only, 2 vertical + horizontal
-    var hPlan = 0; // 0 none, 1 CR, 2 CUF, 3 CUB, 4 CHA
+    // 0 CUP, 1 horizontal only, 2 vertical + horizontal, 3 line feeds down
+    // + horizontal
+    var plan = 0;
+    var hPlan = 0; // 0 none, 1 CR, 2 CUF, 3 CUB, 4 CHA, 5 CUF from column 0
     var vCost = 0;
     if (_cy >= 0) {
       if (_cy != y) {
@@ -2556,8 +2585,63 @@ final class Presenter {
         plan = _cy == y ? 1 : 2;
         hPlan = hp;
       }
+      // A few rows down as line feeds where they cost fewer bytes than CUD,
+      // counted as they reach the terminal. Never inline, whose rows below
+      // may not be on the screen yet; on the whole screen the row is on it,
+      // and the margins are the screen's (a scroll resets DECSTBM), so a
+      // line feed above the last row scrolls nothing.
+      final dy = y - _cy;
+      if (!inline && dy > 0) {
+        switch (caps.lineFeed) {
+          case LineFeed.keepsColumn:
+            // a byte each, the column kept: with any horizontal move
+            if (dy + hBest < best) {
+              best = dy + hBest;
+              plan = 3;
+              hPlan = hp;
+            }
+          case LineFeed.crLf:
+            // two bytes each, the cursor in the first column after them
+            final cuf = sx == 0 ? 0 : _countBytes(sx);
+            final cha = sx == 0 ? 0 : 3 + decimalDigits(sx + 1);
+            final h = cuf < cha ? cuf : cha;
+            if (2 * dy + h < best) {
+              best = 2 * dy + h;
+              plan = 3;
+              hPlan = sx == 0 ? 0 : (cuf < cha ? 5 : 4);
+            }
+          case LineFeed.unknown:
+            // the column set absolutely, so either lands the same: CR
+            // before them for the first column (nothing where the cursor is
+            // there: it stays), CHA after them for another; each counted as
+            // CR LF
+            final h = sx == 0 ? (_cx == 0 ? 0 : 1) : 3 + decimalDigits(sx + 1);
+            if (2 * dy + h < best) {
+              best = 2 * dy + h;
+              plan = 3;
+              hPlan = sx == 0 ? (_cx == 0 ? 0 : 1) : 4;
+            }
+        }
+      }
     }
-    if (plan == 0) {
+    if (plan == 3) {
+      if (hPlan == 1) {
+        out.byte(0x0D); // CR
+      }
+      for (var i = _cy; i < y; i++) {
+        out.byte(0x0A); // LF
+      }
+      switch (hPlan) {
+        case 2:
+          _csiCount(x - _cx, 0x43); // CUF
+        case 3:
+          _csiCount(_cx - x, 0x44); // CUB
+        case 4:
+          out.csi(sx + 1, 0x47); // CHA
+        case 5:
+          _csiCount(sx, 0x43); // CUF from the first column
+      }
+    } else if (plan == 0) {
       out
         ..byte(0x1B)
         ..byte(0x5B);

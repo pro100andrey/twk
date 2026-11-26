@@ -70,9 +70,9 @@ describe('the capabilities', () => {
   });
 
   it('what the terminal declares: all of it, in the order of twk_core\'s TerminalDeclaration', () => {
-    assert.deepEqual(Object.keys(declarationOf(xtermJs.capabilities)), ['notifications', 'progressReports', 'pointerShapes', 'repeatChar', 'graphics']);
-    assert.deepEqual(declarationOf(xtermJs.capabilities), { notifications: 'osc777', progressReports: true, pointerShapes: true, repeatChar: true, graphics: 'none' });
-    assert.deepEqual(declarationOf(presetNamed('bare').capabilities), { notifications: 'none', progressReports: false, pointerShapes: false, repeatChar: false, graphics: 'none' });
+    assert.deepEqual(Object.keys(declarationOf(xtermJs.capabilities)), ['notifications', 'progressReports', 'pointerShapes', 'repeatChar', 'graphics', 'lineFeed']);
+    assert.deepEqual(declarationOf(xtermJs.capabilities), { notifications: 'osc777', progressReports: true, pointerShapes: true, repeatChar: true, graphics: 'none', lineFeed: 'keepsColumn' });
+    assert.deepEqual(declarationOf(presetNamed('bare').capabilities), { notifications: 'none', progressReports: false, pointerShapes: false, repeatChar: false, graphics: 'none', lineFeed: 'keepsColumn' });
   });
 
   it("the webview's answers: the queries denied, and what it emulates", () => {

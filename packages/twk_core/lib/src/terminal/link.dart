@@ -6,6 +6,7 @@
 library;
 
 import '../graphics.dart';
+import '../presenter.dart' show LineFeed;
 import 'sequences.dart';
 
 // Examples can assume:
@@ -157,6 +158,7 @@ final class TerminalDeclaration {
     this.leftRightMargins,
     this.graphemes,
     this.insertDelete,
+    this.lineFeed,
   });
 
   /// What the JSON object [json] declares, as a welcome carries it
@@ -196,6 +198,7 @@ final class TerminalDeclaration {
       leftRightMargins: flag(json['leftRightMargins']),
       graphemes: flag(json['graphemes']),
       insertDelete: flag(json['insertDelete']),
+      lineFeed: named(LineFeed.values, json['lineFeed']),
     );
   }
 
@@ -246,14 +249,18 @@ final class TerminalDeclaration {
   /// (`TerminalCaps.insertDelete`).
   final bool? insertDelete;
 
+  /// What an LF the app writes does there (`TerminalCaps.lineFeed`):
+  /// [LineFeed.keepsColumn] where nothing between turns it into CR LF.
+  final LineFeed? lineFeed;
+
   /// Whether it declares nothing.
   bool get isEmpty => toJson().isEmpty;
 
   /// What it declares as JSON, in this order: `notifications`,
   /// `progressReports`, `pointerShapes`, `repeatChar`, `graphics`,
   /// `styledUnderlines`, `remote`, `synchronizedOutput`,
-  /// `leftRightMargins`, `graphemes`, `insertDelete`, each only where
-  /// declared, the protocols by name.
+  /// `leftRightMargins`, `graphemes`, `insertDelete`, `lineFeed`, each only
+  /// where declared, the protocols and the line feed by name.
   Map<String, Object> toJson() => {
     'notifications': ?notifications?.name,
     'progressReports': ?progressReports,
@@ -266,6 +273,7 @@ final class TerminalDeclaration {
     'leftRightMargins': ?leftRightMargins,
     'graphemes': ?graphemes,
     'insertDelete': ?insertDelete,
+    'lineFeed': ?lineFeed?.name,
   };
 
   @override
@@ -281,7 +289,8 @@ final class TerminalDeclaration {
       other.synchronizedOutput == synchronizedOutput &&
       other.leftRightMargins == leftRightMargins &&
       other.graphemes == graphemes &&
-      other.insertDelete == insertDelete;
+      other.insertDelete == insertDelete &&
+      other.lineFeed == lineFeed;
 
   @override
   int get hashCode => Object.hash(
@@ -296,6 +305,7 @@ final class TerminalDeclaration {
     leftRightMargins,
     graphemes,
     insertDelete,
+    lineFeed,
   );
 
   @override
@@ -318,6 +328,18 @@ abstract interface class DrainingLink implements TerminalLink {
 abstract interface class DeclaringLink implements TerminalLink {
   /// What the terminal declares; empty where it declares nothing.
   TerminalDeclaration get declaration;
+}
+
+/// A [TerminalLink] that can tell what an LF it writes reaches the terminal
+/// as: the process's own link, by the tty's output flags, known once
+/// [TerminalLink.enterRaw] ran. `Terminal` takes it where the terminal
+/// declares nothing of it.
+abstract interface class LineFeedLink implements TerminalLink {
+  /// What an LF written does at the terminal: [LineFeed.crLf] where the
+  /// tty's output processing turns it into CR LF (OPOST and ONLCR),
+  /// [LineFeed.keepsColumn] where it does not, [LineFeed.unknown] where
+  /// that can't be told.
+  LineFeed get lineFeed;
 }
 
 /// A [TerminalLink] that can tell a cell's size in pixels from where its

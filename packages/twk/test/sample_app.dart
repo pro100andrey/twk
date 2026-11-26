@@ -47,6 +47,7 @@ Future<List<LogRecord>> runInMemory({Clock? clock}) async {
     caps: const TerminalCaps(
       repeatChar: true,
       graphics: GraphicsProtocol.kitty,
+      lineFeed: LineFeed.keepsColumn,
     ),
     colorMode: ColorMode.ansi256,
     options: const TerminalOptions(mouseMotion: true),

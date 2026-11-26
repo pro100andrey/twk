@@ -99,7 +99,6 @@ final class FakeCliTerminal extends CliTerminal {
          width,
          height,
          scrollback: true,
-         allowLineFeed: true,
          strict: false,
        );
 

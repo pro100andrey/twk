@@ -249,6 +249,8 @@ export interface Declaration {
   readonly pointerShapes?: boolean;
   readonly repeatChar?: boolean;
   readonly graphics?: 'none' | 'kitty' | 'sixel' | 'iterm2';
+  /** What an LF the app writes does here (twk_core's `LineFeed`). */
+  readonly lineFeed?: 'unknown' | 'keepsColumn' | 'crLf';
 }
 
 export function declarationOf(capabilities: Capabilities): Declaration {
@@ -258,6 +260,10 @@ export function declarationOf(capabilities: Capabilities): Declaration {
     pointerShapes: capabilities.pointerShapes,
     repeatChar: capabilities.repeatChar,
     graphics: capabilities.graphics,
+    // the app's bytes reach xterm.js as they are, no tty between, and it
+    // keeps the column at an LF (no convertEol): a fact of the link, not of
+    // the terminal a preset stands for
+    lineFeed: 'keepsColumn',
   };
 }
 

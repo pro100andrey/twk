@@ -204,7 +204,7 @@ void main() {
     }
 
     Future<void> start(List<String> lines) async {
-      vt = Vt(20, 10, scrollback: true, allowLineFeed: true, relativeOnly: true)
+      vt = Vt(20, 10, scrollback: true, relativeOnly: true)
         ..feed(utf8.encode('${history.single}\r\n'));
       vt.guardRows(vt.cy);
       fed = 0;

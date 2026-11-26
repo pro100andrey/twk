@@ -4,6 +4,7 @@ library;
 import 'dart:io';
 
 import '../platform/io.dart' show stdioIsTerminal;
+import '../presenter.dart' show LineFeed;
 import 'isolate_input.dart';
 import 'link.dart';
 import 'pixel_size.dart';
@@ -14,7 +15,7 @@ import 'windows_console.dart';
 import 'windows_input.dart';
 
 /// The process's own terminal: stdin and stdout.
-final class StdioLink implements DrainingLink, PixelSizedLink {
+final class StdioLink implements DrainingLink, PixelSizedLink, LineFeedLink {
   WindowsConsole? _windowsConsole;
   PosixTty? _tty;
   var _echo = true;
@@ -64,6 +65,9 @@ final class StdioLink implements DrainingLink, PixelSizedLink {
 
   @override
   int? get eraseChar => _tty?.eraseChar;
+
+  @override
+  LineFeed get lineFeed => _tty?.lineFeed ?? LineFeed.unknown;
 
   /// Returns once this process may touch its terminal: in the background it
   /// stops until it is given it ([PosixTty.waitForForeground]). At once on

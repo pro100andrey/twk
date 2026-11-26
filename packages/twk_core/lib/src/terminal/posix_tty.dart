@@ -10,6 +10,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import '../platform/libc.dart' as c;
+import '../presenter.dart' show LineFeed;
 
 const _stdinFd = 0;
 
@@ -29,6 +30,7 @@ final class PosixTty {
     this._isig,
     this._ixon,
     this._eraseOffset,
+    this._onlcr,
   );
 
   /// Returns the termios of stdin, with the flag layout of this platform's
@@ -42,9 +44,9 @@ final class PosixTty {
     return linux
         // four 32-bit tcflag_t (c_iflag first, c_lflag fourth), c_line, then
         // c_cc with VERASE at index 2
-        ? PosixTty._(4, 12, 0x1, 0x400, 17 + 2)
+        ? PosixTty._(4, 12, 0x1, 0x400, 17 + 2, 0x4)
         // four 64-bit tcflag_t (unsigned long), then c_cc with VERASE at 3
-        : PosixTty._(8, 24, 0x80, 0x200, 32 + 3);
+        : PosixTty._(8, 24, 0x80, 0x200, 32 + 3, 0x2);
   }
 
   /// Returns once this process's group is the foreground group of the
@@ -83,6 +85,16 @@ final class PosixTty {
   final int _isig;
   final int _ixon;
   final int _eraseOffset;
+
+  /// ONLCR in c_oflag, the second field; OPOST is 0x1 everywhere.
+  final int _onlcr;
+  static const _opost = 0x1;
+
+  /// What an LF written does at the terminal: CR LF where its output
+  /// processing turns it into that (OPOST and ONLCR), else an LF alone. As
+  /// [enterRaw] found it, which changes no output flag; unknown before, or
+  /// where the attributes couldn't be read.
+  LineFeed lineFeed = LineFeed.unknown;
 
   /// What SIGTSTP did before [enterRaw]; null while nothing holds it.
   Pointer<Void>? _stopHandler;
@@ -154,6 +166,10 @@ final class PosixTty {
       }
       final iflag = _read(p, _iflagOffset);
       final lflag = _read(p, _lflagOffset);
+      final oflag = _read(p, _flagBytes);
+      lineFeed = oflag & _opost != 0 && oflag & _onlcr != 0
+          ? LineFeed.crLf
+          : LineFeed.keepsColumn;
       final old = (iflag, lflag, (p + _eraseOffset).value);
       final now = change(iflag, lflag);
       if (now == (iflag, lflag)) {

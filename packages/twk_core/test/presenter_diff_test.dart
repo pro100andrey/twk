@@ -22,15 +22,17 @@ import 'support/harness.dart';
 
 /// The digest and the byte count of every configuration's scenes.
 const _recorded = <String, (int, int)>{
-  'agreeing terminal, BCE': (0x4ef38b92, 4643656),
-  'REP': (0x23b334f, 4084378),
-  'DECSLRM': (0x1ba68cff, 4639230),
-  'no BCE': (0x38ece176, 6074635),
-  'Konsole lines': (0x7e9dfbdf, 4648363),
-  'no sync, no hardware scroll': (0x819f0c5f, 5093402),
-  'no sync': (0xcd15e9d7, 4780443),
-  'one scroll block, short moves': (0xaabfb77c, 4689181),
-  'no scroll detection': (0xd0703964, 4836243),
+  'agreeing terminal, BCE': (0xae058ae8, 4590630),
+  'REP': (0xe158af1, 4031348),
+  'a line feed keeps the column': (0x87f59ee6, 4578199),
+  'a line feed made CR LF': (0x5b5ac09f, 4570131),
+  'DECSLRM': (0xb48abcdb, 4586510),
+  'no BCE': (0xda77912e, 6005621),
+  'Konsole lines': (0x3c0e5c53, 4595341),
+  'no sync, no hardware scroll': (0x154780f6, 5001672),
+  'no sync': (0xb4186319, 4694487),
+  'one scroll block, short moves': (0x41a93312, 4635469),
+  'no scroll detection': (0x116bd69, 4779975),
   'inline, BCE': (0x9a9a5a34, 2106469),
   'inline, no BCE, REP': (0xdfed1e41, 1929881),
 };
@@ -183,6 +185,14 @@ void main() {
   group('presenter output unchanged', () {
     _check('agreeing terminal, BCE');
     _check('REP', caps: const TerminalCaps(repeatChar: true));
+    _check(
+      'a line feed keeps the column',
+      caps: const TerminalCaps(lineFeed: LineFeed.keepsColumn),
+    );
+    _check(
+      'a line feed made CR LF',
+      caps: const TerminalCaps(lineFeed: LineFeed.crLf),
+    );
     _check('DECSLRM', caps: const TerminalCaps(leftRightMargins: true));
     _check(
       'no BCE',

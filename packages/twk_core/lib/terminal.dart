@@ -63,11 +63,12 @@ export 'src/input/parser.dart' show InputParser;
 export 'src/line_encoder.dart' show LineEncoder;
 export 'src/log.dart' show LogData, LogLevel, LogRecord, LogSink, log;
 export 'src/platform/platform.dart' show LocalAddress;
-export 'src/presenter.dart' show TerminalCaps;
+export 'src/presenter.dart' show LineFeed, TerminalCaps;
 export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;
 export 'src/terminal/link.dart'
     show
         DeclaringLink,
+        LineFeedLink,
         PixelSizedLink,
         TerminalDeclaration,
         TerminalException,

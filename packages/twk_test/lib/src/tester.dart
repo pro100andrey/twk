@@ -492,7 +492,6 @@ final class TwkTester {
             width,
             height,
             scrollback: true,
-            allowLineFeed: true,
             // a viewport is where it is on the screen
             relativeOnly: viewport == null,
             cellPixelWidth: cellWidth,

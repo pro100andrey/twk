@@ -4,6 +4,11 @@
 
 Breaking:
 
+- `Vt` takes LF by default (`allowLineFeed`), on the alternate screen too:
+  twk's presenter moves the cursor down with line feeds.
+  `Vt.lineFeedOnNormalScreen` is gone. `Vt(onlcr: true)` makes each LF a CR
+  LF, as a tty's ONLCR does.
+
 - `VtTerminal.notify` takes a `DesktopNotification` and returns null (it
   shows none), and
   `VtTerminal.closeNotification` does nothing, as `WindowBackend` now asks.

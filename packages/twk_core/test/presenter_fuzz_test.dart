@@ -392,6 +392,34 @@ void main() {
       caps: const TerminalCaps(repeatChar: true),
     );
     runFuzz(
+      'a line feed that keeps the column (no ONLCR between)',
+      seeds: 300,
+      caps: const TerminalCaps(lineFeed: LineFeed.keepsColumn),
+    );
+    runFuzz(
+      'a line feed made CR LF by the tty (ONLCR)',
+      seeds: 300,
+      caps: const TerminalCaps(lineFeed: LineFeed.crLf),
+    );
+    runFuzz(
+      'a line feed that keeps the column, REP, margins',
+      seeds: 200,
+      caps: const TerminalCaps(
+        lineFeed: LineFeed.keepsColumn,
+        repeatChar: true,
+        leftRightMargins: true,
+      ),
+    );
+    runFuzz(
+      'a line feed made CR LF, REP, margins',
+      seeds: 200,
+      caps: const TerminalCaps(
+        lineFeed: LineFeed.crLf,
+        repeatChar: true,
+        leftRightMargins: true,
+      ),
+    );
+    runFuzz(
       'terminal with left/right margins (DECSLRM)',
       seeds: 300,
       caps: const TerminalCaps(leftRightMargins: true),

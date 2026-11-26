@@ -8,7 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:twk_core/twk_core.dart' show TerminalLink;
+import 'package:twk_core/twk_core.dart'
+    show LineFeed, LineFeedLink, TerminalLink;
 
 // Examples can assume:
 // import 'package:twk/twk.dart';
@@ -68,7 +69,7 @@ abstract interface class XtermPort {
 ///
 ///  * `runWebApp`, which does all of that, and fits the terminal to its
 ///    element.
-final class XtermLink implements TerminalLink {
+final class XtermLink implements LineFeedLink {
   /// [environment] tells what the terminal is
   /// ([TerminalLink.environment]): by default [xtermEnvironment].
   XtermLink(this._port, {Map<String, String>? environment})
@@ -97,6 +98,11 @@ final class XtermLink implements TerminalLink {
 
   @override
   int? get eraseChar => 0x7F;
+
+  /// The app's bytes reach xterm.js as they are, and it keeps the column at
+  /// an LF (its `convertEol` is off).
+  @override
+  LineFeed get lineFeed => LineFeed.keepsColumn;
 
   @override
   void enterRaw() {}

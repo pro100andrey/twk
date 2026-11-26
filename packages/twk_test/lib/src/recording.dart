@@ -158,7 +158,6 @@ final class FrameRecorder {
             height,
             strict: false,
             scrollback: true,
-            allowLineFeed: true,
             relativeOnly: true,
           )
         : Vt(width, height, strict: false);

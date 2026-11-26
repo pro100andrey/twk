@@ -43,7 +43,7 @@
       "type": 16,
       "from": "shell",
       "payload": "JSON {columns, lines, eraseChar, windows, environment, declares?}",
-      "description": "The shell takes the app: the terminal's size, its erase character, whether it is a Windows console, the environment the app sees over the link (TWK_SCREEN_READER and TWK_DEBUG in it are the app's settings, TerminalInfo.settings), and, where the terminal declares what it does, declares: an object of notifications (none, osc9, osc777, osc99), progressReports, pointerShapes and repeatChar (booleans) and graphics (none, kitty, sixel, iterm2), each only where declared, in that order (TerminalDeclaration), which the app takes over its guess by the environment. A shell whose terminal declares nothing sends no declares."
+      "description": "The shell takes the app: the terminal's size, its erase character, whether it is a Windows console, the environment the app sees over the link (TWK_SCREEN_READER and TWK_DEBUG in it are the app's settings, TerminalInfo.settings), and, where the terminal declares what it does, declares: an object of notifications (none, osc9, osc777, osc99), progressReports, pointerShapes and repeatChar (booleans), graphics (none, kitty, sixel, iterm2) and lineFeed (unknown, keepsColumn, crLf), each only where declared, in that order (TerminalDeclaration), which the app takes over its guess by the environment. A shell whose terminal declares nothing sends no declares."
     },
     {
       "name": "refused",
@@ -140,7 +140,7 @@
     {
       "name": "welcome",
       "kind": "welcome",
-      "description": "An 80x24 terminal whose Backspace sends DEL, not a Windows console, whose environment says xterm-256color with 24-bit color and switches the screen reader and the frame overlay on, and which declares notifications by OSC 777, progress reports, pointer shapes, REP and sixel images.",
+      "description": "An 80x24 terminal whose Backspace sends DEL, not a Windows console, whose environment says xterm-256color with 24-bit color and switches the screen reader and the frame overlay on, and which declares notifications by OSC 777, progress reports, pointer shapes, REP and sixel images, and that a line feed keeps the column (xterm.js, no tty between).",
       "json": {
         "columns": 80,
         "lines": 24,
@@ -157,10 +157,11 @@
           "progressReports": true,
           "pointerShapes": true,
           "repeatChar": true,
-          "graphics": "sixel"
+          "graphics": "sixel",
+          "lineFeed": "keepsColumn"
         }
       },
-      "hex": "10 00000123 7b22636f6c756d6e73223a38302c226c696e6573223a32342c22657261736543686172223a3132372c2277696e646f7773223a66616c73652c22656e7669726f6e6d656e74223a7b225445524d223a22787465726d2d323536636f6c6f72222c22434f4c4f525445524d223a2274727565636f6c6f72222c2254574b5f53435245454e5f524541444552223a2231222c2254574b5f4445425547223a226b6579732c6f7665726c6179227d2c226465636c61726573223a7b226e6f74696669636174696f6e73223a226f7363373737222c2270726f67726573735265706f727473223a747275652c22706f696e746572536861706573223a747275652c2272657065617443686172223a747275652c226772617068696373223a22736978656c227d7d"
+      "hex": "10 0000013c 7b22636f6c756d6e73223a38302c226c696e6573223a32342c22657261736543686172223a3132372c2277696e646f7773223a66616c73652c22656e7669726f6e6d656e74223a7b225445524d223a22787465726d2d323536636f6c6f72222c22434f4c4f525445524d223a2274727565636f6c6f72222c2254574b5f53435245454e5f524541444552223a2231222c2254574b5f4445425547223a226b6579732c6f7665726c6179227d2c226465636c61726573223a7b226e6f74696669636174696f6e73223a226f7363373737222c2270726f67726573735265706f727473223a747275652c22706f696e746572536861706573223a747275652c2272657065617443686172223a747275652c226772617068696373223a22736978656c222c226c696e6546656564223a226b65657073436f6c756d6e227d7d"
     },
     {
       "name": "refused, token",

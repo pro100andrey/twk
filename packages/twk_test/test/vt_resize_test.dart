@@ -12,7 +12,6 @@ Vt fed(String s, {int w = 10, int h = 4, bool scrollback = true}) => Vt(
   w,
   h,
   scrollback: scrollback,
-  allowLineFeed: true,
 )..feed(utf8.encode(s));
 
 void main() {
@@ -65,7 +64,7 @@ void main() {
   });
 
   test("Konsole's lines: a row the screen gains is empty", () {
-    final vt = Vt(5, 1, konsoleLines: true, allowLineFeed: true)
+    final vt = Vt(5, 1, konsoleLines: true)
       ..feed(utf8.encode('\x1b[44mab'))
       ..resizeKeeping(5, 2)
       // DCH on the empty new row leaves it as it is

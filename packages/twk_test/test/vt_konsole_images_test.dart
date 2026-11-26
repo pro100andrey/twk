@@ -24,12 +24,12 @@ void main() {
     ('DL', '\x1b[6;1H\x1b[M'),
   ]) {
     test('$name moves the images outside the scrolled rows up too', () {
-      final vt = Vt(10, 8, konsoleImages: true, allowLineFeed: true)
+      final vt = Vt(10, 8, konsoleImages: true)
         ..feed(utf8.encode('${_place(1, 0)}${_place(2, 5)}$scroll'));
       expect(vt.errors, isEmpty);
       expect(_shown(vt), ['1 2x1 at (0, 0)', '2 2x2 at (0, 4)']);
       // kitty's: those in the rows move with them, the others stay
-      final kitty = Vt(10, 8, allowLineFeed: true)
+      final kitty = Vt(10, 8)
         ..feed(utf8.encode('${_place(1, 0)}${_place(2, 5)}$scroll'));
       expect(_shown(kitty), [
         '1 2x2 at (0, 0)',

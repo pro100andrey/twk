@@ -322,13 +322,15 @@ final class TerminalInfo {
   /// Where each capability that decides how frames are written came from,
   /// by its name in [caps] or here: `synchronizedOutput`,
   /// `leftRightMargins`, `graphemes` ([textMode]), `insertDelete`,
-  /// `repeatChar`, `konsoleLines`. Empty for an info not probed.
+  /// `repeatChar`, `konsoleLines`, `lineFeed`. Empty for an info not
+  /// probed.
   final Map<String, CapabilitySource> sources;
 
   @override
   String toString() =>
       'sync=${caps.synchronizedOutput} rep=${caps.repeatChar} '
       'margins=${caps.leftRightMargins} konsoleLines=${caps.konsoleLines} '
+      'lineFeed=${caps.lineFeed.name} '
       'styledUnderlines=${caps.styledUnderlines} '
       'text=${textMode.name} ambiguous=$ambiguousWidth '
       'color=${colorMode.name} fg=${foregroundRgb?.toRadixString(16)} '
@@ -1961,6 +1963,16 @@ final class Terminal
         : apple && multiplexer == Multiplexer.none
         ? CapabilitySource.environment
         : CapabilitySource.assumed;
+    // as declared, else as the tty's output flags say (the process's own
+    // link); unknown where nothing tells, a line feed then always followed
+    // by an absolute column
+    final ttyLineFeed = link is LineFeedLink ? link.lineFeed : LineFeed.unknown;
+    final lineFeed = declared.lineFeed ?? ttyLineFeed;
+    sources['lineFeed'] = declared.lineFeed != null
+        ? CapabilitySource.declared
+        : ttyLineFeed != LineFeed.unknown
+        ? CapabilitySource.environment
+        : CapabilitySource.assumed;
     // a terminal that declares it shows the shapes is twk's, which names
     // them by CSS's names
     final pointerNames = switch (declared.pointerShapes) {
@@ -1990,6 +2002,7 @@ final class Terminal
         konsoleLines: konsole,
         konsoleImages: konsole,
         leftRightMargins: leftRightMargins,
+        lineFeed: lineFeed,
         graphics: graphics,
         // tmux 3.4 shows sixel itself
         graphicsMultiplexer:

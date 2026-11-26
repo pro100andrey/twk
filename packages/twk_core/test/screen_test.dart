@@ -39,7 +39,6 @@ void main() {
       12,
       4,
       scrollback: true,
-      allowLineFeed: true,
       relativeOnly: true,
     );
     final pen = screen.styles.pen(const Pen());

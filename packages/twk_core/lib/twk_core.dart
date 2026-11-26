@@ -48,7 +48,7 @@ export 'src/platform/platform.dart'
         desktopNotificationsAnswer,
         stdioIsTerminal;
 export 'src/presenter.dart'
-    show CursorShape, PresentStats, Presenter, TerminalCaps, Viewport;
+    show CursorShape, LineFeed, PresentStats, Presenter, TerminalCaps, Viewport;
 export 'src/render/render.dart';
 export 'src/screen.dart' show Screen;
 export 'src/style.dart' show Attr, Color, ColorMode, Pen, StyleId, StyleTable;
@@ -66,6 +66,7 @@ export 'src/surface.dart'
 export 'src/terminal/link.dart'
     show
         DeclaringLink,
+        LineFeedLink,
         PixelSizedLink,
         TerminalDeclaration,
         TerminalException,
