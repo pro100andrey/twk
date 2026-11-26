@@ -22,6 +22,7 @@ final class Harness {
     bool vtKonsoleLines = false,
     bool vtKonsoleImages = false,
     TextSegmenter? vtSegmenter,
+    bool? vtOnlcr,
     bool strict = true,
   }) : styles = StyleTable(),
        glyphs = GlyphTable(),
@@ -34,9 +35,12 @@ final class Harness {
          konsoleImages: vtKonsoleImages,
          segmenter: vtSegmenter,
          strict: strict,
+         // the presenter scrolls with SU and DL, never with a line feed
+         allowScrollingLineFeed: false,
          // a presenter that does not know line feeds keep the column must
-         // write the same screen where each is CR LF
-         onlcr: caps.lineFeed != LineFeed.keepsColumn,
+         // write the same screen where each is CR LF ([vtOnlcr] to check
+         // it where none is)
+         onlcr: vtOnlcr ?? caps.lineFeed != LineFeed.keepsColumn,
        ),
        inline = false,
        history = const [] {

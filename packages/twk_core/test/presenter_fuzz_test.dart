@@ -22,6 +22,7 @@ void runFuzz(
   bool vtBce = true,
   bool vtKonsoleLines = false,
   TextSegmenter? Function()? vtSegmenter,
+  bool? vtOnlcr,
   bool ignoreUncertain = false,
   void Function(Presenter p)? tune,
   bool sweep = false,
@@ -45,6 +46,7 @@ void runFuzz(
         vtBce: vtBce,
         vtKonsoleLines: vtKonsoleLines,
         vtSegmenter: vtSegmenter?.call(),
+        vtOnlcr: vtOnlcr,
         strict: !ignoreUncertain,
       );
       tune?.call(hs.presenter);
@@ -390,6 +392,18 @@ void main() {
       'agreeing terminal, BCE, REP',
       seeds: 300,
       caps: const TerminalCaps(repeatChar: true),
+    );
+    runFuzz(
+      'line feeds not known, the terminal keeping the column (the default '
+      'checks them made CR LF)',
+      seeds: 300,
+      vtOnlcr: false,
+    );
+    runFuzz(
+      'line feeds not known, the terminal keeping the column, REP, margins',
+      seeds: 200,
+      caps: const TerminalCaps(repeatChar: true, leftRightMargins: true),
+      vtOnlcr: false,
     );
     runFuzz(
       'a line feed that keeps the column (no ONLCR between)',

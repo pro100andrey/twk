@@ -58,6 +58,20 @@ void main() {
     expect(vt.errors, ['raw control byte 0xa']);
   });
 
+  test('allowScrollingLineFeed off: an LF that scrolls, or stays on the '
+      'last row below the margins, is an error and is carried out', () {
+    final vt = Vt(10, 2, strict: false, allowScrollingLineFeed: false)
+      ..feed(utf8.encode('a\nb\nc'));
+    expect(vt.errors, ['line feed scrolled']);
+    expect(vt.lines, [' b', '  c']);
+    final below = Vt(10, 3, strict: false, allowScrollingLineFeed: false)
+      ..feed(utf8.encode('\x1b[1;2r\x1b[3;1Ha\n'));
+    expect(below.errors, ['line feed at the last row']);
+    final down = Vt(10, 2, allowScrollingLineFeed: false)
+      ..feed(utf8.encode('a\nb'));
+    expect(down.errors, isEmpty);
+  });
+
   test('onlcr: an LF returns to the first column, on the alternate screen '
       'too', () {
     final vt = Vt(10, 3, onlcr: true)..feed(utf8.encode('\x1b[?1049ha\nb'));

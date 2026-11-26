@@ -229,7 +229,8 @@ final class Vt {
   /// [segmenter] splits printed text into cells, by default as the
   /// application's [TextSegmenter] does. [strict] throws each error as it
   /// happens; off, they are only kept in [errors]. [allowLineFeed] takes
-  /// LF, [onlcr] makes it CR LF as a tty's output flags do,
+  /// LF, [allowScrollingLineFeed] one at the bottom margin (or the last
+  /// row) too, [onlcr] makes it CR LF as a tty's output flags do,
   /// [scrollback] keeps the lines scrolled off the top in [history],
   /// and [relativeOnly] makes an absolute row an error, as drawing on the
   /// alternate screen is (going there to ask queries is not): the three of
@@ -244,6 +245,7 @@ final class Vt {
     TextSegmenter? segmenter,
     this.strict = true,
     this.allowLineFeed = true,
+    this.allowScrollingLineFeed = true,
     this.onlcr = false,
     this.scrollback = false,
     this.relativeOnly = false,
@@ -300,11 +302,19 @@ final class Vt {
   /// screen too. Off, an LF is an error.
   final bool allowLineFeed;
 
+  /// Accept an LF that doesn't move the cursor down a row: one at the
+  /// bottom margin, which scrolls, or below it on the last row, which stays.
+  /// On by default; off, it is an error and is still carried out. twk's
+  /// presenter scrolls the whole screen with SU and DL only, and a line
+  /// feed of its own moves down: off for its fullscreen frames, a stray LF
+  /// is caught even where the frame after paints over what it scrolled.
+  final bool allowScrollingLineFeed;
+
   /// Each LF also returns the cursor to the first column, as it does where
   /// a tty between turns it into CR LF (OPOST and ONLCR). A presenter that
-  /// doesn't know the tty's flags (`TerminalCaps.lineFeedKeepsColumn` off)
-  /// sets the column after every line feed: under this its screen is the
-  /// same.
+  /// doesn't know the tty's flags (`TerminalCaps.lineFeed` is
+  /// `LineFeed.unknown`) sets the column after every line feed: its screen
+  /// is the same with this on and off.
   final bool onlcr;
 
   /// A normal screen: lines scrolled off its top (by LF or SU over the
@@ -701,6 +711,13 @@ final class Vt {
       } else if (b == 0x0A && allowLineFeed) {
         flushText();
         pendingWrap = false;
+        if (!allowScrollingLineFeed) {
+          if (cy == bottomMargin) {
+            _err('line feed scrolled');
+          } else if (cy == height - 1) {
+            _err('line feed at the last row');
+          }
+        }
         _lineFeed();
         if (onlcr) {
           cx = 0;

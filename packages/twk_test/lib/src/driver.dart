@@ -266,12 +266,14 @@ Future<String> _kernelOf(String program) {
 /// take ([problems]). Internal to [driverTest].
 final class CheckedScreen implements ScreenPort {
   /// A screen of [width] by [height] cells; [inline] for an app that draws
-  /// in the normal screen (line feeds taken, a scrollback kept).
+  /// in the normal screen (line feeds that scroll taken, a scrollback
+  /// kept).
   CheckedScreen(int width, int height, {this.inline = false})
     : vt = Vt(
         width,
         height,
         strict: false,
+        allowScrollingLineFeed: inline,
         scrollback: inline,
         relativeOnly: inline,
       ) {
