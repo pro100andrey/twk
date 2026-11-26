@@ -125,6 +125,10 @@ Changed:
 
 Fixed:
 
+- `twk decode` names an SGR mouse report in pixels while the app has
+  SGR-Pixels (DEC mode 1016) on, `mouse left press at x 709, y 319 px`,
+  not as a column and row; a motion with no button held is `mouse moved`,
+  not `mouse none moved`.
 - `twk tape` takes no `NO_COLOR` and `FORCE_COLOR` from the shell, so a tape
   draws the same on every machine; a tape's own `env` still sets them.
 - `twk logs` and `twk create` take a pseudo-terminal of no size for a

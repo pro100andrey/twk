@@ -3,7 +3,7 @@
 // going and the terminal's sizes as notes. What a synchronized update (DEC
 // mode 2026) holds is one entry, a frame, with its sequences below it.
 // Pure: no node, no DOM; its entries are what the log's webview shows.
-import { SequenceReader, Token, describeInput, describeOutput, syncChange, visible } from './sequences.js';
+import { SequenceReader, Token, describeInput, describeOutput, pixelMouseChange, syncChange, visible } from './sequences.js';
 
 /** Which way an entry went: written by the app, sent by the terminal, or said of the session. */
 export type Direction = 'out' | 'in' | 'note';
@@ -129,6 +129,8 @@ export class SequenceLog {
   private open: Open | undefined;
   private depth = 0;
   private positionAsked = 0;
+  /** Whether the app has SGR-Pixels (DEC mode 1016) on: the terminal's mouse reports are in pixels. */
+  private pixels = false;
   /** The app's run the output is of, the app's count at the end of the last token made of it, and at the end of the last bytes given. */
   private run = 0;
   private emitted = 0;
@@ -170,6 +172,7 @@ export class SequenceLog {
       if (t.kind === 'csi' && t.final === 'n' && t.intermediates === '' && (t.prefix === '' || t.prefix === '?') && t.params === '6') {
         this.positionAsked++;
       }
+      this.pixels = pixelMouseChange(t) ?? this.pixels;
       const open = this.open;
       if (open) {
         if (open.entries.length < this.frameLimit) {
@@ -194,7 +197,7 @@ export class SequenceLog {
     for (const t of new SequenceReader(true).read(bytes)) {
       // a CSI 1 ; n R is the answer to a position query asked and not yet answered (as twk_dev's replay InputSplitter tells), else the F3 key;
       // a key typed gives the queries up
-      const entry = this.entry(time, 'in', t.kind, describeInput(t, this.positionAsked > 0), t.raw);
+      const entry = this.entry(time, 'in', t.kind, describeInput(t, this.positionAsked > 0, this.pixels), t.raw);
       if (t.kind === 'csi' && t.final === 'R' && (t.prefix === '' || t.prefix === '?')) {
         // CSI r;c R answers CSI 6 n, CSI ? r;c R answers CSI ? 6 n; not sent after an ESC
         if (!t.alt && this.positionAsked > 0 && t.params.includes(';')) {

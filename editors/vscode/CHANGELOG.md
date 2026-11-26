@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The sequence log's frame rows are in the log's columns again: the app
+  logs' style of a stack frame had pushed them right and dimmed them. A
+  note's row there is in them too.
+- The sequence log names an SGR mouse report in pixels while the app has
+  SGR-Pixels on (`mouse moved at x 709, y 319 px`), and a motion with no
+  button held `mouse moved`, as `twk decode` does.
 - Run compiles its app through a resident frontend compiler of the
   extension's own (`dart run --resident`), kept between runs and ended with
   the window: a hot restart compiles what changed, 0.3 to 0.5 s where it

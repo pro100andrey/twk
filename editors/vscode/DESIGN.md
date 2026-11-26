@@ -217,7 +217,8 @@ away, a size, the extension's own lines), the name and the bytes (ESC as
 (`CUP cursor to row 3, column 5`, `SGR bold, fg green`, `DECSET 1049
 alternate screen, cursor saved`, `OSC 11 query: the background color`,
 `DCS sixel image (…)`) and of what the terminal sent (`key Ctrl+Up`,
-`key Escape (kitty)`, `mouse left press at column 10, row 5`,
+`key Escape (kitty)`, `mouse left press at column 10, row 5`
+(`at x 709, y 319 px` while the app has SGR-Pixels, mode 1016, on),
 `DECRPM answer: mode 2026 synchronized output set`, `DA1 answer: 1;2`).
 What a synchronized update (DEC mode 2026) holds is one row, `frame 12:
 5 CUP, 4 text, 3 SGR…, 2 ms`, a click opening it to its sequences; an app

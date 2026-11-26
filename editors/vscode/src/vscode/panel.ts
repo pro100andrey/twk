@@ -69,7 +69,7 @@ export function openLogPanel(title: string, extensionUri: vscode.Uri): WebviewPa
 
 /** A new panel titled [title] for the apps' log (webview/app_logs.ts). */
 export function openAppLogsPanel(title: string, extensionUri: vscode.Uri): WebviewPanelPort<ToAppLogs> {
-  return openPanel<ToAppLogs>('twk.appLogs', title, extensionUri, (w) => logPage(w, extensionUri, 'app_logs.js'));
+  return openPanel<ToAppLogs>('twk.appLogs', title, extensionUri, (w) => logPage(w, extensionUri, 'app_logs.js', appLogsStyle));
 }
 
 /** A new panel titled [title] for a driver trace (webview/trace.ts): its page loads xterm.js to draw the screens. */
@@ -171,17 +171,30 @@ body { display: flex; flex-direction: column; font-family: var(--vscode-font-fam
 #log { flex: 1; overflow: auto; font-family: var(--vscode-editor-font-family); font-size: var(--vscode-editor-font-size); }
 .row { display: grid; grid-template-columns: 6em 1.5em minmax(16em, 1fr) minmax(10em, 1fr); gap: 0 8px; padding: 0 8px; white-space: pre; }
 .row > span { overflow: hidden; text-overflow: ellipsis; }
+.row.note { font-style: italic; opacity: 0.8; }
+.row:hover { background: var(--vscode-list-hoverBackground); }
+.row .time { opacity: 0.7; }
+`;
+
+/**
+ * The sequence log's look: [logStyle] and its rows' own. Its rows carry the entry's direction and kind as classes (`frame`,
+ * `note`), so the app logs' rules, whose `.frame` is a stack frame, are kept out of it.
+ */
+const sequenceLogStyle = `${logStyle}
 .row.child { padding-left: 3em; opacity: 0.9; }
 .row.frame { cursor: pointer; font-weight: 600; }
-.row.note { font-style: italic; opacity: 0.8; }
 .row.in .dir { color: var(--vscode-terminal-ansiGreen, green); }
 .row.out .dir { color: var(--vscode-terminal-ansiBlue, blue); }
 .raw { opacity: 0.7; }
 .row.revealed { outline: 1px solid var(--vscode-focusBorder, currentColor); background: var(--vscode-list-activeSelectionBackground, transparent); }
+`;
+
+/** The app logs' look: [logStyle] and its rows' own (levels, stacks and their frames). */
+const appLogsStyle = `${logStyle}
 .row.stacked { cursor: pointer; }
 .row.stacked:hover { background: var(--vscode-list-hoverBackground); }
 #log .row.debug, #log .row.info, #log .row.warning, #log .row.error, #log .row.note { grid-template-columns: 6.5em 6em 10em minmax(16em, 1fr); }
-.row .time, .row .app { opacity: 0.7; }
+.row .app { opacity: 0.7; }
 .row.debug .lvl { opacity: 0.6; }
 .row.info .lvl { color: var(--vscode-terminal-ansiCyan, cyan); }
 .row.warning .lvl, .row.warning .msg { color: var(--vscode-editorWarning-foreground, orange); }
@@ -190,11 +203,10 @@ body { display: flex; flex-direction: column; font-family: var(--vscode-font-fam
 .frame { padding: 0 8px 0 calc(6.5em + 6em + 10em + 40px); opacity: 0.75; white-space: pre; overflow: hidden; text-overflow: ellipsis; }
 .frame.open { cursor: pointer; text-decoration: underline; color: var(--vscode-textLink-foreground); opacity: 1; }
 .level.debug { opacity: 0.7; }
-.row:hover { background: var(--vscode-list-hoverBackground); }
 `;
 
 /** The log's page: its module, styled by VS Code's colours. */
-export function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js', style = logStyle, content = '<header id="bar"></header>\n<main id="log"></main>'): string {
+export function logPage(w: vscode.Webview, extensionUri: vscode.Uri, script = 'log.js', style = sequenceLogStyle, content = '<header id="bar"></header>\n<main id="log"></main>'): string {
   const uri = (...p: string[]) => w.asWebviewUri(vscode.Uri.joinPath(extensionUri, ...p)).toString();
   const nonce = nonceOf();
   return `<!DOCTYPE html>

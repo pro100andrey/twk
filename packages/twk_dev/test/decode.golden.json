@@ -1715,7 +1715,7 @@
         {
           "kind": "csi",
           "raw": "1b5b3c33353b313b314d",
-          "name": "mouse none moved at column 1, row 1"
+          "name": "mouse moved at column 1, row 1"
         },
         {
           "kind": "csi",
@@ -3570,6 +3570,84 @@
           "name": "key Ctrl+F3",
           "raw": "ESC [1;5R",
           "bytes": 6
+        }
+      ]
+    },
+    {
+      "name": "a pixel mouse",
+      "description": "while the app has SGR-Pixels (1016) on, an SGR mouse report is in pixels; after it resets them, in cells again; a motion with no button held is just moved",
+      "events": [
+        {
+          "time": 1,
+          "direction": "out",
+          "bytes": "1b5b3f313030333b313030363b3130313668"
+        },
+        {
+          "time": 2,
+          "direction": "in",
+          "bytes": "1b5b3c33353b3730393b3331394d"
+        },
+        {
+          "time": 3,
+          "direction": "in",
+          "bytes": "1b5b3c303b31323b33304d"
+        },
+        {
+          "time": 4,
+          "direction": "out",
+          "bytes": "1b5b3f313031366c"
+        },
+        {
+          "time": 5,
+          "direction": "in",
+          "bytes": "1b5b3c303b31303b356d"
+        }
+      ],
+      "entries": [
+        {
+          "id": 0,
+          "time": 1,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DECSET 1003 mouse motion, 1006 SGR mouse, 1016 SGR pixel mouse",
+          "raw": "ESC [?1003;1006;1016h",
+          "bytes": 18
+        },
+        {
+          "id": 1,
+          "time": 2,
+          "direction": "in",
+          "kind": "csi",
+          "name": "mouse moved at x 709, y 319 px",
+          "raw": "ESC [<35;709;319M",
+          "bytes": 14
+        },
+        {
+          "id": 2,
+          "time": 3,
+          "direction": "in",
+          "kind": "csi",
+          "name": "mouse left press at x 12, y 30 px",
+          "raw": "ESC [<0;12;30M",
+          "bytes": 11
+        },
+        {
+          "id": 3,
+          "time": 4,
+          "direction": "out",
+          "kind": "csi",
+          "name": "DECRST 1016 SGR pixel mouse",
+          "raw": "ESC [?1016l",
+          "bytes": 8
+        },
+        {
+          "id": 4,
+          "time": 5,
+          "direction": "in",
+          "kind": "csi",
+          "name": "mouse left release at column 10, row 5",
+          "raw": "ESC [<0;10;5m",
+          "bytes": 10
         }
       ]
     }

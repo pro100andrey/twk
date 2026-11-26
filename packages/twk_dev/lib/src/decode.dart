@@ -481,6 +481,19 @@ int syncChange(SeqToken t) {
   return t.final_ == 'h' ? n : -n;
 }
 
+/// Whether [t] sets (`CSI ? 1016 h`, true) or resets (`CSI ? 1016 l`,
+/// false) SGR-Pixels, the mouse reported in pixels; null where it does
+/// neither.
+bool? pixelMouseChange(SeqToken t) {
+  if (t.kind != 'csi' ||
+      t.prefix != '?' ||
+      t.intermediates.isNotEmpty ||
+      (t.final_ != 'h' && t.final_ != 'l')) {
+    return null;
+  }
+  return t.params.split(';').contains('1016') ? t.final_ == 'h' : null;
+}
+
 /// [raw] as the log shows it: ESC as `ESC`, other controls in caret
 /// notation, bytes above 0x7E in hex, cut after [max] characters.
 String visible(String raw, {int max = 160}) {
@@ -1164,7 +1177,7 @@ String _keyName(int? code) =>
         : 'key ${_p(code)}');
 
 /// A mouse button of SGR's or X10's [b], with what it says of the
-/// modifiers and motion.
+/// modifiers and motion: `moved` alone for a motion with no button held.
 String _mouseButton(int b) {
   final mods =
       '${b & 4 != 0 ? 'Shift+' : ''}'
@@ -1172,6 +1185,9 @@ String _mouseButton(int b) {
       '${b & 16 != 0 ? 'Ctrl+' : ''}';
   final motion = b & 32 != 0 ? ' moved' : '';
   final base = b & ~(4 | 8 | 16 | 32);
+  if (base == 3 && motion.isNotEmpty) {
+    return '${mods}moved';
+  }
   final name = base >= 64
       ? _pick(const [
               'wheel up',
@@ -1185,7 +1201,7 @@ String _mouseButton(int b) {
   return '$mods$name$motion';
 }
 
-String _csiIn(SeqToken t, bool? positionAsked) {
+String _csiIn(SeqToken t, bool? positionAsked, bool pixels) {
   final prefix = t.prefix;
   final params = t.params;
   final intermediates = t.intermediates;
@@ -1204,7 +1220,10 @@ String _csiIn(SeqToken t, bool? positionAsked) {
         : final_ == 'M'
         ? ' press'
         : ' release';
-    return 'mouse $what$act at column ${_at(v, 1)}, row ${_at(v, 2)}';
+    final at = pixels
+        ? 'at x ${_at(v, 1)}, y ${_at(v, 2)} px'
+        : 'at column ${_at(v, 1)}, row ${_at(v, 2)}';
+    return 'mouse $what$act $at';
   }
   if (final_ == 'R' &&
       prefix.isEmpty &&
@@ -1353,8 +1372,15 @@ bool _isKeyForm(SeqToken t) {
 /// What [t], sent by the terminal (typed, or answered), is. `CSI 1 ; n R` is
 /// a key (F3) or an answer (the cursor at row 1) by [positionAsked]: whether
 /// the app has asked for the cursor position and is not answered yet; null
-/// where that is not known, which the name says.
-String describeInput(SeqToken t, {bool? positionAsked}) {
+/// where that is not known, which the name says. An SGR mouse report is in
+/// pixels by [pixels]: whether the app has SGR-Pixels (DEC mode 1016) on,
+/// which [pixelMouseChange] tells of what it wrote; in cells where that is
+/// not known.
+String describeInput(
+  SeqToken t, {
+  bool? positionAsked,
+  bool pixels = false,
+}) {
   if (t.alt) {
     // the key with Alt; a CPR answer is never sent after an ESC
     final inner = describeInput(
@@ -1367,6 +1393,7 @@ String describeInput(SeqToken t, {bool? positionAsked}) {
         final_: t.final_,
       ),
       positionAsked: false,
+      pixels: pixels,
     );
     return inner.startsWith('key ')
         ? 'key Alt+${inner.substring(4)}'
@@ -1395,7 +1422,7 @@ String describeInput(SeqToken t, {bool? positionAsked}) {
     case 'ss3':
       return 'key ${_cursorKeys[t.final_] ?? 'SS3 ${t.final_}'}';
     case 'csi':
-      return _csiIn(t, positionAsked);
+      return _csiIn(t, positionAsked, pixels);
     case 'osc':
       return _osc(t.body, true);
     case 'dcs':
@@ -1503,6 +1530,10 @@ final class SequenceLog {
   final _kept = Queue<LogEntry>();
   var _nextId = 0;
   var _positionAsked = 0;
+
+  /// Whether the app has SGR-Pixels (DEC mode 1016) on: the terminal's mouse
+  /// reports are in pixels.
+  var _pixels = false;
   var _frames = 0;
   _Open? _open;
   var _depth = 0;
@@ -1524,6 +1555,7 @@ final class SequenceLog {
           t.params == '6') {
         _positionAsked++;
       }
+      _pixels = pixelMouseChange(t) ?? _pixels;
       final open = _open;
       if (open != null) {
         if (open.entries.length < frameLimit) {
@@ -1554,7 +1586,7 @@ final class SequenceLog {
         time,
         Direction.input,
         t.kind,
-        describeInput(t, positionAsked: asked),
+        describeInput(t, positionAsked: asked, pixels: _pixels),
         t.raw,
       );
       if (t.kind == 'csi' &&

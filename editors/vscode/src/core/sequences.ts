@@ -323,6 +323,14 @@ export function syncChange(t: Token): number {
   return t.final === 'h' ? n : -n;
 }
 
+/** Whether [t] sets (`CSI ? 1016 h`, true) or resets (`CSI ? 1016 l`, false) SGR-Pixels, the mouse reported in pixels; undefined where it does neither. */
+export function pixelMouseChange(t: Token): boolean | undefined {
+  if (t.kind !== 'csi' || t.prefix !== '?' || t.intermediates !== '' || (t.final !== 'h' && t.final !== 'l')) {
+    return undefined;
+  }
+  return t.params.split(';').includes('1016') ? t.final === 'h' : undefined;
+}
+
 /** [raw] as the log shows it: ESC as `ESC`, other controls in caret notation, bytes above 0x7E in hex. */
 export function visible(raw: string, max = 160): string {
   let s = '';
@@ -787,24 +795,27 @@ function keyName(code: number): string {
   return kittyCodes[code] ?? (code > 32 && code < 0x110000 ? String.fromCodePoint(code) : `key ${code}`);
 }
 
-/** A mouse button of SGR's or X10's [b], with what it says of the modifiers and motion. */
+/** A mouse button of SGR's or X10's [b], with what it says of the modifiers and motion: `moved` alone for a motion with no button held. */
 function mouseButton(b: number): string {
   const mods = `${b & 4 ? 'Shift+' : ''}${b & 8 ? 'Alt+' : ''}${b & 16 ? 'Ctrl+' : ''}`;
   const motion = b & 32 ? ' moved' : '';
   const base = b & ~(4 | 8 | 16 | 32);
+  if (base === 3 && motion !== '') {
+    return `${mods}moved`;
+  }
   const name = base >= 64 ? ['wheel up', 'wheel down', 'wheel left', 'wheel right'][base - 64] ?? `button ${base}` : ['left', 'middle', 'right', 'none'][base] ?? `button ${base}`;
   return `${mods}${name}${motion}`;
 }
 
 /** A CSI the terminal sent, named. */
-function describeCsiIn(t: Extract<Token, { kind: 'csi' }>, positionAsked: boolean | undefined): string {
+function describeCsiIn(t: Extract<Token, { kind: 'csi' }>, positionAsked: boolean | undefined, pixels: boolean): string {
   const { prefix, params, intermediates, final } = t;
   const n = numbers(params, 1);
   if (prefix === '<' && (final === 'M' || final === 'm') && intermediates === '') {
     const [b, x, y] = numbers(params, 0);
     const what = mouseButton(b);
     const act = b & 32 ? '' : b >= 64 ? '' : final === 'M' ? ' press' : ' release';
-    return `mouse ${what}${act} at column ${x}, row ${y}`;
+    return `mouse ${what}${act} ${pixels ? `at x ${x}, y ${y} px` : `at column ${x}, row ${y}`}`;
   }
   if (final === 'R' && prefix === '' && intermediates === '' && params.includes(';') && n[0] === 1) {
     // `CSI 1 ; m R` is the F3 key with modifiers m, and the cursor at row 1 and column m: only a query that asked for the position tells which
@@ -919,12 +930,13 @@ function isKeyForm(t: Token): t is Token & { readonly kind: 'csi' | 'ss3' } {
 /**
  * What [t], sent by the terminal (typed, or answered), is. `CSI 1 ; n R` is a key (F3) or an answer (the cursor at row 1) by
  * [positionAsked]: whether the app has asked for the cursor position and is not answered yet; undefined where that is not
- * known, which the name says.
+ * known, which the name says. An SGR mouse report is in pixels by [pixels]: whether the app has SGR-Pixels (DEC mode 1016) on,
+ * which [pixelMouseChange] tells of what it wrote; in cells where that is not known.
  */
-export function describeInput(t: Token, positionAsked?: boolean): string {
+export function describeInput(t: Token, positionAsked?: boolean, pixels = false): string {
   if ((t.kind === 'csi' || t.kind === 'ss3') && t.alt) {
     // the key with Alt; a CPR answer is never sent after an ESC
-    const inner = describeInput({ ...t, raw: t.raw.slice(1), alt: false }, false);
+    const inner = describeInput({ ...t, raw: t.raw.slice(1), alt: false }, false, pixels);
     return inner.startsWith('key ') ? `key Alt+${inner.slice(4)}` : `Alt+ ${inner}`;
   }
   switch (t.kind) {
@@ -952,7 +964,7 @@ export function describeInput(t: Token, positionAsked?: boolean): string {
     case 'ss3':
       return `key ${cursorKeys[t.final] ?? `SS3 ${t.final}`}`;
     case 'csi':
-      return describeCsiIn(t, positionAsked);
+      return describeCsiIn(t, positionAsked, pixels);
     case 'osc':
       return describeOsc(t.body, true);
     case 'dcs':
