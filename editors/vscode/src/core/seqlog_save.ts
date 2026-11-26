@@ -2,16 +2,18 @@
 // shows them (text, laid out as `twk decode` prints them), or the bytes with
 // their times as asciicast v2 (core/cast.ts's CastWriter), which `twk decode`
 // and `twk play` read, with the app's output as `o` events, what the terminal
-// sent as `i` events and the notes as `m` events (markers, which `twk decode`
-// reads as notes). Pure: no node, no DOM.
+// sent as `i` events, the resizes as `r` events and the notes as `m` events
+// (markers, which `twk decode` reads as notes). Pure: no node, no DOM.
 import { CastWriter } from './cast.js';
-import { AppOffset, LogEntry, LogFilter, entryMatches } from './seqlog.js';
+import { AppOffset, LogEntry, LogFilter, Size, entryMatches } from './seqlog.js';
 
 /** A piece of a screen's traffic, at [time] ms of the log's clock. */
 export type TrafficPiece =
   | { readonly time: number; readonly output: Uint8Array; readonly fromApp: boolean; readonly app?: AppOffset }
   | { readonly time: number; readonly input: Uint8Array }
-  | { readonly time: number; readonly note: string };
+  | { readonly time: number; readonly note: string }
+  /** The terminal resized to [size], from [from] where that is known. */
+  | { readonly time: number; readonly size: Size; readonly from?: Size };
 
 /** The longest pause a saved recording tells a player to keep, as a recording's. */
 const idleSeconds = 2;
@@ -65,19 +67,22 @@ export interface CastMeta {
 }
 
 /**
- * [pieces] as an asciicast: what the app wrote as `o` events, what the terminal sent as `i` events and each note as an
- * `m` event, at the times the log has them, kept in order. [filter] leaves out a direction; its word and its text runs
+ * [pieces] as an asciicast: what the app wrote as `o` events, what the terminal sent as `i` events, each resize as an
+ * `r` event and each note as an `m` event, at the times the log has them, kept in order. Its size is the one before the
+ * first resize, where that is known, else [meta]'s. [filter] leaves out a direction; its word and its text runs
  * name decoded entries, not bytes, and are not applied (cutting a byte stream by them would break its sequences).
  */
 export function logCast(pieces: readonly TrafficPiece[], filter: LogFilter, meta: CastMeta): string {
   let text = '';
+  const first = pieces.find((p) => 'size' in p);
+  const start = first && 'size' in first ? first.from : undefined;
   const writer = new CastWriter(
     (t) => {
       text += t;
     },
     {
-      width: meta.width,
-      height: meta.height,
+      width: start?.columns ?? meta.width,
+      height: start?.lines ?? meta.height,
       timestamp: meta.timestamp,
       idleTimeLimit: idleSeconds,
       title: meta.title,
@@ -102,6 +107,8 @@ export function logCast(pieces: readonly TrafficPiece[], filter: LogFilter, meta
       if (filter.in) {
         writer.writeInput(at, p.input);
       }
+    } else if ('size' in p) {
+      writer.resize(at, p.size.columns, p.size.lines);
     } else if (filter.note) {
       writer.marker(at, rowName(p.note));
     }

@@ -72,7 +72,7 @@ describe('the sequence log panel', () => {
     t.say('\x1b[2mtwk: the app went away\x1b[0m\r\n');
     (t.view as FakeView).resize(90, 20);
     log.flush();
-    assert.deepEqual(sent(panel).slice(1), ['entries: twk: the app went away | size 90x20']);
+    assert.deepEqual(sent(panel).slice(1), ['entries: twk: the app went away | size 100x30 → 90x20']);
     panel.send({ type: 'clear' });
     assert.deepEqual(sent(panel).slice(2), ['reset: ']);
     await t.write(Buffer.from('x'));

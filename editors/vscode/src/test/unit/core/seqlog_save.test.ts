@@ -31,6 +31,8 @@ function session(): { pieces: TrafficPiece[]; log: SequenceLog } {
       }
     } else if ('input' in p) {
       log.input(p.time, p.input);
+    } else if ('size' in p) {
+      log.resize(p.time, p.size, p.from);
     } else {
       log.note(p.time, p.note);
     }
@@ -123,6 +125,23 @@ describe('the sequence log saved as asciicast', () => {
     assert.equal(codes(only({ out: false })), 'mim');
     assert.equal(codes(only({ in: false, note: false })), 'ooo');
     assert.equal(codes(only({ word: 'cursor', text: false })), 'mooimo');
+  });
+
+  it('a resize is an r event, always; the header has the size before the first resize, not the one now', () => {
+    const pieces: TrafficPiece[] = [
+      { time: 0, output: b('a'), fromApp: true },
+      { time: 10, size: { columns: 93, lines: 50 }, from: { columns: 34, lines: 45 } },
+      { time: 20, size: { columns: 80, lines: 24 }, from: { columns: 93, lines: 50 } },
+    ];
+    const cast = parseCast(logCast(pieces, only({ out: false, in: false, note: false }), { width: 80, height: 24, title: 't', timestamp: 0 }));
+    assert.deepEqual([cast.header.width, cast.header.height], [34, 45]);
+    assert.deepEqual(
+      cast.events.map((e) => [e.time, e.code, e.data]),
+      [
+        [0.01, 'r', '93x50'],
+        [0.02, 'r', '80x24'],
+      ],
+    );
   });
 
   it('a character cut between two reads is put together; an empty log is a header', () => {

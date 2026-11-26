@@ -99,7 +99,6 @@ export class TwkTerminal implements TerminalPane, Screen {
       this.view.onResize(() => {
         this.shell?.resized();
         this.retitle();
-        this.notes.fire(`size ${this.columns}x${this.lines}`);
         this.resizes.fire();
       }),
       this.view.onRequest((r) => this.request(r)),

@@ -212,7 +212,8 @@ CLI's window).
 **The sequence log.** A panel beside the terminal, a row each: the time
 (seconds since the terminal opened), the direction (`→` what the app
 wrote, `←` what the terminal sent, `·` a note: an app connected or went
-away, a size, the extension's own lines), the name and the bytes (ESC as
+away, a resize from the size before, `size 34x45 → 93x50`, the extension's
+own lines), the name and the bytes (ESC as
 `ESC`, controls as `^M`). Names are those of the sequences
 (`CUP cursor to row 3, column 5`, `SGR bold, fg green`, `DECSET 1049
 alternate screen, cursor saved`, `OSC 11 query: the background color`,
@@ -221,7 +222,10 @@ alternate screen, cursor saved`, `OSC 11 query: the background color`,
 (`at x 709, y 319 px` while the app has SGR-Pixels, mode 1016, on),
 `DECRPM answer: mode 2026 synchronized output set`, `DA1 answer: 1;2`).
 What a synchronized update (DEC mode 2026) holds is one row, `frame 12:
-5 CUP, 4 text, 3 SGR…, 2 ms`, a click opening it to its sequences; an app
+5 CUP, 4 text, 3 SGR…, 2 ms`, a click opening it to its sequences; one
+that erases the whole screen (`ED 2`) says `full repaint`, and the first
+after a resize how long after it it began (`frame 83: full repaint 1 ms
+after resize to 93x50, 102 text, …`); an app
 that writes a small change outside one (twk writes one cell as it is)
 shows its sequences as rows. The bar: what to show (what the app wrote,
 what the terminal sent, the notes, the text runs), a word to look for in
@@ -239,10 +243,11 @@ it), only those the bar's filter shows now (directions, text runs, the word;
 a frame with the rows that match the word, all of them when its own row does).
 A `.cast` gets the bytes with their times as asciicast v2, `core/cast.ts`'s
 `CastWriter`, which `twk decode`, `twk play` and the replay here read: what the
-app wrote as `o` events, what the terminal sent as `i` events, and each note
-(an app came or went, a size, the extension's own lines) as an `m` event, which
-`twk decode` prints as `marker ...` and a player can go to. The header has the
-terminal's size now, its name, the log's beginning as the timestamp, `TERM`
+app wrote as `o` events, what the terminal sent as `i` events, each resize as
+an `r` event, and each note (an app came or went, the extension's own lines) as
+an `m` event, which `twk decode` prints as `marker ...` and a player can go to.
+The header has the terminal's size before the first resize the log kept (the
+size now where it kept none), its name, the log's beginning as the timestamp, `TERM`
 and `idle_time_limit` 2; the times are the log's real ones (not cut: a player
 applies the limit). The direction toggles of the bar apply to the bytes too
 (no `o` events when the app's rows are off, and so on); the word and the text

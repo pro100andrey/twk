@@ -1510,7 +1510,21 @@ class _Open {
   final int number;
   final entries = <LogEntry>[];
   var bytes = 0;
+
+  /// It erases the whole screen (`ED 2`): a full repaint.
+  var full = false;
 }
+
+/// Whether [t] erases the whole screen: `CSI 2 J`.
+bool _erasesScreen(SeqToken t) =>
+    t.kind == 'csi' &&
+    t.prefix.isEmpty &&
+    t.intermediates.isEmpty &&
+    t.final_ == 'J' &&
+    t.params == '2';
+
+/// A terminal's size, columns by lines, as `<columns>x<lines>`.
+String _sizeName((int, int) size) => '${size.$1}x${size.$2}';
 
 /// Entries made of a terminal's traffic as it comes: what the app wrote cut
 /// and named, a synchronized update (DEC mode 2026) held in one frame entry
@@ -1534,6 +1548,10 @@ final class SequenceLog {
   /// Whether the app has SGR-Pixels (DEC mode 1016) on: the terminal's mouse
   /// reports are in pixels.
   var _pixels = false;
+
+  /// The last resize no frame has told of yet: the next frame says it came
+  /// after it, and how long after.
+  ({int time, (int, int) size})? _resized;
   var _frames = 0;
   _Open? _open;
   var _depth = 0;
@@ -1558,6 +1576,9 @@ final class SequenceLog {
       _pixels = pixelMouseChange(t) ?? _pixels;
       final open = _open;
       if (open != null) {
+        if (_erasesScreen(t)) {
+          open.full = true;
+        }
         if (open.entries.length < frameLimit) {
           open.entries.add(e);
         }
@@ -1636,7 +1657,18 @@ final class SequenceLog {
     }
   }
 
-  /// Something of the session at [time]: an app came or went, a size.
+  /// The terminal was resized at [time] to [size] (columns, lines), from
+  /// [from] where that is known: a note saying both, and the next frame says
+  /// it came after it.
+  void resize(int time, (int, int) size, {(int, int)? from}) {
+    note(
+      time,
+      'size ${from == null ? '' : '${_sizeName(from)} → '}${_sizeName(size)}',
+    );
+    _resized = (time: time, size: size);
+  }
+
+  /// Something of the session at [time]: an app came or went, a marker.
   void note(int time, String text) => _add(
     LogEntry(
       id: _nextId++,
@@ -1691,6 +1723,13 @@ final class SequenceLog {
         ? ' (the first $frameLimit entries)'
         : '';
     final ms = time - open.time;
+    final resized = _resized;
+    _resized = null;
+    final after = resized == null
+        ? null
+        : '${open.time - resized.time} ms after resize to '
+              '${_sizeName(resized.size)}';
+    final cause = [if (open.full) 'full repaint', ?after].join(' ');
     _add(
       LogEntry(
         id: _nextId++,
@@ -1698,7 +1737,8 @@ final class SequenceLog {
         direction: Direction.out,
         kind: 'frame',
         name:
-            'frame ${open.number}: ${_summary(open.entries)}$cut'
+            'frame ${open.number}: ${cause.isEmpty ? '' : '$cause, '}'
+            '${_summary(open.entries)}$cut'
             '${ms > 0 ? ', $ms ms' : ''}'
             '${closed ? '' : ', not closed'}',
         raw: '${open.bytes} bytes',
@@ -1718,46 +1758,60 @@ final class SequenceLog {
 }
 
 /// One thing that happened at `micros`: bytes the app wrote or the terminal
-/// sent, or a note of the session.
+/// sent, a note of the session, or (a note with `resize`) a resize, to a size
+/// from the one before.
 typedef _Event = ({
   int micros,
   Direction direction,
   List<int> bytes,
   String? note,
+  ({(int, int) size, (int, int) from})? resize,
 });
 
 /// The events of a recording: what it wrote and what was typed, its
-/// resizes and markers as notes.
-List<_Event> _castEvents(Cast cast) => [
-  (
-    micros: 0,
-    direction: Direction.note,
-    bytes: const <int>[],
-    note: 'recording ${cast.header.width}x${cast.header.height}',
-  ),
-  for (final e in cast.events)
-    if (e.code == CastEvent.output || e.code == CastEvent.input)
-      (
-        micros: (e.time * 1e6).round(),
+/// resizes (each from the size before) and its markers as notes.
+List<_Event> _castEvents(Cast cast) {
+  var size = (cast.header.width, cast.header.height);
+  final events = <_Event>[
+    (
+      micros: 0,
+      direction: Direction.note,
+      bytes: const <int>[],
+      note: 'recording ${_sizeName(size)}',
+      resize: null,
+    ),
+  ];
+  for (final e in cast.events) {
+    final micros = (e.time * 1e6).round();
+    if (e.code == CastEvent.output || e.code == CastEvent.input) {
+      events.add((
+        micros: micros,
         direction: e.code == CastEvent.output ? Direction.out : Direction.input,
         bytes: utf8.encode(e.data),
         note: null,
-      )
-    else if (e.size case (final w, final h))
-      (
-        micros: (e.time * 1e6).round(),
+        resize: null,
+      ));
+    } else if (e.size case final to?) {
+      events.add((
+        micros: micros,
         direction: Direction.note,
         bytes: const <int>[],
-        note: 'resized to ${w}x$h',
-      )
-    else if (e.code == CastEvent.marker)
-      (
-        micros: (e.time * 1e6).round(),
+        note: null,
+        resize: (size: to, from: size),
+      ));
+      size = to;
+    } else if (e.code == CastEvent.marker) {
+      events.add((
+        micros: micros,
         direction: Direction.note,
         bytes: const <int>[],
         note: 'marker ${e.data}',
-      ),
-];
+        resize: null,
+      ));
+    }
+  }
+  return events;
+}
 
 List<_Event> _traceEvents(Trace trace) => [
   (
@@ -1767,6 +1821,7 @@ List<_Event> _traceEvents(Trace trace) => [
     note:
         '${trace.direction.name} trace ${trace.width}x${trace.height}'
         '${trace.truncated ? ', cut short' : ''}',
+    resize: null,
   ),
   for (final r in trace.records)
     (
@@ -1776,6 +1831,7 @@ List<_Event> _traceEvents(Trace trace) => [
           : Direction.input,
       bytes: r.bytes,
       note: null,
+      resize: null,
     ),
 ];
 
@@ -1808,7 +1864,11 @@ SequenceLog _logOf(List<_Event> events) {
     last = ms;
     switch (e.direction) {
       case Direction.note:
-        log.note(ms, e.note!);
+        if (e.resize case final r?) {
+          log.resize(ms, r.size, from: r.from);
+        } else {
+          log.note(ms, e.note!);
+        }
       case Direction.out:
         log.output(ms, e.bytes);
       case Direction.input:

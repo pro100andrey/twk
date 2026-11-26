@@ -261,7 +261,7 @@ export interface Screen {
   readonly onDidOutput: Event<Output>;
   /** What it sent: keys, the mouse, the answers to queries. */
   readonly onDidInput: Event<Uint8Array>;
-  /** Something of the session: an app came or went, a size. */
+  /** Something of the session: an app came or went, the extension's own lines. */
   readonly onDidNote: Event<string>;
   /** Its size changed (its view's columns and lines). */
   readonly onDidResize: Event<void>;

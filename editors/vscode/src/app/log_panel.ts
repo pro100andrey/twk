@@ -7,7 +7,7 @@
 // came before it was opened is the screen's [Traffic], kept as bytes from
 // the screen's start (its probe, its modes), and decoded only then.
 import { Clock, Disposable, Emitter } from '../core/events';
-import { AppOffset, LogFilter, SequenceLog, entryAtAppBytes, wholeLog } from '../core/seqlog';
+import { AppOffset, LogFilter, SequenceLog, Size, entryAtAppBytes, wholeLog } from '../core/seqlog';
 import { TrafficPiece, logCast, logText, noteOf } from '../core/seqlog_save';
 import { ToLog, isFromLog } from '../webview/log_protocol';
 import { Screen } from './ports';
@@ -47,7 +47,23 @@ class Pieces {
   }
 }
 
-const weight = (p: Piece): number => ('output' in p ? p.output.length : 'input' in p ? p.input.length : p.note.length);
+/**
+ * What follows [screen]'s size: given a resize, calls its argument with the size now and the one before, unless the size
+ * did not change.
+ */
+function sizeFollower(screen: Screen): (f: (size: Size, from: Size) => void) => void {
+  let last: Size = { columns: screen.view.columns, lines: screen.view.lines };
+  return (f) => {
+    const size: Size = { columns: screen.view.columns, lines: screen.view.lines };
+    if (size.columns !== last.columns || size.lines !== last.lines) {
+      const from = last;
+      last = size;
+      f(size, from);
+    }
+  };
+}
+
+const weight = (p: Piece): number => ('output' in p ? p.output.length : 'input' in p ? p.input.length : 'size' in p ? 8 : p.note.length);
 
 /** Where the app's output is in the app's own count of the bytes it wrote: a run for each app the screen had, counted from its start. */
 class AppCount {
@@ -94,7 +110,9 @@ export class Traffic {
     this.pieces = new Pieces(budget);
     this.start = clock.now();
     this.pieces.add({ time: this.start, note: `${screen.name} opened, at ${screen.view.columns}x${screen.view.lines}` });
+    const resized = sizeFollower(screen);
     this.listening = [
+      screen.onDidResize(() => resized((size, from) => this.pieces.add({ time: clock.now(), size, from }))),
       screen.onDidOutput((o) => this.pieces.add({ time: clock.now(), output: o.bytes, fromApp: o.fromApp, ...(o.fromApp ? { app: this.count.take(o.bytes.length) } : {}) })),
       screen.onDidInput((bytes) => this.pieces.add({ time: clock.now(), input: bytes })),
       screen.onDidNote((note) => this.pieces.add({ time: clock.now(), note })),
@@ -165,7 +183,14 @@ export class LogPanel {
     } else {
       apply({ time: 0, note: `the log of ${screen.name} begins, at ${screen.view.columns}x${screen.view.lines}` });
     }
+    const resized = sizeFollower(screen);
     this.following = [
+      screen.onDidResize(() =>
+        resized((size, from) => {
+          apply({ time: at(clock.now()), size, from });
+          this.later();
+        }),
+      ),
       screen.onDidOutput((o) => {
         apply({ time: at(clock.now()), output: o.bytes, fromApp: o.fromApp, ...(o.fromApp ? { app: this.count.take(o.bytes.length) } : {}) });
         this.later();
@@ -299,6 +324,8 @@ export class LogPanel {
       }
     } else if ('input' in p) {
       this.log.input(p.time, p.input);
+    } else if ('size' in p) {
+      this.log.resize(p.time, p.size, p.from);
     } else {
       this.log.note(p.time, p.note);
     }

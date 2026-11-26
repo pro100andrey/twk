@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The sequence log's resize says the size before (`size 34x45 → 93x50`),
+  and a frame says when it is a full repaint (it erases the whole screen)
+  and, the first after a resize, how long after it it began: `frame 83:
+  full repaint 1 ms after resize to 93x50, …`. A log saved as a recording
+  has its resizes as `r` events, and the size before the first as its own.
 - The sequence log's frame rows are in the log's columns again: the app
   logs' style of a stack frame had pushed them right and dimmed them. A
   note's row there is in them too.

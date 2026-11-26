@@ -25,7 +25,7 @@ interface Golden {
   }[];
   readonly logs: readonly {
     readonly name: string;
-    readonly events: readonly { time: number; direction: 'out' | 'in' | 'note' | 'end'; bytes?: string; note?: string }[];
+    readonly events: readonly { time: number; direction: 'out' | 'in' | 'note' | 'resize' | 'end'; bytes?: string; note?: string; size?: [number, number]; from?: [number, number] }[];
     readonly entries: readonly unknown[];
   }[];
 }
@@ -61,6 +61,9 @@ describe('the sequence names held to the golden', () => {
           log.input(e.time, bytesOf(e.bytes ?? ''));
         } else if (e.direction === 'end') {
           log.finish(e.time);
+        } else if (e.direction === 'resize') {
+          const [columns, lines] = e.size ?? [0, 0];
+          log.resize(e.time, { columns, lines }, e.from ? { columns: e.from[0], lines: e.from[1] } : undefined);
         } else {
           log.note(e.time, e.note ?? '');
         }

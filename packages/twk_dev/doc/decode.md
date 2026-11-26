@@ -33,7 +33,10 @@ character, bytes above 0x7E in hex):
 
 A synchronized update (`CSI ? 2026 h` to `CSI ? 2026 l`) is a frame: a row
 `frame 3: 12 CUP, 9 text, ..., 4 ms` with the bytes it holds, and its own rows
-indented below it. `--frames` keeps the frame rows only. A frame still open
+indented below it. One that erases the whole screen (`ED 2`) says `full
+repaint`, and the first after a resize how long after it it began (`frame 3:
+full repaint 1 ms after resize to 93x50, ...`); a resize is the note `size
+80x24 → 93x50`. `--frames` keeps the frame rows only. A frame still open
 where the traffic ends (a truncated trace, a crash before `?2026l`) is a row
 ending `not closed`, and a string or sequence the app's last write left
 unfinished is a note `output cut short: ...`; a `?2026l` with no update open is

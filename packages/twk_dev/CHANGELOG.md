@@ -125,6 +125,10 @@ Changed:
 
 Fixed:
 
+- `twk decode` names a resize from the size before, `size 80x24 →
+  100x30` (was `resized to 100x30`), a frame that erases the whole screen a
+  full repaint, and the first frame after a resize how long after it it
+  began: `frame 3: full repaint 1 ms after resize to 100x30, ...`.
 - `twk decode` names an SGR mouse report in pixels while the app has
   SGR-Pixels (DEC mode 1016) on, `mouse left press at x 709, y 319 px`,
   not as a column and row; a motion with no button held is `mouse moved`,

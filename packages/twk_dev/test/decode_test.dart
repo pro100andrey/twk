@@ -67,7 +67,7 @@ void main() {
         ['0.500', 'out', 'text "hi"', 'hi'],
         ['0.500', 'out', 'CUP cursor to row 3, column 5', 'ESC [3;5H'],
         ['1.250', 'in', 'key Up', 'ESC [A'],
-        ['2.000', '--', 'resized to 100x30'],
+        ['2.000', '--', 'size 80x24 → 100x30'],
         ['2.500', '--', 'marker done'],
       ]);
     },

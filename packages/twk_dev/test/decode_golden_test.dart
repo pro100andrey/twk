@@ -68,6 +68,14 @@ void main() {
               log.input(time, bytesOf(e['bytes']! as String));
             case 'end':
               log.finish(time);
+            case 'resize':
+              final size = (e['size']! as List<Object?>).cast<int>();
+              final from = (e['from'] as List<Object?>?)?.cast<int>();
+              log.resize(
+                time,
+                (size[0], size[1]),
+                from: from == null ? null : (from[0], from[1]),
+              );
             default:
               log.note(time, e['note']! as String);
           }

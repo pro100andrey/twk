@@ -96,7 +96,20 @@ interface Open {
   readonly at?: number;
   readonly entries: LogEntry[];
   bytes: number;
+  /** It erases the whole screen (`ED 2`): a full repaint. */
+  full?: boolean;
 }
+
+/** A terminal's size, `<columns>x<lines>`. */
+export interface Size {
+  readonly columns: number;
+  readonly lines: number;
+}
+
+const sizeName = (s: Size): string => `${s.columns}x${s.lines}`;
+
+/** Whether [t] erases the whole screen: `CSI 2 J`. */
+const erasesScreen = (t: Token): boolean => t.kind === 'csi' && t.prefix === '' && t.intermediates === '' && t.final === 'J' && t.params === '2';
 
 /** A frame's summary: how many of each name's first word, the most first. */
 function summary(entries: readonly LogEntry[]): string {
@@ -131,6 +144,8 @@ export class SequenceLog {
   private positionAsked = 0;
   /** Whether the app has SGR-Pixels (DEC mode 1016) on: the terminal's mouse reports are in pixels. */
   private pixels = false;
+  /** The last resize no frame has told of yet: the next frame says it came after it, and how long after. */
+  private resized: { readonly time: number; readonly size: Size } | undefined;
   /** The app's run the output is of, the app's count at the end of the last token made of it, and at the end of the last bytes given. */
   private run = 0;
   private emitted = 0;
@@ -175,6 +190,9 @@ export class SequenceLog {
       this.pixels = pixelMouseChange(t) ?? this.pixels;
       const open = this.open;
       if (open) {
+        if (erasesScreen(t)) {
+          open.full = true;
+        }
         if (open.entries.length < this.frameLimit) {
           open.entries.push(entry);
         }
@@ -227,7 +245,16 @@ export class SequenceLog {
     this.out.reset();
   }
 
-  /** Something of the session at [time]: an app came or went, a size. */
+  /**
+   * The terminal was resized at [time] to [size], from [from] where that is known: a note saying both, and the next
+   * frame says it came after it.
+   */
+  resize(time: number, size: Size, from?: Size): void {
+    this.note(time, `size ${from ? `${sizeName(from)} → ` : ''}${sizeName(size)}`);
+    this.resized = { time, size };
+  }
+
+  /** Something of the session at [time]: an app came or went. */
   note(time: number, text: string): void {
     this.add({ id: this.nextId++, time, direction: 'note', kind: 'note', name: text, raw: '', bytes: 0 });
   }
@@ -258,12 +285,16 @@ export class SequenceLog {
     this.open = undefined;
     const cut = open.entries.length >= this.frameLimit ? ` (the first ${this.frameLimit} entries)` : '';
     const ms = time - open.time;
+    const resized = this.resized;
+    this.resized = undefined;
+    const after = resized ? `${open.time - resized.time} ms after resize to ${sizeName(resized.size)}` : '';
+    const cause = [open.full ? 'full repaint' : '', after].filter((c) => c !== '').join(' ');
     this.add({
       id: this.nextId++,
       time: open.time,
       direction: 'out',
       kind: 'frame',
-      name: `frame ${open.number}: ${summary(open.entries)}${cut}${ms > 0 ? `, ${ms} ms` : ''}${closed ? '' : ', not closed'}`,
+      name: `frame ${open.number}: ${cause === '' ? '' : `${cause}, `}${summary(open.entries)}${cut}${ms > 0 ? `, ${ms} ms` : ''}${closed ? '' : ', not closed'}`,
       raw: `${open.bytes} bytes`,
       bytes: open.bytes,
       children: open.entries,
